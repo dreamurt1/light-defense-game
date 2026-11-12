@@ -36,18 +36,33 @@ export function refreshLayout(): void {
   refresh();
 }
 
+/** 휴대폰은 방향을 바꾼 뒤에도 창 크기가 조금 늦게 확정된다: 그 뒤에 한 번 더 맞춘다 (ms) */
+const SETTLE_MS = [120, 400];
+
 export function watchLayout(game: Phaser.Game): void {
   let layout = applyLayout();
-  refresh = () => {
+  const sync = () => {
     const next = applyLayout();
     const view = currentView();
-    const size = game.scale.gameSize;
-    if (size.width !== view.width || size.height !== view.height) game.scale.setGameSize(view.width, view.height);
+    const scale = game.scale;
+    // 2026-11-12 휴대폰 회전 시 화면이 작아지던 문제: data-layout이 바뀌면 상자(#game의 부모) 크기도 바뀌는데,
+    // Phaser는 자기 차례(다음 폴링)에야 다시 잰다. 그 전에 새 비율로 맞추면 옛 상자 폭에 갇혀 작게 굳으므로 지금 다시 잰다.
+    scale.getParentBounds();
+    const size = scale.gameSize;
+    if (size.width !== view.width || size.height !== view.height) scale.setGameSize(view.width, view.height);
+    else scale.refresh();
     if (next !== layout) {
       layout = next;
       bus.emit('ui:layout', { layout });
     }
   };
+  let timers: number[] = [];
+  refresh = () => {
+    sync();
+    timers.forEach((t) => clearTimeout(t));
+    timers = SETTLE_MS.map((ms) => window.setTimeout(sync, ms));
+  };
   addEventListener('resize', refresh);
   screen.orientation?.addEventListener('change', refresh);
+  visualViewport?.addEventListener('resize', refresh);
 }
