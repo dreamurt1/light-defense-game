@@ -1,16 +1,15 @@
-// 파닥(박쥐): 보랏빛 눈의 검은 털뭉치로 지그재그로 다가오고, 빛을 받으면 라벤더색 얼굴을 되찾아 둥실 날아간다.
-// 그림은 에셋(enemies/bat-dark.png, bat-true.png)의 날갯짓 애니메이션, 되돌림 순간은 effects/fx-return.png.
+// 박쥐 (어둠의 호스틸, 2026-11-12 새 기획): 보랏빛 눈의 검은 털뭉치로 지그재그로 다가오고, 날아서 장애물을 무시한다.
+// 빛을 받아 HP가 0이 되면 움찔하며 빛 반대쪽 하늘로 날아가 맵 밖으로 사라진다(어둠의 주민이라 제 모습 변신은 없음).
 import Phaser from 'phaser';
 import { AnimKeys, TextureKeys } from '../../core/TextureKeys';
 import type { EnemyDef } from '../../data';
-import type { Vec } from '../../systems/fan';
 import { BAT } from '../../art/enemies';
 import { texScale } from '../../core/textureRes';
-import { Enemy } from './Enemy';
+import { Enemy, type ReturnContext } from './Enemy';
 
 // 연출 수치는 제안: 기획서에 없음
-const RETURN_RISE = 130;
-const RETURN_MS = 1100;
+const RETREAT_DIST = 260;
+const RETREAT_MS = 1200;
 /** 화면에서 보이는 크기. 판정 반지름(enemies.json radius)은 그대로 */
 const VISUAL_SCALE = 1.05;
 
@@ -58,26 +57,33 @@ export class Bat extends Enemy {
     this.scene.time.delayedCall(120, () => this.sprite.clearTint());
   }
 
-  protected playReturn(lantern: Vec): void {
+  protected playReturn(ctx: ReturnContext): void {
     const scene = this.scene;
-    this.sprite.play(AnimKeys.batTrueFly).setScale(texScale(TextureKeys.batTrue));
     this.setRotation(0);
     this.shadow.setVisible(false);
     this.underGlow.setVisible(false);
+    this.sprite.anims.timeScale = 1.8;
 
-    const fx = scene.add.sprite(this.x, this.y, TextureKeys.fxReturn, 0).setDepth(this.depth + 0.1).setBlendMode(Phaser.BlendModes.ADD);
-    fx.play(AnimKeys.fxReturn);
-    fx.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => fx.destroy());
+    const fx = scene.add.sprite(this.x, this.y, TextureKeys.fxImpact, 0).setDepth(this.depth + 0.1).setBlendMode(Phaser.BlendModes.ADD);
+    scene.tweens.add({ targets: fx, alpha: 0, scale: 1.6, duration: 380, onComplete: () => fx.destroy() });
 
-    // 제 모습으로 돌아와 등불 반대쪽 하늘로 둥실 날아간다
-    const away = Math.sign(this.x - lantern.x) || 1;
-    scene.tweens.add({ targets: this, scale: { from: VISUAL_SCALE * 1.25, to: VISUAL_SCALE }, duration: 260, ease: 'Back.easeOut' });
-    scene.tweens.add({ targets: this, x: this.x + away * 60, y: this.y - RETURN_RISE, duration: RETURN_MS, ease: 'Sine.easeInOut' });
+    // 빛 반대쪽 위로 날아가 사라진다 (맵 밖으로 돌아감)
+    const dx = this.x - ctx.from.x;
+    const dy = this.y - ctx.from.y;
+    const len = Math.hypot(dx, dy) || 1;
+    scene.tweens.add({ targets: this, scale: { from: VISUAL_SCALE * 0.85, to: VISUAL_SCALE }, duration: 200, ease: 'Back.easeOut' });
+    scene.tweens.add({
+      targets: this,
+      x: this.x + (dx / len) * RETREAT_DIST,
+      y: this.y + (dy / len) * RETREAT_DIST * 0.6 - 120,
+      duration: RETREAT_MS,
+      ease: 'Sine.easeIn',
+    });
     scene.tweens.add({
       targets: this,
       alpha: 0,
-      delay: RETURN_MS * 0.65,
-      duration: RETURN_MS * 0.35,
+      delay: RETREAT_MS * 0.5,
+      duration: RETREAT_MS * 0.5,
       onComplete: () => this.destroy(),
     });
   }

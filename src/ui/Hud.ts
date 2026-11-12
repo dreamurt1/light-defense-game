@@ -1,15 +1,22 @@
 // 플레이 중 HUD. 레퍼런스(reference/ChatGPT-Images)의 분위기를 따른다:
-//   위 한 줄 = 달 · "밤 mm:ss" · 민트 진행 바 · 점수 · 콤보 / 아래 = 불꽃 5개 · 시너지 게이지 · 일시정지.
+//   위 한 줄 = 달 · "밤 mm:ss" · 민트 진행 바(클라이맥스 눈금) · 점수 · 콤보
+//   아래 = 하트 3개 + HP 바 · LP(빛) 바 · 중앙 광원 광도 · 켠 등불 수 · 일시정지  (2026-11-12 새 기획)
 // 매 프레임이 아니라 이벤트가 올 때만 DOM을 고친다.
 import { bus, type RunResult } from '../core/events';
 import { GameData } from '../data';
 import { isComboMilestone } from '../systems/ComboSystem';
+import { bandOf } from '../systems/lightLevel';
 import { formatScore, formatTime, h, replay, svg } from './dom';
-import { badgeStarIcon, flameIcon, moonIcon, pauseIcon, sproutIcon, starIcon, swooshArt } from './icons';
+import { crystalIcon, heartIcon, lampIcon, moonIcon, pauseIcon, starIcon, swooshArt } from './icons';
 
-const FLAMES = 5;
-const { phases, durationSec } = GameData.game.night;
-const SYNERGY_MAX = GameData.game.synergy.max;
+const G = GameData.game;
+const BAND_NAMES = G.lightLevels.names;
+
+function meter(cls: string, label: string, icon: string): { el: HTMLElement; fill: HTMLElement } {
+  const fill = h('span', { class: 'meter__fill' });
+  const el = h('div', { class: `meter ${cls}`, role: 'progressbar', 'aria-label': label, 'aria-valuemin': 0, 'aria-valuemax': 100 }, svg(icon), h('span', { class: 'meter__track' }, fill));
+  return { el, fill };
+}
 
 export class Hud {
   readonly el: HTMLElement;
@@ -18,8 +25,13 @@ export class Hud {
   private readonly score: HTMLOutputElement;
   private readonly combo: HTMLElement;
   private readonly comboCount: HTMLElement;
-  private readonly flames: SVGSVGElement[];
-  private readonly synergy: HTMLElement;
+  private readonly hearts: SVGSVGElement[];
+  private readonly heartsBox: HTMLElement;
+  private readonly hp: HTMLElement;
+  private readonly lp: { el: HTMLElement; fill: HTMLElement };
+  private readonly source: { el: HTMLElement; fill: HTMLElement };
+  private readonly stations: HTMLElement;
+  private readonly stationsCount: HTMLElement;
   private readonly edge: HTMLElement;
   private readonly burst: HTMLElement;
   private readonly burstText: HTMLElement;
@@ -28,13 +40,11 @@ export class Hud {
 
   constructor() {
     this.clock = h('span', { class: 'night-clock__time' }, '00:00');
-    // 시간대 경계 눈금: 초저녁|한밤중, 한밤중|새벽 전
-    const notches = [phases.midnight[0], phases.predawn[0]].map((t) =>
-      h('span', { class: 'night-bar__notch', style: `--at: ${t / durationSec}` }),
-    );
+    // 시간대 경계 눈금: 한밤중 시작, 클라이맥스(새벽 전) 시작
+    const notches = [G.stage.phases.midnight[0], G.stage.climaxAt].map((at) => h('span', { class: 'night-bar__notch', style: `--at: ${at}` }));
     this.bar = h(
       'div',
-      { class: 'night-bar', role: 'progressbar', 'aria-label': '남은 밤', 'aria-valuemin': 0, 'aria-valuemax': durationSec },
+      { class: 'night-bar', role: 'progressbar', 'aria-label': '아침까지', 'aria-valuemin': 0, 'aria-valuemax': 100 },
       h('span', { class: 'night-bar__fill' }),
       ...notches,
       h('span', { class: 'night-bar__marker' }, svg(starIcon)),
@@ -59,8 +69,15 @@ export class Hud {
       ),
     );
 
-    this.flames = Array.from({ length: FLAMES }, () => svg(flameIcon));
-    this.synergy = h('span', { class: 'synergy__fill' });
+    // 루미: 하트 + HP
+    this.hearts = Array.from({ length: G.stage.hearts }, () => svg(heartIcon));
+    this.hp = h('span', { class: 'vitals__hp-fill' });
+    this.heartsBox = h('div', { class: 'vitals__hearts' }, ...this.hearts);
+    const vitals = h('div', { class: 'vitals', role: 'group', 'aria-label': '루미' }, this.heartsBox, h('span', { class: 'vitals__hp' }, this.hp));
+    this.lp = meter('meter--lp', '빛 (LP)', starIcon);
+    this.source = meter('meter--source', '중앙 광원', crystalIcon);
+    this.stationsCount = h('span', { class: 'stations__count' }, '0/0');
+    this.stations = h('div', { class: 'stations', role: 'img', 'aria-label': '켠 등불' }, svg(lampIcon), this.stationsCount);
     const pause = h('button', { class: 'round-button', type: 'button', 'aria-label': '일시정지' }, svg(pauseIcon));
     pause.addEventListener('click', () => bus.emit('ui:pause-toggle'));
 
@@ -70,16 +87,10 @@ export class Hud {
       h(
         'div',
         { class: 'hud-bottom__row' },
-        h('div', { class: 'flames', role: 'img', 'aria-label': '등불' }, ...this.flames),
+        vitals,
         h('span', { class: 'hud-bottom__rule', 'aria-hidden': 'true' }),
-        h(
-          'div',
-          { class: 'synergy', role: 'progressbar', 'aria-label': '시너지', 'aria-valuemin': 0, 'aria-valuemax': SYNERGY_MAX },
-          svg(sproutIcon),
-          h('span', { class: 'synergy__track' }, this.synergy),
-        ),
-        // 장착물 칸: 레퍼런스의 자리. 장착물은 M3라 지금은 꺼진 상태로 비워 둔다
-        h('span', { class: 'slot', role: 'img', 'aria-label': '장착물 칸' }, svg(badgeStarIcon)),
+        h('div', { class: 'meters' }, this.lp.el, this.source.el),
+        this.stations,
         pause,
       ),
     );
@@ -101,12 +112,10 @@ export class Hud {
 
   private listen(): void {
     bus.on('run:start', (e) => {
-      this.el.classList.remove('is-low', 'is-ended');
+      this.el.classList.remove('is-low', 'is-ended', 'is-down', 'is-source-low');
       this.test = e.test;
       this.el.classList.toggle('is-test', e.test);
       this.setNight(0, e.durationSec);
-      this.setFlames(e.hp, e.maxHp);
-      this.setSynergy(0);
       this.combo.classList.add('is-empty');
       this.score.textContent = '0';
     });
@@ -114,13 +123,25 @@ export class Hud {
     bus.on('night:phase', (e) => (this.el.dataset.phase = e.phase));
     bus.on('score:change', (e) => (this.score.textContent = formatScore(e.score)));
     bus.on('combo:change', (e) => this.setCombo(e.combo, e.reason, e.windowSec));
-    bus.on('synergy:change', (e) => this.setSynergy(e.value));
-    bus.on('synergy:burst', () => replay(this.synergy.parentElement as HTMLElement, 'is-full'));
-    bus.on('lantern:damage', (e) => {
-      this.setFlames(e.hp, e.maxHp);
-      replay(this.edge, 'is-hit');
+    bus.on('player:vitals', (e) => this.setVitals(e.hp, e.maxHp, e.hearts));
+    bus.on('player:hurt', () => replay(this.edge, 'is-hit'));
+    bus.on('player:down', () => {
+      this.el.classList.add('is-down');
+      replay(this.heartsBox, 'is-lost');
     });
-    bus.on('lantern:heal', (e) => this.setFlames(e.hp, e.maxHp));
+    bus.on('player:respawn', () => this.el.classList.remove('is-down'));
+    bus.on('lp:change', (e) => this.setMeter(this.lp, (e.value - e.min) / (e.max - e.min), e.value));
+    bus.on('central:change', (e) => {
+      this.setMeter(this.source, (e.value - e.outAt) / (e.max - e.outAt), e.value);
+      this.el.classList.toggle('is-source-low', bandOf(e.value, G.lightLevels.bands) === 0);
+    });
+    bus.on('central:hit', () => replay(this.source.el, 'is-hit'));
+    bus.on('station:change', (e) => {
+      this.stationsCount.textContent = `${e.lit}/${e.total}`;
+      this.stations.classList.toggle('is-all', e.total > 0 && e.lit === e.total);
+      this.stations.setAttribute('aria-label', `켠 등불 ${e.lit} / ${e.total}`);
+    });
+    bus.on('station:lit', () => replay(this.stations, 'is-bump'));
     bus.on('run:pause', (e) => this.el.classList.toggle('is-paused', e.paused));
     // 판이 끝나면 위 시계를 결과의 버틴 시간과 같게 맞춘다
     const end = (e: { result: RunResult }) => {
@@ -134,7 +155,7 @@ export class Hud {
   private setNight(t: number, duration: number): void {
     const p = Math.min(1, t / duration);
     this.bar.style.setProperty('--p', String(p));
-    this.bar.setAttribute('aria-valuenow', String(Math.floor(t)));
+    this.bar.setAttribute('aria-valuenow', String(Math.round(p * 100)));
     this.clock.textContent = this.test ? '테스트' : formatTime(t);
     this.bar.querySelectorAll<HTMLElement>('.night-bar__notch').forEach((n) => {
       n.classList.toggle('is-passed', p >= Number(n.style.getPropertyValue('--at')));
@@ -161,21 +182,21 @@ export class Hud {
     replay(this.burst, 'is-on');
   }
 
-  private setSynergy(value: number): void {
-    const p = Math.max(0, Math.min(1, value / SYNERGY_MAX));
-    this.synergy.style.setProperty('--p', String(p));
-    this.synergy.closest('.synergy')?.setAttribute('aria-valuenow', String(Math.round(value)));
+  private setVitals(hp: number, maxHp: number, hearts: number): void {
+    this.hearts.forEach((el, i) => el.classList.toggle('is-empty', i >= hearts));
+    this.hp.style.setProperty('--p', String(Math.max(0, Math.min(1, hp / maxHp))));
+    const low = hp / maxHp <= G.player.lowHpRatio && hp > 0;
+    this.el.classList.toggle('is-low', low);
+    this.heartsBox.parentElement?.setAttribute('aria-label', `루미 하트 ${hearts} · HP ${Math.ceil(hp)} / ${maxHp}`);
   }
 
-  private setFlames(hp: number, maxHp: number): void {
-    const per = maxHp / FLAMES;
-    this.flames.forEach((f, i) => {
-      const level = Math.max(0, Math.min(1, (hp - i * per) / per));
-      f.classList.toggle('is-out', level <= 0);
-      f.style.setProperty('--level', String(level));
-    });
-    const low = hp / maxHp <= GameData.game.lantern.lowHpRatio && hp > 0;
-    this.el.classList.toggle('is-low', low);
-    this.flames[0].parentElement?.setAttribute('aria-label', `등불 ${Math.ceil(hp)} / ${maxHp}`);
+  /** 막대 + 광도 단계 이름(스크린 리더) */
+  private setMeter(m: { el: HTMLElement; fill: HTMLElement }, ratio: number, value: number): void {
+    const p = Math.max(0, Math.min(1, ratio));
+    m.fill.style.setProperty('--p', String(p));
+    const band = bandOf(value, G.lightLevels.bands);
+    m.el.dataset.band = String(band);
+    m.el.setAttribute('aria-valuenow', String(Math.round(value)));
+    m.el.setAttribute('aria-valuetext', BAND_NAMES[band]);
   }
 }

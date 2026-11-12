@@ -18,7 +18,7 @@ function row(r: RankingRow, mine = false): HTMLElement {
     'li',
     { class: `rank-row${mine ? ' rank-row--me' : ''}${r.rank <= 3 ? ' rank-row--top' : ''}` },
     h('span', { class: 'rank-row__rank' }, mine ? '나' : String(r.rank)),
-    h('span', { class: 'rank-row__name' }, r.nickname, r.outcome === 'clear' ? h('span', { class: 'rank-row__dawn', title: '새벽까지' }, svg(starIcon)) : ''),
+    h('span', { class: 'rank-row__name' }, r.nickname, r.outcome !== 'over' ? h('span', { class: 'rank-row__dawn', title: '아침까지' }, svg(starIcon)) : ''),
     h('span', { class: 'rank-row__time' }, formatTime(r.survivedSec)),
     h('span', { class: 'rank-row__score' }, formatScore(r.score)),
   );

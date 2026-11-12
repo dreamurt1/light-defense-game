@@ -17,7 +17,7 @@ function entry(score: number, survivedSec = 60, playerId = 'p1'): ScoreSubmissio
     score,
     survivedSec,
     characterId: 'lumi',
-    equipmentId: null,
+    stageId: 'stage-1',
     maxCombo: 10,
     seed: 1,
     clientVersion: 'test',

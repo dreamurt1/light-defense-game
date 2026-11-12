@@ -6,14 +6,14 @@ import { makeSeed } from './rng';
 export const DEFAULT_NICKNAME = '이름 없는 등불지기';
 
 export const RunState = {
-  /** M1은 루미 고정. 선택 화면은 M3 */
+  /** 루미가 기본. 토리·도토는 구출 후 해금(Phase 5) */
   characterId: 'lumi' as CharacterId,
-  /** 장착물은 M3 */
-  equipmentId: null as string | null,
+  /** 지금 스테이지 (stages.json). 스테이지 진행은 Phase 5 */
+  stageId: 'stage-1',
   nickname: DEFAULT_NICKNAME,
   seed: makeSeed(),
   lastResult: null as RunResult | null,
-  /** 홈의 `테스트` 판: 이웃이 오지 않고 밤이 흐르지 않는다 (루미가 걷는 모습 확인용) */
+  /** 홈의 `테스트` 판(개발 모드만): 적이 오지 않고 시간이 흐르지 않는다 (루미가 걷는 모습 확인용) */
   test: false,
 
   newRun(): void {

@@ -6,7 +6,9 @@ export class Toast {
   readonly el = h('div', { class: 'toast', role: 'status', 'aria-live': 'polite' });
 
   constructor() {
-    bus.on('synergy:burst', () => this.show('마을이 환해져요!'));
+    // 2026-11-12 새 기획 (새 문구)
+    bus.on('station:lit', (e) => this.show(e.allLit ? '모든 등불이 켜졌어요!' : '등불이 켜졌어요'));
+    bus.on('player:down', (e) => this.show(`하트 ${e.hearts}개 남았어요`));
   }
 
   show(text: string): void {

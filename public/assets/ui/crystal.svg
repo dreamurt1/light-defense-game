@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" color="#F6F1E7" class="icon icon--crystal" viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M12 2.2 17.4 10 12 21.8 6.6 10Z" fill="currentColor"/>
+  <path d="M12 2.2 10.6 11.6 12 21.8" stroke="#FFF6DA" stroke-width="1.1" fill="none" opacity=".7"/>
+  <path d="M4 15.2 5.4 12.8 6.8 15.2 5.4 18.4Z M18.6 13.4 19.8 11.6 21 13.4 19.8 15.8Z" fill="currentColor" opacity=".7"/>
+</svg>

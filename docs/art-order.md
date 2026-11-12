@@ -102,23 +102,32 @@
 > 왼쪽 위는 로고를 얹을 밤하늘로 비우고, 오른쪽 아래는 메뉴 버튼을 얹을 수 있게 조금 어둡게. 글자 없음. 배경 있음.
 > (지금 홈은 레퍼런스 「달빛 숲의 등불지기 고양이」를 잘라 쓰고 있다. 이 그림이 오면 바뀐다.)
 
-## 2차 — M2(이웃 6종·아이템) 때 필요
+## 2차 — 새 기획(2026-11-12 XMind) 그림
 
-M2 개발 때 가져오기 규격을 추가하므로, 미리 받아 두면 바로 쓴다. 이웃은 모두 '어둠에 변한 모습'(검은 털뭉치 실루엣 + 보랏빛 눈)과 '제 모습'(귀엽고 제 색) 두 장이다.
+새 기획으로 옛 2차·3차 주문(그르르·말랑·호오·킥킥, 바루·몽이, 장착물 아이콘)은 필요 없다. 아래가 대신한다. 지금 게임에는 같은 키의 **임시 코드 그림**이 들어가 있어, 그림이 오면 `npm run art:import`로 바로 바뀐다.
+루미는 이제 **등불을 들지 않고 스스로 빛을 쏜다**(10번 홈 그림을 새로 뽑는다면 등불 없이).
+
+**Phase 1에 이미 쓰는 것 (먼저)**
+
+| 저장할 파일 | 무엇 | 포즈 |
+|---|---|---|
+| `objects/central-source.png` | 중앙 광원: 마을 가운데의 수호 토템. 돌 받침 두 단 위에 떠 있는 호박빛 빛의 결정(길쭉한 마름모)과 작은 파편 셋, 결정에 가는 금(어둠의 습격으로 생긴 균열). 128×176 안, 아래가 받침 바닥 | 켜짐(밝게 빛남) · 꺼짐(식은 보랏빛 결정) 두 포즈를 나란히 |
+| `objects/lantern.png` | 등불 스테이션: 마을 외곽 바닥에 세운 큰 놋쇠 등불(받침 + 유리 + 둥근 지붕 + 고리) | 켜짐 · 꺼짐 두 포즈 |
+| `enemies/frog-dark.png` · `frog-true.png` | 개구리(잃어버린 빛의 주민): 빛을 잃은 모습(검은 털뭉치 + 눈 두 혹 + 보랏빛 눈) / 제 모습(연두빛, 하얀 배, 웃는 얼굴) | 앉음 · 폴짝 두 포즈씩 |
+
+**Phase 3 (적 세 무리)**
 
 | 저장할 파일 | 무엇 |
 |---|---|
-| `enemies/croc-dark.png` · `croc-true.png` | 그르르(악어): 느리고 단단한 덩치. 걷기 포즈 2 |
-| `enemies/slime-dark.png` · `slime-true.png` | 말랑(슬라임): 큰 것·작은 것 나란히 |
-| `enemies/ghost-dark.png` · `ghost-true.png` | 호오(유령): 반투명하게 흐릿한 모습 |
-| `enemies/hyena-dark.png` · `hyena-true.png` | 킥킥(하이에나): 웃는 얼굴, 달리기 포즈 2 |
-| `objects/item-firefly-jar.png` | 반딧불 병 |
-| `objects/item-star-candy.png` | 별사탕 |
+| `enemies/hedgehog-dark.png` · `-true.png` | 고슴도치(잃어버린 주민), 걷기 포즈 2 |
+| `enemies/redpanda-dark.png` · `-true.png` | 레서판다(잃어버린 주민), 달리기 포즈 2 |
+| `enemies/werewolf.png` | 웨어울프(어둠의 호스틸): 무섭기보다 투박하고 귀여운 실루엣, 걷기 2 + 빛에 눈을 가린 포즈 1 |
+| `enemies/vampire.png` | 뱀파이어(어둠의 호스틸): 망토 두른 작은 동물, 걷기 2 + 빛을 피해 몸을 돌린 포즈 1 |
+| `enemies/owl.png` · `moth.png` · `firefly.png` | 패시브 어둠의 주민: 위협적이지 않게, 졸린 표정. 가만히 1 + 빛을 피해 움츠린 1 |
 
-## 3차 — M3(등불지기 5종·장착물) 때 필요
+**Phase 4 (아이템 5종, 둥근 아이콘·투명 배경)**: `objects/item-wind-feather.png` 바람 깃털 · `item-star-necklace.png` 별 목걸이 · `item-firefly-jar.png` 반딧불 병 · `item-golden-acorn.png` 황금 도토리 · `item-light-charm.png` 빛의 부적
 
-- `characters/keeper-tori.png` · `keeper-doto.png` · `keeper-baru.png` · `keeper-mong.png`: 1번 루미와 같은 3포즈, 같은 조건.
-- 장착물 아이콘 `ui/gear-slow-dust.png` · `gear-wind-shoes.png` · `gear-warm-scarf.png` · `gear-star-necklace.png`: 둥근 아이콘, 투명 배경.
+**Phase 5 (친구·보스·맵)**: `characters/keeper-tori.png`(토끼)·`keeper-doto.png`(**다람쥐**, 크고 복슬한 꼬리)는 루미 8방향 팩과 같은 규격 / 맵 테마 2종(경계 지역·어둠의 마을) 바닥과 소품, 강·다리·울타리·마을 건물
 
 ## 확인
 

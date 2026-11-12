@@ -11,7 +11,8 @@ export interface ScoreSubmission {
   score: number;
   survivedSec: number;
   characterId: CharacterId;
-  equipmentId: string | null;
+  /** 2026-11-12 새 기획: 장착물 대신 스테이지 */
+  stageId: string;
   maxCombo: number;
   seed: number;
   clientVersion: string;

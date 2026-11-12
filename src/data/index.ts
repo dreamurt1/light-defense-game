@@ -1,42 +1,98 @@
-// 밸런스 원본: light-defense-game 스킬 assets/data/*.json 복사본. 수치는 여기 JSON에서만 바꾼다.
+// 밸런스 원본: 수치는 여기 JSON에서만 바꾼다(스킬 assets/data/에 복사본, npm run doc:skill).
+// 2026-11-12 새 기획(XMind 1112): 스테이지·주인공 HP/하트/LP·중앙 광원·등불 스테이션·적 세 무리.
 import gameJson from './game.json';
 import charactersJson from './characters.json';
 import enemiesJson from './enemies.json';
 import itemsJson from './items.json';
-import equipmentJson from './equipment.json';
-import wavesJson from './waves.json';
+import stagesJson from './stages.json';
 import mapJson from './map.json';
 
-export type CharacterId = 'lumi' | 'tori' | 'doto' | 'baru' | 'mong';
-export type EnemyId = 'bat' | 'croc' | 'slime' | 'ghost' | 'hyena' | 'witch';
+export type CharacterId = 'lumi' | 'tori' | 'doto';
+export type EnemyId = 'bat' | 'werewolf' | 'vampire' | 'frog' | 'hedgehog' | 'redpanda' | 'owl' | 'moth' | 'firefly' | 'witch';
+/** 적 무리: 어둠의 호스틸 / 잃어버린 빛의 주민(호스틸, 구출) / 어둠의 패시브 / 보스 */
+export type EnemyKind = 'hostile' | 'lost' | 'passive' | 'boss';
+/** 하늘빛 시간대(연출용). predawn = 클라이맥스(진행 70%부터) */
 export type PhaseId = 'dusk' | 'midnight' | 'predawn';
 export type NightPhase = PhaseId | 'dawn';
+
+interface Footprint {
+  w: number;
+  h: number;
+}
 
 export interface GameConfig {
   /** 세로 540×960. 가로(2026-11-06)는 높이 540 고정, 폭은 화면 비율(720~1280) — core/layout.ts */
   viewport: { width: number; height: number; orientation: 'portrait'; landscape: { height: number; minWidth: number; maxWidth: number } };
   /** 마을(월드) 크기. 카메라가 등불지기를 따라간다 */
   world: { width: number; height: number };
-  /** 등불지기 이동: 속도(px/초), 장애물 판정 반지름, 마을 둘레에서 걷지 못하는 폭(위는 집 줄, 옆·아래는 덤불 띠) */
-  keeper: { moveSpeed: number; radius: number; walkInset: { top: number; side: number; bottom: number } };
-  /** 풀숲에 숨기: 이웃이 알아채는 거리, 빛을 쏘면 드러나는 시간, 숨었을 때 등불지기·풀숲 불투명도 */
-  /** 숨었을 때 못 본 이웃은 마을을 맴돈다(2026-11-06): 속도 배율, 다음 지점까지 거리 범위 */
-  hide: { revealDist: number; revealAfterFireSec: number; keeperAlpha: number; bushAlphaInside: number; roamSpeed: number; roamMin: number; roamMax: number };
-  /** 두 스틱: 데드존(반지름 대비) */
+  /** 이동 속도(px/초), 장애물 판정 반지름, 중앙 광원에서 아래로 떨어져 서는 거리, 걷지 못하는 둘레 폭 */
+  keeper: { moveSpeed: number; radius: number; startOffsetY: number; walkInset: { top: number; side: number; bottom: number } };
+  /** 풀숲에 숨기. 숨은 루미를 놓친 적은 lostSightSec 동안 맴돌다 광원·등불로 간다 */
+  hide: {
+    revealDist: number;
+    revealAfterFireSec: number;
+    keeperAlpha: number;
+    bushAlphaInside: number;
+    roamSpeed: number;
+    roamMin: number;
+    roamMax: number;
+    lostSightSec: number;
+  };
   controls: { deadzone: number; mouseCancelRadius: number };
-  lantern: {
-    /** 시작 위치 (등불지기가 들고 다닌다) */
+  /** 스테이지 공통: 클라이맥스 시작 비율, 하트 수, 하늘빛 시간대(비율) */
+  stage: { climaxAt: number; hearts: number; phases: Record<PhaseId, [number, number]> };
+  player: {
+    maxHp: number;
+    respawnDelaySec: number;
+    invulnSec: number;
+    regenDelaySec: number;
+    regenPerSec: number;
+    centralRegenPerSec: number;
+    hurtKnockback: number;
+    lowHpRatio: number;
+    respawnPushRadius: number;
+    respawnPush: number;
+  };
+  lp: {
+    min: number;
+    max: number;
+    start: number;
+    regenPerSec: number;
+    stationRegenPerSec: number;
+    centralRegenPerSec: number;
+    castCost: number;
+    stationCost: number;
+    weakest: number;
+  };
+  /** 광도 0~100 → 4단계 경계 */
+  lightLevels: { names: [string, string, string, string]; bands: [number, number, number] };
+  central: {
     x: number;
     y: number;
     radius: number;
-    maxHp: number;
-    lowHpRatio: number;
+    footprint: Footprint;
+    start: number;
+    max: number;
+    outAt: number;
+    growPerSec: number;
+    healRadius: number;
     glowMin: number;
     glowMax: number;
   };
-  night: { durationSec: number; phases: Record<PhaseId, [number, number]> };
-  /** 마을 분위기 (2026-11-06): 밤이 흐를수록 밝아짐, 등불이 맞을수록 어두워짐 — systems/villageMood.ts */
-  village: { brightenMax: number; brightenPower: number; gloomBase: number; gloomGrowth: number };
+  station: {
+    radius: number;
+    footprint: Footprint;
+    off: number;
+    on: number;
+    igniteSec: number;
+    damageMultiplier: number;
+    healRadius: number;
+    glowMin: number;
+    glowMax: number;
+  };
+  /** 루미 주변 빛(LP에 비례, 스테이지가 흐를수록 넓어짐) */
+  aura: { glowMin: number; glowMax: number; growWithProgress: number };
+  enemyAi: { aggroRadius: number; retargetSec: number; detachRatio: number };
   light: {
     mode: 'aimStick';
     fanDeg: number;
@@ -44,27 +100,29 @@ export interface GameConfig {
     expandSec: number;
     knockback: number;
     stunSec: number;
-    burstPowerMultiplier: number;
-    burstKnockback: number;
-    burstFlashSec: number;
   };
   combo: {
     windowSec: number;
-    lossMode: 'half';
+    lossMode: 'half' | 'reset';
     multiplierStep: number;
     multiplierPerStep: number;
     maxMultiplier: number;
   };
-  synergy: {
-    max: number;
-    gainPerReturn: number;
-    gainPerReturnHighCombo: number;
-    highComboThreshold: number;
-    decayPerSec: number;
-  };
-  score: { itemPickup: number; witchBonus: number; clearBase: number; clearPerLanternHp: number };
+  score: { station: number; mercy: number; itemPickup: number; clearBase: number; completeMultiplier: number };
   playfield: { margin: number };
-  items: { lifetimeSec: number; blinkLastSec: number; spawnRadiusMin: number; spawnRadiusMax: number };
+  items: { lifetimeSec: number; blinkLastSec: number; maxGround: number };
+  /** 맵 전체 광도 — systems/villageMood.ts */
+  village: {
+    brightenMax: number;
+    brightenPower: number;
+    buffMultiplier: number;
+    centralHitDip: number;
+    playerHitDip: number;
+    climaxDipMultiplier: number;
+    dipRecoverPerSec: number;
+    dipMax: number;
+    gloomPerDip: number;
+  };
 }
 
 export interface CharacterDef {
@@ -76,8 +134,10 @@ export interface CharacterDef {
   lightRange: number;
   lightPower: number;
   lightCooldownMultiplier: number;
-  trait: 'nightEyes' | 'quickPaw' | 'cheekPouch' | 'warmth' | 'bark';
+  trait: 'nightEyes' | 'quickPaw' | 'cheekPouch';
   traitParams: Record<string, number>;
+  /** null = 처음부터, rescue = 구출 스테이지에서 구하면 해금(Phase 5) */
+  unlock: 'rescue' | null;
   color: string;
   blurb: string;
   voicePitchHz: number;
@@ -91,58 +151,52 @@ export interface EnemyGroup {
 
 export interface EnemyDef {
   id: EnemyId;
+  kind: EnemyKind;
   name: string;
   nameEn: string;
-  animal: string;
-  boss?: boolean;
+  /** 지금 게임에 나오는지 (Phase마다 늘어난다) */
+  implemented: boolean;
   hp: number;
   speed: number;
-  lanternDamage: number;
+  /** 주인공 HP 피해 (주기마다) */
+  damage: number;
+  /** 중앙 광원·등불 광도 피해 (주기마다, 등불은 station.damageMultiplier배) */
+  sourceDamage: number;
   damageTickSec: number;
   score: number;
   radius: number;
+  /** 날아서 장애물을 무시 */
+  flies?: boolean;
   knockbackMultiplier?: number;
-  colorDark: string;
-  colorTrue: string;
   behavior: string;
   behaviorParams?: Record<string, number | boolean>;
   group?: EnemyGroup;
 }
 
-export interface WavePhaseDef {
-  id: PhaseId;
-  from: number;
-  to: number;
+export interface SpawnTable {
   maxAlive: number;
-  spawnIntervalStart: number;
-  spawnIntervalEnd: number;
+  intervalStart: number;
+  intervalEnd: number;
   weights: Partial<Record<EnemyId, number>>;
-  rules?: { onlyBatUntilSec?: number; slimeFromSec?: number };
-  hazards?: Record<string, { everySec: number; durationSec: number }>;
-  boss?: EnemyId;
 }
 
-export interface WavesDef {
-  phases: WavePhaseDef[];
-  hazards: Record<string, Record<string, number>>;
+export interface StageDef {
+  id: string;
+  name: string;
+  /** 맵 3종 = 스테이지 테마(라이언 답변): light-village · border · dark-village */
+  theme: 'light-village' | 'border' | 'dark-village';
+  durationSec: number;
+  /** 등불 스테이션 수 (1~4) */
+  stations: number;
+  spawn: { onlyHostileUntilSec?: number; normal: SpawnTable; climax: SpawnTable };
 }
 
 export interface ItemDef {
   id: string;
   name: string;
   effect: string;
-  dropChance: number;
-  periodicSpawnSec: number;
   color: string;
   [key: string]: string | number;
-}
-
-export interface EquipmentDef {
-  id: string;
-  name: string;
-  giver: string;
-  line: string;
-  effect: Record<string, number>;
 }
 
 // JSON 추론 타입(튜플·선택 필드)이 인터페이스와 정확히 맞지 않아 unknown을 거쳐 붙인다
@@ -151,8 +205,7 @@ export const GameData = {
   characters: charactersJson as unknown as CharacterDef[],
   enemies: enemiesJson as unknown as EnemyDef[],
   items: itemsJson as unknown as ItemDef[],
-  equipment: equipmentJson as unknown as EquipmentDef[],
-  waves: wavesJson as unknown as WavesDef,
+  stages: stagesJson as unknown as StageDef[],
   map: mapJson as unknown as MapDef,
 };
 
@@ -163,11 +216,12 @@ export interface MapRect {
   h: number;
 }
 
-/** 마을 배치(map.json): 숨을 수 있는 풀숲, 지나갈 수 없는 장애물, 바닥 문양 */
+/** 마을 배치(map.json): 숨을 수 있는 풀숲, 지나갈 수 없는 장애물, 바닥 문양, 등불 스테이션 자리 후보 */
 export interface MapDef {
   bushes: MapRect[];
   obstacles: (MapRect & { kind: 'rocks' | 'barrels' | 'lamp' })[];
   rings: { x: number; y: number }[];
+  stations: { x: number; y: number }[];
 }
 
 export function characterById(id: CharacterId): CharacterDef {
@@ -180,4 +234,19 @@ export function enemyById(id: EnemyId): EnemyDef {
   const def = GameData.enemies.find((e) => e.id === id);
   if (!def) throw new Error(`unknown enemy: ${id}`);
   return def;
+}
+
+export function stageById(id: string): StageDef {
+  return GameData.stages.find((s) => s.id === id) ?? GameData.stages[0];
+}
+
+/** 지금 게임에 나오는 적 */
+export const IMPLEMENTED_ENEMIES: readonly EnemyId[] = GameData.enemies.filter((e) => e.implemented).map((e) => e.id);
+
+/** 스테이지 길이로 하늘빛 시간대를 초 단위로 (NightClock 설정) */
+export function nightConfig(stage: StageDef): { durationSec: number; phases: Record<PhaseId, [number, number]> } {
+  const d = stage.durationSec;
+  const p = GameData.game.stage.phases;
+  const sec = (k: PhaseId): [number, number] => [p[k][0] * d, p[k][1] * d];
+  return { durationSec: d, phases: { dusk: sec('dusk'), midnight: sec('midnight'), predawn: sec('predawn') } };
 }

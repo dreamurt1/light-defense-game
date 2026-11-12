@@ -1,8 +1,13 @@
-// 하룻밤 120초와 시간대 (순수 로직). 일시정지는 update를 부르지 않는 것으로 처리한다.
+// 스테이지 시계 (순수 로직). 길이는 스테이지(stages.json, 약 100초 — 끝 = 아침), 하늘빛 시간대는 비율(game.json stage.phases).
+// predawn = 클라이맥스(진행 70%부터). 일시정지는 update를 부르지 않는 것으로 처리한다.
 import type { GameBus } from '../core/events';
-import type { GameConfig, NightPhase, PhaseId } from '../data';
+import type { NightPhase, PhaseId } from '../data';
 
-type NightCfg = GameConfig['night'];
+export interface NightCfg {
+  durationSec: number;
+  /** 시간대별 [시작, 끝] 초 */
+  phases: Record<PhaseId, [number, number]>;
+}
 
 /** HUD 진행 바 갱신 간격 (제안: 기획서에 없음) */
 export const NIGHT_TICK_SEC = 0.25;
@@ -30,8 +35,19 @@ export class NightClock {
     return this.cfg.durationSec;
   }
 
+  /** 0~1 */
+  get progress(): number {
+    return Math.min(1, this.t / this.cfg.durationSec);
+  }
+
+  /** 아침(스테이지 끝) */
   get isDawn(): boolean {
     return this.phase === 'dawn';
+  }
+
+  /** 클라이맥스(새벽 전) */
+  get climax(): boolean {
+    return this.phase === 'predawn';
   }
 
   /** 판 시작 시 한 번. 첫 시간대와 진행 0을 알린다 */

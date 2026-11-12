@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-06T07:00:36.024Z",
+  "generatedAt": "2026-11-12T09:08:10.734Z",
   "sheets": [
     {
       "key": "portrait-lumi",
@@ -33,32 +33,6 @@
       "category": "characters",
       "label": "도토 초상",
       "file": "characters/portrait-doto.png",
-      "frameWidth": 192,
-      "frameHeight": 192,
-      "frames": 1,
-      "res": 1,
-      "source": "code",
-      "load": true,
-      "anims": []
-    },
-    {
-      "key": "portrait-baru",
-      "category": "characters",
-      "label": "바루 초상",
-      "file": "characters/portrait-baru.png",
-      "frameWidth": 192,
-      "frameHeight": 192,
-      "frames": 1,
-      "res": 1,
-      "source": "code",
-      "load": true,
-      "anims": []
-    },
-    {
-      "key": "portrait-mong",
-      "category": "characters",
-      "label": "몽이 초상",
-      "file": "characters/portrait-mong.png",
       "frameWidth": 192,
       "frameHeight": 192,
       "frames": 1,
@@ -324,6 +298,52 @@
       ]
     },
     {
+      "key": "frog-dark",
+      "category": "enemies",
+      "label": "개구리 — 빛을 잃은 모습 (폴짝)",
+      "file": "enemies/frog-dark.png",
+      "frameWidth": 64,
+      "frameHeight": 64,
+      "frames": 2,
+      "res": 1,
+      "source": "code",
+      "load": true,
+      "anims": [
+        {
+          "key": "frog-dark-hop",
+          "frames": [
+            0,
+            1
+          ],
+          "frameRate": 3,
+          "repeat": -1
+        }
+      ]
+    },
+    {
+      "key": "frog-true",
+      "category": "enemies",
+      "label": "개구리 — 제 모습 (폴짝)",
+      "file": "enemies/frog-true.png",
+      "frameWidth": 64,
+      "frameHeight": 64,
+      "frames": 2,
+      "res": 1,
+      "source": "code",
+      "load": true,
+      "anims": [
+        {
+          "key": "frog-true-hop",
+          "frames": [
+            0,
+            1
+          ],
+          "frameRate": 5,
+          "repeat": -1
+        }
+      ]
+    },
+    {
       "key": "witch",
       "category": "enemies",
       "label": "노월 (보스, 대기)",
@@ -347,9 +367,22 @@
       ]
     },
     {
+      "key": "central-source",
+      "category": "objects",
+      "label": "중앙 광원 (밝음·약함·꺼짐)",
+      "file": "objects/central-source.png",
+      "frameWidth": 128,
+      "frameHeight": 176,
+      "frames": 3,
+      "res": 1,
+      "source": "code",
+      "load": true,
+      "anims": []
+    },
+    {
       "key": "lantern",
       "category": "objects",
-      "label": "등불 (켜짐·약함·꺼짐)",
+      "label": "등불 스테이션 (켜짐·약함·꺼짐)",
       "file": "objects/lantern.png",
       "frameWidth": 56,
       "frameHeight": 80,
@@ -728,9 +761,12 @@
     "ui/badge-star.svg",
     "ui/chevron-left.svg",
     "ui/chevron-right.svg",
+    "ui/crystal.svg",
     "ui/flame.svg",
     "ui/gear.svg",
+    "ui/heart.svg",
     "ui/home.svg",
+    "ui/lamp.svg",
     "ui/lock.svg",
     "ui/moon.svg",
     "ui/pause.svg",

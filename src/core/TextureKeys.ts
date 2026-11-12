@@ -11,10 +11,15 @@ export const TextureKeys = {
   sparkle: 'sparkle',
   star: 'star',
   footShadow: 'foot-shadow',
+  /** 등불 스테이션 (0 켜짐, 1 약함, 2 꺼짐). 2026-11-12부터 루미는 등불을 들지 않는다 */
   lantern: 'lantern',
   batDark: 'bat-dark',
   batTrue: 'bat-true',
   witch: 'witch',
+  frogDark: 'frog-dark',
+  frogTrue: 'frog-true',
+  /** 중앙 광원 토템 (0 밝음, 1 약함, 2 꺼짐) */
+  centralSource: 'central-source',
   fxReturn: 'fx-return',
   /** 루미 8방향 시트 (정지·걷기 = ChatGPT 8방향 팩, 애니메이션 키는 lumi-<idle|walk>-<방향>, lumi-ko·stun. 공격·피격·부활은 동작 효과) */
   lumi: 'lumi-8dir',
@@ -38,6 +43,8 @@ export const AnimKeys = {
   batDarkFly: 'bat-dark-fly',
   batTrueFly: 'bat-true-fly',
   witchIdle: 'witch-idle',
+  frogDarkHop: 'frog-dark-hop',
+  frogTrueHop: 'frog-true-hop',
   fxReturn: 'fx-return',
 } as const;
 

@@ -1,0 +1,15 @@
+[
+  {
+    "id": "stage-1",
+    "name": "첫 번째 밤",
+    "theme": "light-village",
+    "durationSec": 100,
+    "stations": 1,
+    "spawn": {
+      "onlyHostileUntilSec": 6,
+      "normal": { "maxAlive": 3, "intervalStart": 4.0, "intervalEnd": 3.0, "weights": { "bat": 3, "frog": 1 } },
+      "climax": { "maxAlive": 6, "intervalStart": 2.4, "intervalEnd": 2.0, "weights": { "bat": 3, "frog": 2 } }
+    },
+    "_notes": "2026-11-12 첫 스테이지(제안, 라이언: 첫 스테이지는 쉽게). 테마 3종(빛의 마을·경계·어둠의 마을)은 스테이지 테마(라이언 답변) — Phase 5에서 스테이지를 늘린다"
+  }
+]

@@ -233,3 +233,99 @@ export function drawWitch(ctx: Ctx, frame: number): void {
   ctx.fill();
   ctx.restore();
 }
+
+/** 개구리 (잃어버린 빛의 주민, 2026-11-12 새 기획). 임시 코드 그림: 0 = 앉음, 1 = 뛰어오름 */
+export const FROG = { size: 64, cx: 32, cy: 40, frames: 2 } as const;
+
+/** 빛을 잃은 개구리: 보랏빛 눈만 빛나는 검은 털뭉치 (눈 두 혹이 개구리 모양) */
+export function drawFrogDark(ctx: Ctx, frame: number): void {
+  const { cx } = FROG;
+  const cy = FROG.cy - (frame === 1 ? 6 : 0);
+  const sy = frame === 1 ? 1.1 : 1;
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.scale(1, sy);
+  ctx.fillStyle = '#14111F';
+  starPath(ctx, 0, 2, 14, 17, 14.5, frame * 0.1);
+  ctx.fill();
+  // 눈 두 혹
+  for (const d of [-1, 1]) {
+    ellipse(ctx, d * 8, -10, 7, 6.5);
+    ctx.fill();
+  }
+  // 앞발
+  ellipse(ctx, -12, 15, 6, 3.5);
+  ctx.fill();
+  ellipse(ctx, 12, 15, 6, 3.5);
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(168,156,217,0.3)';
+  ctx.lineWidth = 1.2;
+  ctx.beginPath();
+  ctx.arc(0, 2, 15.5, -2.7, -0.5);
+  ctx.stroke();
+  ctx.shadowColor = Palette.lavender;
+  ctx.shadowBlur = 8;
+  ctx.fillStyle = '#D6CCFF';
+  for (const d of [-1, 1]) {
+    ellipse(ctx, d * 8, -10, 3, 2.4);
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
+/** 제 모습을 찾은 개구리: 연두빛, 하얀 배, 웃는 얼굴 */
+export function drawFrogTrue(ctx: Ctx, frame: number): void {
+  const { cx } = FROG;
+  const cy = FROG.cy - (frame === 1 ? 6 : 0);
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.scale(1, frame === 1 ? 1.08 : 1);
+  ctx.fillStyle = '#7CC57A';
+  ctx.strokeStyle = 'rgba(30,60,40,0.55)';
+  ctx.lineWidth = 1.4;
+  // 뒷다리
+  for (const d of [-1, 1]) {
+    ellipse(ctx, d * 15, 12, 8, 6);
+    ctx.fill();
+    ctx.stroke();
+  }
+  // 몸
+  ellipse(ctx, 0, 4, 17, 14);
+  ctx.fill();
+  ctx.stroke();
+  ellipse(ctx, 0, 9, 10, 7);
+  ctx.fillStyle = '#F2F5DC';
+  ctx.fill();
+  // 눈 혹
+  for (const d of [-1, 1]) {
+    ellipse(ctx, d * 8, -9, 7, 6.5);
+    ctx.fillStyle = '#7CC57A';
+    ctx.fill();
+    ctx.stroke();
+    ellipse(ctx, d * 8, -9, 3.6, 3.8);
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(d * 8, -8.6, 2.2, 0, Math.PI * 2);
+    ctx.fillStyle = '#23302A';
+    ctx.fill();
+  }
+  // 볼·입
+  ctx.fillStyle = 'rgba(242,150,170,0.55)';
+  for (const d of [-1, 1]) {
+    ellipse(ctx, d * 10, 0, 2.6, 1.6);
+    ctx.fill();
+  }
+  ctx.strokeStyle = '#23302A';
+  ctx.lineWidth = 1.3;
+  ctx.beginPath();
+  ctx.arc(0, -1, 4.5, 0.25, Math.PI - 0.25);
+  ctx.stroke();
+  // 앞발
+  ctx.fillStyle = '#6AB46A';
+  for (const d of [-1, 1]) {
+    ellipse(ctx, d * 9, 17, 5, 3);
+    ctx.fill();
+  }
+  ctx.restore();
+}

@@ -1,105 +1,105 @@
-// 한 판(하룻밤)을 조립만 한다. 판정은 시스템, 연출은 엔티티·DOM UI가 이벤트로 받아 처리한다.
-// 2026-11-04 두 스틱 조작: 등불지기가 등불을 들고 넓은 마을을 걷고(카메라가 따라감),
-// 빛 스틱(DOM, ui/Sticks.ts) 또는 PC 마우스로 겨눠 쏜다. 입력은 input:* 이벤트로 들어온다.
-// 마을에는 지나갈 수 없는 장애물과 숨을 수 있는 풀숲이 있다(data/map.json, 브롤스타즈식).
+// 한 스테이지를 조립만 한다. 판정은 시스템, 연출은 엔티티·DOM UI가 이벤트로 받아 처리한다.
+// 2026-11-12 새 기획(XMind 1112): 맵 가운데 중앙 광원(최후 보루)과 외곽 등불 스테이션을 지키고 켠다.
+// 루미는 HP·하트·LP를 갖고 스스로 빛을 쏜다(손 등불 없음). 약 100초 뒤 아침이 오면 끝(70%부터 클라이맥스).
+// 조작은 2026-11-04 두 스틱(빛 스틱 DOM ui/Sticks.ts, PC 마우스)이고 입력은 input:* 이벤트로 들어온다.
 import Phaser from 'phaser';
 import { bus, type RunResult } from '../core/events';
 import { Rng } from '../core/rng';
 import { RunState } from '../core/RunState';
-import { characterById, enemyById, GameData, type EnemyId } from '../data';
+import { characterById, GameData, IMPLEMENTED_ENEMIES, nightConfig, stageById, type StageDef } from '../data';
 import { VillageStage } from '../entities/VillageStage';
-import { Lantern } from '../entities/Lantern';
 import { KEEPER_FOOT_Y, Lightkeeper } from '../entities/Lightkeeper';
 import { AimGuide } from '../entities/AimGuide';
 import { EdgeArrows } from '../entities/EdgeArrows';
 import { MapProps } from '../entities/MapProps';
 import { LightFx } from '../entities/LightFx';
+import type { LightStation } from '../entities/LightStation';
 import { DesktopControls } from '../input/DesktopControls';
-import { Bat } from '../entities/enemies/Bat';
-import type { Enemy } from '../entities/enemies/Enemy';
+import type { Enemy, EnemyContext, EnemyStep } from '../entities/enemies/Enemy';
 import { ComboSystem, isComboMilestone } from '../systems/ComboSystem';
 import { NightClock } from '../systems/NightClock';
 import { ScoreCalculator } from '../systems/ScoreCalculator';
 import { LightSystem } from '../systems/LightSystem';
-import { Spawner, type SpawnRequest } from '../systems/Spawner';
+import { Spawner } from '../systems/Spawner';
 import type { Vec } from '../systems/fan';
 import { autoAimAngle, dragAim } from '../systems/aimStick';
 import { stepMove, strongerInput, walkArea } from '../systems/movement';
-import { bushAt, pushOut } from '../systems/obstacles';
+import { bushAt, pushOut, type Rect } from '../systems/obstacles';
 import { follow } from '../systems/facing';
+import { Vitals } from '../systems/vitals';
+import { LightPoints } from '../systems/lightPoints';
+import { judgeStage, type EndReason, type StageOutcome } from '../systems/stageOutcome';
 import { prefersReducedMotion } from '../ui/dom';
+import { EnemyField } from './play/EnemyField';
+import { Sources } from './play/Sources';
 
 const CFG = GameData.game;
-/** 아직 구현된 악당. M2에서 늘어난다 */
-const IMPLEMENTED: readonly EnemyId[] = ['bat'];
-/** 등불이 꺼지는 연출 (스킬: 1.5초 입력 막고 불씨 하나) */
-const GAME_OVER_SEC = 1.5;
-/** 새벽 연출 (스킬: 하늘 가장자리가 2초간 DAWN으로) */
+/** 오늘은 여기까지 연출 (입력 막고 빛이 사그라듦) */
+const OVER_SEC = 1.5;
+/** 아침 연출 (마을 전체가 2초간 켜짐) */
 const DAWN_SEC = 2;
-/** 탭 사이 프레임이 길게 끊겨도 한 번에 너무 많이 진행하지 않게 */
+/** 프레임이 길게 끊겨도 한 번에 너무 많이 진행하지 않게 */
 const MAX_DT = 1 / 20;
 /**
- * 판이 끝나면 결과 판이 등불을 가리지 않게 월드를 민다 (제안: 기획서에 없음).
- * 세로: 결과 판이 아래에서 올라오므로 등불을 위로. 가로: 결과 판이 오른쪽에 서므로 등불을 왼쪽으로(화면 폭 비율)
+ * 판이 끝나면 결과 판이 루미를 가리지 않게 월드를 민다 (제안: 기획서에 없음).
+ * 세로: 결과 판이 아래에서 올라오므로 위로. 가로: 결과 판이 오른쪽에 서므로 왼쪽으로(화면 폭 비율)
  */
 const END_PAN = { portraitY: 230, landscapeX: 0.22 };
 const END_PAN_MS = 700;
-/** 카메라가 등불지기를 따라가는 부드러움 (제안: 기획서에 없음) */
+/** 카메라가 루미를 따라가는 부드러움 (제안) */
 const FOLLOW_LERP = 0.14;
-/** 화면 밖에서 이웃이 나타나는 거리: 보이는 영역 가장자리에서 이만큼 바깥 (제안) */
-const SPAWN_OUTSIDE = 56;
 const WALK_AREA = walkArea(CFG.world.width, CFG.world.height, CFG.keeper.walkInset);
-/** 등불지기 몸 가운데에서 발까지: 장애물·풀숲은 발 위치로 판정한다 (2.5D) */
+/** 루미 몸 가운데에서 발까지: 장애물·풀숲은 발 위치로 판정한다 (2.5D) */
 const FEET_Y = KEEPER_FOOT_Y;
 /** 풀숲 가장자리에서 이만큼 들어가야 숨는다 (제안) */
 const BUSH_INSET = 16;
-// 2026-11-04 루미 재구성 (영문 지시서 2·5절). 모두 제안: 기획서에 없음
-/** 이동 입력이 따라붙는 반응 시간: 출발·정지가 부드럽게 */
+/** 이동 입력이 따라붙는 반응 시간: 출발·정지가 부드럽게 (제안) */
 const MOVE_TAU = 0.1;
-/** 등불이 맞으면 루미가 이웃 반대쪽으로 밀리는 거리 */
-const HURT_KNOCKBACK = 14;
-/** 피격 화면 흔들림 */
 const HURT_SHAKE = { ms: 120, intensity: 0.004 };
-/** 대광원 원형 표시가 퍼지는 반지름 */
-const BURST_RING = 320;
+/** 무적 깜빡임: 초당 2.5회의 완만한 맥박 (깜빡임 초당 3회 이하 규칙) */
+const INVULN_PULSE_HZ = 2.5;
+/** 모든 등불이 켜졌을 때 환해지는 시간 */
+const CELEBRATE_SEC = 0.9;
 
 export class PlayScene extends Phaser.Scene {
   private stage!: VillageStage;
-  private lantern!: Lantern;
   private keeper!: Lightkeeper;
+  /** 중앙 광원·등불 스테이션·맵 전체 광도 */
+  private sources!: Sources;
+  private field!: EnemyField;
+  private vitals!: Vitals;
+  private lp!: LightPoints;
   private combo!: ComboSystem;
   private clock!: NightClock;
   private score!: ScoreCalculator;
   private light!: LightSystem;
-  private spawner!: Spawner;
-  private enemies: Enemy[] = [];
-  private pending: SpawnRequest[] = [];
-  private returnedCount = 0;
+  private stageDef!: StageDef;
+  private obstacles: Rect[] = [];
+  private rescued = 0;
+  private retreated = 0;
   private paused = false;
   private ended = false;
-  /** 홈의 `테스트` 판: 이웃을 만들지 않고 밤 시계를 돌리지 않는다 */
+  /** 홈의 `테스트` 판(개발 모드만): 적을 만들지 않고 시계를 돌리지 않는다 */
   private test = false;
-  private burstPending = false;
   private unsubscribe: (() => void)[] = [];
   private aimGuide!: AimGuide;
   private fx!: LightFx;
-  /** 부드럽게 따라붙은 이동 입력 */
   private moveVec: Vec = { x: 0, y: 0 };
   private edgeArrows!: EdgeArrows;
   private desktop!: DesktopControls;
-  /** 이동 스틱 입력 (길이 0~1) */
   private stickMove: Vec = { x: 0, y: 0 };
   /** 빛 스틱으로 겨누는 방향과 끈 정도(0~1). 겨누지 않으면 null */
   private stickAim: { angle: number; power: number } | null = null;
   private props!: MapProps;
-  /** 설정 시트가 열려 있음 */
   private settingsOpen = false;
-  /** 등불지기가 들어가 있는 풀숲 번호 (-1 = 밖) */
+  /** 루미가 들어가 있는 풀숲 번호 (-1 = 밖) */
   private bushIn = -1;
   /** 빛을 쏜 뒤 풀숲 속에서도 드러나 있는 남은 시간 */
   private revealLeft = 0;
-  /** 숨은 등불지기를 못 본 이웃이 맴돌 지점을 고르는 난수 (판마다 seed로 재현) */
   private roamRng = new Rng(1);
+  private time_ = 0;
+  /** HUD에 마지막으로 알린 값 (바뀔 때만 이벤트) */
+  private shown = { hp: -1, lp: -1, central: -1 };
 
   constructor() {
     super('Play');
@@ -107,29 +107,22 @@ export class PlayScene extends Phaser.Scene {
 
   create(): void {
     const keeperDef = characterById(RunState.characterId);
-    const start = { x: CFG.lantern.x, y: CFG.lantern.y };
+    this.stageDef = stageById(RunState.stageId);
     const rng = new Rng(RunState.seed);
-
-    this.enemies = [];
-    this.pending = [];
-    this.returnedCount = 0;
-    this.paused = false;
-    this.ended = false;
-    this.test = RunState.test;
-    this.burstPending = false;
+    Object.assign(this, { rescued: 0, retreated: 0, paused: false, ended: false, test: RunState.test, bushIn: -1, revealLeft: 0, time_: 0 });
     this.stickMove = { x: 0, y: 0 };
     this.moveVec = { x: 0, y: 0 };
     this.stickAim = null;
-    this.bushIn = -1;
-    this.revealLeft = 0;
+    this.shown = { hp: -1, lp: -1, central: -1 };
     this.roamRng = new Rng(RunState.seed + 17);
 
-    // 등불은 등불지기의 손에: Lantern.pos 한 객체를 무대(빛 고임)·이웃(등불을 쫓고 공격)이 함께 읽는다.
-    // 빛(원뿔·부채꼴·판정)은 루미의 중심 keeper.pos에서 나간다 (2026-11-06 라이언 지시, 브롤스타즈처럼 캐릭터 중심)
+    // 첫 화면은 중앙 광원과 주인공을 비춘다(XMind): 루미는 광원 바로 아래에서 시작
+    this.sources = new Sources(this, rng, this.stageDef.stations);
+    const start = this.homeSpot;
     this.keeper = new Lightkeeper(this, keeperDef, start.x, start.y);
-    this.lantern = new Lantern(this, { ...CFG.lantern, ...this.keeper.hand });
-    this.stage = new VillageStage(this, this.lantern.pos);
+    this.stage = new VillageStage(this, this.keeper.pos);
     this.props = new MapProps(this);
+    this.obstacles = [...this.props.obstacles, ...this.sources.footprints];
     this.aimGuide = new AimGuide(this, CFG.light.fanDeg);
     this.fx = new LightFx(this);
     this.edgeArrows = new EdgeArrows(this);
@@ -141,26 +134,24 @@ export class PlayScene extends Phaser.Scene {
 
     const cam = this.cameras.main;
     cam.setBounds(0, 0, CFG.world.width, CFG.world.height);
-    cam.centerOn(start.x, start.y);
+    cam.centerOn(start.x, (start.y + CFG.central.y) / 2);
 
-    this.combo = new ComboSystem({ combo: CFG.combo, synergy: CFG.synergy }, bus);
-    this.clock = new NightClock(CFG.night, bus);
+    this.vitals = new Vitals(CFG.player, CFG.stage.hearts);
+    this.lp = new LightPoints(CFG.lp);
+    this.combo = new ComboSystem(CFG.combo, bus);
+    this.clock = new NightClock(nightConfig(this.stageDef), bus);
     this.score = new ScoreCalculator(CFG.combo, CFG.score);
-    this.light = new LightSystem(
-      CFG.light,
-      this.keeper.pos,
-      keeperDef.lightRange,
-      CFG.light.cooldownSec * keeperDef.lightCooldownMultiplier,
-      bus,
-    );
-    this.spawner = new Spawner(
-      GameData.waves,
+    this.light = new LightSystem(CFG.light, this.keeper.pos, keeperDef.lightRange, CFG.light.cooldownSec * keeperDef.lightCooldownMultiplier, bus);
+    const spawner = new Spawner(
+      this.stageDef,
+      CFG.stage.climaxAt,
       GameData.enemies,
       rng,
-      // 이웃은 지금 화면 가장자리 밖에서 나온다: 화면 크기(세로·가로)가 바뀌면 onResize가 다시 맞춘다
+      // 적은 지금 화면 가장자리 밖에서 나온다: 화면 크기(세로·가로)가 바뀌면 onResize가 다시 맞춘다
       { width: this.scale.width, height: this.scale.height, margin: CFG.playfield.margin },
-      IMPLEMENTED,
+      IMPLEMENTED_ENEMIES,
     );
+    this.field = new EnemyField(this, spawner, CFG.world, CFG.playfield.margin);
 
     // 설정이 열려 있으면 ESC는 설정만 닫는다(SettingsSheet가 먼저 받아 preventDefault). 그때는 일시정지를 풀지 않는다
     this.input.keyboard?.on('keydown-ESC', (e: KeyboardEvent) => {
@@ -171,7 +162,6 @@ export class PlayScene extends Phaser.Scene {
     this.unsubscribe = [
       bus.on('ui:pause-toggle', () => this.togglePause()),
       bus.on('ui:restart', () => this.restart()),
-      bus.on('synergy:burst', () => (this.burstPending = true)),
       bus.on('combo:change', (e) => {
         this.stage.setCombo(e.combo);
         if (e.reason === 'gain' && isComboMilestone(e.combo)) this.stage.pulse();
@@ -182,7 +172,6 @@ export class PlayScene extends Phaser.Scene {
       bus.on('input:fire', (e) => this.fire(e.angle, e.power === undefined ? Infinity : e.power * this.light.range)),
       bus.on('ui:settings', (e) => (this.settingsOpen = e.open)),
       bus.on('ui:layout', () => this.pauseIfRunning()),
-      bus.on('lantern:heal', () => this.stage.healGlow()),
       bus.on('night:phase', (e) => {
         if (e.phase !== 'dawn') this.stage.setPhase(e.phase, e.t === 0);
       }),
@@ -197,19 +186,14 @@ export class PlayScene extends Phaser.Scene {
       this.game.events.off(Phaser.Core.Events.HIDDEN, this.pauseIfRunning, this);
     });
 
-    // 새 밤: 루미가 빛기둥 속에 나타난다 (부활 연출)
+    // 스테이지 시작: 루미가 빛기둥 속에 나타난다
     this.keeper.respawn();
     this.fx.respawn(this.keeper.pos.x, this.keeper.pos.y + FEET_Y);
 
-    bus.emit('run:start', {
-      seed: RunState.seed,
-      characterId: keeperDef.id,
-      hp: this.lantern.hp,
-      maxHp: this.lantern.maxHp,
-      durationSec: CFG.night.durationSec,
-      test: this.test,
-    });
+    bus.emit('run:start', { seed: RunState.seed, characterId: keeperDef.id, stageId: this.stageDef.id, durationSec: this.stageDef.durationSec, test: this.test });
     bus.emit('score:change', { score: 0, gained: 0 });
+    this.sources.emitStations();
+    this.emitVitals();
     this.clock.start();
     this.cameras.main.fadeIn(400, 18, 15, 36);
   }
@@ -217,73 +201,170 @@ export class PlayScene extends Phaser.Scene {
   override update(_time: number, deltaMs: number): void {
     if (this.paused) return;
     const dt = Math.min(deltaMs / 1000, MAX_DT);
-
+    this.time_ += dt;
     if (!this.ended) {
       this.walk(dt);
       this.tick(dt);
     }
-
-    // 풀숲에 숨으면 등불빛도 낮춘다
-    this.stage.update(dt, this.lantern.glowRadius, this.lantern.flicker * (this.hidden ? 0.5 : 1));
-    this.lantern.update(dt, this.light.cooldownSec > 0 ? this.light.cooldownLeft / this.light.cooldownSec : 0);
+    // 루미 주변 빛: LP에 비례, 스테이지가 흐를수록 넓어짐, 쓰러지면 '낮음'으로 사그라듦
+    const a = CFG.aura;
+    const trait = this.keeper.def.trait === 'nightEyes' ? (this.keeper.def.traitParams.auraMultiplier ?? 1) : 1;
+    const aura = this.vitals.down ? a.glowMin * 0.5 : (a.glowMin + (a.glowMax - a.glowMin) * this.lp.ratio) * (1 + a.growWithProgress * this.clock.progress) * trait;
+    this.stage.update(dt, this.sources.pools({ x: this.keeper.pos.x, y: this.keeper.pos.y, radius: aura, alpha: this.hidden ? 0.5 : 1 }));
   }
 
   private tick(dt: number): void {
-    // 테스트 판은 초저녁에 머문다: 새벽(클리어)도 이웃도 없다
     if (!this.test) this.clock.update(dt);
-    this.stage.setMood(this.clock.t / CFG.night.durationSec, this.lantern.hp / this.lantern.maxHp);
-    if (this.clock.isDawn) {
-      this.clear();
+    const progress = this.clock.progress;
+
+    // 광원들: 등불 점화·맵 전체 광도·중앙 광원
+    for (const s of this.sources.update(dt, progress)) this.onStationLit(s);
+    this.stage.setMood(this.sources.mapLight.lit, this.sources.mapLight.gloom);
+    const central = this.sources.central;
+
+    // 루미: HP·하트(중앙 광원 곁에서 빨리 회복), LP(광원 > 등불 > 들판)
+    const near = (p: Vec, r: number) => Math.hypot(p.x - this.keeper.pos.x, p.y - this.keeper.pos.y) <= r;
+    const nearCentral = near(central.pos, CFG.central.healRadius);
+    if (this.vitals.update(dt, nearCentral)) this.respawnKeeper();
+    if (!this.vitals.down) {
+      const nearStation = this.sources.stations.some((s) => s.state.lit && near(s.pos, CFG.station.healRadius));
+      this.lp.update(dt, nearCentral ? 'central' : nearStation ? 'station' : 'field');
+    }
+    this.light.rangeMultiplier = this.lp.effectiveness;
+    this.emitVitals();
+
+    const verdict = judgeStage({
+      timeUp: this.clock.isDawn,
+      hearts: this.vitals.hearts,
+      centralOut: central.state.out,
+      centralLevel: central.state.value,
+      stationLevels: this.sources.stationLevels,
+      bands: CFG.lightLevels.bands,
+    });
+    if (verdict) {
+      this.end(verdict.outcome, verdict.reason);
       return;
     }
 
-    if (this.burstPending) {
-      this.burstPending = false;
-      this.burst();
-    }
+    if (!this.test) this.field.spawn(dt, this.clock.t);
+    for (const { enemy, hit } of this.field.step(dt, this.enemyContext())) this.applyHit(enemy, hit);
 
-    if (!this.test) this.spawn(dt);
-
-    const lantern = { x: this.lantern.pos.x, y: this.lantern.pos.y, radius: CFG.lantern.radius };
-    const hidden = this.hidden;
-    for (const e of this.enemies) {
-      // 숨은 등불지기는 아주 가까이 온 이웃만 알아챈다(브롤스타즈처럼). 나머지는 루미를 못 보고 마을을 맴돈다
-      const sees = !hidden || Math.hypot(e.x - lantern.x, e.y - lantern.y) <= CFG.hide.revealDist;
-      const step = e.step(dt, sees ? { lantern, speedMultiplier: 1 } : { lantern, roam: this.roamPoint, roamSpeed: CFG.hide.roamSpeed, speedMultiplier: 1 });
-      if (step.firstContact) this.combo.registerLanternHit();
-      if (step.damage > 0) {
-        this.lantern.damage(step.damage);
-        this.hurtKeeper(e);
-        bus.emit('lantern:damage', { hp: this.lantern.hp, maxHp: this.lantern.maxHp, by: e.def.id });
+    // 빛: 적과 꺼진 등불을 맞힌다 (등불은 음수 uid)
+    const enemies = this.field.active;
+    for (const hit of this.light.update(dt, [...enemies, ...this.sources.lightTargets()])) {
+      if (hit.uid < 0) this.igniteStation(this.sources.stationByUid(hit.uid));
+      else {
+        const e = enemies.find((t) => t.uid === hit.uid);
+        if (e) this.hitEnemy(e);
       }
     }
 
-    const targets = this.enemies.filter((e) => e.targetable);
-    for (const hit of this.light.update(dt, targets)) {
-      const e = targets.find((t) => t.uid === hit.uid);
-      if (!e) continue;
-      this.hitEnemy(e, this.keeper.def.lightPower, CFG.light.knockback, CFG.light.stunSec);
-    }
-
     this.combo.update(dt);
-    this.enemies = this.enemies.filter((e) => e.active);
-    this.edgeArrows.update(this.cameras.main, this.enemies.filter((e) => e.targetable));
+    this.field.prune();
+    this.edgeArrows.update(this.cameras.main, this.field.active, this.sources.beacons());
+  }
 
-    if (this.lantern.isOut) this.gameOver();
+  private enemyContext(): EnemyContext {
+    const p = this.keeper.pos;
+    return {
+      player: this.vitals.down ? null : { id: 'player', x: p.x, y: p.y, radius: CFG.keeper.radius, seen: !this.hidden },
+      sources: this.sources.enemyTargets(),
+      aggroRadius: CFG.enemyAi.aggroRadius,
+      revealDist: CFG.hide.revealDist,
+      retargetSec: CFG.enemyAi.retargetSec,
+      detachRatio: CFG.enemyAi.detachRatio,
+      lostSightSec: CFG.hide.lostSightSec,
+      roam: this.roamPoint,
+      roamSpeed: CFG.hide.roamSpeed,
+      speedMultiplier: 1,
+    };
+  }
+
+  /** 적의 공격이 닿음: 주인공 HP / 중앙 광원 광도 / 등불 광도 */
+  private applyHit(e: Enemy, hit: NonNullable<EnemyStep['hit']>): void {
+    const climax = this.clock.climax;
+    if (hit.target === 'player') {
+      const res = this.vitals.hurt(hit.damage);
+      if (res === 'none') return;
+      this.sources.mapLight.hit('player', climax);
+      bus.emit('player:hurt', { hp: this.vitals.hp, by: e.def.id });
+      if (res === 'hurt') this.hurtKeeper(e);
+      else this.knockOut(res === 'out');
+      this.emitVitals(true);
+      return;
+    }
+    if (hit.target === 'central') {
+      const c = this.sources.central;
+      c.state.damage(hit.sourceDamage);
+      c.hit();
+      this.sources.mapLight.hit('central', climax);
+      bus.emit('central:hit', { value: c.state.value, by: e.def.id });
+      this.emitVitals(true);
+      return;
+    }
+    const s = this.sources.stationById(hit.target);
+    if (!s) return;
+    s.hit();
+    if (s.state.damage(hit.sourceDamage)) this.sources.emitStations();
+  }
+
+  /** 하트를 잃음: 그 자리에 잠들고, 하트가 남았으면 Vitals가 잠시 뒤 respawnKeeper를 부른다 */
+  private knockOut(last: boolean): void {
+    this.aimGuide.hide();
+    this.keeper.ko();
+    this.fx.sleep(this.keeper.pos.x, this.keeper.pos.y);
+    if (!prefersReducedMotion()) this.cameras.main.shake(HURT_SHAKE.ms * 2, HURT_SHAKE.intensity);
+    if (!last) bus.emit('player:down', { hearts: this.vitals.hearts });
+  }
+
+  /** 중앙 광원 옆에서 HP 100%로 다시 나타난다 (라이언 답변) */
+  private respawnKeeper(): void {
+    const at = this.homeSpot;
+    this.keeper.moveTo(at.x, at.y, { x: 0, y: 0 }, 0);
+    this.keeper.respawn();
+    this.fx.respawn(at.x, at.y + FEET_Y);
+    this.stage.healGlow();
+    this.moveVec = { x: 0, y: 0 };
+    // 빛기둥이 둘레의 적을 밀어낸다 (피해 없음, 부활하자마자 둘러싸이지 않게 — 제안)
+    for (const e of this.field.active) {
+      if (Math.hypot(e.x - at.x, e.y - at.y) > CFG.player.respawnPushRadius) continue;
+      e.hitByLight(0, CFG.player.respawnPush, CFG.light.stunSec * 2, { from: at, home: this.sources.central.pos });
+    }
+    bus.emit('player:respawn');
+    this.emitVitals(true);
+  }
+
+  /** 중앙 광원 바로 아래 */
+  private get homeSpot(): Vec {
+    return { x: CFG.central.x, y: CFG.central.y + CFG.keeper.startOffsetY };
+  }
+
+  private igniteStation(s: LightStation | undefined): void {
+    if (!s || !s.ignite()) return;
+    // 남은 LP와 상관없이 켜지고, 쏜 뒤 LP가 준다 (XMind)
+    this.lp.spend(CFG.lp.stationCost);
+    this.fx.impact(s.pos.x, s.pos.y);
+    const gained = this.score.addStation(this.combo.combo);
+    bus.emit('score:change', { score: this.score.total, gained });
+  }
+
+  private onStationLit(s: LightStation): void {
+    this.stage.burstAt(s.pos.x, s.pos.y, 10, 1);
+    const allLit = this.sources.allLit;
+    bus.emit('station:lit', { x: s.pos.x, y: s.pos.y, allLit });
+    this.sources.emitStations();
+    if (allLit) this.stage.celebrate(this.keeper.pos, CELEBRATE_SEC);
   }
 
   /**
-   * 카메라가 등불지기를 부드럽게 따라간다. Phaser의 startFollow는 그리기 직전에 스크롤을 바꿔
+   * 카메라가 루미를 부드럽게 따라간다. Phaser의 startFollow는 그리기 직전에 스크롤을 바꿔
    * 이번 프레임 빛 마스크(VillageStage)가 한 프레임 늦게 어긋나므로, 여기서 직접 스크롤을 정한다.
-   * 마을 밖은 보여 주지 않는다(가장자리에서 멈춤).
    */
   private followCamera(target: Vec, dt: number): void {
     const cam = this.cameras.main;
     const k = 1 - Math.pow(1 - FOLLOW_LERP, dt * 60);
-    const maxX = CFG.world.width - cam.width;
-    const maxY = CFG.world.height - cam.height;
-    const tx = Math.min(maxX, Math.max(0, target.x - cam.width / 2));
-    const ty = Math.min(maxY, Math.max(0, target.y - cam.height / 2));
+    const tx = Math.min(CFG.world.width - cam.width, Math.max(0, target.x - cam.width / 2));
+    const ty = Math.min(CFG.world.height - cam.height, Math.max(0, target.y - cam.height / 2));
     cam.setScroll(cam.scrollX + (tx - cam.scrollX) * k, cam.scrollY + (ty - cam.scrollY) * k);
   }
 
@@ -292,38 +373,34 @@ export class PlayScene extends Phaser.Scene {
     return this.bushIn >= 0 && this.revealLeft <= 0;
   }
 
-  /**
-   * 걷기: 이동 스틱·키보드 중 센 쪽으로 걷고(마을 밖·장애물 안으로는 못 감), 등불은 손을 따라가고,
-   * 카메라는 등불지기를 따라간다(카메라도 마을 밖을 보여 주지 않는다). 풀숲에 들어가면 숨는다.
-   */
+  /** 걷기: 이동 스틱·키보드 중 센 쪽으로(마을 밖·장애물 안으로는 못 감), 카메라가 따라간다. 쓰러져 있으면 멈춤 */
   private walk(dt: number): void {
-    const raw = strongerInput(this.stickMove, this.desktop.move);
+    const down = this.vitals.down;
+    const raw = down ? { x: 0, y: 0 } : strongerInput(this.stickMove, this.desktop.move);
     const k = follow(dt, MOVE_TAU);
     this.moveVec = { x: this.moveVec.x + (raw.x - this.moveVec.x) * k, y: this.moveVec.y + (raw.y - this.moveVec.y) * k };
     const input = this.moveVec;
     const stepped = stepMove(this.keeper.pos, input, CFG.keeper.moveSpeed, dt, WALK_AREA);
-    const feet = pushOut({ x: stepped.x, y: stepped.y + FEET_Y }, CFG.keeper.radius, this.props.obstacles);
+    const feet = pushOut({ x: stepped.x, y: stepped.y + FEET_Y }, CFG.keeper.radius, this.obstacles);
     const next = { x: feet.x, y: feet.y - FEET_Y };
     this.revealLeft = Math.max(0, this.revealLeft - dt);
     this.bushIn = bushAt(feet, this.props.bushes, BUSH_INSET);
     this.props.update(dt, this.bushIn);
-    const veil = this.hidden ? CFG.hide.keeperAlpha : 1;
-    this.keeper.setVeil(veil);
-    this.lantern.veil = veil;
+    // 숨으면 반투명, 무적이면 완만하게 맥박
+    const pulse = this.vitals.invulnLeft > 0 ? 0.6 + 0.4 * Math.cos(this.time_ * Math.PI * 2 * INVULN_PULSE_HZ) : 1;
+    this.keeper.setVeil((this.hidden ? CFG.hide.keeperAlpha : 1) * pulse);
+    this.keeper.moveTo(next.x, next.y, input, dt);
+    this.followCamera(next, dt);
     // 빛 스틱이 우선, 아니면 PC 마우스 끌기. 원뿔 반지름은 끈 거리에 비례 (스틱: 사거리 × 끈 정도, 마우스: 커서까지 거리)
     const stick = this.stickAim;
     const drag = stick ? null : this.desktop.dragPoint();
     const mouse = drag ? this.mouseAim(drag) : null;
-    const aim = stick?.angle ?? mouse?.angle ?? null;
+    const aim = down ? null : (stick?.angle ?? mouse?.angle ?? null);
     const reach = stick ? stick.power * this.light.range : (mouse?.range ?? this.light.range);
-    this.keeper.moveTo(next.x, next.y, input, dt);
-    const hand = this.keeper.hand;
-    this.lantern.setPosition(hand.x, hand.y, this.keeper.lanternDepth);
-    this.followCamera(next, dt);
     this.aimGuide.draw(this.keeper.pos, aim, reach, this.light.ready);
   }
 
-  /** 맴돌 다음 지점: 지금 자리에서 roamMin~roamMax 떨어진 마을 안 아무 곳 (제안: 기획서에 없음) */
+  /** 맴돌 다음 지점: 지금 자리에서 roamMin~roamMax 떨어진 마을 안 아무 곳 (제안) */
   private readonly roamPoint = (from: Vec): Vec => {
     const a = this.roamRng.range(0, Math.PI * 2);
     const d = this.roamRng.range(CFG.hide.roamMin, CFG.hide.roamMax);
@@ -337,53 +414,18 @@ export class PlayScene extends Phaser.Scene {
     return dragAim(this.keeper.pos, point, this.light.range, CFG.controls.mouseCancelRadius);
   }
 
-  private spawn(dt: number): void {
-    const alive = this.enemies.filter((e) => e.targetable).length + this.pending.length;
-    this.pending.push(...this.spawner.update(dt, this.clock.t, alive));
-    for (let i = this.pending.length - 1; i >= 0; i--) {
-      const req = this.pending[i];
-      req.delay -= dt;
-      if (req.delay > 0) continue;
-      this.pending.splice(i, 1);
-      const at = this.spawnPoint(req);
-      if (req.enemyId === 'bat') this.enemies.push(new Bat(this, enemyById('bat'), at.x, at.y));
-    }
-  }
-
-  /** Spawner는 화면 크기 기준 가장자리 점을 준다: 지금 보이는 영역의 같은 자리에서 조금 바깥으로 밀고 마을 안으로 자른다 */
-  private spawnPoint(req: SpawnRequest): Vec {
-    const view = this.cameras.main.worldView;
-    const x = view.x + req.x;
-    const y = view.y + req.y;
-    const dx = x - view.centerX;
-    const dy = y - view.centerY;
-    const len = Math.hypot(dx, dy) || 1;
-    const m = CFG.playfield.margin;
-    const place = (px: number, py: number): Vec => ({
-      x: Math.min(CFG.world.width - m, Math.max(m, px)),
-      y: Math.min(CFG.world.height - m, Math.max(m, py)),
-    });
-    const visible = (p: Vec) => p.x > view.x - 8 && p.x < view.right + 8 && p.y > view.y - 8 && p.y < view.bottom + 8;
-    const ox = (dx / len) * SPAWN_OUTSIDE;
-    const oy = (dy / len) * SPAWN_OUTSIDE;
-    // 카메라가 마을 끝에 붙어 그쪽 바깥이 없으면, 화면 가운데를 기준으로 반대쪽 바깥에서 나온다
-    const mx = 2 * view.centerX - x;
-    const my = 2 * view.centerY - y;
-    const candidates = [place(x + ox, y + oy), place(mx - ox, y + oy), place(x + ox, my - oy), place(mx - ox, my - oy)];
-    return candidates.find((p) => !visible(p)) ?? candidates[0];
-  }
-
   /**
-   * 빛 스틱을 놓음(또는 PC 마우스를 끌다 놓음). angle이 null이면 가장 가까운 이웃에게, 아무도 없으면 바라보는 쪽으로.
-   * reach = PC에서 커서까지의 거리 (사거리를 넘지 않음)
+   * 빛 스틱을 놓음(또는 PC 마우스를 끌다 놓음). angle이 null이면 반자동: 사거리 안 가장 가까운 적,
+   * 없으면 쏘지 않는다(2026-11-12 라이언 답변). reach = 끈 거리만큼(사거리를 넘지 않음)
    */
   fire(angle: number | null, reach = Infinity): void {
-    if (this.paused || this.ended) return;
+    if (this.paused || this.ended || this.vitals.down) return;
     const origin = this.keeper.pos;
-    const targets = this.enemies.filter((e) => e.targetable);
-    const a = angle ?? autoAimAngle(origin, targets, this.light.range) ?? (this.keeper.hand.x >= this.keeper.pos.x ? 0 : Math.PI);
+    const a = angle ?? autoAimAngle(origin, this.field.active.filter((e) => e.def.kind !== 'passive'), this.light.range);
+    if (a === null) return;
     const cast = this.light.tryCast(a, reach);
     if (!cast) return;
+    this.lp.spend(CFG.lp.castCost);
     // 빛을 보내면 풀숲 속에서도 잠깐 드러난다 (브롤스타즈처럼)
     this.revealLeft = CFG.hide.revealAfterFireSec;
     this.stage.addFan(origin, a, cast.range);
@@ -398,7 +440,7 @@ export class PlayScene extends Phaser.Scene {
     });
   }
 
-  /** 등불이 맞음: 피격 동작·흰 번쩍임, 이웃 반대쪽으로 살짝 밀림(장애물·마을 끝 판정), 짧은 화면 흔들림 */
+  /** 맞음(HP만 줄어듦): 피격 동작·흰 번쩍임, 적 반대쪽으로 살짝 밀림(장애물·마을 끝 판정), 짧은 화면 흔들림 */
   private hurtKeeper(from: Vec): void {
     const k = this.keeper;
     k.hurt();
@@ -406,33 +448,44 @@ export class PlayScene extends Phaser.Scene {
     const dx = k.pos.x - from.x;
     const dy = k.pos.y - from.y;
     const len = Math.hypot(dx, dy) || 1;
-    const stepped = stepMove(k.pos, { x: dx / len, y: dy / len }, HURT_KNOCKBACK, 1, WALK_AREA);
-    const feet = pushOut({ x: stepped.x, y: stepped.y + FEET_Y }, CFG.keeper.radius, this.props.obstacles);
+    const stepped = stepMove(k.pos, { x: dx / len, y: dy / len }, CFG.player.hurtKnockback, 1, WALK_AREA);
+    const feet = pushOut({ x: stepped.x, y: stepped.y + FEET_Y }, CFG.keeper.radius, this.obstacles);
     k.pos.x = feet.x;
     k.pos.y = feet.y - FEET_Y;
     if (!prefersReducedMotion()) this.cameras.main.shake(HURT_SHAKE.ms, HURT_SHAKE.intensity);
   }
 
-  private hitEnemy(e: Enemy, power: number, knockback: number, stunSec: number): void {
+  /** 빛이 적에게 닿음: 위력은 LP에 따라 약해진다. HP 0이면 무리별 퇴장(구출·돌려보냄) + 콤보·점수 */
+  private hitEnemy(e: Enemy): void {
     this.fx.impact(e.x, e.y);
-    const returned = e.hitByLight(power, knockback, stunSec, this.keeper.pos);
+    const power = this.keeper.def.lightPower * this.lp.effectiveness;
+    const returned = e.hitByLight(power, CFG.light.knockback, CFG.light.stunSec, { from: this.keeper.pos, home: this.sources.central.pos });
     bus.emit('enemy:hit', { uid: e.uid, enemyId: e.def.id, remainingHp: Math.max(0, e.hp) });
     if (!returned) return;
-    this.returnedCount += 1;
+    if (e.def.kind === 'lost') this.rescued += 1;
+    else this.retreated += 1;
     const combo = this.combo.registerReturn();
     const gained = this.score.addReturn(e.def.score, combo);
-    bus.emit('enemy:returned', { enemyId: e.def.id, x: e.x, y: e.y, score: gained, combo });
+    bus.emit('enemy:returned', { enemyId: e.def.id, kind: e.def.kind, x: e.x, y: e.y, score: gained, combo });
     bus.emit('score:change', { score: this.score.total, gained });
   }
 
-  /** 대광원: 전방위, 위력 3배, 넉백 200 */
-  private burst(): void {
-    this.stage.burst(CFG.light.burstFlashSec);
-    // 원형 범위 표시 (영문 지시서의 원형 패턴 = 대광원)
-    this.aimGuide.burst(this.keeper.pos, BURST_RING, CFG.light.burstFlashSec * 1000);
-    const power = this.keeper.def.lightPower * CFG.light.burstPowerMultiplier;
-    for (const e of this.enemies.filter((t) => t.targetable)) {
-      this.hitEnemy(e, power, CFG.light.burstKnockback, CFG.light.stunSec);
+  /** HUD 갱신: 값이 바뀌었을 때만 (force = 피격 등 바로) */
+  private emitVitals(force = false): void {
+    const hp = Math.ceil(this.vitals.hp);
+    if (force || hp !== this.shown.hp) {
+      this.shown.hp = hp;
+      bus.emit('player:vitals', { hp, maxHp: this.vitals.maxHp, hearts: this.vitals.hearts, maxHearts: CFG.stage.hearts });
+    }
+    const lp = Math.round(this.lp.value);
+    if (force || lp !== this.shown.lp) {
+      this.shown.lp = lp;
+      bus.emit('lp:change', { value: lp, min: this.lp.min, max: this.lp.max });
+    }
+    const central = Math.round(this.sources.central.state.value);
+    if (force || central !== this.shown.central) {
+      this.shown.central = central;
+      bus.emit('central:change', { value: central, max: CFG.central.max, outAt: CFG.central.outAt });
     }
   }
 
@@ -451,19 +504,35 @@ export class PlayScene extends Phaser.Scene {
     if (!this.paused && !this.ended) this.togglePause();
   }
 
-  private gameOver(): void {
+  /** 스테이지 끝: 아침(기본·완전 승리) 또는 오늘은 여기까지(하트 소진·중앙 광원 꺼짐) */
+  private end(outcome: StageOutcome, reason: EndReason): void {
     this.ended = true;
     this.aimGuide.hide();
-    // 등불이 꺼지면 루미는 그 자리에 잠든다 (넉아웃 연출, 패배감 없이)
-    this.keeper.ko();
-    this.fx.sleep(this.keeper.pos.x, this.keeper.pos.y);
     this.edgeArrows.hide();
-    this.lantern.extinguish(this, GAME_OVER_SEC);
-    this.stage.fadeOut(GAME_OVER_SEC);
-    const result = this.result('over');
-    this.time.delayedCall(GAME_OVER_SEC * 1000, () => {
+    if (outcome === 'over') {
+      if (reason === 'central') {
+        this.keeper.ko();
+        this.fx.sleep(this.keeper.pos.x, this.keeper.pos.y);
+      }
+      this.stage.fadeOut(OVER_SEC);
+      const result = this.result(outcome, reason);
+      this.time.delayedCall(OVER_SEC * 1000, () => {
+        this.panForResult();
+        bus.emit('game:over', { result });
+      });
+      return;
+    }
+    let gained = this.score.addClear();
+    if (outcome === 'complete') gained += this.score.applyComplete();
+    bus.emit('score:change', { score: this.score.total, gained });
+    this.stage.dawn(DAWN_SEC);
+    // 아침이 오면 남은 적은 모두 스스로 물러난다(점수 없음)
+    const home = this.sources.central.pos;
+    for (const e of this.field.active) e.hitByLight(e.hp, 0, CFG.light.stunSec, { from: home, home });
+    const result = this.result(outcome, reason);
+    this.time.delayedCall(DAWN_SEC * 1000, () => {
       this.panForResult();
-      bus.emit('game:over', { result });
+      bus.emit('game:clear', { result });
     });
   }
 
@@ -475,43 +544,28 @@ export class PlayScene extends Phaser.Scene {
     cam.pan(x, y, END_PAN_MS, 'Cubic.easeOut');
   }
 
-  /**
-   * 화면 크기가 바뀜 (세로 ↔ 가로, 창 크기): 화면에 붙은 층과 이웃이 나오는 가장자리를 새 크기로.
-   * 판 중에 화면 방식이 바뀌면 잠깐 멈춘다(ui:layout, 제안: 기획서에 없음)
-   */
+  /** 화면 크기가 바뀜 (세로 ↔ 가로, 창 크기): 화면에 붙은 층과 적이 나오는 가장자리를 새 크기로 */
   private onResize(gameSize: Phaser.Structs.Size): void {
     this.stage.resize(gameSize.width, gameSize.height);
-    this.spawner.setArea(gameSize.width, gameSize.height);
+    this.field.setArea(gameSize.width, gameSize.height);
     if (!this.ended) this.followCamera(this.keeper.pos, 1);
   }
 
-  private clear(): void {
-    this.ended = true;
-    this.aimGuide.hide();
-    this.edgeArrows.hide();
-    const gained = this.score.addClear(this.lantern.hp);
-    bus.emit('score:change', { score: this.score.total, gained });
-    this.stage.dawn(DAWN_SEC);
-    // 새벽이 오면 남은 이웃은 모두 스스로 돌아간다(점수 없음)
-    for (const e of this.enemies.filter((t) => t.targetable)) e.hitByLight(e.hp, 0, CFG.light.stunSec, this.keeper.pos);
-    const result = this.result('clear');
-    this.time.delayedCall(DAWN_SEC * 1000, () => {
-      this.panForResult();
-      bus.emit('game:clear', { result });
-    });
-  }
-
-  private result(outcome: RunResult['outcome']): RunResult {
+  private result(outcome: StageOutcome, reason: EndReason): RunResult {
     const result: RunResult = {
       outcome,
+      reason,
+      stageId: this.stageDef.id,
       score: this.score.total,
       survivedSec: Math.round(this.clock.t * 10) / 10,
-      returnedCount: this.returnedCount,
+      rescued: this.rescued,
+      retreated: this.retreated,
+      stationsLit: this.sources.litCount,
+      stationsTotal: this.sources.stations.length,
+      heartsLeft: this.vitals.hearts,
       maxCombo: this.combo.maxCombo,
       characterId: this.keeper.def.id,
-      equipmentId: RunState.equipmentId,
       seed: RunState.seed,
-      witchReturned: false,
       continued: false,
     };
     RunState.lastResult = result;

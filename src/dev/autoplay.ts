@@ -1,6 +1,8 @@
 // 개발 전용: 헤드리스 스크린샷으로 화면을 확인하기 위한 자동 플레이. 빌드에는 들어가지 않는다(main.ts에서 DEV일 때만 불러옴).
-//   ?autoplay=20        20초 동안 가장 가까운 이웃에게 빛을 보내다가(빛 스틱을 놓는 것과 같은 input:fire), 빛이 퍼지는 순간 화면을 멈춘다
-//   ?autoplay=20&walk   위와 같되 등불지기가 천천히 원을 그리며 걷는다(이동·카메라 따라가기 확인)
+//   ?autoplay=20        20초 동안 가장 가까운 적에게 빛을 보내다가(빛 스틱을 놓는 것과 같은 input:fire), 빛이 퍼지는 순간 화면을 멈춘다.
+//                       꺼진 등불이 사거리 안이면 먼저 켠다(2026-11-12 새 기획)
+//   ?autoplay=20&walk   위와 같되 루미가 천천히 원을 그리며 걷는다(이동·카메라 따라가기 확인)
+//   ?autoplay=20&lamp   루미가 가장 가까운 꺼진 등불 쪽으로 걸어가 켜고, 다 켜면 중앙 광원 곁으로 돌아와 지킨다
 //   ?autoplay=20&aim    멈출 때 빛 스틱으로 겨누고 있는 모습(조준 부채꼴)을 띄운다
 //   ?autoplay=20&idle   탭하지 않고 버티다가(게임 오버 화면 확인용) 결과 시트가 뜨면 멈춘다
 //   ?autoplay=20&pause  20초에 일시정지 시트를 열고 멈춘다
@@ -11,9 +13,12 @@ import { COMBO_MILESTONES } from '../systems/ComboSystem';
 
 interface PlayHandle {
   clock?: { t: number };
-  enemies: { x: number; y: number; targetable: boolean }[];
+  field: { enemies: { x: number; y: number; targetable: boolean }[] };
+  sources: { stations: { pos: { x: number; y: number }; state: { mode: string } }[]; central: { pos: { x: number; y: number } } };
   stage: { fans: { age: number }[] };
-  lantern: { pos: { x: number; y: number } };
+  keeper: { pos: { x: number; y: number } };
+
+  light: { range: number };
 }
 
 const TAP_EVERY_SEC = 0.45;
@@ -28,6 +33,7 @@ export function installAutoplay(game: Phaser.Game): void {
   const burst = params.has('burst');
   const walk = params.has('walk');
   const aim = params.has('aim');
+  const lamp = params.has('lamp');
   let walkT = 0;
   let sinceTap = 0;
   let frozen = false;
@@ -66,14 +72,33 @@ export function installAutoplay(game: Phaser.Game): void {
       bus.emit('input:move', { x: Math.cos(walkT * 0.5) * 0.7, y: Math.sin(walkT * 0.5) * 0.7 });
     }
 
+    const me = s.keeper.pos;
+    const offLamp = s.sources.stations
+      .filter((st) => st.state.mode === 'off')
+      .map((st) => ({ st, d: Math.hypot(st.pos.x - me.x, st.pos.y - me.y) }))
+      .sort((a, b) => a.d - b.d)[0];
+    if (lamp) {
+      const home = { x: s.sources.central.pos.x, y: s.sources.central.pos.y + 130 };
+      const dHome = Math.hypot(home.x - me.x, home.y - me.y);
+      const go = offLamp
+        ? offLamp.d > s.light.range * 0.7
+          ? { x: (offLamp.st.pos.x - me.x) / offLamp.d, y: (offLamp.st.pos.y - me.y) / offLamp.d }
+          : { x: 0, y: 0 }
+        : dHome > 90
+          ? { x: (home.x - me.x) / dHome, y: (home.y - me.y) / dHome }
+          : { x: 0, y: 0 };
+      bus.emit('input:move', go);
+    }
     if (!idle && sinceTap >= TAP_EVERY_SEC) {
-      const lantern = s.lantern.pos;
-      const target = s.enemies
+      const target = s.field.enemies
         .filter((e) => e.targetable)
-        .map((e) => ({ e, d: Math.hypot(e.x - lantern.x, e.y - lantern.y) }))
+        .map((e) => ({ e, d: Math.hypot(e.x - me.x, e.y - me.y) }))
         .sort((a, b) => a.d - b.d)[0];
-      if (target && target.d < REACH) {
-        bus.emit('input:fire', { angle: Math.atan2(target.e.y - lantern.y, target.e.x - lantern.x) });
+      if (offLamp && offLamp.d < s.light.range * 0.9) {
+        bus.emit('input:fire', { angle: Math.atan2(offLamp.st.pos.y - me.y, offLamp.st.pos.x - me.x) });
+        sinceTap = 0;
+      } else if (target && target.d < REACH) {
+        bus.emit('input:fire', { angle: Math.atan2(target.e.y - me.y, target.e.x - me.x) });
         sinceTap = 0;
       }
     }

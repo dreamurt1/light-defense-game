@@ -18,9 +18,9 @@ import {
   drawStar,
   fanTextureHeight,
 } from './effects';
-import { BAT, WITCH, drawBatDark, drawBatTrue, drawWitch } from './enemies';
+import { BAT, FROG, WITCH, drawBatDark, drawBatTrue, drawFrogDark, drawFrogTrue, drawWitch } from './enemies';
 import type { Ctx } from './kit';
-import { HANGING_LANTERN, LANTERN, drawHangingLantern, drawLantern } from './objects';
+import { CENTRAL, HANGING_LANTERN, LANTERN, drawCentralSource, drawHangingLantern, drawLantern } from './objects';
 import { DARK, LIT, VILLAGE_OBJECTS, drawVillage, drawWorld } from './village';
 import { LUMI_COLUMNS, LUMI_ROWS, composeLumi, lumiAnims } from './lumiCompose';
 import { DIRS } from '../systems/facing';
@@ -182,6 +182,29 @@ const enemies: SheetDef[] = [
       res: 2,
     },
   },
+  // 2026-11-12 새 기획: 잃어버린 빛의 주민 개구리 (임시 코드 그림, ChatGPT 그림이 오면 같은 키로 교체)
+  {
+    key: 'frog-dark',
+    category: 'enemies',
+    label: '개구리 — 빛을 잃은 모습 (폴짝)',
+    frameWidth: FROG.size,
+    frameHeight: FROG.size,
+    frames: FROG.frames,
+    draw: drawFrogDark,
+    anims: [{ key: 'frog-dark-hop', frames: [0, 1], frameRate: 3, repeat: -1 }],
+    art: { poses: ['sit', 'hop'], frames: [{ pose: 0 }, { pose: 1 }], fit: 'contain', box: { x: 4, y: 6, w: 56, h: 54 }, align: 'feet', res: 2 },
+  },
+  {
+    key: 'frog-true',
+    category: 'enemies',
+    label: '개구리 — 제 모습 (폴짝)',
+    frameWidth: FROG.size,
+    frameHeight: FROG.size,
+    frames: FROG.frames,
+    draw: drawFrogTrue,
+    anims: [{ key: 'frog-true-hop', frames: [0, 1], frameRate: 5, repeat: -1 }],
+    art: { poses: ['sit', 'hop'], frames: [{ pose: 0 }, { pose: 1 }], fit: 'contain', box: { x: 4, y: 6, w: 56, h: 54 }, align: 'feet', res: 2 },
+  },
   {
     key: 'witch',
     category: 'enemies',
@@ -209,9 +232,26 @@ const LIT_FILTER = 'brightness(1.45) saturate(1.2) sepia(0.28)';
 
 const objects: SheetDef[] = [
   {
+    key: 'central-source',
+    category: 'objects',
+    label: '중앙 광원 (밝음·약함·꺼짐)',
+    frameWidth: CENTRAL.w,
+    frameHeight: CENTRAL.h,
+    frames: CENTRAL.frames,
+    draw: drawCentralSource,
+    art: {
+      poses: ['lit', 'out'],
+      frames: [{ pose: 0 }, { pose: 0, filter: 'brightness(0.7) saturate(0.75)' }, { pose: 1 }],
+      fit: 'contain',
+      box: { x: 4, y: 2, w: 120, h: 160 },
+      align: 'feet',
+      res: 2,
+    },
+  },
+  {
     key: 'lantern',
     category: 'objects',
-    label: '등불 (켜짐·약함·꺼짐)',
+    label: '등불 스테이션 (켜짐·약함·꺼짐)',
     frameWidth: LANTERN.w,
     frameHeight: LANTERN.h,
     frames: LANTERN.frames,

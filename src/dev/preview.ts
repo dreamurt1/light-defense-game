@@ -1,11 +1,12 @@
 // 개발 전용: 아직 동작이 없는 화면 상태를 레이아웃 확인용으로 띄운다. 빌드에는 들어가지 않는다.
 //   ?autoplay=20&preview=boss   보스전 배치: 노월을 위쪽에 세우고 체력바를 띄운다 (노월의 동작은 M2)
-//   ?autoplay=30&preview=dawn   밤을 거의 끝까지 돌려 새벽 결과 화면을 본다
+//   ?autoplay=200&preview=dawn  스테이지를 거의 끝까지 돌려 아침 결과 화면을 본다
 import Phaser from 'phaser';
 import { bus } from '../core/events';
 import { AnimKeys, TextureKeys } from '../core/TextureKeys';
 import { texScale } from '../core/textureRes';
-import { GameData } from '../data';
+import { GameData, stageById } from '../data';
+import { RunState } from '../core/RunState';
 
 export function installPreview(game: Phaser.Game): void {
   const preview = new URLSearchParams(location.search).get('preview');
@@ -28,7 +29,7 @@ export function installPreview(game: Phaser.Game): void {
     }
     if (preview === 'dawn') {
       setTimeout(() => {
-        if (play.clock) play.clock.t = GameData.game.night.durationSec - 3;
+        if (play.clock) play.clock.t = stageById(RunState.stageId).durationSec - 3;
       }, 50);
     }
   });

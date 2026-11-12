@@ -1,5 +1,6 @@
 // 화면 밖 이웃 알림: 넓은 마을에서도 '어느 쪽을 먼저 막을지' 판단할 수 있게,
-// 보이지 않는 이웃 쪽 화면 가장자리에 라벤더 화살표를 띄운다. 가까울수록 진하다. (제안: 기획서에 없음)
+// 보이지 않는 적 쪽 화면 가장자리에 라벤더 화살표를 띄운다. 가까울수록 진하다. (제안: 기획서에 없음)
+// 2026-11-12: 화면 밖의 꺼진 등불·위험한 중앙 광원은 호박빛 마름모로 알린다(외곽 등불을 찾아가게, 제안)
 import Phaser from 'phaser';
 import type { Vec } from '../systems/fan';
 
@@ -10,6 +11,7 @@ const INSET = {
 };
 const SIZE = 11;
 const COLOR = 0xa89cd9;
+const BEACON = 0xffc857;
 /** 이만큼 떨어지면 가장 옅게 */
 const FAR = 520;
 
@@ -25,7 +27,7 @@ export class EdgeArrows {
     this.g.clear();
   }
 
-  update(cam: Phaser.Cameras.Scene2D.Camera, targets: readonly Vec[]): void {
+  update(cam: Phaser.Cameras.Scene2D.Camera, targets: readonly Vec[], beacons: readonly Vec[] = []): void {
     const g = this.g;
     g.clear();
     const view = cam.worldView;
@@ -37,7 +39,8 @@ export class EdgeArrows {
     const x1 = W - inset.right;
     const y0 = inset.top;
     const y1 = H - inset.bottom;
-    for (const t of targets) {
+    for (const [i, t] of [...targets, ...beacons].entries()) {
+      const beacon = i >= targets.length;
       // 화면 좌표 (카메라 확대 없음)
       const sx = t.x - view.x;
       const sy = t.y - view.y;
@@ -51,6 +54,19 @@ export class EdgeArrows {
       const outside = Math.max(0, Math.max(-sx, sx - W, -sy, sy - H));
       const alpha = 0.95 - 0.6 * Math.min(1, outside / FAR);
       const a = Math.atan2(dy, dx);
+      if (beacon) {
+        g.fillStyle(BEACON, 0.9);
+        g.fillPoints(
+          [
+            { x: px + Math.cos(a) * SIZE, y: py + Math.sin(a) * SIZE },
+            { x: px + Math.cos(a + Math.PI / 2) * SIZE * 0.6, y: py + Math.sin(a + Math.PI / 2) * SIZE * 0.6 },
+            { x: px - Math.cos(a) * SIZE * 0.7, y: py - Math.sin(a) * SIZE * 0.7 },
+            { x: px + Math.cos(a - Math.PI / 2) * SIZE * 0.6, y: py + Math.sin(a - Math.PI / 2) * SIZE * 0.6 },
+          ],
+          true,
+        );
+        continue;
+      }
       g.fillStyle(COLOR, alpha);
       g.fillTriangle(
         px + Math.cos(a) * SIZE,

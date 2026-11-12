@@ -1,6 +1,8 @@
-// waves.json 기반 스폰. 무엇을 언제 어디서 낼지는 순수 로직이고, 실제 생성은 PlayScene이 한다.
+// 스테이지 스폰 (순수 로직). 무엇을 언제 어디서 낼지만 정하고, 실제 생성은 PlayScene이 한다.
+// 2026-11-12 새 기획: 평소(0 ~ climaxAt)와 클라이맥스(climaxAt ~ 끝) 두 표(stages.json spawn).
+// 클라이맥스(진행 70%부터)에는 개체수와 빈도가 크게 는다(XMind).
 import type { Rng } from '../core/rng';
-import type { EnemyDef, EnemyId, WavePhaseDef, WavesDef } from '../data';
+import type { EnemyDef, EnemyId, SpawnTable, StageDef } from '../data';
 
 export type Edge = 'top' | 'right' | 'bottom' | 'left';
 
@@ -24,42 +26,50 @@ const EDGES: readonly Edge[] = ['top', 'right', 'bottom', 'left'];
 export class Spawner {
   /** 다음 무리까지 남은 시간. 첫 무리는 첫 간격의 절반 뒤 (제안: 기획서에 없음) */
   private timer: number;
+  private readonly climaxSec: number;
 
   constructor(
-    private readonly waves: WavesDef,
+    private readonly stage: StageDef,
+    climaxAt: number,
     private readonly enemies: readonly EnemyDef[],
     private readonly rng: Rng,
     private area: SpawnArea,
-    /** 아직 구현된 악당만. M1은 ['bat'] */
+    /** 지금 게임에 나오는 적만 */
     private readonly allowed: readonly EnemyId[],
   ) {
+    this.climaxSec = stage.durationSec * climaxAt;
     this.timer = this.intervalAt(0) * 0.5;
   }
 
-  phaseAt(t: number): WavePhaseDef {
-    const phases = this.waves.phases;
-    return phases.find((p) => t >= p.from && t < p.to) ?? phases[phases.length - 1];
+  isClimax(t: number): boolean {
+    return t >= this.climaxSec;
+  }
+
+  tableAt(t: number): SpawnTable {
+    return this.isClimax(t) ? this.stage.spawn.climax : this.stage.spawn.normal;
   }
 
   /** 구간 안에서 시작 → 끝 간격을 선형 보간 */
   intervalAt(t: number): number {
-    const p = this.phaseAt(t);
-    const k = Math.min(1, Math.max(0, (t - p.from) / (p.to - p.from)));
-    return p.spawnIntervalStart + (p.spawnIntervalEnd - p.spawnIntervalStart) * k;
+    const climax = this.isClimax(t);
+    const from = climax ? this.climaxSec : 0;
+    const to = climax ? this.stage.durationSec : this.climaxSec;
+    const table = this.tableAt(t);
+    const k = Math.min(1, Math.max(0, (t - from) / Math.max(1e-6, to - from)));
+    return table.intervalStart + (table.intervalEnd - table.intervalStart) * k;
   }
 
   maxAliveAt(t: number): number {
-    return this.phaseAt(t).maxAlive;
+    return this.tableAt(t).maxAlive;
   }
 
-  /** 시간대 가중치와 특별 규칙을 반영해 한 종류를 고른다 */
+  /** 가중치와 특별 규칙(처음 몇 초는 호스틸만)을 반영해 한 종류를 고른다 */
   pickEnemy(t: number): EnemyId | null {
-    const p = this.phaseAt(t);
+    const only = this.stage.spawn.onlyHostileUntilSec;
     const weights: Partial<Record<EnemyId, number>> = {};
-    for (const [id, w] of Object.entries(p.weights) as [EnemyId, number][]) {
+    for (const [id, w] of Object.entries(this.tableAt(t).weights) as [EnemyId, number][]) {
       if (!this.allowed.includes(id)) continue;
-      if (p.rules?.onlyBatUntilSec !== undefined && t < p.rules.onlyBatUntilSec && id !== 'bat') continue;
-      if (p.rules?.slimeFromSec !== undefined && t < p.rules.slimeFromSec && id === 'slime') continue;
+      if (only !== undefined && t < only && this.enemies.find((e) => e.id === id)?.kind !== 'hostile') continue;
       weights[id] = w;
     }
     return this.rng.weighted(weights);
@@ -104,7 +114,7 @@ export class Spawner {
     return out;
   }
 
-  /** 화면 바깥, 해당 변 위의 한 점. 악당 지름만큼 밖에서 나온다 */
+  /** 화면 바깥, 해당 변 위의 한 점. 적 지름만큼 밖에서 나온다 */
   private edgePoint(edge: Edge, radius: number): { x: number; y: number } {
     const { width, height, margin } = this.area;
     const out = radius * 2;

@@ -1,49 +1,64 @@
 // 시스템 간 결합은 이 이벤트로만 한다. 게임 로직은 발행만 하고 연출(HUD·소리·진동)은 구독만 한다.
-// 이름과 payload는 스킬 gameplay-systems.md 이벤트 표를 따른다. 표에 없는 것은 "제안" 주석을 단다.
-import type { CharacterId, EnemyId, NightPhase } from '../data';
+// 2026-11-12 새 기획(XMind 1112): 손 등불 HP·시너지 이벤트를 걷어 내고 주인공 HP·하트·LP·중앙 광원·등불 이벤트를 더했다.
+import type { CharacterId, EnemyId, EnemyKind, NightPhase } from '../data';
+import type { EndReason, StageOutcome } from '../systems/stageOutcome';
 
-export type Outcome = 'clear' | 'over';
+export type Outcome = StageOutcome;
 
 export interface RunResult {
+  /** victory = 기본 승리, complete = 완전 승리, over = 오늘은 여기까지 */
   outcome: Outcome;
+  reason: EndReason;
+  stageId: string;
   score: number;
   survivedSec: number;
-  returnedCount: number;
+  /** 구출한 잃어버린 주민 */
+  rescued: number;
+  /** 돌려보낸 어둠의 호스틸 */
+  retreated: number;
+  stationsLit: number;
+  stationsTotal: number;
+  heartsLeft: number;
   maxCombo: number;
   characterId: CharacterId;
-  equipmentId: string | null;
   seed: number;
-  witchReturned: boolean;
   continued: boolean;
 }
 
-export type ComboReason = 'gain' | 'hit' | 'timeout';
+export type ComboReason = 'gain' | 'timeout';
 
 export interface GameEvents {
   'light:cast': { x: number; y: number; angle: number; range: number; characterId: CharacterId };
   'light:ready': undefined;
   'enemy:hit': { uid: number; enemyId: EnemyId; remainingHp: number };
-  'enemy:returned': { enemyId: EnemyId; x: number; y: number; score: number; combo: number };
-  // windowSec: 제안(이벤트 표에 없음) — HUD 유지 시간 링이 시간을 알아야 해서 덧붙임
+  /** 빛으로 처리됨: 잃어버린 주민은 구출(마을로 귀환), 호스틸은 맵 밖으로 돌아감 */
+  'enemy:returned': { enemyId: EnemyId; kind: EnemyKind; x: number; y: number; score: number; combo: number };
+  // windowSec: HUD 유지 시간 링이 시간을 알아야 해서 덧붙임
   'combo:change': { combo: number; multiplier: number; reason: ComboReason; windowSec: number };
-  'synergy:change': { value: number };
-  'synergy:burst': undefined;
-  'lantern:damage': { hp: number; maxHp: number; by: EnemyId };
-  'lantern:heal': { hp: number; maxHp: number; by: string };
+  /** 주인공 HP·하트 */
+  'player:vitals': { hp: number; maxHp: number; hearts: number; maxHearts: number };
+  'player:hurt': { hp: number; by: EnemyId };
+  /** 하트를 잃고 쓰러짐 (남은 하트) */
+  'player:down': { hearts: number };
+  'player:respawn': undefined;
+  /** 빛 자원 */
+  'lp:change': { value: number; min: number; max: number };
+  /** 중앙 광원 광도 (= HP) */
+  'central:change': { value: number; max: number; outAt: number };
+  'central:hit': { value: number; by: EnemyId };
+  /** 등불 스테이션: 켜진 수 / 전체 */
+  'station:change': { lit: number; total: number };
+  'station:lit': { x: number; y: number; allLit: boolean };
   'item:spawn': { itemId: string; x: number; y: number };
   'item:pickup': { itemId: string; x: number; y: number };
-  'item:stolen': { itemId: string; x: number; y: number };
-  'hazard:warn': { hazardId: string; x?: number; y?: number; radius?: number };
-  'hazard:start': { hazardId: string; x?: number; y?: number; radius?: number };
-  'hazard:end': { hazardId: string };
   'night:phase': { phase: NightPhase; t: number };
   'witch:spawn': undefined;
   'witch:returned': undefined;
   'game:over': { result: RunResult };
   'game:clear': { result: RunResult };
 
-  // 아래는 제안(이벤트 표에 없음): DOM HUD가 매 프레임 폴링하지 않도록 필요한 최소 이벤트
-  'run:start': { seed: number; characterId: CharacterId; hp: number; maxHp: number; durationSec: number; /** 홈의 `테스트` 판 */ test: boolean };
+  // DOM HUD가 매 프레임 폴링하지 않도록 필요한 최소 이벤트
+  'run:start': { seed: number; characterId: CharacterId; stageId: string; durationSec: number; /** 홈의 테스트 판 */ test: boolean };
   'run:pause': { paused: boolean };
   'night:tick': { t: number; durationSec: number };
   'score:change': { score: number; gained: number };
@@ -71,7 +86,7 @@ export interface GameEvents {
   'input:move': { x: number; y: number };
   /** 빛 스틱을 끄는 동안 겨누는 방향과 끈 정도(0~1, 원뿔 반지름 = 사거리 × power). active=false면 범위 표시를 끈다 */
   'input:aim': { active: boolean; angle: number; power: number };
-  /** 빛 스틱을 놓음: angle이 null이면 가장 가까운 이웃에게 자동 조준(사거리 끝까지), 아니면 power만큼 */
+  /** 빛 스틱을 놓음: angle이 null이면 반자동(사거리 안 가장 가까운 적, 없으면 쏘지 않음), 아니면 power만큼 */
   'input:fire': { angle: number | null; power?: number };
 }
 

@@ -11,7 +11,7 @@ try {
   await page.navigate(url);
   await sleep(Number(waitMs));
   const state = await page.evaluate(
-    `(() => { const s = window.__game?.scene.getScene('Play'); return s && s.clock ? JSON.stringify({ t: +s.clock.t.toFixed(1), score: s.score.total, combo: s.combo.combo, maxCombo: s.combo.maxCombo, hp: s.lantern.hp, returned: s.returnedCount, fps: Math.round(window.__game.loop.actualFps) }) : 'no play scene' })()`,
+    `(() => { const s = window.__game?.scene.getScene('Play'); return s && s.clock ? JSON.stringify({ t: +s.clock.t.toFixed(1), score: s.score.total, combo: s.combo.combo, maxCombo: s.combo.maxCombo, hp: Math.round(s.vitals.hp), hearts: s.vitals.hearts, lp: Math.round(s.lp.value), central: Math.round(s.sources.central.state.value), lit: s.sources.litCount + '/' + s.sources.stations.length, rescued: s.rescued, retreated: s.retreated, fps: Math.round(window.__game.loop.actualFps) }) : 'no play scene' })()`,
   );
   if (process.env.SHOT_EVAL) console.log('eval', JSON.stringify(await page.evaluate(process.env.SHOT_EVAL)));
   writeFileSync(out, await page.screenshot());

@@ -4,7 +4,7 @@
 // 툭툭 바뀌지 않게 부드럽게 돌아간다(영문 지시서 'smooth directional transitions').
 // 그림은 정지·걷기 두 가지이고, 공격·피격·부활은 그 선명한 그림 위에 동작 효과(systems/keeperMotion)를 더한다
 // (2026-11-06: 시트의 작은 공격·피격·부활 그림은 확대되면 깨져 보여 쓰지 않음). 연출: 넉아웃(등불이 꺼질 때 잠듦).
-// 등불은 방향별 손 위치에 든다.
+// 2026-11-12 새 기획: 루미는 등불을 들지 않고 스스로 빛을 쏜다(라이언 답변). 하트를 잃으면 잠들고(KO) 중앙 광원 옆에서 부활한다.
 import Phaser from 'phaser';
 import { TextureKeys } from '../core/TextureKeys';
 import { texScale } from '../core/textureRes';
@@ -23,17 +23,6 @@ export const KEEPER_FOOT_Y = 32;
 const FOOT_Y = KEEPER_FOOT_Y;
 /** 바라보는 각도가 따라가는 반응 시간 */
 const TURN_TAU = 0.06;
-/** 방향별 등불 든 손 (몸 가운데 기준). behind = 등불이 몸 뒤에 가려짐 */
-const HAND: Record<Dir, { x: number; y: number; behind?: boolean }> = {
-  e: { x: 30, y: 10 },
-  se: { x: 24, y: 14 },
-  s: { x: 22, y: 16 },
-  sw: { x: -24, y: 14 },
-  w: { x: -30, y: 10 },
-  nw: { x: -22, y: 3, behind: true },
-  n: { x: 19, y: 2, behind: true },
-  ne: { x: 22, y: 3, behind: true },
-};
 /** 걸을 때 발밑 먼지 ('게임 내 연출 예시 – 이동') */
 const DUST_EVERY = 0.16;
 const DUST_POOL = 10;
@@ -87,17 +76,6 @@ export class Lightkeeper {
       this.dust.push(scene.add.image(0, 0, TextureKeys.glow).setTint(0xc9b8f0).setAlpha(0).setVisible(false));
     }
     this.refresh(true);
-  }
-
-  /** 등불을 든 손 위치 (공격·피격 동작으로 몸이 움직이면 같이 움직인다) */
-  get hand(): Vec {
-    const h = HAND[this.dir];
-    return { x: this.pos.x + h.x + this.pose.dx, y: this.pos.y + h.y + this.pose.dy };
-  }
-
-  /** 등불을 그릴 깊이: 뒤를 볼 땐 몸 뒤 */
-  get lanternDepth(): number {
-    return this.pos.y + (HAND[this.dir].behind ? -0.5 : 0.5);
   }
 
   get depth(): number {
@@ -159,7 +137,7 @@ export class Lightkeeper {
     this.scene.time.delayedCall(FLASH_MS, () => this.sprite.clearTint());
   }
 
-  /** 새 밤 시작: 정면 정지 모습으로 빛 속에 나타난다 (빛기둥은 LightFx) */
+  /** 스테이지 시작·하트를 잃은 뒤: 정면 정지 모습으로 빛 속에 나타난다 (빛기둥은 LightFx) */
   respawn(): void {
     this.sleeping = false;
     this.faceAngle = Math.PI / 2;
@@ -168,7 +146,7 @@ export class Lightkeeper {
     this.start('respawn', this.faceAngle);
   }
 
-  /** 등불이 꺼질 때: 그 자리에 잠든다 */
+  /** 하트를 잃음·오늘은 여기까지: 그 자리에 잠든다 */
   ko(): void {
     this.sleeping = true;
     this.action = null;

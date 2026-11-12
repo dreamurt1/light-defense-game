@@ -83,16 +83,17 @@ export function dragAim(origin: Vec, cursor: Vec, maxRange: number, cancelRadius
   return { angle: Math.atan2(dy, dx), range: Math.min(d, maxRange) };
 }
 
-/** 자동 조준 방향: 사거리 안에서 가장 가까운 이웃, 없으면 가장 가까운 이웃. 아무도 없으면 null */
+/**
+ * 반자동 조준 방향 (2026-11-12 새 기획: 적이 가까이 있을 때 탭 한 번): 사거리 안에서 가장 가까운 대상.
+ * 사거리 안에 아무도 없으면 null → 쏘지 않는다(라이언 답변: 대상이 없으면 오발 없음)
+ */
 export function autoAimAngle(origin: Vec, targets: readonly Vec[], range: number): number | null {
   let best: Vec | null = null;
-  let bestScore = Infinity;
+  let bestD = Infinity;
   for (const t of targets) {
     const d = Math.hypot(t.x - origin.x, t.y - origin.y);
-    // 사거리 안의 이웃을 먼저 고르도록 사거리 밖은 점수를 크게
-    const score = d <= range ? d : d + 1e6;
-    if (score < bestScore) {
-      bestScore = score;
+    if (d <= range && d < bestD) {
+      bestD = d;
       best = t;
     }
   }

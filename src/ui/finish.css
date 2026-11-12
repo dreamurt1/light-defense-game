@@ -172,12 +172,8 @@
   box-shadow: inset 0 calc(var(--u) * 1.5) 0 rgba(246, 241, 231, 0.1);
 }
 
-/* 켜진 불꽃은 은은하게 빛난다 */
-.flame:not(.is-out) {
-  filter: drop-shadow(0 0 calc(var(--u) * 5) rgba(255, 140, 90, 0.55));
-}
-
-.synergy__track {
+.meter__track,
+.vitals__hp {
   box-shadow:
     inset 0 calc(var(--u) * 2) calc(var(--u) * 3) rgba(5, 4, 12, 0.5),
     0 0 0 calc(var(--u) * 1) rgba(158, 217, 181, 0.35);

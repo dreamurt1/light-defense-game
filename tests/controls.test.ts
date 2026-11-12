@@ -92,9 +92,8 @@ describe('autoAimAngle', () => {
     expect(a).toBeCloseTo(0);
   });
 
-  it('falls back to the nearest one when nobody is in range', () => {
-    const a = autoAimAngle(origin, [{ x: 0, y: -500 }, { x: 0, y: 300 }], 220);
-    expect(a).toBeCloseTo(Math.PI / 2);
+  it('사거리 안에 아무도 없으면 쏘지 않는다 (2026-11-12 라이언 답변)', () => {
+    expect(autoAimAngle(origin, [{ x: 0, y: -500 }, { x: 0, y: 300 }], 220)).toBeNull();
   });
 
   it('is null with no neighbours', () => {

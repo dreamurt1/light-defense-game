@@ -1,35 +1,52 @@
-// 어둠에 변한 이웃 공통: 등불로 접근, 닿으면 멈춰서 주기마다 피해, 빛에 맞으면 넉백·스턴, HP 0이면 되돌림.
-// 2026-11-04부터 등불은 등불지기가 들고 움직인다: 매 프레임 바뀌는 등불 위치를 쫓고,
-// 붙어 있다가 등불이 멀어지면 떨어져 다시 쫓는다(다시 붙을 때는 콤보를 또 깎지 않는다).
-// 등불지기가 풀숲에 숨어 보이지 않으면 루미를 쫓지 못하고 마을을 맴돈다(2026-11-06 라이언 지시).
+// 적 공통 (2026-11-12 새 기획): 목표(주인공·중앙 광원·켜진 등불)로 다가가 닿으면 멈춰서 주기마다 피해,
+// 빛에 맞으면 넉백·스턴, HP 0이면 무리별로 퇴장한다(잃어버린 주민 = 구출되어 마을로, 호스틸 = 맵 밖으로).
+//  - 목표 고르기: 주인공이 보이고 aggroRadius 안이면 주인공, 아니면 가장 가까운 광원(중앙 광원·켜진 등불)
+//  - 숨은 주인공을 쫓던 적은 lostSightSec 동안 마을을 맴돌다(2026-11-06 라이언 지시) 광원으로 간다
+//  - 붙어 있다가 목표가 멀어지면(detachRatio) 떨어져 다시 쫓는다
 import Phaser from 'phaser';
 import type { EnemyDef } from '../../data';
 import type { Vec } from '../../systems/fan';
 
 export type EnemyState = 'approach' | 'attached' | 'stunned' | 'returning';
 
+/** 'player' 또는 광원 id('central', 'station-0' …) */
+export type TargetId = string;
+
+export interface EnemyTarget extends Vec {
+  id: TargetId;
+  radius: number;
+}
+
 export interface EnemyContext {
-  /** 실제 등불: 닿으면 피해 */
-  lantern: Vec & { radius: number };
-  /** 등불지기가 풀숲에 숨어 보이지 않을 때: 마을을 맴돌 다음 지점을 고른다. 없으면 등불을 쫓는다 */
-  roam?: (from: Vec) => Vec;
-  /** 맴돌 때 속도 배율 */
-  roamSpeed?: number;
-  /** 느림 가루 등 장착물 배율(M3) */
+  /** 주인공 (쓰러져 있으면 null). seen = 숨지 않았거나 아주 가까움. 무적 중에도 쫓지만 피해는 Vitals가 막는다 */
+  player: (EnemyTarget & { seen: boolean }) | null;
+  /** 중앙 광원과 켜진 등불 */
+  sources: readonly EnemyTarget[];
+  aggroRadius: number;
+  /** 숨은 주인공도 이 거리 안이면 알아챈다 */
+  revealDist: number;
+  retargetSec: number;
+  detachRatio: number;
+  lostSightSec: number;
+  /** 숨은 주인공을 놓쳤을 때 맴돌 다음 지점 */
+  roam: (from: Vec) => Vec;
+  roamSpeed: number;
+  /** 별 목걸이 등 아이템 배율(Phase 4) */
   speedMultiplier: number;
 }
 
 export interface EnemyStep {
-  /** 이번 프레임에 처음 닿았나 (콤보 절반) */
-  firstContact: boolean;
-  /** 이번 프레임에 준 등불 피해 */
-  damage: number;
+  /** 이번 프레임에 준 피해와 그 대상 */
+  hit: { target: TargetId; damage: number; sourceDamage: number } | null;
+}
+
+/** 퇴장 연출에 넘기는 자리: 맞은 빛이 온 곳, 마을(중앙 광원) */
+export interface ReturnContext {
+  from: Vec;
+  home: Vec;
 }
 
 let nextUid = 1;
-
-/** 붙어 있던 이웃이 떨어지는 거리 = 닿는 거리 × 이 배율 (제안: 기획서에 없음) */
-const DETACH_RATIO = 1.25;
 
 export abstract class Enemy extends Phaser.GameObjects.Container {
   readonly uid = nextUid++;
@@ -41,12 +58,14 @@ export abstract class Enemy extends Phaser.GameObjects.Container {
   private knockSpeed = 0;
   private readonly knockDir = new Phaser.Math.Vector2();
   private stunLeft = 0;
-  /** 맴돌며 향하는 지점 (숨은 등불지기를 못 볼 때만) */
-  private roamTo: Vec | null = null;
   private stunTotal = 0;
+  /** 다음 피해까지 남은 시간. 떨어졌다 다시 붙어도 이어진다(밀려났다 붙을 때마다 바로 피해를 주지 않게) */
   private tickLeft = 0;
-  /** 등불지기가 걸어가서 떨어진 상태: 다시 붙어도 '처음 닿음'(콤보 절반)이 아니다 */
-  private trailing = false;
+  private target: TargetId | null = null;
+  private retargetLeft = 0;
+  /** 숨은 주인공을 놓친 뒤 맴도는 남은 시간 */
+  private lostLeft = 0;
+  private roamTo: Vec | null = null;
 
   constructor(
     scene: Phaser.Scene,
@@ -68,25 +87,29 @@ export abstract class Enemy extends Phaser.GameObjects.Container {
     return this.mode !== 'returning';
   }
 
+  /** 지금 노리는 대상 (확인용) */
+  get targetId(): TargetId | null {
+    return this.target;
+  }
+
   /** 옆 흔들림(접근 방향에 수직) */
   protected abstract lateralOffset(t: number): number;
   protected abstract animate(dt: number): void;
-  /** 되돌림 연출. 끝나면 스스로 destroy */
-  protected abstract playReturn(lantern: Vec): void;
+  /** 퇴장 연출. 끝나면 스스로 destroy */
+  protected abstract playReturn(ctx: ReturnContext): void;
   protected abstract playHit(): void;
 
-  /** 빛에 맞음. 되돌아가면 true */
-  hitByLight(power: number, knockback: number, stunSec: number, lantern: Vec): boolean {
+  /** 빛에 맞음. HP 0이 되어 퇴장하면 true */
+  hitByLight(power: number, knockback: number, stunSec: number, ctx: ReturnContext): boolean {
     if (!this.targetable) return false;
     this.hp -= power;
-    this.trailing = false;
     if (this.hp <= 0) {
       this.mode = 'returning';
-      this.playReturn(lantern);
+      this.playReturn(ctx);
       return true;
     }
     const dist = knockback * (this.def.knockbackMultiplier ?? 1);
-    this.knockDir.set(this.x - lantern.x, this.y - lantern.y).normalize();
+    this.knockDir.set(this.x - ctx.from.x, this.y - ctx.from.y).normalize();
     this.base.set(this.x, this.y);
     // 스턴 동안 속도를 선형으로 줄여 정확히 dist만큼 밀린다
     this.knockSpeed = (2 * dist) / stunSec;
@@ -97,9 +120,10 @@ export abstract class Enemy extends Phaser.GameObjects.Container {
   }
 
   step(dt: number, ctx: EnemyContext): EnemyStep {
-    const out: EnemyStep = { firstContact: false, damage: 0 };
+    const out: EnemyStep = { hit: null };
     if (this.mode === 'returning') return out;
     this.age += dt;
+    this.tickLeft = Math.max(0, this.tickLeft - dt);
     this.animate(dt);
 
     if (this.mode === 'stunned') {
@@ -113,57 +137,103 @@ export abstract class Enemy extends Phaser.GameObjects.Container {
       return out;
     }
 
-    const reach = ctx.lantern.radius + this.radius;
+    const goal = this.chooseTarget(dt, ctx);
+
     if (this.mode === 'attached') {
-      if (Phaser.Math.Distance.Between(this.x, this.y, ctx.lantern.x, ctx.lantern.y) > reach * DETACH_RATIO) {
+      if (!goal || Phaser.Math.Distance.Between(this.x, this.y, goal.x, goal.y) > (goal.radius + this.radius) * ctx.detachRatio) {
         this.mode = 'approach';
-        this.trailing = true;
         this.base.set(this.x, this.y);
         return out;
       }
-      this.tickLeft -= dt;
       if (this.tickLeft <= 0) {
-        this.tickLeft += this.def.damageTickSec;
-        out.damage = this.def.lanternDamage;
+        this.tickLeft = this.def.damageTickSec;
+        out.hit = { target: goal.id, damage: this.def.damage, sourceDamage: this.def.sourceDamage };
       }
       return out;
     }
 
-    // 숨은 등불지기를 못 보면 마을을 맴돈다: 지점에 다다르면 다음 지점으로
-    let target: Vec = ctx.lantern;
+    // 맴돌기(숨은 주인공을 놓침) 또는 목표로 다가간다
+    let dest: Vec | null = goal;
     let pace = 1;
-    if (ctx.roam) {
+    if (!goal) {
       if (!this.roamTo || Phaser.Math.Distance.Between(this.base.x, this.base.y, this.roamTo.x, this.roamTo.y) < 24) this.roamTo = ctx.roam(this.base);
-      target = this.roamTo;
-      pace = ctx.roamSpeed ?? 1;
+      dest = this.roamTo;
+      pace = ctx.roamSpeed;
     } else {
       this.roamTo = null;
     }
-    const toLantern = new Phaser.Math.Vector2(target.x - this.base.x, target.y - this.base.y);
-    const dir = toLantern.clone().normalize();
+    if (!dest) return out;
+    const toward = new Phaser.Math.Vector2(dest.x - this.base.x, dest.y - this.base.y);
+    const dir = toward.clone().normalize();
     const move = this.def.speed * ctx.speedMultiplier * pace * dt;
     this.base.x += dir.x * move;
     this.base.y += dir.y * move;
 
-    // 등불에 가까워질수록 흔들림을 줄여 똑바로 닿게 한다
-    const closeness = Math.min(1, toLantern.length() / 160);
+    // 목표에 가까워질수록 흔들림을 줄여 똑바로 닿게 한다
+    const closeness = Math.min(1, toward.length() / 160);
     const lateral = this.lateralOffset(this.age) * closeness;
     this.setPosition(this.base.x - dir.y * lateral, this.base.y + dir.x * lateral);
-    this.setRotation(Math.atan2(dir.y, dir.x) + Math.PI / 2);
+    this.face(dir);
     this.setDepth(this.y);
 
-    if (Phaser.Math.Distance.Between(this.x, this.y, ctx.lantern.x, ctx.lantern.y) <= reach) {
+    if (goal && Phaser.Math.Distance.Between(this.x, this.y, goal.x, goal.y) <= goal.radius + this.radius) {
       this.mode = 'attached';
-      if (this.trailing) {
-        // 따라와서 다시 붙음: 피해 주기는 이어서, 콤보는 그대로
-        this.trailing = false;
-        return out;
+      // 닿는 순간 첫 피해를 주고 이후 주기마다 (제안: 기획서에 없음 — 첫 피해 시점). 주기가 안 됐으면 기다린다
+      if (this.tickLeft <= 0) {
+        this.tickLeft = this.def.damageTickSec;
+        out.hit = { target: goal.id, damage: this.def.damage, sourceDamage: this.def.sourceDamage };
       }
-      // 닿는 순간 첫 피해를 주고 이후 주기마다 (제안: 기획서에 없음 — 첫 피해 시점)
-      out.firstContact = true;
-      out.damage = this.def.lanternDamage;
-      this.tickLeft = this.def.damageTickSec;
     }
     return out;
+  }
+
+  /** 다가가는 방향을 보여 준다 (박쥐는 몸을 돌리고, 걷는 적은 좌우만 뒤집는 식으로 재정의) */
+  protected face(dir: Phaser.Math.Vector2): void {
+    this.setRotation(Math.atan2(dir.y, dir.x) + Math.PI / 2);
+  }
+
+  /** 목표 고르기. null = 맴돌기 */
+  private chooseTarget(dt: number, ctx: EnemyContext): EnemyTarget | null {
+    const p = ctx.player;
+    // 쫓던 주인공이 숨으면 잠시 맴돈다
+    const sees = !!p && (p.seen || this.dist(p) <= ctx.revealDist);
+    if (this.target === 'player' && !sees) {
+      if (p && this.lostLeft <= 0) this.lostLeft = ctx.lostSightSec;
+      this.target = null;
+    }
+    if (this.lostLeft > 0) {
+      this.lostLeft -= dt;
+      if (sees && this.dist(p) <= ctx.aggroRadius) this.lostLeft = 0;
+      else return null;
+    }
+
+    this.retargetLeft -= dt;
+    const current = this.target === 'player' ? (sees ? p : null) : this.find(this.target, ctx);
+    if (current && (this.retargetLeft > 0 || this.mode === 'attached')) return current;
+    this.retargetLeft = ctx.retargetSec;
+
+    let next: EnemyTarget | null = sees && this.dist(p) <= ctx.aggroRadius ? p : null;
+    if (!next) {
+      let best = Infinity;
+      for (const s of ctx.sources) {
+        const d = this.dist(s);
+        if (d < best) {
+          best = d;
+          next = s;
+        }
+      }
+    }
+    if (next?.id !== this.target && this.mode === 'attached') this.mode = 'approach';
+    this.target = next?.id ?? null;
+    return next;
+  }
+
+  private find(id: TargetId | null, ctx: EnemyContext): EnemyTarget | null {
+    if (!id) return null;
+    return ctx.sources.find((s) => s.id === id) ?? null;
+  }
+
+  private dist(v: Vec): number {
+    return Math.hypot(v.x - this.x, v.y - this.y);
   }
 }

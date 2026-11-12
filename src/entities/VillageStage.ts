@@ -1,13 +1,13 @@
-// 밤 마을 무대. 어두운 마을 위에 '빛을 받은 마을'을 올리고, 등불 글로우와 부채꼴이 닿은 곳만 보이게 마스크한다.
+// 밤 마을 무대. 어두운 마을 위에 '빛을 받은 마을'을 올리고, 빛 고임(루미·중앙 광원·켜진 등불)과 부채꼴이 닿은 곳만 보이게 마스크한다.
 // 마스크는 매 프레임 RenderTexture에 그려 BitmapMask로 쓴다(WebGL). Canvas 렌더러에서는 켜진 마을을 생략한다.
 // 콤보 단계마다 마을 창문·등불이 하나씩 켜지고, 반딧불이 늘어난다. 반짝이 별은 부채꼴·되돌림의 따뜻함을 보탠다.
-// 2026-11-04: 마을은 화면보다 넓고(카메라가 따라감) 등불은 등불지기가 들고 다닌다.
+// 2026-11-04: 마을은 화면보다 넓고(카메라가 따라감). 2026-11-12 새 기획: 빛 고임이 여러 개(update의 pools) — 루미 주변(LP 비례),
+// 중앙 광원(광도 비례), 켜진 등불. 맵 전체 광도(systems/villageMood MapLight)가 켜진 마을 드러남(lit)과 어둠 덮개(gloom)를 정한다.
 // 마스크·시간대 덮개·섬광은 화면 크기로 화면에 붙여 두고(scrollFactor 0), 마스크에 찍을 때 카메라 스크롤만큼 뺀다.
 import Phaser from 'phaser';
 import { Rng } from '../core/rng';
 import { TextureKeys } from '../core/TextureKeys';
 import { GameData, type NightPhase } from '../data';
-import { brightenAt, gloomAt } from '../systems/villageMood';
 import { follow } from '../systems/facing';
 import { FAN_TEXTURE_RADIUS } from '../art/effects';
 import { texScale } from '../core/textureRes';
@@ -38,15 +38,23 @@ const FIREFLIES_BASE = 28;
 const FIREFLIES_MAX = 72;
 const FIREFLIES_PER_LIGHT = 2;
 const FAN_SPARKLES = 12;
-/** 등불 둘레에 늘 켜진 빛 웅덩이는 글로우 반경의 이 비율만큼만: 탭한 부채꼴이 주인공이 되게 */
+/** 빛 고임의 늘 켜진 웅덩이는 글로우 반경의 이 비율만큼만: 쏜 부채꼴이 주인공이 되게 */
 const LIT_POOL_RATIO = 0.55;
 const LIT_POOL_ALPHA = 0.85;
 const RETURN_SPARKLES = 6;
-/** 등불이 맞을 때 마을을 덮는 어둠의 색과 따라가는 시간 (제안) */
+/** 피격으로 맵 광도가 떨어질 때 덮는 어둠의 색과 따라가는 시간 (제안) */
 const GLOOM_COLOR = 0x0a0818;
 const GLOOM_DARKEN_TAU = 0.35;
 const GLOOM_LIFT_TAU = 0.15;
 const SPARKLE_POOL = 64;
+
+/** 빛 고임 하나: 마을 좌표, 반지름, 세기(0~1) */
+export interface LightPool {
+  x: number;
+  y: number;
+  radius: number;
+  alpha: number;
+}
 
 interface Fan {
   /** 쏜 자리 (등불지기가 움직여도 빛은 여기서 퍼진다) */
@@ -77,7 +85,10 @@ export class VillageStage {
   private readonly shade: Phaser.GameObjects.Rectangle;
   private readonly lit: Phaser.GameObjects.Container;
   private readonly maskTexture: Phaser.GameObjects.RenderTexture | null = null;
-  private readonly glow: Phaser.GameObjects.Image;
+  /** 빛 고임마다 하나씩 쓰는 글로우 */
+  private readonly glows: Phaser.GameObjects.Image[] = [];
+  /** 판이 끝날 때 빛 고임이 사그라드는 배율 */
+  private dim = 1;
   private readonly flash: Phaser.GameObjects.Rectangle;
   private readonly fans: Fan[] = [];
   private readonly lights: LitPoint[] = [];
@@ -86,9 +97,9 @@ export class VillageStage {
   private readonly rng = new Rng(777);
   private shadeColor = Phaser.Display.Color.ValueToColor(PHASE_SHADE.dusk.color);
   private flood = 0;
-  /** 밤 진행에 따라 켜진 마을이 전체에 드러나는 정도 (0~brightenMax) */
+  /** 맵 전체 광도로 켜진 마을이 전체에 드러나는 정도 */
   private dawning = 0;
-  /** 등불이 맞을수록 마을을 덮는 어둠 (지금 값 → 목표로 부드럽게) */
+  /** 피격으로 마을을 덮는 어둠 (지금 값 → 목표로 부드럽게) */
   private gloom = 0;
   private gloomTarget = 0;
   private readonly gloomLayer: Phaser.GameObjects.Rectangle;
@@ -96,8 +107,8 @@ export class VillageStage {
 
   constructor(
     private readonly scene: Phaser.Scene,
-    /** 들고 다니는 등불의 현재 위치 (Lantern.pos를 그대로 받아 매 프레임 읽는다) */
-    private readonly lantern: Vec,
+    /** 루미의 현재 위치 (콤보 펄스의 별이 터지는 곳) */
+    private readonly focus: Vec,
   ) {
     // 화면에 붙은 층(밤 색조·빛 마스크·번쩍임)은 지금 화면 크기로 만들고, 화면 방식이 바뀌면 resize()로 맞춘다 (2026-11-06 가로 화면)
     const W = scene.scale.width;
@@ -116,13 +127,6 @@ export class VillageStage {
     } else {
       this.lit.setVisible(false);
     }
-
-    this.glow = scene.add
-      .image(lantern.x, lantern.y, TextureKeys.glow)
-      .setTint(0xffc857)
-      .setBlendMode(Phaser.BlendModes.ADD)
-      .setAlpha(GLOW_ALPHA)
-      .setDepth(-860);
 
     for (const def of WORLD_LIGHTS) this.lights.push(this.makeLight(def));
     for (let i = 0; i < Math.min(FIREFLIES_MAX, FIREFLIES_BASE + FIREFLIES_PER_LIGHT * WORLD_LIGHTS.length); i++) this.fireflies.push(this.makeFirefly());
@@ -270,8 +274,8 @@ export class VillageStage {
     for (let i = 0; i < FAN_SPARKLES; i++) {
       const r = range * this.rng.range(0.3, 0.92);
       const a = angle + this.rng.range(-FAN_HALF * 0.85, FAN_HALF * 0.85);
-      const x = this.lantern.x + Math.cos(a) * r;
-      const y = this.lantern.y + Math.sin(a) * r;
+      const x = origin.x + Math.cos(a) * r;
+      const y = origin.y + Math.sin(a) * r;
       const delay = (r / range) * LIGHT.expandSec * 1000;
       this.sparkle(x, y, Math.cos(a) * 14, Math.sin(a) * 14 - 6, this.rng.range(0.35, 0.65), this.rng.range(420, 620), delay);
     }
@@ -279,17 +283,13 @@ export class VillageStage {
 
   // --- 시간대·끝 연출 ---
 
-  /**
-   * 마을 분위기 (2026-11-06 라이언 지시, systems/villageMood): progress = 밤 진행률 0~1, hpRatio = 등불 HP 비율.
-   * 밤이 흐를수록 점점 빨리 밝아지고, 등불이 맞을수록 어두워지며(밤이 깊을수록 깊게), 회복하면 그만큼 밝아진다
-   */
-  setMood(progress: number, hpRatio: number): void {
-    const cfg = GameData.game.village;
-    this.dawning = brightenAt(progress, cfg);
-    this.gloomTarget = gloomAt(hpRatio, progress, cfg);
+  /** 맵 전체 광도 (systems/villageMood MapLight): lit = 켜진 마을이 드러나는 정도, gloom = 어둠 덮개 */
+  setMood(lit: number, gloom: number): void {
+    this.dawning = lit;
+    this.gloomTarget = gloom;
   }
 
-  /** 등불이 회복됨: 어둠이 빨리 걷히고 마을이 한 번 크게 환해진다 */
+  /** 회복·부활: 마을이 한 번 크게 환해진다 */
   healGlow(): void {
     this.flood = Math.max(this.flood, 0.5);
     this.scene.tweens.add({ targets: this, flood: 0, delay: 150, duration: 700, ease: 'Sine.easeIn' });
@@ -319,18 +319,18 @@ export class VillageStage {
     });
   }
 
-  /** 대광원: 광장 전체가 환해지고 별이 흩어진다 */
-  burst(durationSec: number): void {
-    this.flood = 1;
+  /** 모든 등불이 켜짐(전체 활성 버프): 마을이 한 번 환해지고 at 둘레로 별이 흩어진다 */
+  celebrate(at: Vec, durationSec: number): void {
+    this.flood = Math.max(this.flood, 0.8);
     this.scene.tweens.add({ targets: this, flood: 0, duration: durationSec * 1000, ease: 'Sine.easeIn' });
-    this.flash.setAlpha(0.3);
+    this.flash.setAlpha(0.22);
     this.scene.tweens.add({ targets: this.flash, alpha: 0, duration: durationSec * 1000, ease: 'Sine.easeOut' });
     for (let i = 0; i < 18; i++) {
       const a = this.rng.range(0, Math.PI * 2);
       const r = this.rng.range(60, 300);
       this.sparkle(
-        this.lantern.x + Math.cos(a) * r,
-        this.lantern.y + Math.sin(a) * r,
+        at.x + Math.cos(a) * r,
+        at.y + Math.sin(a) * r,
         Math.cos(a) * 20,
         Math.sin(a) * 20 - 10,
         this.rng.range(0.5, 0.9),
@@ -345,28 +345,34 @@ export class VillageStage {
     // 잠깐 머물렀다(0.18초) 천천히 가라앉는다: 눈에 남되 깜빡이지 않게
     this.flood = Math.max(this.flood, 0.6);
     this.scene.tweens.add({ targets: this, flood: 0, delay: 180, duration: 750, ease: 'Sine.easeIn' });
-    this.burstAt(this.lantern.x, this.lantern.y - 20, 10, 1);
+    this.burstAt(this.focus.x, this.focus.y - 20, 10, 1);
   }
 
-  /** 새벽: 마을 전체가 켜진다 */
+  /** 아침(스테이지 끝): 마을 전체가 켜진다 */
   dawn(durationSec: number): void {
     this.setPhase('dawn');
     this.scene.tweens.add({ targets: this, flood: 1, duration: durationSec * 1000, ease: 'Sine.easeInOut' });
   }
 
-  /** 등불이 꺼질 때: 광장의 빛은 사라지고 집집의 창문만 남는다 */
+  /** 오늘은 여기까지: 빛 고임이 사그라들고 집집의 창문만 남는다 */
   fadeOut(durationSec: number): void {
-    this.scene.tweens.add({ targets: this, flood: 0, duration: durationSec * 1000 });
-    this.scene.tweens.add({ targets: this.glow, alpha: 0.1, duration: durationSec * 1000, ease: 'Sine.easeIn' });
+    this.scene.tweens.add({ targets: this, flood: 0, dim: 0.25, duration: durationSec * 1000, ease: 'Sine.easeIn' });
   }
 
-  update(dt: number, glowRadius: number, glowAlpha = 1): void {
+  update(dt: number, pools: readonly LightPool[]): void {
     this.time += dt;
     // 어두워질 땐 천천히, 회복으로 밝아질 땐 빨리
     const tau = this.gloomTarget > this.gloom ? GLOOM_DARKEN_TAU : GLOOM_LIFT_TAU;
     this.gloom += (this.gloomTarget - this.gloom) * follow(dt, tau);
     this.gloomLayer.setAlpha(this.gloom);
-    this.glow.setPosition(this.lantern.x, this.lantern.y).setScale((glowRadius * 2) / 256).setAlpha(GLOW_ALPHA * glowAlpha);
+    while (this.glows.length < pools.length) {
+      this.glows.push(this.scene.add.image(0, 0, TextureKeys.glow).setTint(0xffc857).setBlendMode(Phaser.BlendModes.ADD).setDepth(-860));
+    }
+    this.glows.forEach((g, i) => {
+      const p = pools[i];
+      g.setVisible(!!p && p.radius > 0);
+      if (p) g.setPosition(p.x, p.y).setScale((p.radius * 2) / 256).setAlpha(GLOW_ALPHA * p.alpha * this.dim);
+    });
 
     // 켜진 불빛은 아주 살짝 일렁인다(깜빡임 아님: 초당 1회 미만의 완만한 변화)
     for (const p of this.lights) {
@@ -401,10 +407,13 @@ export class VillageStage {
     if (base > 0) rt.fill(0xffffff, base);
     // 마스크는 화면에 붙어 있으므로 마을 좌표에서 카메라 스크롤을 뺀 자리에 찍는다
     const cam = this.scene.cameras.main;
-    rt.stamp(TextureKeys.glowMask, undefined, this.lantern.x - cam.scrollX, this.lantern.y - cam.scrollY, {
-      scale: (glowRadius * 2 * LIT_POOL_RATIO) / 256,
-      alpha: glowAlpha * LIT_POOL_ALPHA,
-    });
+    for (const p of pools) {
+      if (p.radius <= 0) continue;
+      rt.stamp(TextureKeys.glowMask, undefined, p.x - cam.scrollX, p.y - cam.scrollY, {
+        scale: (p.radius * 2 * LIT_POOL_RATIO) / 256,
+        alpha: p.alpha * LIT_POOL_ALPHA * this.dim,
+      });
+    }
     for (const f of this.fans) {
       const r = f.range * expandRatio(f.age, expand);
       const fade = f.age <= expand ? 1 : 1 - (f.age - expand) / LIT_AFTERGLOW_SEC;

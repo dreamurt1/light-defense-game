@@ -1,7 +1,8 @@
 // localStorage 랭킹. 최대 100행, 점수 → 버틴 시간 → 먼저 등록한 순.
 import type { Ranking, RankingPeriod, RankingRow, ScoreSubmission } from './Ranking';
 
-const STORAGE_KEY = 'ld.ranking.v1';
+/** 2026-11-12 새 기획으로 점수 체계가 바뀌어 새 칸에 쌓는다(옛 기록은 v1에 그대로 남음) */
+const STORAGE_KEY = 'ld.ranking.v2';
 const PLAYER_KEY = 'ld.player.v1';
 export const MAX_ROWS = 100;
 

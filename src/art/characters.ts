@@ -1,4 +1,5 @@
-// 등불지기 5종. 동물·이름·색은 기획서/데이터가 원본이고, 둥근 2등신 형태와 질감은 Sprite & Asset Reference Sheet를 참고한다.
+// 플레이어블 3명(2026-11-12 새 기획: 루미·토리(토끼)·도토(다람쥐)). 바루·몽이는 새 기획에서 빠졌다.
+// 원래 설명: 동물·이름·색은 기획서/데이터가 원본이고, 둥근 2등신 형태와 질감은 Sprite & Asset Reference Sheet를 참고한다.
 // 같은 그리기 함수로 초상(192×192)과 게임 스프라이트 프레임(96×96)을 만든다.
 // 애니메이션은 기획서대로: 주인공은 이동하지 않으므로 대기·빛 발사·피격만 (시트의 이동·점프·사망 프레임은 쓰지 않음).
 import type { CharacterId } from '../data';
@@ -20,7 +21,7 @@ interface Spec {
   muzzle?: string;
   cheeks?: string;
   blush?: string;
-  tail: 'curl' | 'puff' | 'wag' | 'none';
+  tail: 'curl' | 'puff' | 'wag' | 'bushy' | 'none';
   accessory: 'scarf' | 'bow' | 'pouch' | 'yuzu' | 'collar';
 }
 
@@ -52,9 +53,10 @@ const SPECS: Record<CharacterId, Spec> = {
     tail: 'puff',
     accessory: 'bow',
   },
+  // 다람쥐 (2026-11-12, 햄스터에서 바꿈): 붉은 갈색 털, 크고 복슬한 꼬리
   doto: {
-    fur: '#D9A066',
-    shade: '#B5793F',
+    fur: '#C9824A',
+    shade: '#A3622F',
     outline: '#5a3a22',
     belly: '#F6E6CF',
     ear: 'hamster',
@@ -64,36 +66,8 @@ const SPECS: Record<CharacterId, Spec> = {
     nose: '#E88AA0',
     cheeks: '#F6E6CF',
     blush: 'rgba(242,150,170,0.5)',
-    tail: 'none',
+    tail: 'bushy',
     accessory: 'pouch',
-  },
-  baru: {
-    fur: '#8C6A4F',
-    shade: '#6B4E39',
-    outline: '#3a2a1e',
-    ear: 'capybara',
-    earInner: '#6B4E39',
-    eye: 'sleepy',
-    eyeColor: '#2A1E1A',
-    nose: '#3a2a1e',
-    muzzle: '#7A5A42',
-    tail: 'none',
-    accessory: 'yuzu',
-  },
-  mong: {
-    fur: '#FFE0A3',
-    shade: '#E3BE7E',
-    outline: '#6a4e2a',
-    belly: '#FFF1D6',
-    ear: 'dog',
-    earInner: '#D9A066',
-    eye: 'bead',
-    eyeColor: '#2A1E1A',
-    nose: '#3a2a1e',
-    muzzle: '#FFF1D6',
-    blush: 'rgba(242,150,170,0.45)',
-    tail: 'wag',
-    accessory: 'collar',
   },
 };
 
@@ -318,6 +292,12 @@ export function drawKeeper(ctx: Ctx, id: CharacterId, pose: Partial<Pose> = {}):
       ctx.strokeStyle = s.fur;
       ctx.lineWidth = 5.6;
       ctx.stroke();
+    } else if (s.tail === 'bushy') {
+      // 다람쥐 꼬리: 등 뒤로 크게 말려 올라간 복슬한 꼬리
+      ellipse(ctx, -10, -22, 11, 22, -0.35);
+      fillStroke(ctx, s, s.fur, -44, 0);
+      ellipse(ctx, -12, -36, 8, 10, -0.6);
+      fillStroke(ctx, s, s.shade, -46, -26);
     } else if (s.tail === 'wag') {
       ellipse(ctx, -8, -8, 6, 11, -0.7);
       fillStroke(ctx, s, s.fur, -18, 2);

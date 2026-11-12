@@ -111,3 +111,27 @@ export const homeIcon = `
 <svg viewBox="0 0 24 24" aria-hidden="true">
   <path d="M4 11 12 4.5l8 6.5v8.5a1 1 0 0 1-1 1h-4.5v-5h-5v5H5a1 1 0 0 1-1-1V11Z" fill="currentColor"/>
 </svg>`;
+
+/** 하트 (2026-11-12 새 기획: 스테이지마다 3개). 빈 하트는 CSS로 흐리게 */
+export const heartIcon = `
+<svg class="heart" viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M12 20.6 4.6 13.4C2.4 11.2 2.5 7.6 4.9 5.6c2.1-1.8 5.1-1.4 6.8.6l.3.4.3-.4c1.7-2 4.7-2.4 6.8-.6 2.4 2 2.5 5.6.3 7.8Z" fill="currentColor"/>
+  <ellipse cx="8.2" cy="8.6" rx="1.7" ry="1.2" transform="rotate(-30 8.2 8.6)" fill="#fff" opacity=".45"/>
+</svg>`;
+
+/** 등불 스테이션 (HUD: 켠 등불 수) */
+export const lampIcon = `
+<svg class="icon icon--lamp" viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M7 8.2C7 6.4 9.2 4.2 12 3.2c2.8 1 5 3.2 5 5Z" fill="currentColor" opacity=".85"/>
+  <rect x="8" y="8.6" width="8" height="9" rx="2.2" fill="currentColor"/>
+  <rect x="9.6" y="10.2" width="4.8" height="5.8" rx="1.4" fill="#FFF1C9" opacity=".9"/>
+  <rect x="7" y="18.2" width="10" height="2.6" rx="1.2" fill="currentColor"/>
+</svg>`;
+
+/** 중앙 광원 결정 (HUD: 광원 광도) */
+export const crystalIcon = `
+<svg class="icon icon--crystal" viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M12 2.2 17.4 10 12 21.8 6.6 10Z" fill="currentColor"/>
+  <path d="M12 2.2 10.6 11.6 12 21.8" stroke="#FFF6DA" stroke-width="1.1" fill="none" opacity=".7"/>
+  <path d="M4 15.2 5.4 12.8 6.8 15.2 5.4 18.4Z M18.6 13.4 19.8 11.6 21 13.4 19.8 15.8Z" fill="currentColor" opacity=".7"/>
+</svg>`;

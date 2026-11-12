@@ -338,7 +338,7 @@ body {
   }
 }
 
-/* ---------- 아래 HUD: 불꽃 5개 · 시너지 · 일시정지 ---------- */
+/* ---------- 아래 HUD: 하트·HP · 빛(LP)·중앙 광원 · 켠 등불 · 일시정지 (2026-11-12) ---------- */
 
 /* 레퍼런스: 경계선 위에 놓인 단색 아래 띠 */
 .hud-bottom {
@@ -354,59 +354,74 @@ body {
   gap: calc(var(--u) * 14);
 }
 
-.flames {
+/* 루미: 하트 3개 위, HP 막대 아래 (2026-11-12 새 기획) */
+.vitals {
+  flex: none;
+  display: grid;
+  gap: calc(var(--u) * 5);
+  width: calc(var(--u) * 92);
+}
+
+.vitals__hearts {
   display: flex;
-  align-items: flex-end;
-  gap: calc(var(--u) * 6);
+  gap: calc(var(--u) * 4);
 }
 
-.flame {
-  width: calc(var(--u) * 30);
-  height: calc(var(--u) * 39);
-  overflow: visible;
-  transform: scale(calc(0.4 + 0.6 * var(--level, 1)));
-  transform-origin: 50% 100%;
-  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  filter: drop-shadow(0 0 calc(var(--u) * 5) rgba(255, 140, 60, 0.55));
+.heart {
+  width: calc(var(--u) * 26);
+  height: calc(var(--u) * 26);
+  color: #ff7a8a;
+  filter: drop-shadow(0 0 calc(var(--u) * 4) rgba(255, 110, 130, 0.5));
+  transition: color 0.3s, filter 0.3s, transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.flame__outer {
-  fill: #ff8a3c;
-}
-
-.flame__inner {
-  fill: #ffd25e;
-}
-
-.flame__core {
-  fill: #fff4cf;
-}
-
-.flame.is-out {
-  transform: none;
+.heart.is-empty {
+  color: #4a4c68;
   filter: none;
+  transform: scale(0.85);
 }
 
-.flame.is-out .flame__outer {
-  fill: #5a5c78;
+.vitals__hearts.is-lost .heart:not(.is-empty):last-of-type,
+.vitals__hearts.is-lost {
+  animation: heart-lost 0.5s ease-out;
 }
 
-.flame.is-out .flame__inner {
-  fill: #3e4060;
-}
-
-.flame.is-out .flame__core {
-  fill: transparent;
-}
-
-.hud.is-low .flame:not(.is-out) .flame__inner {
-  animation: ember-pulse 1s ease-in-out infinite;
-}
-
-@keyframes ember-pulse {
-  50% {
-    fill: var(--ember);
+@keyframes heart-lost {
+  30% {
+    transform: scale(1.12);
   }
+}
+
+.vitals__hp {
+  position: relative;
+  height: calc(var(--u) * 9);
+  border-radius: 999px;
+  background: #2a2c4c;
+  overflow: hidden;
+}
+
+.vitals__hp-fill {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(to right, #ff8a7a, #ffb36b);
+  transform: scaleX(var(--p, 1));
+  transform-origin: left center;
+  transition: transform 0.2s ease-out;
+}
+
+.hud.is-low .vitals__hp-fill {
+  animation: ember-pulse-bg 1s ease-in-out infinite;
+}
+
+@keyframes ember-pulse-bg {
+  50% {
+    background: var(--ember);
+  }
+}
+
+.hud.is-down .vitals {
+  opacity: 0.55;
 }
 
 .hud-bottom__rule {
@@ -415,33 +430,44 @@ body {
   background: color-mix(in srgb, var(--paper) 22%, transparent);
 }
 
-/* 시너지: 새싹 + 민트 테두리 막대에 금빛이 차오른다 */
-.synergy {
+/* 빛(LP)과 중앙 광원: 민트 테두리 막대에 금빛이 차오른다 (예전 시너지 게이지 모양) */
+.meters {
   flex: 1;
+  display: grid;
+  gap: calc(var(--u) * 6);
+  min-width: 0;
+}
+
+.meter {
   display: flex;
   align-items: center;
   gap: calc(var(--u) * 6);
 }
 
-.icon--sprout {
-  width: calc(var(--u) * 30);
-  height: calc(var(--u) * 30);
-  color: var(--mint);
+.meter > svg {
+  flex: none;
+  width: calc(var(--u) * 20);
+  height: calc(var(--u) * 20);
+  color: var(--amber);
 }
 
-.synergy__track {
+.meter--source > svg {
+  color: #ffd98a;
+}
+
+.meter__track {
   position: relative;
   flex: 1;
-  height: calc(var(--u) * 22);
-  border: calc(var(--u) * 2.5) solid var(--mint);
+  height: calc(var(--u) * 15);
+  border: calc(var(--u) * 2) solid var(--mint);
   border-radius: 999px;
   background: #1d1f3d;
   overflow: hidden;
 }
 
-.synergy__fill {
+.meter__fill {
   position: absolute;
-  inset: calc(var(--u) * 3);
+  inset: calc(var(--u) * 2);
   border-radius: 999px;
   background: linear-gradient(to right, #ffd76e, #f5a646);
   transform: scaleX(var(--p, 0));
@@ -449,32 +475,68 @@ body {
   transition: transform 0.2s ease-out;
 }
 
-/* 장착물 칸 (M3에서 채운다): 둥근 사각, 지금은 꺼진 상태 */
-.slot {
+.meter--source .meter__track {
+  border-color: color-mix(in srgb, var(--amber) 70%, var(--paper));
+}
+
+.meter--source .meter__fill {
+  background: linear-gradient(to right, #ffb35c, #fff1c9);
+}
+
+/* 광도 '낮음': 막대가 잔불 주황으로 */
+.meter[data-band='0'] .meter__fill {
+  background: var(--ember);
+}
+
+.hud.is-source-low .meter--source .meter__track {
+  animation: low-pulse-border 1s ease-in-out infinite;
+}
+
+@keyframes low-pulse-border {
+  50% {
+    border-color: var(--ember);
+  }
+}
+
+.meter--source.is-hit .meter__track {
+  animation: source-hit 0.35s ease-out;
+}
+
+@keyframes source-hit {
+  30% {
+    box-shadow: 0 0 calc(var(--u) * 12) color-mix(in srgb, var(--ember) 70%, transparent);
+  }
+}
+
+/* 켠 등불 수 */
+.stations {
   flex: none;
   display: grid;
-  place-items: center;
-  width: max(44px, calc(var(--u) * 54));
-  height: max(44px, calc(var(--u) * 54));
-  border: 1.5px solid color-mix(in srgb, var(--paper) 30%, transparent);
-  border-radius: calc(var(--u) * 12);
-  background: color-mix(in srgb, var(--paper) 5%, transparent);
+  justify-items: center;
+  gap: calc(var(--u) * 2);
+  min-width: calc(var(--u) * 44);
   color: color-mix(in srgb, var(--amber) 45%, var(--night));
 }
 
-.slot svg {
-  width: calc(var(--u) * 30);
-  height: calc(var(--u) * 30);
+.stations svg {
+  width: calc(var(--u) * 28);
+  height: calc(var(--u) * 28);
 }
 
-.synergy.is-full .synergy__track {
-  animation: synergy-full 0.6s ease-out;
+.stations__count {
+  font-size: calc(var(--u) * 15);
+  font-weight: 700;
+  color: var(--paper);
+  font-variant-numeric: tabular-nums;
 }
 
-@keyframes synergy-full {
-  30% {
-    box-shadow: 0 0 calc(var(--u) * 18) color-mix(in srgb, var(--amber) 70%, transparent);
-  }
+.stations.is-all {
+  color: var(--amber);
+  filter: drop-shadow(0 0 calc(var(--u) * 6) color-mix(in srgb, var(--amber) 60%, transparent));
+}
+
+.stations.is-bump svg {
+  animation: combo-bump 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* 둥근 버튼 (일시정지) */
@@ -995,9 +1057,9 @@ body {
   pointer-events: auto;
 }
 
-:root[data-layout='landscape'] .flame {
-  width: calc(var(--u) * 24);
-  height: calc(var(--u) * 31);
+:root[data-layout='landscape'] .heart {
+  width: calc(var(--u) * 22);
+  height: calc(var(--u) * 22);
 }
 
 :root[data-layout='landscape'] .sticks {

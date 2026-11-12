@@ -1,5 +1,13 @@
 # 기술 구조와 개발 로드맵
 
+> **2026-11-12 새 기획 개정 요약 (아래 본문보다 우선)**
+> - 마일스톤 M0~M6 → **Phase 0~6**(`docs/design/IMPLEMENTATION_PLAN.md`): 0 감사(완료) · 1 핵심 판(완료 2026-11-12) · 2 광도·등불·맵 · 3 적 무리·자비 · 4 아이템·점수 · 5 맵 3종·스테이지·구출 해금·보스 · 6 튜토리얼·설정·사운드·배포.
+> - 구조 추가: `src/scenes/play/EnemyField.ts`(스폰·적 이동), `src/scenes/play/Sources.ts`(중앙 광원·등불·맵 광도), 엔티티 `CentralSource`·`LightStation`·`enemies/Frog`, 순수 로직 `systems/vitals.ts`·`lightPoints.ts`·`lightLevel.ts`·`centralSource.ts`·`lightStation.ts`·`stageOutcome.ts`(+ `tests/stage.test.ts`). 데이터 `stages.json` 추가, `waves.json`·`equipment.json` 삭제, `Lantern` 엔티티 삭제.
+> - 저장소: 2026-11-12 git 시작(첫 커밋 = 구 기획 스냅샷).
+> - 결정(2026-11-12): 최근 수정된 것을 따른다 / 루미는 빛을 발사(손 등불 없음) / 장착물 → 아이템 / 하트를 잃으면 HP 100% / 기본 승리 = 하트 ≥1 / 반자동은 대상이 없으면 쏘지 않음 / 맵 3종 = 스테이지 테마 / 시너지·대광원 없앰 / 세부 수치는 Claude 판단(첫 스테이지는 쉽게). 남은 확인: 자비 대상(패시브로 해석).
+> - 완료 보고: 바꾼 파일, 동작, 실행·빌드·테스트 결과, 남은 문제·미확정 기획, 수동 확인 방법, "제안" 값·새 문구.
+
+
 ## 스택 (결정됨)
 
 | 계층 | 선택 | 이유 |

@@ -3,7 +3,11 @@
     "width": 540,
     "height": 960,
     "orientation": "portrait",
-    "landscape": { "height": 540, "minWidth": 720, "maxWidth": 1280 }
+    "landscape": {
+      "height": 540,
+      "minWidth": 720,
+      "maxWidth": 1280
+    }
   },
   "world": {
     "width": 3200,
@@ -12,6 +16,7 @@
   "keeper": {
     "moveSpeed": 225,
     "radius": 26,
+    "startOffsetY": 130,
     "walkInset": {
       "top": 250,
       "side": 100,
@@ -25,37 +30,106 @@
     "bushAlphaInside": 0.5,
     "roamSpeed": 0.6,
     "roamMin": 180,
-    "roamMax": 420
+    "roamMax": 420,
+    "lostSightSec": 3
   },
   "controls": {
     "deadzone": 0.18,
     "mouseCancelRadius": 48
   },
-  "lantern": {
-    "x": 1600,
-    "y": 900,
-    "radius": 48,
-    "maxHp": 100,
-    "lowHpRatio": 0.3,
-    "glowMin": 60,
-    "glowMax": 200
-  },
-  "night": {
-    "durationSec": 120,
+  "stage": {
+    "climaxAt": 0.7,
+    "hearts": 3,
     "phases": {
       "dusk": [
         0,
-        40
+        0.4
       ],
       "midnight": [
-        40,
-        90
+        0.4,
+        0.7
       ],
       "predawn": [
-        90,
-        120
+        0.7,
+        1
       ]
     }
+  },
+  "player": {
+    "maxHp": 100,
+    "respawnDelaySec": 1.5,
+    "invulnSec": 2.5,
+    "regenDelaySec": 4,
+    "regenPerSec": 1,
+    "centralRegenPerSec": 6,
+    "hurtKnockback": 14,
+    "lowHpRatio": 0.3,
+    "respawnPushRadius": 240,
+    "respawnPush": 180
+  },
+  "lp": {
+    "min": 10,
+    "max": 100,
+    "start": 100,
+    "regenPerSec": 3,
+    "stationRegenPerSec": 6,
+    "centralRegenPerSec": 12,
+    "castCost": 6,
+    "stationCost": 10,
+    "weakest": 0.7
+  },
+  "lightLevels": {
+    "names": [
+      "낮음",
+      "중간",
+      "밝음",
+      "크게 밝음"
+    ],
+    "bands": [
+      25,
+      50,
+      75
+    ]
+  },
+  "central": {
+    "x": 1600,
+    "y": 900,
+    "radius": 56,
+    "footprint": {
+      "w": 96,
+      "h": 40
+    },
+    "start": 45,
+    "max": 100,
+    "outAt": 10,
+    "growPerSec": 0.4,
+    "healRadius": 220,
+    "glowMin": 150,
+    "glowMax": 330
+  },
+  "station": {
+    "radius": 34,
+    "footprint": {
+      "w": 40,
+      "h": 22
+    },
+    "off": 10,
+    "on": 100,
+    "igniteSec": 1.2,
+    "damageMultiplier": 0.5,
+    "healRadius": 180,
+    "glowMin": 50,
+    "glowMax": 220
+  },
+  "aura": {
+    "glowMin": 110,
+    "glowMax": 210,
+    "growWithProgress": 0.25
+  },
+  "enemyAi": {
+    "aggroRadius": 480,
+    "retargetSec": 0.5,
+    "detachRatio": 1.25
   },
   "light": {
     "mode": "aimStick",
@@ -63,30 +137,21 @@
     "cooldownSec": 0.4,
     "expandSec": 0.25,
     "knockback": 70,
-    "stunSec": 0.3,
-    "burstPowerMultiplier": 3,
-    "burstKnockback": 200,
-    "burstFlashSec": 0.6
+    "stunSec": 0.3
   },
   "combo": {
-    "windowSec": 2,
-    "lossMode": "half",
+    "windowSec": 3,
+    "lossMode": "reset",
     "multiplierStep": 5,
     "multiplierPerStep": 0.5,
     "maxMultiplier": 4
   },
-  "synergy": {
-    "max": 100,
-    "gainPerReturn": 10.4,
-    "gainPerReturnHighCombo": 15.6,
-    "highComboThreshold": 10,
-    "decayPerSec": 4
-  },
   "score": {
+    "station": 50,
+    "mercy": 300,
     "itemPickup": 10,
-    "witchBonus": 2000,
-    "clearBase": 1000,
-    "clearPerLanternHp": 10
+    "clearBase": 500,
+    "completeMultiplier": 2.5
   },
   "playfield": {
     "margin": 16
@@ -94,19 +159,26 @@
   "items": {
     "lifetimeSec": 12,
     "blinkLastSec": 3,
-    "spawnRadiusMin": 120,
-    "spawnRadiusMax": 260
+    "maxGround": 3
   },
   "village": {
     "brightenMax": 0.55,
     "brightenPower": 2,
-    "gloomBase": 0.16,
-    "gloomGrowth": 0.24
+    "buffMultiplier": 1.35,
+    "centralHitDip": 0.1,
+    "playerHitDip": 0.03,
+    "climaxDipMultiplier": 1.6,
+    "dipRecoverPerSec": 0.06,
+    "dipMax": 0.5,
+    "gloomPerDip": 0.8
   },
   "_notes": {
-    "changed": "2026-10-23 기획서 통합: 세로 540x960, 밤 120초, 탭 한 번 부채꼴 빛(60도, 0.4초), 콤보 감소는 절반(lossMode half)",
-    "village": "2026-11-06 라이언 지시: 밤이 흐를수록 마을이 점점 밝아지고 그 속도는 점점 빨라진다. 켜진 마을이 전체에 드러나는 정도 = brightenMax × (진행률 ^ brightenPower). 등불이 맞으면 마을이 어두워지고 밤이 깊을수록 깊어지며 회복하면 그만큼 밝아진다: 어두움 = (1 − HP 비율) × (gloomBase + gloomGrowth × 진행률). 수치는 제안: 기획서에 없음",
-    "controls": "2026-11-04 라이언 지시: 브롤스타즈식 두 스틱(왼쪽 이동, 오른쪽 빛), 등불은 등불지기가 들고 다님, 넓은 마을(world)+카메라 따라감. world·keeper·controls 수치와 lantern.x/y(시작 위치)는 제안: 기획서에 없음. 2026-11-06 라이언 지시: 빛 스틱·마우스 모두 끈 거리에 비례해 원뿔 반지름(= 빛 길이, 최대 사거리). PC는 마우스를 누른 채 끌고 놓으면 발사, 등불에서 mouseCancelRadius 안에서 놓으면 취소(제안). keeper.radius 26은 루미 칸 128에 맞춘 발 판정(제안)",
-    "map": "2026-11-04 라이언 지시: 브롤스타즈처럼 넓은 마을(처음 2400x2400 정사각, 2026-11-06부터 16:9 3200x1800 — 가로 화면 지시, 면적 같음), 카메라·등불지기는 마을 밖으로 못 나감(walkInset: 위는 집 줄, 옆·아래는 덤불 띠), 숨을 수 있는 풀숲(hide)과 장애물(map.json). 수치는 제안: 기획서에 없음"
+    "changed": "2026-11-12 새 기획(XMind 1112) 전환: 한 판 = 스테이지(길이는 stages.json, 약 100초, 끝 = 아침), 70%부터 클라이맥스. 지킬 것 = 맵 가운데 중앙 광원 + 등불 스테이션. 루미는 HP·하트·LP를 갖고 스스로 빛을 쏜다(손 등불 없음). 시너지·대광원·장착물 없음. 수치는 모두 제안(라이언: 알아서, 첫 스테이지는 쉽게)",
+    "lightLevels": "광도는 0~100 연속값을 4단계로: 25 미만 낮음, 50 미만 중간, 75 미만 밝음, 그 이상 크게 밝음. 중앙 광원은 outAt(10)에 닿으면 꺼진다(게임 오버). 등불은 off(10)에서 시작해 빛을 맞으면 igniteSec 뒤 on(100)",
+    "player": "하트를 잃으면 respawnDelaySec 뒤 중앙 광원 옆에서 HP 100%(라이언 답변), invulnSec 무적. regenDelaySec 동안 맞지 않으면 regenPerSec, 광원 healRadius 안에서는 centralRegenPerSec. 부활할 때 빛기둥이 respawnPushRadius 안의 적을 respawnPush만큼 밀어낸다(부활하자마자 둘러싸이지 않게, 제안)",
+    "lp": "발사마다 castCost, 꺼진 등불을 켜면 stationCost(쏜 뒤 깎임, 남은 양과 상관없이 켜짐 — XMind). min에 가까울수록 사거리·위력이 weakest배까지 약해짐",
+    "village": "맵 전체 광도: 진행² × brightenMax(모든 등불이 켜지면 × buffMultiplier)에서 피격 dip을 뺀다. 광원 피격은 크게, 주인공 피격은 조금, 클라이맥스에는 × climaxDipMultiplier. dip은 초당 dipRecoverPerSec씩 회복",
+    "controls": "2026-11-04 라이언 지시: 브롤스타즈식 두 스틱, 넓은 마을 + 카메라 따라감. 2026-11-06: 빛 스틱·마우스 모두 끈 거리에 비례해 원뿔 반지름. 2026-11-12: 반자동(짧은 탭)은 사거리 안에 적이 없으면 쏘지 않음",
+    "map": "2026-11-06부터 16:9 3200x1800. 등불 자리 후보는 map.json stations(스테이지가 seed로 고름)"
   }
 }
