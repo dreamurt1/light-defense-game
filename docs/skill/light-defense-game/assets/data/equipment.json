@@ -1,0 +1,39 @@
+[
+  {
+    "id": "slow_dust",
+    "name": "느림 가루",
+    "giver": "두더지 할아버지",
+    "line": "뿌리면 발이 무거워져. 사람한테는 쓰지 마.",
+    "effect": {
+      "enemySpeedMultiplier": 0.85
+    }
+  },
+  {
+    "id": "wind_shoes",
+    "name": "바람 신발",
+    "giver": "제비",
+    "line": "내 깃털로 만들었어. 손이 가벼워질 거야.",
+    "effect": {
+      "lightCooldownMultiplier": 0.8
+    }
+  },
+  {
+    "id": "warm_scarf",
+    "name": "따뜻한 목도리",
+    "giver": "양 할머니",
+    "line": "춥지 않아야 불도 안 꺼진단다.",
+    "effect": {
+      "healMultiplier": 1.5
+    }
+  },
+  {
+    "id": "star_necklace",
+    "name": "별 목걸이",
+    "giver": "반딧불이",
+    "line": "반짝일 때마다 하나 더 세어줄게.",
+    "effect": {
+      "comboWindowBonusSec": 1.0,
+      "synergyBonusPerReturn": 2
+    }
+  }
+]

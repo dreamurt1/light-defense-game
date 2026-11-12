@@ -1,0 +1,65 @@
+{
+  "pack": "Lumi Walk 8 Directions x 4 Frames",
+  "canvas": {
+    "width": 256,
+    "height": 256,
+    "format": "transparent RGBA PNG"
+  },
+  "directions": [
+    {
+      "degrees": 0,
+      "name": "front",
+      "frames": 4
+    },
+    {
+      "degrees": 45,
+      "name": "front_right",
+      "frames": 4
+    },
+    {
+      "degrees": 90,
+      "name": "right",
+      "frames": 4
+    },
+    {
+      "degrees": 135,
+      "name": "back_right",
+      "frames": 4
+    },
+    {
+      "degrees": 180,
+      "name": "back",
+      "frames": 4
+    },
+    {
+      "degrees": 225,
+      "name": "back_left",
+      "frames": 4
+    },
+    {
+      "degrees": 270,
+      "name": "left",
+      "frames": 4
+    },
+    {
+      "degrees": 315,
+      "name": "front_left",
+      "frames": 4
+    }
+  ],
+  "frame_order": [
+    "contact/stance",
+    "passing",
+    "opposite stride",
+    "return"
+  ],
+  "mouth": "closed",
+  "source_assets": "User-provided lumi-idle8-and-walk-right.zip",
+  "generation_notes": {
+    "90_degrees": "Uses the four supplied right-facing walk frames.",
+    "270_degrees": "Exact horizontal mirrors of the supplied right-facing walk frames.",
+    "other_directions": "Uses the matching supplied 8-direction idle pose with subtle phase-based lower-body gait deformation and body bob; these are procedural approximations, not newly hand-drawn limb poses.",
+    "left_directions": "225°, 270°, and 315° are horizontally mirrored from their corresponding right-facing directions where applicable.",
+    "svg": "Color-quantized vector path tracing of each PNG; fine painterly texture is simplified."
+  }
+}

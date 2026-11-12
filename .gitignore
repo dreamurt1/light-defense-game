@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.env.local
+.firebase/
+*.log
+.shots/
+.playwright-mcp/
+.env*.local
+.claude/settings.local.json
+.impeccable/hook.cache.json

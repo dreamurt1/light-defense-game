@@ -1,0 +1,29 @@
+{
+  "name": "light-defense",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "shot": "node scripts/shot.mjs",
+    "assets": "node scripts/export-assets.mjs",
+    "art:import": "node scripts/export-assets.mjs",
+    "art:lumi": "node scripts/extract-lumi.mjs",
+    "doc:plan": "node scripts/build-plan-pdf.mjs",
+    "doc:skill": "node scripts/sync-skill.mjs"
+  },
+  "dependencies": {
+    "phaser": "^3.90.0",
+    "pretendard": "^1.3.9"
+  },
+  "devDependencies": {
+    "pdf-lib": "^1.17.1",
+    "typescript": "^5.9.3",
+    "vite": "^8.3.5",
+    "vitest": "^5.0.5"
+  }
+}

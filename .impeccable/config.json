@@ -1,0 +1,17 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "gradient-text",
+        "value": "*",
+        "files": [
+          "src/ui/finish.css"
+        ],
+        "createdAt": "2026-11-04T04:43:09.053Z",
+        "reason": "로고만: 라이언이 지정한 레퍼런스(reference/ChatGPT-Images 홈 화면)의 로고가 금빛 그라디언트 글자. 점수 숫자의 그라디언트는 지웠음"
+      }
+    ]
+  }
+}

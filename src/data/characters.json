@@ -1,0 +1,83 @@
+[
+  {
+    "id": "lumi",
+    "name": "루미",
+    "nameEn": "Lumi",
+    "animal": "고양이",
+    "default": true,
+    "lightRange": 330,
+    "lightPower": 10,
+    "lightCooldownMultiplier": 1.0,
+    "trait": "nightEyes",
+    "traitParams": {
+      "ghostAlpha": 0.5
+    },
+    "color": "#F2B880",
+    "blurb": "어둠 속도 잘 보여요. 처음이라면 루미.",
+    "voicePitchHz": 440
+  },
+  {
+    "id": "tori",
+    "name": "토리",
+    "nameEn": "Tori",
+    "animal": "토끼",
+    "lightRange": 270,
+    "lightPower": 8,
+    "lightCooldownMultiplier": 0.8,
+    "trait": "quickPaw",
+    "traitParams": {
+      "cooldownMultiplier": 0.8
+    },
+    "color": "#F6F1E7",
+    "blurb": "빠르지만 빛은 작아요. 손이 빠른 걸 좋아한다면.",
+    "voicePitchHz": 660
+  },
+  {
+    "id": "doto",
+    "name": "도토",
+    "nameEn": "Doto",
+    "animal": "햄스터",
+    "lightRange": 300,
+    "lightPower": 9,
+    "lightCooldownMultiplier": 1.0,
+    "trait": "cheekPouch",
+    "traitParams": {
+      "itemEffectMultiplier": 1.5
+    },
+    "color": "#D9A066",
+    "blurb": "주워 온 건 뭐든 알뜰하게 써요.",
+    "voicePitchHz": 880
+  },
+  {
+    "id": "baru",
+    "name": "바루",
+    "nameEn": "Baru",
+    "animal": "카피바라",
+    "lightRange": 390,
+    "lightPower": 12,
+    "lightCooldownMultiplier": 1.0,
+    "trait": "warmth",
+    "traitParams": {
+      "healPerSec": 0.5
+    },
+    "color": "#8C6A4F",
+    "blurb": "느긋해요. 바루가 지키면 불이 잘 안 꺼져요.",
+    "voicePitchHz": 220
+  },
+  {
+    "id": "mong",
+    "name": "몽이",
+    "nameEn": "Mong",
+    "animal": "강아지",
+    "lightRange": 300,
+    "lightPower": 10,
+    "lightCooldownMultiplier": 1.0,
+    "trait": "bark",
+    "traitParams": {
+      "knockbackMultiplier": 2
+    },
+    "color": "#FFE0A3",
+    "blurb": "짖으면 다들 멀리 가요.",
+    "voicePitchHz": 330
+  }
+]

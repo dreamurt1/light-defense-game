@@ -1,0 +1,1377 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-04T04:59:47.420Z",
+  "title": "Design System: 라이트 디펜스 (Light Defense)",
+  "extensions": {
+    "colorMeta": {
+      "night": {
+        "role": "neutral",
+        "displayName": "밤 NIGHT",
+        "canonical": "oklch(25.1% 0.053 275.7)",
+        "tonalRamp": [
+          "#060721",
+          "#1e223f",
+          "#3a405e",
+          "#595f80",
+          "#7980a3",
+          "#9ba3c7",
+          "#bfc7ec",
+          "#eaeeff"
+        ]
+      },
+      "dusk": {
+        "role": "neutral",
+        "displayName": "초저녁 DUSK",
+        "canonical": "oklch(32.4% 0.076 276.3)",
+        "tonalRamp": [
+          "#06042a",
+          "#1c2049",
+          "#373e6a",
+          "#565d8c",
+          "#767fb0",
+          "#98a1d5",
+          "#bbc6fb",
+          "#eaeefd"
+        ]
+      },
+      "predawn": {
+        "role": "neutral",
+        "displayName": "새벽 전 PREDAWN",
+        "canonical": "oklch(18.5% 0.042 288.1)",
+        "tonalRamp": [
+          "#0b081c",
+          "#242238",
+          "#413f57",
+          "#605e78",
+          "#817f9b",
+          "#a3a1bf",
+          "#c7c5e4",
+          "#edecfd"
+        ]
+      },
+      "dawn": {
+        "role": "secondary",
+        "displayName": "새벽빛 DAWN",
+        "canonical": "oklch(82.3% 0.099 64.7)",
+        "tonalRamp": [
+          "#160700",
+          "#381e01",
+          "#603702",
+          "#875419",
+          "#ab753e",
+          "#d09861",
+          "#f6bc84",
+          "#fdebdb"
+        ]
+      },
+      "amber": {
+        "role": "primary",
+        "displayName": "등불 호박 AMBER",
+        "canonical": "oklch(86.1% 0.142 82.7)",
+        "tonalRamp": [
+          "#130900",
+          "#312202",
+          "#563d01",
+          "#7c5b0b",
+          "#a67a0b",
+          "#d09b1b",
+          "#f6c04e",
+          "#feeccb"
+        ]
+      },
+      "mint": {
+        "role": "secondary",
+        "displayName": "새싹 민트 MINT",
+        "canonical": "oklch(83.5% 0.079 157.4)",
+        "tonalRamp": [
+          "#001005",
+          "#002e18",
+          "#124e31",
+          "#366f4f",
+          "#589170",
+          "#7bb492",
+          "#9ed9b5",
+          "#c6fedb"
+        ]
+      },
+      "lavender": {
+        "role": "tertiary",
+        "displayName": "라벤더 LAVENDER",
+        "canonical": "oklch(72.5% 0.088 293.1)",
+        "tonalRamp": [
+          "#0f002c",
+          "#28194b",
+          "#44376c",
+          "#63578f",
+          "#8478b3",
+          "#a79bd8",
+          "#cbbffe",
+          "#efecfd"
+        ]
+      },
+      "ember": {
+        "role": "tertiary",
+        "displayName": "잔불 EMBER",
+        "canonical": "oklch(75.6% 0.154 43.4)",
+        "tonalRamp": [
+          "#1c0300",
+          "#431400",
+          "#6f2903",
+          "#a13e02",
+          "#cb5d29",
+          "#f3814f",
+          "#feb698",
+          "#fdeae2"
+        ]
+      },
+      "paper": {
+        "role": "neutral",
+        "displayName": "종이 PAPER",
+        "canonical": "oklch(95.9% 0.014 84.6)",
+        "tonalRamp": [
+          "#0e0b05",
+          "#28251d",
+          "#46423a",
+          "#656158",
+          "#868279",
+          "#a9a49b",
+          "#cdc9bf",
+          "#f3eee4"
+        ]
+      },
+      "ash": {
+        "role": "neutral",
+        "displayName": "재 ASH",
+        "canonical": "oklch(65.5% 0.038 276.4)",
+        "tonalRamp": [
+          "#07091b",
+          "#202337",
+          "#3c4056",
+          "#5b6077",
+          "#7c8199",
+          "#9ea3bd",
+          "#c2c8e2",
+          "#eaeefe"
+        ]
+      },
+      "paper-soft": {
+        "role": "neutral",
+        "displayName": "흐린 종이 (보조 글자)",
+        "canonical": "color-mix(in srgb, #f6f1e7 74%, #8a8fa8)",
+        "tonalRamp": [
+          "#0c0b0b",
+          "#272424",
+          "#444141",
+          "#636060",
+          "#848181",
+          "#a7a4a4",
+          "#cbc8c8",
+          "#f1eeee"
+        ]
+      },
+      "hairline": {
+        "role": "neutral",
+        "displayName": "실선 (종이 14%)",
+        "canonical": "color-mix(in srgb, #f6f1e7 14%, transparent)",
+        "tonalRamp": [
+          "#0e0b05",
+          "#28251d",
+          "#46423a",
+          "#656158",
+          "#868279",
+          "#a9a49b",
+          "#cdc9bf",
+          "#f3eee4"
+        ]
+      },
+      "hud-band": {
+        "role": "neutral",
+        "displayName": "HUD 위 띠 (90%)",
+        "canonical": "rgba(17, 18, 40, 0.9)",
+        "tonalRamp": [
+          "#08081d",
+          "#21233a",
+          "#3d4059",
+          "#5c5f7a",
+          "#7c809d",
+          "#9fa3c1",
+          "#c3c7e6",
+          "#ebedff"
+        ]
+      },
+      "hud-floor": {
+        "role": "neutral",
+        "displayName": "HUD 아래 바닥",
+        "canonical": "oklch(21.0% 0.049 279.6)",
+        "tonalRamp": [
+          "#08081f",
+          "#20223c",
+          "#3c3f5c",
+          "#5b5f7d",
+          "#7c80a0",
+          "#9ea2c4",
+          "#c2c6e9",
+          "#ebedff"
+        ]
+      },
+      "panel-top": {
+        "role": "neutral",
+        "displayName": "판 위",
+        "canonical": "oklch(30.6% 0.078 276.8)",
+        "tonalRamp": [
+          "#07032b",
+          "#1b1e49",
+          "#353b69",
+          "#52598a",
+          "#747caf",
+          "#98a1d6",
+          "#bdc7fe",
+          "#e0ebff"
+        ]
+      },
+      "panel-bottom": {
+        "role": "neutral",
+        "displayName": "판 아래",
+        "canonical": "oklch(23.8% 0.059 276.8)",
+        "tonalRamp": [
+          "#070623",
+          "#1d2040",
+          "#383d5f",
+          "#555b7f",
+          "#777da4",
+          "#9ba2ca",
+          "#c0c8f2",
+          "#e4ecff"
+        ]
+      },
+      "track-night": {
+        "role": "neutral",
+        "displayName": "밤 진행 바 홈",
+        "canonical": "oklch(35.0% 0.069 278.9)",
+        "tonalRamp": [
+          "#070527",
+          "#1f2046",
+          "#3a3e66",
+          "#595d88",
+          "#797eac",
+          "#9ba1d1",
+          "#bfc5f6",
+          "#ebedfc"
+        ]
+      },
+      "track-synergy": {
+        "role": "neutral",
+        "displayName": "시너지 게이지 홈",
+        "canonical": "oklch(25.4% 0.056 278.7)",
+        "tonalRamp": [
+          "#070722",
+          "#1f2140",
+          "#3b3f60",
+          "#5a5e81",
+          "#7a7fa4",
+          "#9da2c8",
+          "#c0c6ee",
+          "#ebedfd"
+        ]
+      },
+      "glass-top": {
+        "role": "neutral",
+        "displayName": "남색 유리",
+        "canonical": "oklch(36.7% 0.087 277.0)",
+        "tonalRamp": [
+          "#07012e",
+          "#1b1d4d",
+          "#353a6d",
+          "#51588e",
+          "#737bb4",
+          "#96a0db",
+          "#bcc6ff",
+          "#dfeaff"
+        ]
+      },
+      "amber-light": {
+        "role": "primary",
+        "displayName": "호박 버튼 윗빛",
+        "canonical": "oklch(89.4% 0.121 86.7)",
+        "tonalRamp": [
+          "#120a00",
+          "#312300",
+          "#533f03",
+          "#7a5c01",
+          "#a27c0f",
+          "#c69f40",
+          "#ebc467",
+          "#ffedc5"
+        ]
+      },
+      "amber-deep": {
+        "role": "primary",
+        "displayName": "호박 버튼 아랫빛",
+        "canonical": "oklch(79.5% 0.145 74.9)",
+        "tonalRamp": [
+          "#140900",
+          "#342000",
+          "#5a3b00",
+          "#82580a",
+          "#ad760c",
+          "#d9961d",
+          "#febb55",
+          "#ffebd1"
+        ]
+      },
+      "amber-gloss-top": {
+        "role": "primary",
+        "displayName": "호박 광택 위",
+        "canonical": "oklch(90.6% 0.113 88.2)",
+        "tonalRamp": [
+          "#1d0200",
+          "#3a1c00",
+          "#583a00",
+          "#785800",
+          "#9c7c1d",
+          "#c2a049",
+          "#e9c770",
+          "#ffeb93"
+        ]
+      },
+      "amber-gloss-bottom": {
+        "role": "primary",
+        "displayName": "호박 광택 아래",
+        "canonical": "oklch(77.6% 0.146 70.8)",
+        "tonalRamp": [
+          "#260000",
+          "#451000",
+          "#653000",
+          "#874f00",
+          "#ad721b",
+          "#d49748",
+          "#fcbd6f",
+          "#ffe192"
+        ]
+      },
+      "amber-rim": {
+        "role": "primary",
+        "displayName": "호박 테두리",
+        "canonical": "oklch(68.9% 0.134 69.2)",
+        "tonalRamp": [
+          "#260000",
+          "#460f00",
+          "#662f00",
+          "#884e00",
+          "#ae711e",
+          "#d59649",
+          "#fdbc70",
+          "#ffe093"
+        ]
+      },
+      "combo-gold": {
+        "role": "primary",
+        "displayName": "콤보 금빛",
+        "canonical": "oklch(89.3% 0.131 88.7)",
+        "tonalRamp": [
+          "#110a00",
+          "#2f2302",
+          "#523f02",
+          "#775d0c",
+          "#a07d0c",
+          "#c6a030",
+          "#ecc45b",
+          "#feedc4"
+        ]
+      },
+      "combo-stroke": {
+        "role": "primary",
+        "displayName": "콤보 외곽선 갈색",
+        "canonical": "oklch(36.1% 0.073 56.0)",
+        "tonalRamp": [
+          "#180600",
+          "#3b1b01",
+          "#5f3717",
+          "#815637",
+          "#a47757",
+          "#c99a79",
+          "#efbd9c",
+          "#feeadd"
+        ]
+      },
+      "light-core": {
+        "role": "primary",
+        "displayName": "빛 심지",
+        "canonical": "oklch(95.9% 0.054 91.0)",
+        "tonalRamp": [
+          "#100a00",
+          "#2f2400",
+          "#4d411e",
+          "#6d603d",
+          "#8e825d",
+          "#b2a47f",
+          "#d6c9a2",
+          "#fceec6"
+        ]
+      },
+      "flame-outer": {
+        "role": "tertiary",
+        "displayName": "불꽃 바깥",
+        "canonical": "oklch(75.0% 0.167 50.8)",
+        "tonalRamp": [
+          "#1a0400",
+          "#3e1901",
+          "#692f02",
+          "#984704",
+          "#c96005",
+          "#f58131",
+          "#fdb78f",
+          "#feeadf"
+        ]
+      },
+      "flame-inner": {
+        "role": "tertiary",
+        "displayName": "불꽃 안쪽",
+        "canonical": "oklch(88.1% 0.142 87.9)",
+        "tonalRamp": [
+          "#120a00",
+          "#2f2302",
+          "#533f01",
+          "#785d0c",
+          "#a17d0b",
+          "#ca9e1b",
+          "#f0c34d",
+          "#feedc4"
+        ]
+      },
+      "flame-out": {
+        "role": "neutral",
+        "displayName": "꺼진 불꽃",
+        "canonical": "oklch(48.4% 0.045 281.4)",
+        "tonalRamp": [
+          "#09081d",
+          "#21223a",
+          "#3e3f5a",
+          "#5c5e7b",
+          "#7d809d",
+          "#a0a2c1",
+          "#c4c6e7",
+          "#ecedfc"
+        ]
+      },
+      "village-ground-dark": {
+        "role": "neutral",
+        "displayName": "어두운 마을 바닥 (DARK.ground)",
+        "canonical": "oklch(24.7% 0.041 291.4)",
+        "tonalRamp": [
+          "#0c071b",
+          "#252138",
+          "#423e57",
+          "#615d77",
+          "#827e9a",
+          "#a5a1be",
+          "#c9c5e3",
+          "#eeecfc"
+        ]
+      },
+      "village-stone-dark": {
+        "role": "neutral",
+        "displayName": "어두운 판석 (DARK.stones)",
+        "canonical": "oklch(30.7% 0.048 291.8)",
+        "tonalRamp": [
+          "#0c061d",
+          "#26203a",
+          "#423d5a",
+          "#615d7b",
+          "#827e9d",
+          "#a5a0c1",
+          "#c9c4e7",
+          "#eeecfd"
+        ]
+      },
+      "village-ground-lit": {
+        "role": "primary",
+        "displayName": "켜진 마을 바닥 (LIT.ground)",
+        "canonical": "oklch(32.1% 0.057 51.5)",
+        "tonalRamp": [
+          "#1a0400",
+          "#3a1c07",
+          "#5a3925",
+          "#7c5843",
+          "#9f7963",
+          "#c39b85",
+          "#e8bfa8",
+          "#feeade"
+        ]
+      },
+      "village-stone-lit": {
+        "role": "primary",
+        "displayName": "켜진 판석 (LIT.stones)",
+        "canonical": "oklch(59.2% 0.104 55.5)",
+        "tonalRamp": [
+          "#190500",
+          "#3c1b00",
+          "#653305",
+          "#8d4f1d",
+          "#b27041",
+          "#d79363",
+          "#feb786",
+          "#ffeadc"
+        ]
+      },
+      "village-leaf-dark": {
+        "role": "neutral",
+        "displayName": "어두운 잎 (DARK.leaf)",
+        "canonical": "oklch(38.5% 0.037 195.7)",
+        "tonalRamp": [
+          "#000f0f",
+          "#0b2b2b",
+          "#294848",
+          "#486868",
+          "#698a89",
+          "#8badac",
+          "#aed1d1",
+          "#d3f7f6"
+        ]
+      },
+      "village-flower-dark": {
+        "role": "tertiary",
+        "displayName": "어두운 보라 꽃 (DARK.flower)",
+        "canonical": "oklch(59.0% 0.122 290.1)",
+        "tonalRamp": [
+          "#0e002e",
+          "#28105a",
+          "#43327d",
+          "#6252a1",
+          "#8274c6",
+          "#a497ec",
+          "#c8c0fe",
+          "#eeecfd"
+        ]
+      },
+      "village-wall-dark": {
+        "role": "neutral",
+        "displayName": "어두운 나무 벽 (DARK.wall)",
+        "canonical": "oklch(32.7% 0.041 307.1)",
+        "tonalRamp": [
+          "#100618",
+          "#2a2035",
+          "#483c53",
+          "#675b74",
+          "#897c96",
+          "#ac9fba",
+          "#d0c3de",
+          "#f3eafc"
+        ]
+      },
+      "card-top": {
+        "role": "neutral",
+        "displayName": "카드 위",
+        "canonical": "oklch(30.5% 0.075 276.9)",
+        "tonalRamp": [
+          "#06042a",
+          "#1c1f47",
+          "#363b67",
+          "#535988",
+          "#747cad",
+          "#98a1d4",
+          "#bdc7fc",
+          "#e1ebff"
+        ]
+      },
+      "card-bottom": {
+        "role": "neutral",
+        "displayName": "카드 아래",
+        "canonical": "oklch(24.2% 0.057 278.4)",
+        "tonalRamp": [
+          "#070722",
+          "#1e203f",
+          "#393d5d",
+          "#565b7e",
+          "#787da2",
+          "#9ca2c8",
+          "#c2c8f0",
+          "#e5ecff"
+        ]
+      },
+      "arch-top": {
+        "role": "neutral",
+        "displayName": "아치 위",
+        "canonical": "oklch(34.0% 0.091 277.9)",
+        "tonalRamp": [
+          "#080030",
+          "#1c1c4f",
+          "#35396f",
+          "#525890",
+          "#737bb6",
+          "#979fde",
+          "#bcc5ff",
+          "#dfe9ff"
+        ]
+      },
+      "switch-off": {
+        "role": "neutral",
+        "displayName": "스위치 꺼짐",
+        "canonical": "oklch(38.5% 0.075 277.4)",
+        "tonalRamp": [
+          "#070429",
+          "#1c1e47",
+          "#363b67",
+          "#535988",
+          "#757cad",
+          "#99a1d4",
+          "#bec7fc",
+          "#eaedfe"
+        ]
+      },
+      "lit-card-top": {
+        "role": "primary",
+        "displayName": "고른 카드 위",
+        "canonical": "oklch(35.3% 0.043 60.1)",
+        "tonalRamp": [
+          "#180600",
+          "#331f0d",
+          "#513a28",
+          "#705845",
+          "#947b67",
+          "#b99f8a",
+          "#e0c5af",
+          "#ffe9d2"
+        ]
+      },
+      "lit-card-bottom": {
+        "role": "primary",
+        "displayName": "고른 카드 아래",
+        "canonical": "oklch(25.5% 0.016 24.9)",
+        "tonalRamp": [
+          "#110908",
+          "#2b2120",
+          "#483d3c",
+          "#665a59",
+          "#897d7b",
+          "#aea1a0",
+          "#d5c7c5",
+          "#f9ebe9"
+        ]
+      },
+      "shop-wood-top": {
+        "role": "tertiary",
+        "displayName": "가게 나무 위",
+        "canonical": "oklch(30.8% 0.029 345.9)",
+        "tonalRamp": [
+          "#14060e",
+          "#2f1e27",
+          "#4c3a43",
+          "#6a5761",
+          "#8e7a84",
+          "#b39ea8",
+          "#dac3cf",
+          "#fee7f3"
+        ]
+      },
+      "shop-wood-bottom": {
+        "role": "tertiary",
+        "displayName": "가게 나무 아래",
+        "canonical": "oklch(25.9% 0.032 316.9)",
+        "tonalRamp": [
+          "#100714",
+          "#2a1f2e",
+          "#473b4b",
+          "#65586a",
+          "#887b8d",
+          "#ad9fb2",
+          "#d3c5d9",
+          "#f7e8fd"
+        ]
+      },
+      "shop-shelf": {
+        "role": "tertiary",
+        "displayName": "가게 선반",
+        "canonical": "oklch(43.9% 0.061 60.5)",
+        "tonalRamp": [
+          "#160700",
+          "#381c01",
+          "#57381c",
+          "#775539",
+          "#9c785b",
+          "#c29c7e",
+          "#e9c2a3",
+          "#ffeada"
+        ]
+      },
+      "witch-plum": {
+        "role": "tertiary",
+        "displayName": "노월 자두",
+        "canonical": "oklch(26.0% 0.064 304.0)",
+        "tonalRamp": [
+          "#110320",
+          "#2b1b3d",
+          "#47375b",
+          "#65557b",
+          "#8877a0",
+          "#ad9bc6",
+          "#d3c1ed",
+          "#f2eafe"
+        ]
+      },
+      "witch-glow": {
+        "role": "tertiary",
+        "displayName": "노월 이름빛",
+        "canonical": "oklch(91.8% 0.050 306.0)",
+        "tonalRamp": [
+          "#10051b",
+          "#2a1d37",
+          "#463955",
+          "#655674",
+          "#877998",
+          "#ac9dbe",
+          "#d2c3e5",
+          "#f3eaff"
+        ]
+      },
+      "witch-fill-light": {
+        "role": "tertiary",
+        "displayName": "노월 채움 밝은 끝",
+        "canonical": "oklch(87.2% 0.071 296.6)",
+        "tonalRamp": [
+          "#0f0225",
+          "#281b42",
+          "#443761",
+          "#615581",
+          "#8478a6",
+          "#a99ccc",
+          "#cfc2f4",
+          "#f0ebfe"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display · 콤보 연출",
+        "purpose": "콤보 단계 \"콤보 ×N\" 전용. 금빛 + 갈색 외곽선 + 호박 후광, −6°."
+      },
+      "score": {
+        "displayName": "Score · 결과 점수",
+        "purpose": "결과 패널의 오늘 밤 점수. tabular, 0.9초 카운트업."
+      },
+      "headline": {
+        "displayName": "Headline · 시트 제목",
+        "purpose": "결과·일시정지 제목. 일시정지는 30u."
+      },
+      "title": {
+        "displayName": "Title · HUD 한 줄",
+        "purpose": "밤 시계, 점수, 콤보. tabular."
+      },
+      "button": {
+        "displayName": "Button",
+        "purpose": "알약 버튼 글자와 토스트."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "시트 부제."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "결과 통계 라벨, 노월 줄, 카드 설명(14~16u)."
+      },
+      "wordmark": {
+        "displayName": "Wordmark · 홈 로고",
+        "purpose": "홈의 LIGHT DEFENSE 로고 전용. combo-gold + 호박 후광, 기울임. 다른 화면 제목에 쓰지 않는다."
+      },
+      "screen-title": {
+        "displayName": "Screen title · 메뉴 막대 제목",
+        "purpose": "메뉴 화면 위쪽 막대 가운데 제목."
+      }
+    },
+    "unit": {
+      "name": "--u",
+      "value": "calc(100cqw / 540)",
+      "purpose": "논리 폭 540 기준 UI 단위. 프론트매터의 cqw 값은 이 단위의 환산."
+    },
+    "shadows": [
+      {
+        "name": "sheet-lift",
+        "value": "0 calc(var(--u) * 14) calc(var(--u) * 40) rgba(5, 4, 12, 0.55)",
+        "purpose": "결과·일시정지·설정 판이 마을 위에 떠 있을 때."
+      },
+      {
+        "name": "sheet-double-edge",
+        "value": "inset 0 0 0 calc(var(--u) * 1) rgba(246, 241, 231, 0.05), inset 0 calc(var(--u) * 1.5) 0 rgba(246, 241, 231, 0.14)",
+        "purpose": "판의 안쪽 가는 테두리와 윗변 빛줄."
+      },
+      {
+        "name": "pill-primary",
+        "value": "inset 0 calc(var(--u) * 2) 0 rgba(255, 250, 235, 0.65), inset 0 calc(var(--u) * -4) calc(var(--u) * 6) rgba(160, 84, 20, 0.38), 0 calc(var(--u) * 6) calc(var(--u) * 14) rgba(110, 54, 10, 0.42)",
+        "purpose": "호박 알약의 윗면 빛, 아랫면 두께, 따뜻한 바닥 그림자."
+      },
+      {
+        "name": "tab-on",
+        "value": "inset 0 calc(var(--u) * -3) calc(var(--u) * 5) rgba(160, 84, 20, 0.35), 0 calc(var(--u) * 4) calc(var(--u) * 10) rgba(110, 54, 10, 0.35)",
+        "purpose": "켜진 탭(주요 알약보다 약한 같은 결)."
+      },
+      {
+        "name": "glass-button",
+        "value": "inset 0 calc(var(--u) * 1.5) 0 rgba(246, 241, 231, 0.16), 0 calc(var(--u) * 5) calc(var(--u) * 12) rgba(5, 4, 12, 0.4)",
+        "purpose": "보조 알약. 원 버튼은 바닥 그림자 0 4u 10u."
+      },
+      {
+        "name": "card",
+        "value": "inset 0 calc(var(--u) * 1) 0 rgba(246, 241, 231, 0.1), 0 calc(var(--u) * 4) calc(var(--u) * 10) rgba(5, 4, 12, 0.32)",
+        "purpose": "메뉴 카드·꺼진 탭·입력칸·도움말 우물."
+      },
+      {
+        "name": "lit-card",
+        "value": "inset 0 calc(var(--u) * 1.5) 0 rgba(255, 236, 190, 0.22), 0 0 calc(var(--u) * 16) color-mix(in srgb, #ffc857 38%, transparent)",
+        "purpose": "고른 로스터 칸·장착 중 상점 카드·내 기록 줄."
+      },
+      {
+        "name": "arch",
+        "value": "inset 0 0 0 calc(var(--u) * 4) rgba(17, 18, 40, 0.5), inset 0 calc(var(--u) * 2) 0 rgba(246, 241, 231, 0.18), 0 calc(var(--u) * 10) calc(var(--u) * 30) rgba(5, 4, 12, 0.45)",
+        "purpose": "선택 화면 초상 아치."
+      },
+      {
+        "name": "stick-base",
+        "value": "inset 0 calc(var(--u) * 2) 0 rgba(255, 255, 255, 0.08), 0 calc(var(--u) * 6) calc(var(--u) * 18) rgba(5, 4, 12, 0.4)",
+        "purpose": "두 스틱의 바닥 원."
+      },
+      {
+        "name": "stick-light-knob",
+        "value": "0 calc(var(--u) * 4) calc(var(--u) * 12) rgba(5, 4, 12, 0.45), 0 0 calc(var(--u) * 16) color-mix(in srgb, #ffc857 45%, transparent), inset 0 calc(var(--u) * -3) calc(var(--u) * 5) rgba(150, 80, 20, 0.35)",
+        "purpose": "빛 스틱 손잡이: 놓인 그림자 + 늘 켜진 호박 후광."
+      },
+      {
+        "name": "stick-aiming",
+        "value": "inset 0 calc(var(--u) * 2) 0 rgba(255, 255, 255, 0.1), 0 0 calc(var(--u) * 26) color-mix(in srgb, #ffc857 50%, transparent)",
+        "purpose": "빛 스틱을 겨누는 중."
+      },
+      {
+        "name": "glow-amber-hover",
+        "value": "0 0 calc(var(--u) * 16) color-mix(in srgb, #ffc857 40%, transparent)",
+        "purpose": "주요 버튼 호버(마우스 기기)."
+      },
+      {
+        "name": "glow-amber-press",
+        "value": "0 0 calc(var(--u) * 24) color-mix(in srgb, #ffc857 55%, transparent)",
+        "purpose": "주요 버튼 누름."
+      },
+      {
+        "name": "glow-paper-hover",
+        "value": "0 0 calc(var(--u) * 14) color-mix(in srgb, #f6f1e7 25%, transparent)",
+        "purpose": "보조·원 버튼 호버."
+      },
+      {
+        "name": "glow-paper-press",
+        "value": "0 0 calc(var(--u) * 20) color-mix(in srgb, #f6f1e7 30%, transparent)",
+        "purpose": "보조·원 버튼 누름."
+      },
+      {
+        "name": "glow-flame",
+        "value": "drop-shadow(0 0 calc(var(--u) * 5) rgba(255, 140, 90, 0.55))",
+        "purpose": "켜진 불꽃."
+      },
+      {
+        "name": "glow-spark",
+        "value": "drop-shadow(0 0 calc(var(--u) * 6) rgba(255, 200, 87, 0.7))",
+        "purpose": "결과·설정 판 모서리 금빛 별."
+      },
+      {
+        "name": "glow-mint-star",
+        "value": "drop-shadow(0 0 calc(var(--u) * 5) rgba(158, 217, 181, 0.9))",
+        "purpose": "밤 진행 바의 현재 위치 별."
+      },
+      {
+        "name": "glow-synergy-full",
+        "value": "0 0 calc(var(--u) * 18) color-mix(in srgb, #ffc857 70%, transparent)",
+        "purpose": "시너지 가득."
+      },
+      {
+        "name": "score-glow",
+        "value": "0 calc(var(--u) * 2) calc(var(--u) * 6) rgba(120, 60, 10, 0.5), 0 0 calc(var(--u) * 18) rgba(255, 200, 87, 0.35)",
+        "purpose": "결과 점수 글자(text-shadow)."
+      },
+      {
+        "name": "edge-low-hp",
+        "value": "inset 0 0 calc(var(--u) * 90) calc(var(--u) * 8) color-mix(in srgb, #ff8c5a 55%, transparent)",
+        "purpose": "저HP 가장자리 맥박(1초)."
+      },
+      {
+        "name": "edge-hit",
+        "value": "inset 0 0 calc(var(--u) * 90) calc(var(--u) * 8) rgba(5, 4, 12, 0.75)",
+        "purpose": "피격 순간 어둠이 0.35초 스침."
+      },
+      {
+        "name": "shelf",
+        "value": "0 calc(var(--u) * 4) calc(var(--u) * 6) rgba(0, 0, 0, 0.4)",
+        "purpose": "상점 선반."
+      },
+      {
+        "name": "stage",
+        "value": "0 30px 90px rgba(0, 0, 0, 0.55)",
+        "purpose": "PC에서 9:16 상자를 띄움."
+      },
+      {
+        "name": "world-cast",
+        "value": "canvas shadowBlur 6–14, rgba(6, 4, 14, 0.55)",
+        "purpose": "월드 소품 아래 투영 그림자."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-out-expo",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "시트 등장, 콤보 연출, 토스트, 불꽃 크기."
+      },
+      {
+        "name": "press",
+        "value": "transform 0.12s ease-out, scale(1.04)",
+        "purpose": "버튼 누름."
+      },
+      {
+        "name": "sheet-rise",
+        "value": "0.6s",
+        "purpose": "결과 시트가 아래에서 올라옴."
+      },
+      {
+        "name": "sheet-drop",
+        "value": "0.45s",
+        "purpose": "일시정지 시트가 위에서 내려옴."
+      },
+      {
+        "name": "scrim",
+        "value": "0.4s ease-out",
+        "purpose": "시트 뒤 마을이 35%까지 어두워짐."
+      },
+      {
+        "name": "combo-bump",
+        "value": "0.22s, scale 1.3 → 1",
+        "purpose": "HUD 콤보 증가."
+      },
+      {
+        "name": "combo-drop",
+        "value": "0.6s ease-out, opacity 0.4 → 1",
+        "purpose": "콤보 절반."
+      },
+      {
+        "name": "combo-burst",
+        "value": "1.1s (별 1s, 40ms 간격)",
+        "purpose": "콤보 단계 연출."
+      },
+      {
+        "name": "toast",
+        "value": "1.5s",
+        "purpose": "토스트 떠오름·사라짐."
+      },
+      {
+        "name": "score-count",
+        "value": "900ms ease-out cubic",
+        "purpose": "결과 점수 카운트업."
+      },
+      {
+        "name": "fan-spread",
+        "value": "0.25s + 0.25s afterglow",
+        "purpose": "빛 부채꼴이 퍼지고 켜진 마을이 남는 시간."
+      },
+      {
+        "name": "village-light",
+        "value": "on 300ms (글로우 1.5배 yoyo 220ms) / off 900ms",
+        "purpose": "콤보 단계 창문·등불."
+      },
+      {
+        "name": "phase-shade",
+        "value": "1500ms",
+        "purpose": "시간대 덮개 전환."
+      },
+      {
+        "name": "screen-in",
+        "value": "opacity 0 + translateY(10u) → 0, 0.35s cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "메뉴 화면이 나타날 때."
+      },
+      {
+        "name": "settings-rise",
+        "value": "0.5s cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "설정 시트가 아래에서 올라온다."
+      },
+      {
+        "name": "switch-knob",
+        "value": "left 0.2s cubic-bezier(0.16, 1, 0.3, 1); background 0.2s",
+        "purpose": "스위치 손잡이와 홈 색."
+      },
+      {
+        "name": "boss-fill",
+        "value": "transform scaleX 0.3s ease-out",
+        "purpose": "노월 체력바 채움이 줄어든다."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "prefers-reduced-motion: reduce",
+        "purpose": "콤보·시트·연출 애니메이션 끔, 토스트는 linear, 점수는 즉시."
+      },
+      {
+        "name": "stick-return",
+        "value": "transform 0.12s cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "놓은 스틱 손잡이가 가운데로 돌아옴. 잡는 동안은 전환 없음."
+      },
+      {
+        "name": "stick-cool",
+        "value": "conic-gradient ring, var(--cool, 0.4s) linear (@property --cd 0 → 1)",
+        "purpose": "빛 대기 링이 한 바퀴 차오름."
+      },
+      {
+        "name": "aim-guide",
+        "value": "per-frame Phaser Graphics",
+        "purpose": "조준 부채꼴은 끄는 동안 매 프레임 다시 그림, 놓으면 사라짐."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "stage",
+        "value": "width: min(100vw, 100dvh * 9 / 16); height: 100dvh",
+        "purpose": "단일 9:16 상자. 미디어 쿼리 대신 컨테이너 단위로 비례."
+      },
+      {
+        "name": "hover",
+        "value": "(hover: hover)",
+        "purpose": "호버 글로우는 마우스 기기에서만."
+      }
+    ],
+    "villageTones": {
+      "source": "src/art/village.ts (DARK/LIT, drawWorld 1080×1920)",
+      "note": "DARK와 LIT는 같은 키를 가진 짝. drawWorld가 넓은 월드 전체를 두 벌로 그려 village-dark/village-lit로 내보내고, 빛은 켜진 판을 마스크로 드러낸다.",
+      "DARK": {
+        "ground": "#211d33",
+        "stones": [
+          "#302b46",
+          "#35304d",
+          "#2b2741",
+          "#332e4a",
+          "#3a3451"
+        ],
+        "moss": "#273c3e",
+        "ring": "#4b4673",
+        "wall": "#3a2f45",
+        "roof": "#2c2740",
+        "wood": "#3b2d3a",
+        "leaf": [
+          "#2b4a4a",
+          "#223c3e",
+          "#182c31"
+        ],
+        "flower": [
+          "#7d6fc0",
+          "#a89cd9"
+        ],
+        "trunk": "#2c2233",
+        "rock": "#3c3854",
+        "cloth": "#3a3360",
+        "windowOff": "#1a1526",
+        "haze": 0.6,
+        "vignette": 0.7
+      },
+      "LIT": {
+        "ground": "#4a2a16",
+        "stones": [
+          "#a8683a",
+          "#b5733f",
+          "#9a5e34",
+          "#ad6c3c",
+          "#bd7c45"
+        ],
+        "moss": "#6b6a3c",
+        "ring": "#b98d5e",
+        "wall": "#946446",
+        "roof": "#6c4733",
+        "wood": "#8a5c3a",
+        "leaf": [
+          "#6f7a3e",
+          "#5c6834",
+          "#47522a"
+        ],
+        "flower": [
+          "#d6aee6",
+          "#f1d6f5"
+        ],
+        "trunk": "#6b4630",
+        "rock": "#8f735c",
+        "cloth": "#8a5a6a",
+        "windowOff": "#6a442c",
+        "haze": 0,
+        "vignette": 0
+      },
+      "phaseShade": {
+        "dusk": [
+          "#2a2f5a",
+          0
+        ],
+        "midnight": [
+          "#1b1f3b",
+          0.22
+        ],
+        "predawn": [
+          "#120f24",
+          0.38
+        ],
+        "dawn": [
+          "#f2b880",
+          0.18
+        ]
+      }
+    },
+    "materials": [
+      {
+        "name": "grain",
+        "value": "SVG feTurbulence fractalNoise baseFrequency .85, numOctaves 2, alpha .055 (src/ui/finish.css --grain)",
+        "purpose": "판·카드·HUD 띠의 아주 옅은 종이 결."
+      },
+      {
+        "name": "spark",
+        "value": "네 갈래 별 SVG, fill #FFD77A (src/ui/finish.css --spark)",
+        "purpose": "결과·설정 판 모서리와 로고 끝의 금빛 별."
+      },
+      {
+        "name": "gloss-band",
+        "value": "linear-gradient(to bottom, rgba(255,255,255,a), transparent 40–55%); a = 0.5 주요 알약 / 0.45 켜진 탭 / 0.1 유리 / 0.06 카드",
+        "purpose": "떠 있는 면의 위쪽 광택."
+      },
+      {
+        "name": "menu-backdrop",
+        "value": "url(/assets/backgrounds/home.webp) cover, filter blur(7px) brightness(0.55) saturate(0.85), scale 1.06, 위에 rgba(17,18,40,0.72→0.88)",
+        "purpose": "선택·상점·지난 밤들 뒤의 흐린 마을."
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "주요 알약 버튼 (호박 채움)",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "화면의 주요 행동 하나. 결과의 \"다시 한 번\", 일시정지의 \"계속\".",
+      "html": "<div class=\"ds-root\"><button class=\"ds-pill ds-pill--primary\" type=\"button\"><svg class=\"ds-pill__icon\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M7 4.5v15l12-7.5z\" fill=\"currentColor\"/></svg>다시 한 번</button></div>",
+      "css": ".ds-root{--night:#1b1f3b;--predawn:#120f24;--dawn:#f2b880;--amber:#ffc857;--mint:#9ed9b5;--lavender:#a89cd9;--ember:#ff8c5a;--paper:#f6f1e7;--ash:#8a8fa8;--paper-soft:color-mix(in srgb,var(--paper) 74%,var(--ash));--u:calc(360px/540);font-family:'Pretendard Variable', Pretendard, 'Noto Sans KR', system-ui, sans-serif;padding:16px;background:#262a56}.ds-pill{display:inline-flex;align-items:center;justify-content:center;gap:calc(var(--u)*10);min-height:max(48px,calc(var(--u)*60));padding:0 calc(var(--u)*20);border-radius:999px;font:inherit;font-size:calc(var(--u)*19);font-weight:700;cursor:pointer;transition:transform .12s ease-out,box-shadow .2s ease-out}.ds-pill__icon{width:calc(var(--u)*22);height:calc(var(--u)*22)}.ds-pill--primary{border:calc(var(--u)*1.5) solid #d08a2c;background:linear-gradient(to bottom,rgba(255,255,255,.5),rgba(255,255,255,0) 46%),linear-gradient(to bottom,#ffdc85,var(--amber) 52%,#f0a43a);color:var(--night);text-shadow:0 1px 0 rgba(255,244,214,.7);box-shadow:inset 0 calc(var(--u)*2) 0 rgba(255,250,235,.65),inset 0 calc(var(--u)*-4) calc(var(--u)*6) rgba(160,84,20,.38),0 calc(var(--u)*6) calc(var(--u)*14) rgba(110,54,10,.42)}.ds-pill--primary:hover{box-shadow:0 0 calc(var(--u)*16) color-mix(in srgb,var(--amber) 40%,transparent)}.ds-pill--primary:active{transform:scale(1.04);box-shadow:0 0 calc(var(--u)*24) color-mix(in srgb,var(--amber) 55%,transparent)}.ds-pill:focus-visible{outline:2px solid var(--amber);outline-offset:3px}"
+    },
+    {
+      "name": "보조 알약 버튼 (종이 테두리)",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "같은 화면의 나머지 행동. 2026-10-30 지시로 민트 대신 종이색 테두리.",
+      "html": "<div class=\"ds-root\"><button class=\"ds-pill ds-pill--secondary\" type=\"button\">지난 밤들에 남기기</button> <button class=\"ds-pill ds-pill--secondary\" type=\"button\" disabled>지난 밤들에 남겼어요 · 3위</button></div>",
+      "css": ".ds-root{--night:#1b1f3b;--predawn:#120f24;--dawn:#f2b880;--amber:#ffc857;--mint:#9ed9b5;--lavender:#a89cd9;--ember:#ff8c5a;--paper:#f6f1e7;--ash:#8a8fa8;--paper-soft:color-mix(in srgb,var(--paper) 74%,var(--ash));--u:calc(360px/540);font-family:'Pretendard Variable', Pretendard, 'Noto Sans KR', system-ui, sans-serif;padding:16px;background:#262a56;display:flex;gap:8px;flex-wrap:wrap}.ds-pill{display:inline-flex;align-items:center;justify-content:center;min-height:max(48px,calc(var(--u)*60));padding:0 calc(var(--u)*20);border-radius:999px;font:inherit;font-size:calc(var(--u)*19);font-weight:700;cursor:pointer;transition:transform .12s ease-out,box-shadow .2s ease-out,color .2s,border-color .2s}.ds-pill--secondary{border:calc(var(--u)*2) solid color-mix(in srgb,var(--paper) 55%,transparent);background:linear-gradient(to bottom,rgba(255,255,255,.1),rgba(255,255,255,0) 50%),linear-gradient(to bottom,rgba(52,57,108,.92),rgba(20,21,46,.92));color:var(--paper);box-shadow:inset 0 calc(var(--u)*1.5) 0 rgba(246,241,231,.16),0 calc(var(--u)*5) calc(var(--u)*12) rgba(5,4,12,.4)}.ds-pill--secondary:hover:not(:disabled){box-shadow:0 0 calc(var(--u)*14) color-mix(in srgb,var(--paper) 25%,transparent)}.ds-pill--secondary:active:not(:disabled){transform:scale(1.04);box-shadow:0 0 calc(var(--u)*20) color-mix(in srgb,var(--paper) 30%,transparent)}.ds-pill:disabled{cursor:default;border-color:color-mix(in srgb,var(--ash) 55%,transparent);color:var(--paper-soft)}.ds-pill:focus-visible{outline:2px solid var(--amber);outline-offset:3px}"
+    },
+    {
+      "name": "원형 버튼 (일시정지)",
+      "kind": "button",
+      "refersTo": "button-round",
+      "description": "아래 HUD의 유일한 터치 요소.",
+      "html": "<div class=\"ds-root\"><button class=\"ds-round\" type=\"button\" aria-label=\"일시정지\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><rect x=\"6.5\" y=\"5\" width=\"3.8\" height=\"14\" rx=\"1.6\" fill=\"currentColor\"/><rect x=\"13.7\" y=\"5\" width=\"3.8\" height=\"14\" rx=\"1.6\" fill=\"currentColor\"/></svg></button></div>",
+      "css": ".ds-root{--night:#1b1f3b;--predawn:#120f24;--dawn:#f2b880;--amber:#ffc857;--mint:#9ed9b5;--lavender:#a89cd9;--ember:#ff8c5a;--paper:#f6f1e7;--ash:#8a8fa8;--paper-soft:color-mix(in srgb,var(--paper) 74%,var(--ash));--u:calc(360px/540);font-family:'Pretendard Variable', Pretendard, 'Noto Sans KR', system-ui, sans-serif;padding:16px;background:#14152e}.ds-round{display:grid;place-items:center;width:max(48px,calc(var(--u)*56));height:max(48px,calc(var(--u)*56));padding:0;border:calc(var(--u)*2.5) solid color-mix(in srgb,var(--paper) 85%,transparent);border-radius:50%;background:linear-gradient(to bottom,rgba(255,255,255,.1),rgba(255,255,255,0) 55%),radial-gradient(circle at 50% 35%,rgba(52,57,108,.9),rgba(17,18,40,.92));box-shadow:inset 0 calc(var(--u)*1.5) 0 rgba(246,241,231,.16),0 calc(var(--u)*4) calc(var(--u)*10) rgba(5,4,12,.4);color:var(--paper);cursor:pointer;transition:transform .12s ease-out,box-shadow .2s ease-out}.ds-round svg{width:calc(var(--u)*26);height:calc(var(--u)*26)}.ds-round:hover{box-shadow:0 0 calc(var(--u)*14) color-mix(in srgb,var(--paper) 25%,transparent)}.ds-round:active{transform:scale(1.04);box-shadow:0 0 calc(var(--u)*18) color-mix(in srgb,var(--paper) 30%,transparent)}.ds-round:focus-visible{outline:2px solid var(--amber);outline-offset:3px}"
+    },
+    {
+      "name": "위 HUD 띠",
+      "kind": "nav",
+      "refersTo": "hud-top",
+      "description": "달 + 밤 시계, 민트 진행 바(네 갈래 별 위치·새벽 별), 점수, 호박 콤보와 유지 시간 밑줄. 터치 요소 없음.",
+      "html": "<div class=\"ds-root\"><header class=\"ds-hud\"><span class=\"ds-clock\"><svg class=\"ds-moon\" viewBox=\"0 0 24 24\"><path d=\"M15.5 3.2A9 9 0 1 0 20.8 15 7.2 7.2 0 0 1 15.5 3.2Z\" fill=\"currentColor\"/></svg>밤 00:31</span><span class=\"ds-bar\" style=\"--p:.26\"><span class=\"ds-bar__fill\"></span><span class=\"ds-bar__star\"><svg viewBox=\"0 0 24 24\"><path d=\"M12 1.5c.5 5.2 2.8 8 10.5 10.5C14.8 14.5 12.5 17.3 12 22.5 11.5 17.3 9.2 14.5 1.5 12 9.2 9.5 11.5 6.7 12 1.5Z\" fill=\"currentColor\"/></svg></span></span><span class=\"ds-stat\">점수 2,875</span><span class=\"ds-rule\"></span><span class=\"ds-stat ds-combo\">콤보 ×10</span></header></div>",
+      "css": ".ds-root{--night:#1b1f3b;--predawn:#120f24;--dawn:#f2b880;--amber:#ffc857;--mint:#9ed9b5;--lavender:#a89cd9;--ember:#ff8c5a;--paper:#f6f1e7;--ash:#8a8fa8;--paper-soft:color-mix(in srgb,var(--paper) 74%,var(--ash));--u:calc(360px/540);font-family:'Pretendard Variable', Pretendard, 'Noto Sans KR', system-ui, sans-serif;--u:calc(390px/540);width:390px;background:#2b2741}.ds-hud{display:flex;align-items:center;gap:calc(var(--u)*12);padding:calc(var(--u)*18) calc(var(--u)*22) calc(var(--u)*16);background:rgba(17,18,40,.9);color:var(--paper);font-size:calc(var(--u)*18);font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}.ds-clock{display:flex;align-items:center;gap:calc(var(--u)*7)}.ds-moon{width:calc(var(--u)*28);height:calc(var(--u)*28)}.ds-bar{position:relative;flex:1;height:calc(var(--u)*11);margin:0 calc(var(--u)*14) 0 calc(var(--u)*4);border-radius:999px;background:#33365e;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--paper) 22%,transparent)}.ds-bar__fill{position:absolute;inset:0;border-radius:inherit;background:linear-gradient(to right,#c8f1e1,var(--mint));transform:scaleX(var(--p));transform-origin:left}.ds-bar__star{position:absolute;left:calc(var(--p)*100%);top:50%;width:calc(var(--u)*26);height:calc(var(--u)*26);translate:-50% -50%;color:#fff;filter:drop-shadow(0 0 calc(var(--u)*5) var(--mint))}.ds-bar__star svg{display:block;width:100%;height:100%}.ds-rule{width:1px;height:calc(var(--u)*26);background:color-mix(in srgb,var(--dawn) 45%,transparent)}.ds-combo{position:relative;color:var(--amber);font-weight:700}.ds-combo::after{content:'';position:absolute;left:0;right:0;bottom:calc(var(--u)*-7);height:calc(var(--u)*2);border-radius:999px;background:color-mix(in srgb,var(--amber) 75%,transparent);transform:scaleX(.6);transform-origin:left}"
+    },
+    {
+      "name": "아래 HUD (불꽃 HP · 시너지 · 장착물 칸)",
+      "kind": "custom",
+      "refersTo": "hud-bottom",
+      "description": "불꽃 5개(20HP당 하나), 민트 테두리에 금빛이 차오르는 시너지, 둥근 사각 장착물 칸(M3까지 꺼진 자리).",
+      "html": "<div class=\"ds-root\"><footer class=\"ds-floor\"><span class=\"ds-flames\"><svg class=\"ds-flame\" viewBox=\"0 0 28 36\"><path fill=\"#ff8a3c\" d=\"M14 1.2c1.3 3.9 5.7 6.8 7.9 10.6 1.5 2.5 2.3 5 2.3 7.9 0 6-4.6 10.8-10.2 10.8S3.8 25.7 3.8 19.7c0-3.9 1.8-6.7 4.1-9 .1 2.4 1 4.2 2.6 5.1-.4-5.1 1.3-10.2 3.5-14.6Z\"/><path fill=\"#ffd25e\" d=\"M14.2 13.6c1.2 2.6 4.6 4.5 4.6 8.4 0 3-2.2 5.4-4.8 5.4s-4.8-2.4-4.8-5.4c0-1.9.8-3.3 1.9-4.4.2 1.2.7 2 1.5 2.5-.2-2.3.5-4.5 1.6-6.5Z\"/><ellipse fill=\"#fff4cf\" cx=\"14\" cy=\"24\" rx=\"2\" ry=\"2.6\"/></svg><svg class=\"ds-flame\" viewBox=\"0 0 28 36\"><path fill=\"#ff8a3c\" d=\"M14 1.2c1.3 3.9 5.7 6.8 7.9 10.6 1.5 2.5 2.3 5 2.3 7.9 0 6-4.6 10.8-10.2 10.8S3.8 25.7 3.8 19.7c0-3.9 1.8-6.7 4.1-9 .1 2.4 1 4.2 2.6 5.1-.4-5.1 1.3-10.2 3.5-14.6Z\"/><path fill=\"#ffd25e\" d=\"M14.2 13.6c1.2 2.6 4.6 4.5 4.6 8.4 0 3-2.2 5.4-4.8 5.4s-4.8-2.4-4.8-5.4c0-1.9.8-3.3 1.9-4.4.2 1.2.7 2 1.5 2.5-.2-2.3.5-4.5 1.6-6.5Z\"/><ellipse fill=\"#fff4cf\" cx=\"14\" cy=\"24\" rx=\"2\" ry=\"2.6\"/></svg><svg class=\"ds-flame\" viewBox=\"0 0 28 36\"><path fill=\"#ff8a3c\" d=\"M14 1.2c1.3 3.9 5.7 6.8 7.9 10.6 1.5 2.5 2.3 5 2.3 7.9 0 6-4.6 10.8-10.2 10.8S3.8 25.7 3.8 19.7c0-3.9 1.8-6.7 4.1-9 .1 2.4 1 4.2 2.6 5.1-.4-5.1 1.3-10.2 3.5-14.6Z\"/><path fill=\"#ffd25e\" d=\"M14.2 13.6c1.2 2.6 4.6 4.5 4.6 8.4 0 3-2.2 5.4-4.8 5.4s-4.8-2.4-4.8-5.4c0-1.9.8-3.3 1.9-4.4.2 1.2.7 2 1.5 2.5-.2-2.3.5-4.5 1.6-6.5Z\"/><ellipse fill=\"#fff4cf\" cx=\"14\" cy=\"24\" rx=\"2\" ry=\"2.6\"/></svg><svg class=\"ds-flame\" viewBox=\"0 0 28 36\"><path fill=\"#ff8a3c\" d=\"M14 1.2c1.3 3.9 5.7 6.8 7.9 10.6 1.5 2.5 2.3 5 2.3 7.9 0 6-4.6 10.8-10.2 10.8S3.8 25.7 3.8 19.7c0-3.9 1.8-6.7 4.1-9 .1 2.4 1 4.2 2.6 5.1-.4-5.1 1.3-10.2 3.5-14.6Z\"/><path fill=\"#ffd25e\" d=\"M14.2 13.6c1.2 2.6 4.6 4.5 4.6 8.4 0 3-2.2 5.4-4.8 5.4s-4.8-2.4-4.8-5.4c0-1.9.8-3.3 1.9-4.4.2 1.2.7 2 1.5 2.5-.2-2.3.5-4.5 1.6-6.5Z\"/><ellipse fill=\"#fff4cf\" cx=\"14\" cy=\"24\" rx=\"2\" ry=\"2.6\"/></svg><svg class=\"ds-flame ds-flame--out\" viewBox=\"0 0 28 36\"><path fill=\"#5a5c78\" d=\"M14 1.2c1.3 3.9 5.7 6.8 7.9 10.6 1.5 2.5 2.3 5 2.3 7.9 0 6-4.6 10.8-10.2 10.8S3.8 25.7 3.8 19.7c0-3.9 1.8-6.7 4.1-9 .1 2.4 1 4.2 2.6 5.1-.4-5.1 1.3-10.2 3.5-14.6Z\"/></svg></span><span class=\"ds-rule\"></span><span class=\"ds-track\"><span class=\"ds-track__fill\"></span></span><span class=\"ds-slot\"><svg viewBox=\"0 0 24 24\"><path d=\"M12 2.8l2.6 5.6 6.1.7-4.5 4.2 1.2 6-5.4-3-5.4 3 1.2-6-4.5-4.2 6.1-.7Z\" fill=\"currentColor\"/></svg></span></footer></div>",
+      "css": ".ds-root{--night:#1b1f3b;--predawn:#120f24;--dawn:#f2b880;--amber:#ffc857;--mint:#9ed9b5;--lavender:#a89cd9;--ember:#ff8c5a;--paper:#f6f1e7;--ash:#8a8fa8;--paper-soft:color-mix(in srgb,var(--paper) 74%,var(--ash));--u:calc(360px/540);font-family:'Pretendard Variable', Pretendard, 'Noto Sans KR', system-ui, sans-serif;--u:calc(390px/540);width:390px}.ds-floor{display:flex;align-items:center;gap:calc(var(--u)*14);padding:calc(var(--u)*16) calc(var(--u)*22) calc(var(--u)*18);background:#14152e;border-top:1px solid color-mix(in srgb,var(--paper) 14%,transparent)}.ds-flames{display:flex;align-items:flex-end;gap:calc(var(--u)*6)}.ds-flame{width:calc(var(--u)*30);height:calc(var(--u)*39);filter:drop-shadow(0 0 calc(var(--u)*5) rgba(255,140,60,.55))}.ds-flame--out{filter:none}.ds-rule{width:1px;height:calc(var(--u)*44);background:color-mix(in srgb,var(--paper) 22%,transparent)}.ds-track{position:relative;flex:1;height:calc(var(--u)*22);border:calc(var(--u)*2.5) solid var(--mint);border-radius:999px;background:#1d1f3d;overflow:hidden}.ds-track__fill{position:absolute;inset:calc(var(--u)*3);border-radius:999px;background:linear-gradient(to right,#ffd76e,#f5a646);transform:scaleX(.45);transform-origin:left}.ds-slot{display:grid;place-items:center;width:max(44px,calc(var(--u)*54));height:max(44px,calc(var(--u)*54));border:1.5px solid color-mix(in srgb,var(--paper) 30%,transparent);border-radius:calc(var(--u)*12);background:color-mix(in srgb,var(--paper) 5%,transparent);color:color-mix(in srgb,var(--amber) 45%,var(--night))}.ds-slot svg{width:calc(var(--u)*30);height:calc(var(--u)*30)}"
+    },
+    {
+      "name": "두 스틱 (왼쪽 이동 · 오른쪽 빛)",
+      "kind": "custom",
+      "refersTo": "stick-light",
+      "description": "아래 HUD 띠 바로 위 양쪽 엄지 자리. 이동은 종이색 손잡이, 빛은 호박 손잡이와 별. 왼쪽부터 이동 · 빛(호버·포커스로 겨눔) · 취소 · 대기 링.",
+      "html": "<div class=\"ds-root\"><div class=\"ds-stick\" tabindex=\"0\" aria-label=\"이동\"><span class=\"ds-base\"><span class=\"ds-knob\"></span></span></div><div class=\"ds-stick ds-stick--light\" tabindex=\"0\" aria-label=\"빛\"><span class=\"ds-base\"><span class=\"ds-knob\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M12 1.5c.7 5.3 2.9 8.3 10.5 10.5-7.6 2.2-9.8 5.2-10.5 10.5-.7-5.3-2.9-8.3-10.5-10.5C9.1 9.8 11.3 6.8 12 1.5Z\" fill=\"currentColor\"/></svg></span></span></div><div class=\"ds-stick ds-stick--light is-cancel\" aria-label=\"빛 취소\"><span class=\"ds-base\"><span class=\"ds-knob\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M12 1.5c.7 5.3 2.9 8.3 10.5 10.5-7.6 2.2-9.8 5.2-10.5 10.5-.7-5.3-2.9-8.3-10.5-10.5C9.1 9.8 11.3 6.8 12 1.5Z\" fill=\"currentColor\"/></svg></span></span></div><div class=\"ds-stick ds-stick--light is-cooling\" aria-label=\"빛 대기\"><span class=\"ds-base\"><span class=\"ds-knob\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M12 1.5c.7 5.3 2.9 8.3 10.5 10.5-7.6 2.2-9.8 5.2-10.5 10.5-.7-5.3-2.9-8.3-10.5-10.5C9.1 9.8 11.3 6.8 12 1.5Z\" fill=\"currentColor\"/></svg></span></span></div></div>",
+      "css": ".ds-root{--night:#1b1f3b;--amber:#ffc857;--paper:#f6f1e7;--ash:#8a8fa8;--u:calc(300px/540);display:flex;flex-wrap:wrap;gap:16px;padding:16px;background:#2b2741}.ds-stick{display:grid;place-items:center;width:calc(var(--u)*176);height:calc(var(--u)*176);outline:none}.ds-base{position:relative;display:grid;place-items:center;width:calc(var(--u)*140);height:calc(var(--u)*140);border-radius:50%;border:calc(var(--u)*2) solid color-mix(in srgb,var(--paper) 45%,transparent);background:radial-gradient(circle at 50% 32%,rgba(64,70,128,.6),rgba(20,21,46,.55) 70%);box-shadow:inset 0 calc(var(--u)*2) 0 rgba(255,255,255,.08),0 calc(var(--u)*6) calc(var(--u)*18) rgba(5,4,12,.4);transition:border-color .15s,box-shadow .2s}.ds-knob{display:grid;place-items:center;width:calc(var(--u)*62);height:calc(var(--u)*62);border-radius:50%;background:radial-gradient(circle at 40% 30%,#fffaf0,var(--paper) 55%,#d6cfc2);box-shadow:0 calc(var(--u)*4) calc(var(--u)*10) rgba(5,4,12,.45),inset 0 calc(var(--u)*-3) calc(var(--u)*4) rgba(120,100,80,.25)}.ds-stick:hover .ds-base,.ds-stick:focus-visible .ds-base{border-color:color-mix(in srgb,var(--paper) 80%,transparent)}.ds-stick--light .ds-base{width:calc(var(--u)*150);height:calc(var(--u)*150);border-color:color-mix(in srgb,var(--amber) 70%,transparent)}.ds-stick--light .ds-knob{width:calc(var(--u)*72);height:calc(var(--u)*72);color:var(--night);background:radial-gradient(circle at 40% 30%,#fff4d2,#ffd77a 45%,#f2ad3f);box-shadow:0 calc(var(--u)*4) calc(var(--u)*12) rgba(5,4,12,.45),0 0 calc(var(--u)*16) color-mix(in srgb,var(--amber) 45%,transparent),inset 0 calc(var(--u)*-3) calc(var(--u)*5) rgba(150,80,20,.35)}.ds-stick--light .ds-knob svg{width:calc(var(--u)*32);height:calc(var(--u)*32)}.ds-stick--light:hover .ds-base,.ds-stick--light:focus-visible .ds-base,.ds-stick--light:active .ds-base{border-color:var(--amber);box-shadow:inset 0 calc(var(--u)*2) 0 rgba(255,255,255,.1),0 0 calc(var(--u)*26) color-mix(in srgb,var(--amber) 50%,transparent)}.ds-stick--light.is-cancel .ds-base{border-color:var(--ash);box-shadow:none}.ds-stick--light.is-cancel .ds-knob{filter:grayscale(.85) brightness(.8)}.ds-stick--light.is-cooling .ds-base::after{content:'';position:absolute;inset:calc(var(--u)*-7);border-radius:50%;background:conic-gradient(var(--amber) 230deg,transparent 0);-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - var(--u)*4),#000 calc(100% - var(--u)*4));mask:radial-gradient(farthest-side,transparent calc(100% - var(--u)*4),#000 calc(100% - var(--u)*4));opacity:.9}.ds-stick--light.is-cooling .ds-knob{filter:saturate(.6) brightness(.88)}"
+    },
+    {
+      "name": "결과 판",
+      "kind": "card",
+      "refersTo": "result-panel",
+      "description": "마을 위 아래쪽에 떠 있는 둥근 남색 판. 제목·부제, dt/dd 통계 줄(점수는 호박), 주요·보조 알약 2열 + 흐린 알약 한 줄. 클리어는 새벽빛이 스민다.",
+      "html": "<div class=\"ds-root\"><section class=\"ds-res\"><h2 class=\"ds-res__t\">오늘 밤은 여기까지</h2><p class=\"ds-res__s\">버틴 시간 01:42 · 되찾은 이웃 37명</p><dl class=\"ds-res__stats\"><div class=\"ds-res__row\"><dt>오늘 밤 점수</dt><dd class=\"ds-res__score\">12,480</dd></div><div class=\"ds-res__row\"><dt>최대 콤보</dt><dd>×24</dd></div></dl><div class=\"ds-res__act\"><button class=\"ds-pill ds-pill--primary\" type=\"button\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M7 4.5v15l12-7.5z\" fill=\"currentColor\"/></svg>다시 한 번</button><button class=\"ds-pill ds-pill--secondary\" type=\"button\">홈으로</button><button class=\"ds-pill ds-pill--ghost ds-res__wide\" type=\"button\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><rect x=\"9\" y=\"6\" width=\"6\" height=\"14\" rx=\"1.2\" fill=\"currentColor\"/><rect x=\"3\" y=\"11\" width=\"5.5\" height=\"9\" rx=\"1.2\" fill=\"currentColor\"/><rect x=\"15.5\" y=\"13.5\" width=\"5.5\" height=\"6.5\" rx=\"1.2\" fill=\"currentColor\"/></svg>지난 밤들에 남기기</button></div></section></div>",
+      "css": ".ds-root{--night:#1b1f3b;--predawn:#120f24;--dawn:#f2b880;--amber:#ffc857;--mint:#9ed9b5;--lavender:#a89cd9;--ember:#ff8c5a;--paper:#f6f1e7;--ash:#8a8fa8;--paper-soft:color-mix(in srgb,var(--paper) 74%,var(--ash));--hairline:color-mix(in srgb,var(--paper) 14%,transparent);--u:calc(390px/540);font-family:'Pretendard Variable', Pretendard, 'Noto Sans KR', system-ui, sans-serif;color:var(--paper);width:390px;padding:0 calc(var(--u)*24) 20px;background:#2b2741}.ds-pill{display:inline-flex;align-items:center;justify-content:center;gap:calc(var(--u)*10);min-height:max(48px,calc(var(--u)*60));padding:0 calc(var(--u)*20);border-radius:999px;font:inherit;font-size:calc(var(--u)*19);font-weight:700;cursor:pointer;transition:transform .12s ease-out,box-shadow .2s ease-out}.ds-pill svg{width:calc(var(--u)*22);height:calc(var(--u)*22)}.ds-pill:active{transform:scale(1.04)}.ds-pill:focus-visible{outline:2px solid var(--amber);outline-offset:3px}.ds-pill--primary{border:calc(var(--u)*1.5) solid #d08a2c;background:linear-gradient(to bottom,rgba(255,255,255,.5),rgba(255,255,255,0) 46%),linear-gradient(to bottom,#ffdc85,var(--amber) 52%,#f0a43a);color:var(--night);text-shadow:0 1px 0 rgba(255,244,214,.7);box-shadow:inset 0 calc(var(--u)*2) 0 rgba(255,250,235,.65),inset 0 calc(var(--u)*-4) calc(var(--u)*6) rgba(160,84,20,.38),0 calc(var(--u)*6) calc(var(--u)*14) rgba(110,54,10,.42)}.ds-pill--secondary{border:calc(var(--u)*2) solid color-mix(in srgb,var(--paper) 55%,transparent);background:linear-gradient(to bottom,rgba(255,255,255,.1),rgba(255,255,255,0) 50%),linear-gradient(to bottom,rgba(52,57,108,.92),rgba(20,21,46,.92));color:var(--paper);box-shadow:inset 0 calc(var(--u)*1.5) 0 rgba(246,241,231,.16),0 calc(var(--u)*5) calc(var(--u)*12) rgba(5,4,12,.4)}.ds-pill--ghost{border:calc(var(--u)*1.5) solid color-mix(in srgb,var(--paper) 28%,transparent);background:transparent;color:var(--paper-soft);font-weight:600}.ds-res{background:radial-gradient(120% 60% at 50% 0%,rgba(168,156,217,.14),rgba(168,156,217,0) 60%),linear-gradient(to bottom,#262a56,#181b3a);border:1px solid color-mix(in srgb,var(--paper) 16%,transparent);border-radius:calc(var(--u)*28);padding:calc(var(--u)*32) calc(var(--u)*30) calc(var(--u)*20);text-align:center;box-shadow:inset 0 0 0 calc(var(--u)*1) rgba(246,241,231,.05),inset 0 calc(var(--u)*1.5) 0 rgba(246,241,231,.14),0 calc(var(--u)*14) calc(var(--u)*40) rgba(5,4,12,.55)}.ds-res__t{margin:0;font-size:calc(var(--u)*38);font-weight:800;letter-spacing:-.02em}.ds-res__s{margin:calc(var(--u)*10) 0 0;font-size:calc(var(--u)*17);color:var(--paper-soft)}.ds-res__stats{margin:calc(var(--u)*20) 0 0;text-align:left}.ds-res__row{display:flex;align-items:center;justify-content:space-between;min-height:calc(var(--u)*46);border-bottom:1px solid var(--hairline);font-size:calc(var(--u)*15);color:var(--paper-soft)}.ds-res__row:last-child{border-bottom:0}.ds-res__row dd{margin:0;font-size:calc(var(--u)*20);font-weight:700;color:var(--paper);font-variant-numeric:tabular-nums}.ds-res__row .ds-res__score{font-size:calc(var(--u)*36);font-weight:800;color:var(--amber)}.ds-res__act{display:grid;grid-template-columns:1fr 1fr;gap:calc(var(--u)*12);margin-top:calc(var(--u)*20)}.ds-res__wide{grid-column:1/-1}"
+    },
+    {
+      "name": "콤보 단계 연출",
+      "kind": "custom",
+      "refersTo": "combo-burst",
+      "description": "콤보 5·10·20·30에서 터지는 금빛 글자 + 갈색 외곽선 + 호박 후광, −6° 기울임.",
+      "html": "<div class=\"ds-root\"><p class=\"ds-burst\">콤보 ×10</p></div>",
+      "css": ".ds-root{--night:#1b1f3b;--predawn:#120f24;--dawn:#f2b880;--amber:#ffc857;--mint:#9ed9b5;--lavender:#a89cd9;--ember:#ff8c5a;--paper:#f6f1e7;--ash:#8a8fa8;--paper-soft:color-mix(in srgb,var(--paper) 74%,var(--ash));--u:calc(360px/540);font-family:'Pretendard Variable', Pretendard, 'Noto Sans KR', system-ui, sans-serif;--u:calc(390px/540);width:390px;padding:24px 0;display:grid;place-items:center;background:#ad6c3c}.ds-burst{margin:0;font-size:calc(var(--u)*60);font-weight:900;letter-spacing:-.01em;color:#ffd76e;-webkit-text-stroke:calc(var(--u)*3) #5a3212;paint-order:stroke fill;text-shadow:0 calc(var(--u)*3) calc(var(--u)*6) rgba(58,31,10,.8),0 0 calc(var(--u)*28) color-mix(in srgb,var(--amber) 75%,transparent);rotate:-6deg}"
+    },
+    {
+      "name": "토스트",
+      "kind": "chip",
+      "refersTo": "toast",
+      "description": "광장 위쪽에 1.5초 떠올랐다 사라지는 짧은 한 줄. 터치를 받지 않는다.",
+      "html": "<div class=\"ds-root\"><p class=\"ds-toast\">지금은 마을 밖과 연결이 안 돼요</p></div>",
+      "css": ".ds-root{--night:#1b1f3b;--predawn:#120f24;--dawn:#f2b880;--amber:#ffc857;--mint:#9ed9b5;--lavender:#a89cd9;--ember:#ff8c5a;--paper:#f6f1e7;--ash:#8a8fa8;--paper-soft:color-mix(in srgb,var(--paper) 74%,var(--ash));--u:calc(360px/540);font-family:'Pretendard Variable', Pretendard, 'Noto Sans KR', system-ui, sans-serif;padding:16px;background:#302b46}.ds-toast{display:inline-block;margin:0;padding:calc(var(--u)*8) calc(var(--u)*20);border-radius:999px;background:color-mix(in srgb,var(--predawn) 88%,transparent);color:var(--amber);font-size:calc(var(--u)*19);font-weight:700}"
+    },
+    {
+      "name": "흐린 알약 (가장 덜 중요한 행동)",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "결과의 \"지난 밤들에 남기기\", 일시정지의 \"설정\". 옅은 종이 테두리, 투명 바탕.",
+      "html": "<div class=\"ds-root\"><button class=\"ds-pill ds-pill--ghost\" type=\"button\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"3.2\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"/><path d=\"M12 2.8v3M12 18.2v3M2.8 12h3M18.2 12h3M5.5 5.5l2.1 2.1M16.4 16.4l2.1 2.1M5.5 18.5l2.1-2.1M16.4 7.6l2.1-2.1\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\"/></svg>설정</button></div>",
+      "css": ".ds-root{--night:#1b1f3b;--predawn:#120f24;--dawn:#f2b880;--amber:#ffc857;--mint:#9ed9b5;--lavender:#a89cd9;--ember:#ff8c5a;--paper:#f6f1e7;--ash:#8a8fa8;--paper-soft:color-mix(in srgb,var(--paper) 74%,var(--ash));--hairline:color-mix(in srgb,var(--paper) 14%,transparent);--u:calc(390px/540);font-family:'Pretendard Variable', Pretendard, 'Noto Sans KR', system-ui, sans-serif;color:var(--paper);padding:16px;background:#262a56}.ds-pill{display:inline-flex;align-items:center;justify-content:center;gap:calc(var(--u)*10);min-height:max(48px,calc(var(--u)*60));padding:0 calc(var(--u)*20);border-radius:999px;font:inherit;font-size:calc(var(--u)*19);font-weight:700;cursor:pointer;transition:transform .12s ease-out,box-shadow .2s ease-out}.ds-pill svg{width:calc(var(--u)*22);height:calc(var(--u)*22)}.ds-pill:active{transform:scale(1.04)}.ds-pill:focus-visible{outline:2px solid var(--amber);outline-offset:3px}.ds-pill--ghost{border:calc(var(--u)*1.5) solid color-mix(in srgb,var(--paper) 28%,transparent);background:transparent;color:var(--paper-soft);font-weight:600}@media (hover:hover){.ds-pill--ghost:hover{box-shadow:0 0 calc(var(--u)*14) color-mix(in srgb,var(--paper) 25%,transparent)}}"
+    },
+    {
+      "name": "메뉴 위쪽 막대 + 원 버튼",
+      "kind": "nav",
+      "refersTo": "screen-bar",
+      "description": "뒤로 원 버튼 · 가운데 제목 · 같은 폭 빈칸. 원 버튼은 설정에도 쓴다.",
+      "html": "<div class=\"ds-root\"><header class=\"ds-bar\"><button class=\"ds-icon\" type=\"button\" aria-label=\"뒤로\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M14.5 6 8.5 12l6 6\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg></button><h2 class=\"ds-bar__t\">지난 밤들</h2><span class=\"ds-bar__sp\"></span></header></div>",
+      "css": ".ds-root{--night:#1b1f3b;--predawn:#120f24;--dawn:#f2b880;--amber:#ffc857;--mint:#9ed9b5;--lavender:#a89cd9;--ember:#ff8c5a;--paper:#f6f1e7;--ash:#8a8fa8;--paper-soft:color-mix(in srgb,var(--paper) 74%,var(--ash));--hairline:color-mix(in srgb,var(--paper) 14%,transparent);--u:calc(390px/540);font-family:'Pretendard Variable', Pretendard, 'Noto Sans KR', system-ui, sans-serif;color:var(--paper);width:390px;padding:16px calc(var(--u)*26);background:#111228}.ds-bar{display:flex;align-items:center;gap:calc(var(--u)*12)}.ds-bar__t{flex:1;margin:0;text-align:center;font-size:calc(var(--u)*24);font-weight:800}.ds-bar__sp{flex:none;width:max(44px,calc(var(--u)*52))}.ds-icon{display:grid;place-items:center;flex:none;width:max(44px,calc(var(--u)*52));height:max(44px,calc(var(--u)*52));padding:0;border:calc(var(--u)*2) solid color-mix(in srgb,var(--paper) 55%,transparent);border-radius:50%;background:linear-gradient(to bottom,rgba(255,255,255,.1),rgba(255,255,255,0) 55%),radial-gradient(circle at 50% 35%,rgba(52,57,108,.9),rgba(17,18,40,.92));box-shadow:inset 0 calc(var(--u)*1.5) 0 rgba(246,241,231,.16),0 calc(var(--u)*4) calc(var(--u)*10) rgba(5,4,12,.4);color:var(--paper);cursor:pointer;transition:transform .12s ease-out,box-shadow .2s ease-out}.ds-icon svg{width:calc(var(--u)*26);height:calc(var(--u)*26)}.ds-icon:active{transform:scale(1.04)}.ds-icon:focus-visible{outline:2px solid var(--amber);outline-offset:3px}@media (hover:hover){.ds-icon:hover{box-shadow:0 0 calc(var(--u)*14) color-mix(in srgb,var(--paper) 25%,transparent)}}"
+    },
+    {
+      "name": "탭 (켜진 탭은 호박)",
+      "kind": "chip",
+      "refersTo": "tab",
+      "description": "상점·지난 밤들의 3칸 탭. 현재 탭만 호박 채움.",
+      "html": "<div class=\"ds-root\"><div class=\"ds-tabs\" role=\"tablist\"><button class=\"ds-tab is-on\" role=\"tab\" aria-selected=\"true\">오늘</button><button class=\"ds-tab\" role=\"tab\">이번 주</button><button class=\"ds-tab\" role=\"tab\">전체</button></div></div>",
+      "css": ".ds-root{--night:#1b1f3b;--predawn:#120f24;--dawn:#f2b880;--amber:#ffc857;--mint:#9ed9b5;--lavender:#a89cd9;--ember:#ff8c5a;--paper:#f6f1e7;--ash:#8a8fa8;--paper-soft:color-mix(in srgb,var(--paper) 74%,var(--ash));--hairline:color-mix(in srgb,var(--paper) 14%,transparent);--u:calc(390px/540);font-family:'Pretendard Variable', Pretendard, 'Noto Sans KR', system-ui, sans-serif;color:var(--paper);width:390px;padding:16px calc(var(--u)*26);background:#111228}.ds-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:calc(var(--u)*8)}.ds-tab{min-height:max(44px,calc(var(--u)*50));border:1px solid var(--hairline);border-radius:calc(var(--u)*14);background:linear-gradient(to bottom,rgba(255,255,255,.06),rgba(255,255,255,0) 40%),linear-gradient(to bottom,#262a54,#1a1c3a);box-shadow:inset 0 calc(var(--u)*1) 0 rgba(246,241,231,.1),0 calc(var(--u)*4) calc(var(--u)*10) rgba(5,4,12,.32);color:var(--paper);font:inherit;font-size:calc(var(--u)*17);font-weight:600;cursor:pointer}.ds-tab:focus-visible{outline:2px solid var(--amber);outline-offset:3px}.ds-tab.is-on{border-color:transparent;background:linear-gradient(to bottom,rgba(255,255,255,.45),rgba(255,255,255,0) 50%),linear-gradient(to bottom,#ffdc85,var(--amber) 52%,#f0a43a);box-shadow:inset 0 calc(var(--u)*-3) calc(var(--u)*5) rgba(160,84,20,.35),0 calc(var(--u)*4) calc(var(--u)*10) rgba(110,54,10,.35);color:var(--night);font-weight:800}"
+    },
+    {
+      "name": "상점 카드 (장착 중은 켜진 면)",
+      "kind": "card",
+      "refersTo": "shop-card",
+      "description": "3열 카드. 장착 중인 카드만 3u 호박 테두리 + 따뜻한 갈색 그라데이션 + 호박 꼬리표. 아직 없는 칸은 점선 원.",
+      "html": "<div class=\"ds-root\"><div class=\"ds-grid\"><div class=\"ds-card is-on\"><span class=\"ds-sw\"></span><strong>기본</strong><span class=\"ds-tag\">장착 중</span></div><div class=\"ds-card\"><span class=\"ds-ghost\"></span>준비 중</div><div class=\"ds-card\"><span class=\"ds-ghost\"></span>준비 중</div></div></div>",
+      "css": ".ds-root{--night:#1b1f3b;--predawn:#120f24;--dawn:#f2b880;--amber:#ffc857;--mint:#9ed9b5;--lavender:#a89cd9;--ember:#ff8c5a;--paper:#f6f1e7;--ash:#8a8fa8;--paper-soft:color-mix(in srgb,var(--paper) 74%,var(--ash));--hairline:color-mix(in srgb,var(--paper) 14%,transparent);--u:calc(390px/540);font-family:'Pretendard Variable', Pretendard, 'Noto Sans KR', system-ui, sans-serif;color:var(--paper);width:390px;padding:16px calc(var(--u)*26);background:#111228}.ds-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:calc(var(--u)*12)}.ds-card{display:grid;justify-items:center;align-content:end;gap:calc(var(--u)*4);aspect-ratio:.82;padding:calc(var(--u)*10);border:1px solid var(--hairline);border-radius:calc(var(--u)*18);background:linear-gradient(to bottom,rgba(255,255,255,.06),rgba(255,255,255,0) 40%),linear-gradient(to bottom,#262a54,#1a1c3a);box-shadow:inset 0 calc(var(--u)*1) 0 rgba(246,241,231,.1),0 calc(var(--u)*4) calc(var(--u)*10) rgba(5,4,12,.32);font-size:calc(var(--u)*15);color:var(--paper-soft)}.ds-card strong{font-size:calc(var(--u)*16)}.ds-card.is-on{border:calc(var(--u)*3) solid var(--amber);background:radial-gradient(100% 70% at 50% 0%,rgba(255,200,87,.28),rgba(255,200,87,0) 70%),linear-gradient(to bottom,#4c3624,#2a201f);box-shadow:inset 0 calc(var(--u)*1.5) 0 rgba(255,236,190,.22),0 0 calc(var(--u)*16) color-mix(in srgb,var(--amber) 38%,transparent);color:var(--paper)}.ds-sw{width:calc(var(--u)*64);height:calc(var(--u)*64);margin:calc(var(--u)*16) 0 auto;border-radius:50%;background:radial-gradient(circle,#fff1c9,var(--amber) 55%,#f0a040);box-shadow:0 0 calc(var(--u)*18) color-mix(in srgb,var(--amber) 60%,transparent)}.ds-ghost{width:calc(var(--u)*56);height:calc(var(--u)*56);margin:calc(var(--u)*20) 0 auto;border-radius:50%;border:1px dashed color-mix(in srgb,var(--paper) 22%,transparent)}.ds-tag{padding:calc(var(--u)*3) calc(var(--u)*12);border-radius:999px;background:var(--amber);color:var(--night);font-size:calc(var(--u)*13);font-weight:800}"
+    },
+    {
+      "name": "순위 줄 + 내 기록 (켜진 줄)",
+      "kind": "card",
+      "refersTo": "rank-row",
+      "description": "순위·이름·버틴 시간·점수, tabular. 1~3위 순위는 호박, 새벽까지 버틴 기록은 dawn 별. 내 기록은 아래 고정, 호박 테두리 + 갈색.",
+      "html": "<div class=\"ds-root\"><ol class=\"ds-list\"><li class=\"ds-row ds-row--top\"><span class=\"ds-r\">1</span><span class=\"ds-n\">새벽빛 토끼<span class=\"ds-d\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M12 1.5c.5 5.2 2.2 7.6 10.5 10.5-8.3 2.9-10 5.3-10.5 10.5-.5-5.2-2.2-7.6-10.5-10.5C9.8 9.1 11.5 6.7 12 1.5Z\" fill=\"currentColor\"/></svg></span></span><span class=\"ds-t\">02:00</span><span class=\"ds-s\">18,400</span></li><li class=\"ds-row\"><span class=\"ds-r\">4</span><span class=\"ds-n\">이름 없는 등불지기</span><span class=\"ds-t\">01:25</span><span class=\"ds-s\">13,210</span></li></ol><div class=\"ds-row ds-row--me\"><span class=\"ds-r\">나</span><span class=\"ds-n\">이름 없는 등불지기 · 9위</span><span class=\"ds-t\">01:11</span><span class=\"ds-s\">4,210</span></div></div>",
+      "css": ".ds-root{--night:#1b1f3b;--predawn:#120f24;--dawn:#f2b880;--amber:#ffc857;--mint:#9ed9b5;--lavender:#a89cd9;--ember:#ff8c5a;--paper:#f6f1e7;--ash:#8a8fa8;--paper-soft:color-mix(in srgb,var(--paper) 74%,var(--ash));--hairline:color-mix(in srgb,var(--paper) 14%,transparent);--u:calc(390px/540);font-family:'Pretendard Variable', Pretendard, 'Noto Sans KR', system-ui, sans-serif;color:var(--paper);width:390px;padding:16px calc(var(--u)*26);background:#111228}.ds-list{margin:0;padding:0;list-style:none}.ds-row{display:grid;grid-template-columns:calc(var(--u)*40) 1fr auto auto;align-items:center;gap:calc(var(--u)*12);min-height:calc(var(--u)*58);margin-bottom:calc(var(--u)*8);padding:0 calc(var(--u)*16);border:1px solid var(--hairline);border-radius:calc(var(--u)*14);background:linear-gradient(to bottom,rgba(255,255,255,.06),rgba(255,255,255,0) 40%),linear-gradient(to bottom,#262a54,#1a1c3a);box-shadow:inset 0 calc(var(--u)*1) 0 rgba(246,241,231,.1),0 calc(var(--u)*4) calc(var(--u)*10) rgba(5,4,12,.32);font-size:calc(var(--u)*16);font-variant-numeric:tabular-nums}.ds-r{font-weight:800;text-align:center}.ds-row--top .ds-r,.ds-row--me .ds-r{color:var(--amber)}.ds-n{display:flex;align-items:center;gap:calc(var(--u)*6);min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.ds-d{display:inline-flex;width:calc(var(--u)*16);height:calc(var(--u)*16);color:var(--dawn)}.ds-d svg{width:100%;height:100%}.ds-t{color:var(--paper-soft);font-size:calc(var(--u)*14)}.ds-s{font-weight:800}.ds-row--me{margin:calc(var(--u)*10) 0 0;border:calc(var(--u)*1.5) solid var(--amber);background:radial-gradient(100% 70% at 50% 0%,rgba(255,200,87,.28),rgba(255,200,87,0) 70%),linear-gradient(to bottom,#4c3624,#2a201f);box-shadow:inset 0 calc(var(--u)*1.5) 0 rgba(255,236,190,.22),0 0 calc(var(--u)*16) color-mix(in srgb,var(--amber) 38%,transparent)}"
+    },
+    {
+      "name": "스위치 (켜짐은 민트)",
+      "kind": "input",
+      "refersTo": "switch",
+      "description": "설정 줄의 켜고 끄기. 꺼짐 #3a3f6b, 켜짐 민트, 종이색 손잡이.",
+      "html": "<div class=\"ds-root\"><div class=\"ds-rowset\"><span>배경음악</span><button class=\"ds-sw\" role=\"switch\" aria-checked=\"true\" type=\"button\"><span class=\"ds-k\"></span></button></div><div class=\"ds-rowset\"><span>진동</span><button class=\"ds-sw\" role=\"switch\" aria-checked=\"false\" type=\"button\"><span class=\"ds-k\"></span></button></div></div>",
+      "css": ".ds-root{--night:#1b1f3b;--predawn:#120f24;--dawn:#f2b880;--amber:#ffc857;--mint:#9ed9b5;--lavender:#a89cd9;--ember:#ff8c5a;--paper:#f6f1e7;--ash:#8a8fa8;--paper-soft:color-mix(in srgb,var(--paper) 74%,var(--ash));--hairline:color-mix(in srgb,var(--paper) 14%,transparent);--u:calc(390px/540);font-family:'Pretendard Variable', Pretendard, 'Noto Sans KR', system-ui, sans-serif;color:var(--paper);width:390px;padding:12px calc(var(--u)*32);background:#262a56}.ds-rowset{display:flex;align-items:center;justify-content:space-between;min-height:calc(var(--u)*58);font-size:calc(var(--u)*18);border-bottom:1px solid var(--hairline)}.ds-sw{position:relative;flex:none;width:max(52px,calc(var(--u)*64));height:max(30px,calc(var(--u)*34));padding:0;border:0;border-radius:999px;background:#3a3f6b;cursor:pointer;transition:background .2s}.ds-sw:focus-visible{outline:2px solid var(--amber);outline-offset:3px}.ds-k{position:absolute;top:50%;left:4px;height:calc(100% - 8px);aspect-ratio:1;border-radius:50%;background:var(--paper);translate:0 -50%;transition:left .2s cubic-bezier(.16,1,.3,1)}.ds-sw[aria-checked=\"true\"]{background:var(--mint)}.ds-sw[aria-checked=\"true\"] .ds-k{left:calc(100% - 4px - (max(30px,calc(var(--u)*34)) - 8px))}"
+    },
+    {
+      "name": "노월 체력바 (라벤더)",
+      "kind": "custom",
+      "refersTo": "boss-bar",
+      "description": "위 HUD 아래 420u 알약. 자두색 얼굴 원과 홈, 라벤더 채움. 빨강을 쓰지 않는다.",
+      "html": "<div class=\"ds-root\"><div class=\"ds-boss\"><span class=\"ds-face\"></span><span class=\"ds-name\">노월</span><span class=\"ds-track\" style=\"--p:.72\"><span class=\"ds-fill\"></span></span></div></div>",
+      "css": ".ds-root{--night:#1b1f3b;--predawn:#120f24;--dawn:#f2b880;--amber:#ffc857;--mint:#9ed9b5;--lavender:#a89cd9;--ember:#ff8c5a;--paper:#f6f1e7;--ash:#8a8fa8;--paper-soft:color-mix(in srgb,var(--paper) 74%,var(--ash));--hairline:color-mix(in srgb,var(--paper) 14%,transparent);--u:calc(390px/540);font-family:'Pretendard Variable', Pretendard, 'Noto Sans KR', system-ui, sans-serif;color:var(--paper);width:390px;padding:16px 0;background:#2b2741}.ds-boss{display:flex;align-items:center;gap:calc(var(--u)*10);width:calc(var(--u)*420);margin:0 auto;padding:calc(var(--u)*5) calc(var(--u)*16) calc(var(--u)*5) calc(var(--u)*5);border:calc(var(--u)*1.5) solid color-mix(in srgb,var(--lavender) 60%,transparent);border-radius:999px;background:color-mix(in srgb,#1b1f3b 92%,transparent)}.ds-face{flex:none;width:calc(var(--u)*42);height:calc(var(--u)*42);border-radius:50%;border:2px solid var(--lavender);background:radial-gradient(circle at 50% 60%,#5a4a7a,#2b1b3d 70%)}.ds-name{flex:none;font-size:calc(var(--u)*17);font-weight:800;color:#ecdcff}.ds-track{position:relative;flex:1;height:calc(var(--u)*14);border-radius:999px;background:#2b1b3d;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--lavender) 30%,transparent);overflow:hidden}.ds-fill{position:absolute;inset:0;border-radius:inherit;background:linear-gradient(to right,#d9ccff,var(--lavender));transform:scaleX(var(--p,1));transform-origin:left center;transition:transform .3s ease-out}"
+    }
+  ],
+  "narrative": {
+    "northStar": "빛이 닿은 곳만 켜지는 밤 마을",
+    "overview": "화면 전체는 살짝 기울여 내려다본 작은 동물 마을의 판석 광장이다. 마을(1080×1920 월드, 화면의 네 배)은 늘 차가운 남색·보랏빛으로 잠들어 있고, 등불지기가 손에 든 등불을 들고 걸어 다니면 카메라가 부드럽게 따라간다. 빛을 보내면 60° 호박빛 부채꼴이 퍼지고 그 안의 돌·나무·풀숲만 **같은 마을의 '켜진' 판**(호박 갈색 돌, 따뜻한 나무, 올리브 잎, 분홍빛 꽃)으로 드러난다. 빛은 새 색을 칠하지 않고 이미 있는 마을을 깨운다. 콤보가 쌓이면 창문과 처마 등불이 하나씩 켜지고 반딧불이 늘어, 판의 성과가 점수판이 아니라 마을의 밝기로 보인다.\n\nUI는 마을을 덮지 않는 두 개의 어두운 띠(위: 시간·점수·콤보, 아래: 불꽃·시너지·장착물·일시정지), 아래 띠 바로 위 양쪽 엄지 자리의 두 스틱(왼쪽 종이색 이동, 오른쪽 호박 빛), 그리고 필요할 때만 위·아래에서 미끄러져 들어오는 남색 판으로 이뤄진다. 스틱 사이와 광장 가운데는 비워 둔다. 글자는 Pretendard 한 가족이고 굵기로만 위계를 나눈다. 강조는 호박색 하나이며, 순간의 손맛(콤보 단계)은 진한 갈색 외곽선을 두른 큰 금빛 글자와 네 갈래 별로 터진다.\n\n떠 있는 것은 모두 '만든 물건'의 재질을 가진다. 호박 알약은 윗면 광택 띠와 진한 호박 테두리를 두른 사탕 같고, 보조 알약·원 버튼·스틱 바닥은 위가 조금 밝은 남색 유리이며, 판과 카드는 아주 옅은 종이 결과 윗변의 가는 빛줄을 가진다. 메뉴 화면도 같은 밤 마을 위에 얹힌다. 홈은 등불을 든 루미의 마을 그림을 그대로 깔고 위아래만 가라앉혀 로고와 메뉴를 얹고, 선택·상점·지난 밤들은 같은 그림을 흐리고 어둡게 깐 위에 남색 막을 덮고 남색 카드를 쌓는다. 카드 묶음 안에서 '지금 고른 것'만 따뜻한 갈색으로 켜진다. 고르는 일도 빛이 닿는 일이다.\n\n확인된 거부: 무기·폭발·체력바 문법의 판타지 디펜스·쿼터뷰 RPG, 평평한 톱다운 맵(Super Animal Royale 같은 인상), 피·붉은 피격 표현.",
+    "keyCharacteristics": [
+      "차가운 남색 바탕 + 빛과 주인공에만 호박빛.",
+      "모든 월드 요소를 어두운 판과 켜진 판 두 벌로 칠하고, 빛은 마스크로 켜진 판을 드러낸다.",
+      "위아래 어두운 HUD 띠, 아래 띠 위 양쪽 엄지 자리에 스틱 둘, 그 사이와 가운데 광장은 비운다.",
+      "메뉴는 남색 카드 묶음, 고른 카드 하나만 호박 테두리 + 따뜻한 갈색으로 켜진다.",
+      "떠 있는 면은 광택·유리·종이 결·윗변 빛줄의 재질을 갖는다. 평평한 단색 도형으로 두지 않는다.",
+      "알약과 원, 둥근 모서리만. 날카로운 각진 UI 없음.",
+      "반응은 그림자보다 빛의 번짐(글로우)으로.",
+      "모든 크기는 논리 폭 540 기준 단위로 비례한다."
+    ],
+    "rules": [
+      {
+        "name": "The 차가운 바탕, 따뜻한 빛 Rule",
+        "body": "따뜻한 색(amber, ember, dawn, 켜진 톤)은 빛·등불·주인공·주요 행동(빛 스틱 포함)·점수, 그리고 빛을 받은 면(고른 카드, 등불 아래 가게)에만 쓴다. 배경, 띠, 패널, 기본 카드, 꺼진 마을은 언제나 남색·보라다.",
+        "section": "colors"
+      },
+      {
+        "name": "The 고른 것은 켜진다 Rule",
+        "body": "카드 묶음에서 '지금 고른 것'은 하나뿐이고, 호박 테두리 + lit-card 갈색 그라데이션으로 켜진다. 고르지 않은 카드는 card 남색 그라데이션과 종이 14% 실선으로 둔다.",
+        "section": "colors"
+      },
+      {
+        "name": "The 잠긴 것은 그림자 Rule",
+        "body": "잠긴 등불지기는 초상을 거의 검은 실루엣(밝기 0.08~0.12, 채도 0)으로 두고 라벤더로 조건을 적는다. 어둠에 변한 이웃처럼 아직 빛이 닿지 않은 것으로 보인다. 회색 반투명으로 잠금을 표현하지 않는다.",
+        "section": "colors"
+      },
+      {
+        "name": "The 두 벌의 마을 Rule",
+        "body": "월드에 새로 그리는 모든 바닥·소품은 `DARK`와 `LIT` 두 톤으로 같은 모양을 두 번 칠한다. 빛의 표현은 켜진 판을 마스크로 드러내는 것이지, 어두운 판 위에 주황을 덧칠하는 것이 아니다.",
+        "section": "colors"
+      },
+      {
+        "name": "The 하나의 강조 Rule",
+        "body": "한 화면의 주요 행동은 호박 하나다(메뉴와 판에서는 호박 알약, 플레이에서는 빛 스틱). 같은 화면의 다른 행동은 보조(종이 테두리 유리) 알약이나 종이색 손잡이, 가장 덜 중요한 행동(지난 밤들에 남기기, 일시정지의 설정)은 흐린 알약이 된다. 호박 채움은 그 밖에 켜진 탭(현재 선택 상태)과 '장착 중' 꼬리표에만 쓴다.",
+        "section": "colors"
+      },
+      {
+        "name": "The 아직 아니면 재 Rule",
+        "body": "'지금 놓으면 빛이 안 나간다'는 상태(빛 대기 중 조준, 끌었다 가운데로 되돌린 취소)는 호박을 빼고 재색과 채도 낮춤으로 보여 준다. 빨강이나 경고 아이콘을 쓰지 않는다.",
+        "section": "colors"
+      },
+      {
+        "name": "The 한 가족 Rule",
+        "body": "Pretendard → Noto Sans KR 외의 서체를 들이지 않는다. 위계는 굵기와 크기로만 만든다.",
+        "section": "typography"
+      },
+      {
+        "name": "The 숫자는 흔들리지 않는다 Rule",
+        "body": "시간·점수·콤보·통계 등 모든 바뀌는 숫자는 `font-variant-numeric: tabular-nums`로 폭을 고정한다(점수 6자리, 콤보 3자리까지 깨지지 않게).",
+        "section": "typography"
+      },
+      {
+        "name": "The 숫자는 단색 Rule",
+        "body": "점수·콤보 같은 숫자는 단색(amber 또는 combo-gold)에 외곽선·글로우로만 힘을 준다. 그라데이션 채움 글자는 로고 하나뿐이다.",
+        "section": "typography"
+      },
+      {
+        "name": "The 540 단위 Rule",
+        "body": "UI 치수는 px가 아니라 `--u` 배수로 쓴다. 예외는 접근성 하한뿐이다: 알약 `max(48px, …)`, 원 버튼·탭·입력칸·장착물 칸 `max(44px, …)`, 스위치 `max(52px, …)`×`max(30px, …)`, 입력 글자 `max(16px, …)`, seed 글자 `max(11px, …)`. 스틱은 하한이 필요 없을 만큼 크다(가장 작은 손 닿는 영역 176u).",
+        "section": "layout"
+      },
+      {
+        "name": "The 엄지 자리 Rule",
+        "body": "플레이 중 상시 터치 요소는 아래 HUD 띠와 그 바로 위 양쪽 엄지 자리의 두 스틱뿐이다. 왼쪽은 걷기, 오른쪽은 빛이며 자리를 바꾸지 않는다. 스틱 사이와 광장 가운데에는 상시 UI를 두지 않는다.",
+        "section": "layout"
+      },
+      {
+        "name": "The 빈 광장 Rule",
+        "body": "HUD·스틱·시트 외에 광장 위에 상시 떠 있는 UI를 두지 않는다. 일시적인 것(콤보 연출 27% 높이, 토스트 120u 높이, 조준 부채꼴, 가장자리 화살표)은 터치를 받지 않는다(`pointer-events: none` 또는 캔버스 그림).",
+        "section": "layout"
+      },
+      {
+        "name": "The 빛이 곧 반응 Rule",
+        "body": "반응(호버·누름·겨눔·가득 참)은 오프셋 그림자가 아니라 색 있는 글로우로 표현한다. 바깥으로 떨어지는 어두운 그림자는 놓인 자리를 보여 줄 뿐 상태에 따라 변하지 않으며, 언제나 흐리게(블러 6u 이상) 쓴다.",
+        "section": "elevation"
+      },
+      {
+        "name": "The 만든 물건 Rule",
+        "body": "떠 있는 면(알약, 원 버튼, 스틱, 판, 카드)은 윗변 빛줄 하나와 위가 밝은 면, 흐린 바닥 그림자를 갖는다. 판과 카드에는 종이 결(`--grain`)을 깐다. 블러 없는 선은 안쪽 하이라이트(윗변 1~2u)에만 쓴다.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do 새 화면의 주요 행동 하나를 호박 알약, 나머지를 종이 테두리 유리 알약, 가장 덜 중요한 것을 흐린 알약으로 만든다(최소 48×48, 누르면 1.04배 + 글로우).",
+      "Do 새 메뉴 화면은 위쪽 막대(뒤로 원 버튼 + 가운데 제목) + 카드 재질 묶음으로 만들고, 고른 것 하나만 호박 테두리 + lit-card로 켠다.",
+      "Do 새로 떠 있는 면에는 윗변 빛줄, 위가 밝은 면, 흐린 바닥 그림자를 주고, 판과 카드에는 `--grain`을 깐다.",
+      "Do 잠긴 것은 실루엣과 라벤더 조건 글자로 보여 준다.",
+      "Do 모든 UI 치수를 `--u`(540 기준) 배수로 쓰고, 터치 표적만 px 하한을 둔다.",
+      "Do 플레이 조작은 왼쪽 걷기·오른쪽 빛 두 스틱으로 두고, '아직 안 나간다'는 재색으로 알린다.",
+      "Do 월드에 새 소품·배경을 그릴 때 `DARK`와 `LIT` 두 톤을 같이 정의하고, 빛은 켜진 판을 드러내는 방식으로 표현한다.",
+      "Do 위험은 잔불색 맥박과 불꽃이 꺼지는 것으로만 보여 준다.",
+      "Do 성과(콤보)를 마을이 밝아지는 것(창문·등불·반딧불)으로 함께 보여 준다.",
+      "Do 바뀌는 숫자는 모두 tabular-nums와 단색으로 쓴다.",
+      "Do 모든 연출에 `prefers-reduced-motion` 대체를 두고, 깜빡임은 초당 3회 이하로 둔다."
+    ],
+    "donts": [
+      "Don't 배경·띠·패널·기본 카드·꺼진 마을에 따뜻한 색을 쓰지 않는다. 따뜻한 색은 빛의 것이고, 빛을 받은 면(고른 카드, 등불 아래 가게)만 예외다.",
+      "Don't 빨강, 피, 폭발 파편, 붉은 체력바 같은 전투 문법을 쓰지 않는다. 피해는 어둠이 스치는 것, 저HP는 잔불, 노월의 바는 라벤더다.",
+      "Don't 한 카드 묶음에서 두 개 이상을 켜지 않는다.",
+      "Don't 평평한 톱다운 맵처럼 그리지 않는다. 판석은 위로 갈수록 작고 납작하게, 먼 쪽은 어둡게 둔다.",
+      "Don't 보조 버튼 테두리를 민트로 되돌리지 않는다(2026-10-30 지시로 종이색).",
+      "Don't Pretendard·Noto Sans KR 외의 서체나 글리프·이모지 아이콘을 들이지 않는다. 아이콘은 둥근 인라인 SVG로 그린다.",
+      "Don't 로고 밖에서 그라데이션 채움 글자를 쓰지 않는다.",
+      "Don't 블러 없는 바깥 오프셋 그림자를 쓰지 않는다. 블러 없는 선은 안쪽 윗변 빛줄에만 쓴다.",
+      "Don't 광장 가운데나 두 스틱 사이에 상시 UI를 두거나, 일시적 연출이 탭·스틱을 가로채게 하지 않는다."
+    ]
+  }
+}

@@ -1,0 +1,10 @@
+rules_version = '2';
+
+// 기본은 전부 차단. 랭킹·진행도 컬렉션 규칙은 M5에서 연다.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,0 +1,112 @@
+{
+  "viewport": {
+    "width": 540,
+    "height": 960,
+    "orientation": "portrait",
+    "landscape": { "height": 540, "minWidth": 720, "maxWidth": 1280 }
+  },
+  "world": {
+    "width": 3200,
+    "height": 1800
+  },
+  "keeper": {
+    "moveSpeed": 225,
+    "radius": 26,
+    "walkInset": {
+      "top": 250,
+      "side": 100,
+      "bottom": 110
+    }
+  },
+  "hide": {
+    "revealDist": 140,
+    "revealAfterFireSec": 1,
+    "keeperAlpha": 0.45,
+    "bushAlphaInside": 0.5,
+    "roamSpeed": 0.6,
+    "roamMin": 180,
+    "roamMax": 420
+  },
+  "controls": {
+    "deadzone": 0.18,
+    "mouseCancelRadius": 48
+  },
+  "lantern": {
+    "x": 1600,
+    "y": 900,
+    "radius": 48,
+    "maxHp": 100,
+    "lowHpRatio": 0.3,
+    "glowMin": 60,
+    "glowMax": 200
+  },
+  "night": {
+    "durationSec": 120,
+    "phases": {
+      "dusk": [
+        0,
+        40
+      ],
+      "midnight": [
+        40,
+        90
+      ],
+      "predawn": [
+        90,
+        120
+      ]
+    }
+  },
+  "light": {
+    "mode": "aimStick",
+    "fanDeg": 60,
+    "cooldownSec": 0.4,
+    "expandSec": 0.25,
+    "knockback": 70,
+    "stunSec": 0.3,
+    "burstPowerMultiplier": 3,
+    "burstKnockback": 200,
+    "burstFlashSec": 0.6
+  },
+  "combo": {
+    "windowSec": 2,
+    "lossMode": "half",
+    "multiplierStep": 5,
+    "multiplierPerStep": 0.5,
+    "maxMultiplier": 4
+  },
+  "synergy": {
+    "max": 100,
+    "gainPerReturn": 10.4,
+    "gainPerReturnHighCombo": 15.6,
+    "highComboThreshold": 10,
+    "decayPerSec": 4
+  },
+  "score": {
+    "itemPickup": 10,
+    "witchBonus": 2000,
+    "clearBase": 1000,
+    "clearPerLanternHp": 10
+  },
+  "playfield": {
+    "margin": 16
+  },
+  "items": {
+    "lifetimeSec": 12,
+    "blinkLastSec": 3,
+    "spawnRadiusMin": 120,
+    "spawnRadiusMax": 260
+  },
+  "village": {
+    "brightenMax": 0.55,
+    "brightenPower": 2,
+    "gloomBase": 0.16,
+    "gloomGrowth": 0.24
+  },
+  "_notes": {
+    "changed": "2026-10-23 기획서 통합: 세로 540x960, 밤 120초, 탭 한 번 부채꼴 빛(60도, 0.4초), 콤보 감소는 절반(lossMode half)",
+    "village": "2026-11-06 라이언 지시: 밤이 흐를수록 마을이 점점 밝아지고 그 속도는 점점 빨라진다. 켜진 마을이 전체에 드러나는 정도 = brightenMax × (진행률 ^ brightenPower). 등불이 맞으면 마을이 어두워지고 밤이 깊을수록 깊어지며 회복하면 그만큼 밝아진다: 어두움 = (1 − HP 비율) × (gloomBase + gloomGrowth × 진행률). 수치는 제안: 기획서에 없음",
+    "controls": "2026-11-04 라이언 지시: 브롤스타즈식 두 스틱(왼쪽 이동, 오른쪽 빛), 등불은 등불지기가 들고 다님, 넓은 마을(world)+카메라 따라감. world·keeper·controls 수치와 lantern.x/y(시작 위치)는 제안: 기획서에 없음. 2026-11-06 라이언 지시: 빛 스틱·마우스 모두 끈 거리에 비례해 원뿔 반지름(= 빛 길이, 최대 사거리). PC는 마우스를 누른 채 끌고 놓으면 발사, 등불에서 mouseCancelRadius 안에서 놓으면 취소(제안). keeper.radius 26은 루미 칸 128에 맞춘 발 판정(제안)",
+    "map": "2026-11-04 라이언 지시: 브롤스타즈처럼 넓은 마을(처음 2400x2400 정사각, 2026-11-06부터 16:9 3200x1800 — 가로 화면 지시, 면적 같음), 카메라·등불지기는 마을 밖으로 못 나감(walkInset: 위는 집 줄, 옆·아래는 덤불 띠), 숨을 수 있는 풀숲(hide)과 장애물(map.json). 수치는 제안: 기획서에 없음"
+  }
+}

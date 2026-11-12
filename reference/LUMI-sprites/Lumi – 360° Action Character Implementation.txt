@@ -1,0 +1,58 @@
+# Lumi – 360° Action Character Implementation
+
+## 1. Character
+- Name: Lumi
+- Top-down 2D character
+- Preserve original black fur, green eyes, orange scarf and star pendant.
+- Use modular character parts and sprite animations.
+
+## 2. Movement
+- Implement dual virtual joystick controls.
+- Left joystick: 360-degree character movement.
+- Right joystick: independent 360-degree aiming.
+- Movement must support keyboard and touch input.
+- Use normalized vectors to prevent faster diagonal movement.
+- Smoothly interpolate character movement and animation direction.
+
+## 3. Combat and Aiming
+- Render attack range independently from the character sprite.
+- Display a translucent orange attack indicator.
+- Rotate the indicator according to the right joystick direction.
+- Support circular and directional-cone attack patterns.
+- Keep aiming direction independent of movement direction.
+- Add a projectile or attack animation when the attack button is pressed.
+
+## 4. Animation States
+Implement:
+- Idle
+- Walk
+- Attack
+- Hit
+- Stun
+- Knockout
+- Respawn
+
+Use 8-direction sprite animation as the initial implementation. Allow smooth directional transitions.
+
+## 5. Damage Feedback
+- Switch to a dedicated hurt expression when Lumi takes damage.
+- Add brief hit flash and knockback.
+- Add optional screen shake and damage effects.
+- Return to the appropriate animation after the hit reaction.
+
+## 6. Asset Requirements
+- Transparent PNG (RGBA)
+- Separate sprite frames
+- Consistent frame dimensions and pivot points
+- Character source size: 128×128
+- Suggested in-game size: 64×64
+- Separate VFX and attack-range UI assets.
+
+## 7. Technical Requirements
+- Maintain compatibility with desktop and mobile browsers.
+- Optimize rendering for 60 FPS.
+- Keep movement, aiming, combat and animation systems independent.
+- Preserve existing Firebase Hosting and project architecture.
+- Do not overwrite existing project files without checking their contents first.
+
+First inspect the existing project structure, then implement the character and control systems incrementally.

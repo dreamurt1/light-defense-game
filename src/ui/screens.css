@@ -1,0 +1,1027 @@
+/* ===================================================================
+   메뉴 화면 (2026-10-30): 홈 · 선택 · 상점 · 지난 밤들 · 설정 · 보스 체력바 · 결과
+   배치는 UI Screen Sheet, 문구·구성·색은 기획서. 지금 화면은 #ui[data-screen] (ui/Router.ts)
+   style.css 다음에 불러와 같은 우선순위의 규칙을 덮는다.
+   =================================================================== */
+
+.screen {
+  position: absolute;
+  inset: 0;
+  display: none;
+  flex-direction: column;
+  pointer-events: auto;
+  padding: max(calc(var(--u) * 18), env(safe-area-inset-top, 0px)) calc(var(--u) * 26)
+    max(calc(var(--u) * 26), env(safe-area-inset-bottom, 0px));
+}
+
+.stage__ui[data-screen='home'] .screen--home,
+.stage__ui[data-screen='select'] .screen--select,
+.stage__ui[data-screen='shop'] .screen--shop,
+.stage__ui[data-screen='ranking'] .screen--ranking {
+  display: flex;
+  animation: screen-in 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* HUD는 플레이 중에만 */
+.stage__ui:not([data-screen='play']) .hud {
+  display: none;
+}
+
+/* 홈 말고는 뒤의 밤 마을을 가라앉혀 판을 읽기 쉽게 */
+/* 메뉴 화면 뒤: 홈 그림(assets/backgrounds/home.webp)을 흐리고 어둡게 깔고 그 위에 남색 막 */
+.screen--select,
+.screen--shop,
+.screen--ranking {
+  isolation: isolate;
+  background: linear-gradient(to bottom, rgba(17, 18, 40, 0.72), rgba(17, 18, 40, 0.88));
+}
+
+.screen--select::before,
+.screen--shop::before,
+.screen--ranking::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--predawn) url('/assets/backgrounds/home.webp') 35% 50% / cover no-repeat;
+  filter: blur(7px) brightness(0.55) saturate(0.85);
+  transform: scale(1.06);
+}
+
+@keyframes screen-in {
+  from {
+    opacity: 0;
+    transform: translateY(calc(var(--u) * 10));
+  }
+}
+
+/* ---------- 공통: 동그란 아이콘 버튼 · 위쪽 막대 · 흐린 알약 ---------- */
+
+.icon-button {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: max(44px, calc(var(--u) * 52));
+  height: max(44px, calc(var(--u) * 52));
+  padding: 0;
+  border: calc(var(--u) * 2) solid color-mix(in srgb, var(--paper) 55%, transparent);
+  border-radius: 50%;
+  background: color-mix(in srgb, #0f1130 70%, transparent);
+  color: var(--paper);
+  cursor: pointer;
+  transition:
+    transform 0.12s ease-out,
+    box-shadow 0.2s ease-out;
+}
+
+.icon-button svg {
+  width: calc(var(--u) * 26);
+  height: calc(var(--u) * 26);
+}
+
+.icon-button:active {
+  transform: scale(1.04);
+}
+
+@media (hover: hover) {
+  .icon-button:hover {
+    box-shadow: 0 0 calc(var(--u) * 14) color-mix(in srgb, var(--paper) 25%, transparent);
+  }
+}
+
+.screen-bar {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--u) * 12);
+  margin-bottom: calc(var(--u) * 16);
+}
+
+.screen-bar__title {
+  flex: 1;
+  margin: 0;
+  text-align: center;
+  font-size: calc(var(--u) * 24);
+  font-weight: 800;
+}
+
+.screen-bar__spacer {
+  flex: none;
+  width: max(44px, calc(var(--u) * 52));
+}
+
+/* 알약 안의 아이콘은 모두 같은 크기 */
+.pill > svg {
+  flex: none;
+  width: calc(var(--u) * 22);
+  height: calc(var(--u) * 22);
+}
+
+/* 덜 중요한 동작(지난 밤들에 남기기·설정): 테두리만 옅게 */
+.pill--ghost {
+  border: calc(var(--u) * 1.5) solid color-mix(in srgb, var(--paper) 28%, transparent);
+  background: transparent;
+  color: var(--paper-soft);
+  font-weight: 600;
+}
+
+/* ---------- 홈: 마을 위 로고, 오른쪽 아래 메뉴, 왼쪽 아래 프로필 ---------- */
+
+/* 홈: 레퍼런스 그림(등불을 든 루미의 밤 마을)을 그대로 깔고 로고·메뉴 쪽만 살짝 어둡게 */
+.screen--home {
+  background:
+    linear-gradient(to bottom, rgba(17, 18, 40, 0.78), rgba(17, 18, 40, 0) 34%),
+    linear-gradient(to top, rgba(17, 18, 40, 0.8), rgba(17, 18, 40, 0) 32%),
+    var(--predawn) url('/assets/backgrounds/home.webp') 32% 50% / cover no-repeat;
+}
+
+.home__settings {
+  position: absolute;
+  top: max(calc(var(--u) * 18), env(safe-area-inset-top, 0px));
+  right: calc(var(--u) * 22);
+}
+
+.home__title {
+  margin-top: calc(var(--u) * 44);
+}
+
+.logo {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--u) * 10);
+}
+
+.logo__en {
+  font-size: calc(var(--u) * 66);
+  font-weight: 900;
+  font-style: italic;
+  line-height: 0.92;
+  letter-spacing: -0.01em;
+  color: #ffd76e;
+  text-shadow:
+    0 calc(var(--u) * 3) calc(var(--u) * 4) rgba(110, 56, 18, 0.85),
+    0 calc(var(--u) * 6) calc(var(--u) * 12) rgba(20, 10, 4, 0.6),
+    0 0 calc(var(--u) * 28) color-mix(in srgb, var(--amber) 55%, transparent);
+}
+
+.logo__ko {
+  font-size: calc(var(--u) * 20);
+  font-weight: 700;
+  letter-spacing: 0.32em;
+  color: var(--paper);
+}
+
+.home__slogan {
+  margin: calc(var(--u) * 14) 0 0;
+  font-size: calc(var(--u) * 17);
+  color: var(--paper-soft);
+}
+
+.home__menu {
+  position: absolute;
+  right: calc(var(--u) * 26);
+  bottom: max(calc(var(--u) * 110), calc(env(safe-area-inset-bottom, 0px) + var(--u) * 92));
+  display: grid;
+  gap: calc(var(--u) * 12);
+  width: calc(var(--u) * 250);
+}
+
+.home__menu .pill {
+  justify-content: flex-start;
+  padding-left: calc(var(--u) * 24);
+}
+
+.profile {
+  position: absolute;
+  left: calc(var(--u) * 22);
+  bottom: max(calc(var(--u) * 24), env(safe-area-inset-bottom, 0px));
+  display: flex;
+  align-items: center;
+  gap: calc(var(--u) * 10);
+  max-width: calc(var(--u) * 300);
+  padding: calc(var(--u) * 6) calc(var(--u) * 18) calc(var(--u) * 6) calc(var(--u) * 6);
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  background: color-mix(in srgb, #14152e 88%, transparent);
+  font-size: calc(var(--u) * 16);
+}
+
+.profile__name {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.profile__avatar {
+  flex: none;
+  width: calc(var(--u) * 46);
+  height: calc(var(--u) * 46);
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: 50% 15%;
+  background: var(--dusk);
+  border: 2px solid var(--ember);
+}
+
+/* ---------- 선택: 아치 속 큰 초상 + 좌우 화살표, 아래 5칸, 장착물, 주 버튼 ---------- */
+
+.select__stage {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: calc(var(--u) * 10);
+}
+
+.select__arrow {
+  color: var(--amber);
+  border-color: color-mix(in srgb, var(--amber) 55%, transparent);
+}
+
+.select__arch {
+  position: relative;
+  display: grid;
+  place-items: end center;
+  width: calc(var(--u) * 270);
+  height: calc(var(--u) * 270);
+  overflow: hidden;
+  border-radius: calc(var(--u) * 135) calc(var(--u) * 135) calc(var(--u) * 22) calc(var(--u) * 22);
+  background:
+    radial-gradient(circle at 50% 72%, color-mix(in srgb, var(--amber) 32%, transparent), transparent 60%),
+    linear-gradient(to bottom, #2c2f60, #1d1f3d);
+  border: calc(var(--u) * 2) solid color-mix(in srgb, var(--lavender) 50%, transparent);
+}
+
+.select__portrait {
+  width: calc(var(--u) * 252);
+  height: calc(var(--u) * 252);
+}
+
+.select__portrait.is-locked {
+  filter: brightness(0.08) saturate(0)
+    drop-shadow(0 0 calc(var(--u) * 6) color-mix(in srgb, var(--lavender) 75%, transparent));
+}
+
+.select__name {
+  margin: calc(var(--u) * 14) 0 0;
+  display: flex;
+  justify-content: center;
+  align-items: baseline;
+  gap: calc(var(--u) * 10);
+  font-size: calc(var(--u) * 30);
+  font-weight: 800;
+}
+
+.select__name small {
+  font-size: calc(var(--u) * 16);
+  font-weight: 600;
+  color: var(--paper-soft);
+}
+
+.select__blurb,
+.select__stats,
+.select__lock {
+  margin: calc(var(--u) * 6) 0 0;
+  text-align: center;
+  font-size: calc(var(--u) * 16);
+  color: var(--paper-soft);
+}
+
+.select__stats {
+  color: var(--dawn);
+  font-variant-numeric: tabular-nums;
+}
+
+.select__lock {
+  color: var(--lavender);
+  font-weight: 700;
+}
+
+.select__roster {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: calc(var(--u) * 10);
+  margin-top: calc(var(--u) * 18);
+}
+
+.roster-card {
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  min-height: 44px;
+  padding: 0;
+  overflow: hidden;
+  border: calc(var(--u) * 1.5) solid var(--hairline);
+  border-radius: calc(var(--u) * 16);
+  background: #1d1f3d;
+  cursor: pointer;
+}
+
+.roster-card img {
+  width: 100%;
+  height: 100%;
+}
+
+.roster-card.is-locked img {
+  filter: brightness(0.12) saturate(0);
+}
+
+.roster-card__lock {
+  position: absolute;
+  right: calc(var(--u) * 6);
+  bottom: calc(var(--u) * 6);
+  width: calc(var(--u) * 22);
+  height: calc(var(--u) * 22);
+  color: var(--paper-soft);
+}
+
+.roster-card__lock svg {
+  width: 100%;
+  height: 100%;
+}
+
+.roster-card.is-current {
+  border: calc(var(--u) * 3) solid var(--amber);
+  background: linear-gradient(to bottom, #4a3522, #2c2120);
+  box-shadow: 0 0 calc(var(--u) * 14) color-mix(in srgb, var(--amber) 40%, transparent);
+}
+
+.select__subhead {
+  margin: calc(var(--u) * 20) 0 calc(var(--u) * 8);
+  font-size: calc(var(--u) * 17);
+  font-weight: 700;
+}
+
+.select__gear {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: calc(var(--u) * 8);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.gear-card {
+  display: grid;
+  align-content: center;
+  gap: calc(var(--u) * 4);
+  min-height: calc(var(--u) * 70);
+  padding: calc(var(--u) * 8) calc(var(--u) * 6);
+  border: 1px solid var(--hairline);
+  border-radius: calc(var(--u) * 14);
+  background: #1d1f3d;
+  text-align: center;
+}
+
+.gear-card.is-current {
+  border-color: color-mix(in srgb, var(--amber) 60%, transparent);
+}
+
+.gear-card strong {
+  font-size: calc(var(--u) * 14);
+}
+
+.gear-card span {
+  font-size: calc(var(--u) * 12);
+  color: var(--paper-soft);
+}
+
+.select__note {
+  margin: calc(var(--u) * 8) 0 0;
+  text-align: center;
+  font-size: calc(var(--u) * 14);
+  color: var(--paper-soft);
+}
+
+.select__go {
+  margin-top: auto;
+  align-self: center;
+  width: calc(var(--u) * 330);
+}
+
+/* ---------- 탭 (상점 · 지난 밤들) ---------- */
+
+.tabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: calc(var(--u) * 8);
+  margin-bottom: calc(var(--u) * 16);
+}
+
+.tab {
+  min-height: max(44px, calc(var(--u) * 50));
+  border: 1px solid var(--hairline);
+  border-radius: calc(var(--u) * 14);
+  background: #1d1f3d;
+  color: var(--paper);
+  font: inherit;
+  font-size: calc(var(--u) * 17);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.tab.is-on {
+  border-color: transparent;
+  background: linear-gradient(to bottom, #ffd77a, var(--amber) 55%, #f2ad3f);
+  color: var(--night);
+  font-weight: 800;
+}
+
+/* ---------- 상점: 위 가게 선반 + 탭 + 카드 그리드 ---------- */
+
+/* 가게 그림: 위쪽 띠 뒤에 깔리고, 등불 둘이 제목 양옆에 걸리고, 제목 아래 선반 하나 */
+.shop__header {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: calc(var(--u) * 230);
+  background:
+    radial-gradient(circle at 30% 24%, color-mix(in srgb, var(--amber) 32%, transparent), transparent 26%),
+    radial-gradient(circle at 70% 24%, color-mix(in srgb, var(--amber) 32%, transparent), transparent 26%),
+    linear-gradient(to bottom, #3b2a33, #2a1f2e 62%, rgba(17, 18, 40, 0));
+}
+
+.screen--shop > :not(.shop__header) {
+  position: relative;
+}
+
+.shop__shelf {
+  position: absolute;
+  left: 5%;
+  right: 5%;
+  top: 58%;
+  height: calc(var(--u) * 9);
+  border-radius: 3px;
+  background: #6b4a2e;
+  box-shadow: 0 calc(var(--u) * 4) calc(var(--u) * 6) rgba(0, 0, 0, 0.4);
+}
+
+.shop__shelf--low {
+  display: none;
+}
+
+.shop__hanging {
+  position: absolute;
+  top: max(calc(var(--u) * 10), env(safe-area-inset-top, 0px));
+  left: calc(30% - var(--u) * 18);
+  width: calc(var(--u) * 36);
+  height: calc(var(--u) * 51);
+  background: url('/assets/objects/hanging-lantern.png') 100% 0 / 200% 100% no-repeat;
+  filter: drop-shadow(0 0 calc(var(--u) * 10) var(--amber));
+}
+
+.shop__hanging--right {
+  left: calc(70% - var(--u) * 18);
+}
+
+.screen--shop .tabs {
+  margin-top: calc(var(--u) * 72);
+}
+
+.shop__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: calc(var(--u) * 12);
+}
+
+.shop-card {
+  display: grid;
+  justify-items: center;
+  align-content: end;
+  gap: calc(var(--u) * 4);
+  aspect-ratio: 0.82;
+  padding: calc(var(--u) * 10);
+  overflow: hidden;
+  border: 1px solid var(--hairline);
+  border-radius: calc(var(--u) * 18);
+  background: linear-gradient(to bottom, #262a54, #1b1d3b);
+  font-size: calc(var(--u) * 15);
+  color: var(--paper-soft);
+}
+
+.shop-card.is-equipped {
+  border: calc(var(--u) * 3) solid var(--amber);
+  background: linear-gradient(to bottom, #4a3522, #2c2120);
+  color: var(--paper);
+}
+
+.shop-card__art {
+  width: 100%;
+  height: auto;
+  margin-bottom: auto;
+}
+
+.shop-card__lantern {
+  width: calc(var(--u) * 56);
+  height: calc(var(--u) * 80);
+  margin-bottom: auto;
+  margin-top: calc(var(--u) * 10);
+  background: url('/assets/objects/lantern.png') 0 0 / 300% 100% no-repeat;
+  filter: drop-shadow(0 0 calc(var(--u) * 12) color-mix(in srgb, var(--amber) 70%, transparent));
+}
+
+.shop-card__swatch {
+  width: calc(var(--u) * 64);
+  height: calc(var(--u) * 64);
+  margin-bottom: auto;
+  margin-top: calc(var(--u) * 16);
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff1c9, var(--amber) 55%, #f0a040);
+  box-shadow: 0 0 calc(var(--u) * 18) color-mix(in srgb, var(--amber) 60%, transparent);
+}
+
+.shop-card__ghost {
+  width: calc(var(--u) * 56);
+  height: calc(var(--u) * 56);
+  margin-bottom: auto;
+  margin-top: calc(var(--u) * 20);
+  border-radius: 50%;
+  border: 1px dashed color-mix(in srgb, var(--paper) 22%, transparent);
+}
+
+.shop-card strong {
+  font-size: calc(var(--u) * 16);
+}
+
+.shop-card__tag {
+  padding: calc(var(--u) * 3) calc(var(--u) * 12);
+  border-radius: 999px;
+  background: var(--amber);
+  color: var(--night);
+  font-size: calc(var(--u) * 13);
+  font-weight: 800;
+}
+
+.shop__note {
+  margin: calc(var(--u) * 18) 0 0;
+  text-align: center;
+  font-size: calc(var(--u) * 15);
+  color: var(--paper-soft);
+}
+
+/* ---------- 지난 밤들: 탭 + 순위 줄 + 내 기록 고정 ---------- */
+
+.rank-list {
+  flex: 1;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--ash) transparent;
+}
+
+.rank-row {
+  display: grid;
+  grid-template-columns: calc(var(--u) * 40) 1fr auto auto;
+  align-items: center;
+  gap: calc(var(--u) * 12);
+  min-height: calc(var(--u) * 58);
+  margin-bottom: calc(var(--u) * 8);
+  padding: 0 calc(var(--u) * 16);
+  border: 1px solid var(--hairline);
+  border-radius: calc(var(--u) * 14);
+  background: #1d1f3d;
+  font-size: calc(var(--u) * 16);
+  font-variant-numeric: tabular-nums;
+}
+
+.rank-row__rank {
+  font-weight: 800;
+  text-align: center;
+}
+
+.rank-row--top .rank-row__rank {
+  color: var(--amber);
+}
+
+.rank-row__name {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--u) * 6);
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.rank-row__dawn {
+  flex: none;
+  width: calc(var(--u) * 16);
+  height: calc(var(--u) * 16);
+  color: var(--dawn);
+}
+
+.rank-row__time {
+  color: var(--paper-soft);
+  font-size: calc(var(--u) * 14);
+}
+
+.rank-row__score {
+  font-weight: 800;
+}
+
+.rank-me .rank-row,
+.rank-row--me {
+  margin: calc(var(--u) * 10) 0 0;
+  border: calc(var(--u) * 1.5) solid var(--amber);
+  background: linear-gradient(to bottom, #4a3522, #2c2120);
+}
+
+.rank-row--me .rank-row__rank {
+  color: var(--amber);
+}
+
+.rank-empty {
+  margin-top: calc(var(--u) * 80);
+  text-align: center;
+  color: var(--paper-soft);
+  font-size: calc(var(--u) * 17);
+}
+
+/* ---------- 설정: 아래에서 올라오는 판 ---------- */
+
+.sheet--settings {
+  z-index: 5;
+}
+
+.sheet--settings .sheet__panel {
+  padding: calc(var(--u) * 34) calc(var(--u) * 32) max(calc(var(--u) * 28), env(safe-area-inset-bottom, 0px));
+  animation: sheet-rise 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.settings__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: calc(var(--u) * 58);
+  font-size: calc(var(--u) * 18);
+  border-bottom: 1px solid var(--hairline);
+}
+
+.switch {
+  position: relative;
+  flex: none;
+  width: max(52px, calc(var(--u) * 64));
+  height: max(30px, calc(var(--u) * 34));
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: #3a3f6b;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.switch__knob {
+  position: absolute;
+  top: 50%;
+  left: 4px;
+  height: calc(100% - 8px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--paper);
+  translate: 0 -50%;
+  transition: left 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.switch[aria-checked='true'] {
+  background: var(--mint);
+}
+
+.switch[aria-checked='true'] .switch__knob {
+  left: calc(100% - 4px - (max(30px, calc(var(--u) * 34)) - 8px));
+}
+
+.settings__label {
+  display: grid;
+  gap: calc(var(--u) * 8);
+  margin-top: calc(var(--u) * 18);
+  font-size: calc(var(--u) * 16);
+  color: var(--paper-soft);
+}
+
+.settings__input {
+  min-height: max(44px, calc(var(--u) * 52));
+  padding: 0 calc(var(--u) * 16);
+  border: calc(var(--u) * 1.5) solid color-mix(in srgb, var(--paper) 30%, transparent);
+  border-radius: calc(var(--u) * 14);
+  background: #14152e;
+  color: var(--paper);
+  font: inherit;
+  font-size: max(16px, calc(var(--u) * 18));
+}
+
+.settings__help {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--u) * 16);
+  margin: calc(var(--u) * 18) 0 0;
+  padding: calc(var(--u) * 12) calc(var(--u) * 16);
+  border-radius: calc(var(--u) * 14);
+  background: #14152e;
+  color: var(--paper);
+  font-size: calc(var(--u) * 16);
+}
+
+.settings__art svg {
+  display: block;
+  width: calc(var(--u) * 120);
+  height: calc(var(--u) * 64);
+}
+
+.settings__help-text {
+  display: grid;
+  gap: calc(var(--u) * 4);
+}
+
+.settings__help-text small {
+  font-size: calc(var(--u) * 13);
+  color: var(--paper-soft);
+}
+
+.sheet__actions--single {
+  grid-template-columns: 1fr;
+  justify-items: center;
+}
+
+.sheet__actions--single .pill {
+  width: calc(var(--u) * 240);
+}
+
+/* ---------- 보스 체력바: 위 HUD 아래, 라벤더 (기획서 팔레트) ---------- */
+
+.boss-bar {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--u) * 10);
+  width: calc(var(--u) * 420);
+  margin: calc(var(--u) * 14) auto 0;
+  padding: calc(var(--u) * 5) calc(var(--u) * 16) calc(var(--u) * 5) calc(var(--u) * 5);
+  border: calc(var(--u) * 1.5) solid color-mix(in srgb, var(--lavender) 60%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, #1b1f3b 92%, transparent);
+}
+
+.boss-bar__face {
+  flex: none;
+  width: calc(var(--u) * 42);
+  height: calc(var(--u) * 42);
+  border-radius: 50%;
+  border: 2px solid var(--lavender);
+  /* witch.png 첫 칸(192×192)의 얼굴(96, 108)을 원 가운데로: 0.7배 */
+  background: #2b1b3d url('/assets/enemies/witch.png') calc(var(--u) * -46) calc(var(--u) * -54) /
+    calc(var(--u) * 269) calc(var(--u) * 134) no-repeat;
+}
+
+.boss-bar__name {
+  flex: none;
+  font-size: calc(var(--u) * 17);
+  font-weight: 800;
+  color: #ecdcff;
+}
+
+.boss-bar__track {
+  position: relative;
+  flex: 1;
+  height: calc(var(--u) * 14);
+  border-radius: 999px;
+  background: #2b1b3d;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--lavender) 30%, transparent);
+  overflow: hidden;
+}
+
+.boss-bar__fill {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(to right, #d9ccff, var(--lavender));
+  transform: scaleX(var(--p, 1));
+  transform-origin: left center;
+  transition: transform 0.3s ease-out;
+}
+
+/* ---------- 결과: 마을 위에 뜬 가운데 판 (UI Screen Sheet) ---------- */
+
+.sheet--result {
+  justify-content: flex-end;
+  padding: 0 calc(var(--u) * 24) max(calc(var(--u) * 28), env(safe-area-inset-bottom, 0px));
+}
+
+.sheet--result .sheet__panel {
+  border-bottom: 1px solid color-mix(in srgb, var(--paper) 16%, transparent);
+  border-radius: calc(var(--u) * 28);
+  padding: calc(var(--u) * 32) calc(var(--u) * 30) calc(var(--u) * 20);
+  text-align: center;
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--paper) 10%, transparent),
+    0 calc(var(--u) * 14) calc(var(--u) * 40) var(--shadow);
+}
+
+.result__stats {
+  display: grid;
+  gap: 0;
+  margin: calc(var(--u) * 20) 0 0;
+  text-align: left;
+}
+
+.result__stats .result__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: calc(var(--u) * 12);
+  min-height: calc(var(--u) * 46);
+  border-bottom: 1px solid var(--hairline);
+}
+
+.result__stats .result__row:last-child {
+  border-bottom: 0;
+}
+
+.result__row .result__score {
+  font-size: calc(var(--u) * 36);
+  line-height: 1.1;
+}
+
+.result__witch {
+  margin: calc(var(--u) * 10) 0 0;
+}
+
+.sheet--result .sheet__actions {
+  grid-template-columns: 1fr 1fr;
+  margin-top: calc(var(--u) * 20);
+}
+
+.sheet--result .sheet__actions .pill--ghost {
+  grid-column: 1 / -1;
+}
+
+/* ---------- 일시정지: 버튼 넷 ---------- */
+
+.sheet--pause .sheet__actions {
+  grid-template-columns: 1fr 1fr;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stage__ui[data-screen] .screen,
+  .sheet--settings .sheet__panel {
+    animation: none;
+  }
+}
+
+/* ===================================================================
+   가로 화면 배치 (2026-11-06 라이언 지시: 메뉴를 가로에 맞게 새로 배치). <html data-layout="landscape">
+   높이가 540u뿐이라 세로로 쌓던 화면은 두 열로 나누고, 넓어진 폭에는 최대 폭을 둔다. 좌우 노치를 피한다.
+   =================================================================== */
+
+:root[data-layout='landscape'] .screen {
+  padding: max(calc(var(--u) * 14), env(safe-area-inset-top, 0px)) max(calc(var(--u) * 36), env(safe-area-inset-right, 0px))
+    max(calc(var(--u) * 18), env(safe-area-inset-bottom, 0px)) max(calc(var(--u) * 36), env(safe-area-inset-left, 0px));
+}
+
+/* 홈: 넓은 그림 + 왼쪽 위 로고 + 오른쪽 메뉴는 세로와 같은 구성, 위아래 여백만 줄인다 */
+:root[data-layout='landscape'] .home__title {
+  margin-top: calc(var(--u) * 24);
+}
+
+:root[data-layout='landscape'] .home__menu {
+  right: max(calc(var(--u) * 40), env(safe-area-inset-right, 0px));
+  bottom: max(calc(var(--u) * 40), env(safe-area-inset-bottom, 0px));
+}
+
+:root[data-layout='landscape'] .profile {
+  left: max(calc(var(--u) * 26), env(safe-area-inset-left, 0px));
+}
+
+/* 등불지기: 왼쪽 아치 초상 / 오른쪽 이름·능력·5칸·장착물·시작 */
+/* 보일 때만 grid (숨김 규칙 .screen { display: none }을 이기지 않게 data-screen으로 한정) */
+:root[data-layout='landscape'] .stage__ui[data-screen='select'] .screen--select {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  grid-auto-rows: min-content;
+  align-content: start;
+  column-gap: calc(var(--u) * 36);
+}
+
+:root[data-layout='landscape'] .screen--select > * {
+  grid-column: 2;
+}
+
+:root[data-layout='landscape'] .screen--select > .screen-bar {
+  grid-column: 1 / -1;
+}
+
+:root[data-layout='landscape'] .select__stage {
+  grid-column: 1;
+  grid-row: 2 / span 9;
+  align-self: center;
+  margin-top: 0;
+}
+
+:root[data-layout='landscape'] .select__arch {
+  width: calc(var(--u) * 300);
+  height: calc(var(--u) * 330);
+  border-radius: calc(var(--u) * 150) calc(var(--u) * 150) calc(var(--u) * 22) calc(var(--u) * 22);
+}
+
+:root[data-layout='landscape'] .select__portrait {
+  width: calc(var(--u) * 290);
+  height: calc(var(--u) * 290);
+}
+
+:root[data-layout='landscape'] .select__name {
+  margin-top: calc(var(--u) * 6);
+}
+
+:root[data-layout='landscape'] .select__roster {
+  grid-template-columns: repeat(5, minmax(0, calc(var(--u) * 84)));
+  justify-content: center;
+}
+
+:root[data-layout='landscape'] .select__subhead {
+  margin: calc(var(--u) * 12) 0 calc(var(--u) * 6);
+}
+
+:root[data-layout='landscape'] .gear-card {
+  min-height: calc(var(--u) * 58);
+}
+
+:root[data-layout='landscape'] .select__go {
+  margin-top: calc(var(--u) * 12);
+  justify-self: center;
+}
+
+/* 상점: 머리 장식을 낮추고 카드는 한 줄 6칸 */
+:root[data-layout='landscape'] .shop__header {
+  height: calc(var(--u) * 150);
+}
+
+:root[data-layout='landscape'] .screen--shop .tabs {
+  margin-top: calc(var(--u) * 34);
+}
+
+:root[data-layout='landscape'] .screen--shop .tabs,
+:root[data-layout='landscape'] .shop__grid,
+:root[data-layout='landscape'] .screen--shop .shop__note {
+  width: 100%;
+  max-width: calc(var(--u) * 1040);
+  margin-inline: auto;
+}
+
+:root[data-layout='landscape'] .shop__grid {
+  grid-template-columns: repeat(6, 1fr);
+}
+
+/* 지난 밤들: 가운데 목록, 최대 폭 */
+:root[data-layout='landscape'] .screen--ranking .tabs,
+:root[data-layout='landscape'] .rank-list,
+:root[data-layout='landscape'] .rank-me,
+:root[data-layout='landscape'] .rank-empty {
+  width: 100%;
+  max-width: calc(var(--u) * 760);
+  margin-inline: auto;
+}
+
+/* 일시정지: 위에서 내려오는 판의 폭을 줄인다 */
+:root[data-layout='landscape'] .sheet--pause .sheet__panel {
+  width: min(100%, calc(var(--u) * 660));
+  margin: 0 auto;
+  padding: max(calc(var(--u) * 26), calc(env(safe-area-inset-top, 0px) + var(--u) * 14)) calc(var(--u) * 32) calc(var(--u) * 28);
+}
+
+/* 결과: 등불지기는 왼쪽(카메라가 옮겨 둠), 판은 오른쪽 */
+:root[data-layout='landscape'] .sheet--result {
+  justify-content: center;
+  align-items: flex-end;
+  padding: calc(var(--u) * 18) max(calc(var(--u) * 40), env(safe-area-inset-right, 0px)) calc(var(--u) * 18) calc(var(--u) * 40);
+}
+
+:root[data-layout='landscape'] .sheet--result .sheet__panel {
+  width: calc(var(--u) * 470);
+  max-height: 100%;
+  overflow-y: auto;
+}
+
+/* 설정: 가운데 판, 왼쪽(소리·닉네임) / 오른쪽(조작·화면) 두 열 */
+:root[data-layout='landscape'] .sheet--settings {
+  justify-content: center;
+  padding: calc(var(--u) * 16);
+}
+
+:root[data-layout='landscape'] .sheet--settings .sheet__panel {
+  width: min(100%, calc(var(--u) * 920));
+  max-height: 100%;
+  margin: 0 auto;
+  overflow-y: auto;
+  border-bottom: 1px solid color-mix(in srgb, var(--paper) 16%, transparent);
+  border-radius: calc(var(--u) * 28);
+  padding: calc(var(--u) * 24) calc(var(--u) * 32) calc(var(--u) * 22);
+}
+
+:root[data-layout='landscape'] .settings__cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: calc(var(--u) * 36);
+}

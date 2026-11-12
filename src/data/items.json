@@ -1,0 +1,22 @@
+[
+  {
+    "id": "firefly_jar",
+    "name": "반딧불 병",
+    "effect": "healLantern",
+    "amount": 20,
+    "dropChance": 0.08,
+    "periodicSpawnSec": 25,
+    "color": "#FFC857"
+  },
+  {
+    "id": "star_candy",
+    "name": "별사탕",
+    "effect": "comboBoost",
+    "durationSec": 10,
+    "comboWindowSec": 3.5,
+    "synergyMultiplier": 1.5,
+    "dropChance": 0.06,
+    "periodicSpawnSec": 40,
+    "color": "#9ED9B5"
+  }
+]

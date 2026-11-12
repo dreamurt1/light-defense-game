@@ -1,0 +1,178 @@
+/* ===================================================================
+   두 스틱 (2026-11-04, 브롤스타즈식): 아래 HUD 띠 바로 위 양쪽 엄지 자리.
+   왼쪽 = 이동(종이색 손잡이), 오른쪽 = 빛(호박 손잡이 + 별). 빛 대기 중에는 테두리 링이 차오른다.
+   =================================================================== */
+
+@property --cd {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 1;
+}
+
+.sticks {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 100%;
+  height: calc(var(--u) * 220);
+  /* 스틱 사이 빈 곳은 월드를 가리지 않는다 (.hud-bottom의 pointer-events를 물려받지 않게) */
+  pointer-events: none;
+}
+
+.stick {
+  position: absolute;
+  bottom: calc(var(--u) * 14);
+  display: grid;
+  place-items: center;
+  pointer-events: auto;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  cursor: grab;
+}
+
+/* 이동 스틱은 엄지가 대충 닿아도 잡히게 손 닿는 영역을 넓게 */
+.stick--move {
+  left: calc(var(--u) * 22);
+  width: calc(var(--u) * 210);
+  height: calc(var(--u) * 210);
+}
+
+.stick--light {
+  right: calc(var(--u) * 34);
+  /* 두 스틱의 가운데를 같은 수평선에 (2026-11-06 라이언 지시): 이동 상자 210, 빛 상자 176 → 14 + (210 − 176) / 2 */
+  bottom: calc(var(--u) * 31);
+  width: calc(var(--u) * 176);
+  height: calc(var(--u) * 176);
+}
+
+.stick__base {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: calc(var(--u) * 140);
+  height: calc(var(--u) * 140);
+  border-radius: 50%;
+  /* LUMI 시트 '조작 UI': 반투명 보라 원판 + 연보라 테두리 */
+  border: calc(var(--u) * 2.5) solid rgba(185, 168, 240, 0.7);
+  background: radial-gradient(circle at 50% 35%, rgba(126, 104, 196, 0.42), rgba(52, 40, 96, 0.5) 72%);
+  box-shadow:
+    inset 0 calc(var(--u) * 2) 0 rgba(255, 255, 255, 0.08),
+    0 calc(var(--u) * 6) calc(var(--u) * 18) rgba(5, 4, 12, 0.4);
+  transition:
+    border-color 0.15s,
+    box-shadow 0.2s;
+}
+
+.stick__knob {
+  display: grid;
+  place-items: center;
+  width: calc(var(--u) * 62);
+  height: calc(var(--u) * 62);
+  border-radius: 50%;
+  /* 이동 손잡이: 연보라 구슬 */
+  background: radial-gradient(circle at 40% 30%, #f1ecff, #c9b8f4 50%, #8f78d4);
+  box-shadow:
+    0 calc(var(--u) * 4) calc(var(--u) * 10) rgba(5, 4, 12, 0.45),
+    inset 0 calc(var(--u) * -3) calc(var(--u) * 5) rgba(70, 50, 140, 0.35);
+  /* 원판 무늬(앞의 절대 위치 svg) 위에 그려지도록 위치만 준다. z-index를 주면 결과·일시정지 판 위로 떠 버린다 */
+  position: relative;
+  transition: transform 0.12s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* 원판 무늬 (세모·십자 눈금) */
+.stick__deco {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.stick.is-active .stick__knob {
+  transition: none;
+}
+
+.stick--move.is-active .stick__base {
+  border-color: rgba(214, 200, 255, 0.95);
+}
+
+/* 빛 스틱: 호박 테두리·손잡이 */
+.stick--light .stick__base {
+  width: calc(var(--u) * 150);
+  height: calc(var(--u) * 150);
+  border-color: color-mix(in srgb, var(--amber) 70%, transparent);
+}
+
+.stick--light .stick__knob {
+  width: calc(var(--u) * 72);
+  height: calc(var(--u) * 72);
+  background: radial-gradient(circle at 40% 30%, #fff4d2, #ffd77a 45%, #f2ad3f);
+  color: var(--night);
+  box-shadow:
+    0 calc(var(--u) * 4) calc(var(--u) * 12) rgba(5, 4, 12, 0.45),
+    0 0 calc(var(--u) * 16) color-mix(in srgb, var(--amber) 45%, transparent),
+    inset 0 calc(var(--u) * -3) calc(var(--u) * 5) rgba(150, 80, 20, 0.35);
+}
+
+.stick--light .stick__knob svg {
+  width: calc(var(--u) * 32);
+  height: calc(var(--u) * 32);
+}
+
+.stick--light.is-aiming .stick__base {
+  border-color: var(--amber);
+  box-shadow:
+    inset 0 calc(var(--u) * 2) 0 rgba(255, 255, 255, 0.1),
+    0 0 calc(var(--u) * 26) color-mix(in srgb, var(--amber) 50%, transparent);
+}
+
+/* 끌었다가 가운데로 돌아옴: 지금 놓으면 취소 */
+.stick--light.is-cancel .stick__base {
+  border-color: var(--ash);
+  box-shadow: none;
+}
+
+.stick--light.is-cancel .stick__knob {
+  filter: grayscale(0.85) brightness(0.8);
+}
+
+/* 빛 대기 링: 쏜 뒤 대기 시간(--cool) 동안 한 바퀴 차오른다 */
+.stick--light .stick__base::after {
+  content: '';
+  position: absolute;
+  inset: calc(var(--u) * -7);
+  border-radius: 50%;
+  background: conic-gradient(var(--amber) calc(var(--cd) * 360deg), transparent 0);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - var(--u) * 4), #000 calc(100% - var(--u) * 4));
+  mask: radial-gradient(farthest-side, transparent calc(100% - var(--u) * 4), #000 calc(100% - var(--u) * 4));
+  opacity: 0;
+  pointer-events: none;
+}
+
+.stick--light.is-cooling .stick__base::after {
+  opacity: 0.9;
+  animation: stick-cool var(--cool, 0.4s) linear forwards;
+}
+
+.stick--light.is-cooling .stick__knob {
+  filter: saturate(0.6) brightness(0.88);
+}
+
+@keyframes stick-cool {
+  from {
+    --cd: 0;
+  }
+  to {
+    --cd: 1;
+  }
+}
+
+@media (hover: hover) {
+  .stick:hover .stick__base {
+    border-color: color-mix(in srgb, var(--paper) 70%, transparent);
+  }
+  .stick--light:hover .stick__base {
+    border-color: var(--amber);
+  }
+}

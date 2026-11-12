@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-8 -8 528 528" width="528" height="528">
+  <defs>
+    <radialGradient id="ring-fill" cx="256" cy="256" r="248" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFD27A" stop-opacity="0"/>
+      <stop offset=".7" stop-color="#FFC857" stop-opacity=".12"/>
+      <stop offset="1" stop-color="#FFB04A" stop-opacity=".3"/>
+    </radialGradient>
+  </defs>
+  <circle cx="256" cy="256" r="248" fill="url(#ring-fill)" stroke="#FFC857" stroke-width="8" stroke-opacity=".9"/>
+  <circle cx="256" cy="256" r="196" fill="none" stroke="#FFF1C9" stroke-width="4" stroke-linecap="round" stroke-dasharray="10 16" stroke-opacity=".55"/>
+</svg>

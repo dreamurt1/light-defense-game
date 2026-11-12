@@ -1,0 +1,196 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="540" height="960" viewBox="0 0 540 960">
+  <!-- 라이트 디펜스 플레이 화면 스케치 (방향: 겹겹 종이 라이트박스). 상황: 한밤중 64초, 콤보 12, 등불 HP 72 -->
+  <defs>
+    <filter id="paperShadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="7" stdDeviation="6" flood-color="#05040C" flood-opacity="0.6"/>
+    </filter>
+    <filter id="paperShadowUp" x="-10%" y="-30%" width="120%" height="140%">
+      <feDropShadow dx="0" dy="-6" stdDeviation="6" flood-color="#05040C" flood-opacity="0.55"/>
+    </filter>
+    <filter id="smallShadow" x="-30%" y="-30%" width="160%" height="170%">
+      <feDropShadow dx="0" dy="3" stdDeviation="2.5" flood-color="#05040C" flood-opacity="0.55"/>
+    </filter>
+    <filter id="starGlow" x="-200%" y="-200%" width="500%" height="500%">
+      <feGaussianBlur stdDeviation="1.6"/>
+    </filter>
+
+    <!-- 등불 글로우: HP 72 → 반경 60 + 140 × 0.72 ≈ 161 -->
+    <radialGradient id="glow" cx="270" cy="560" r="161" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFC857" stop-opacity="0.42"/>
+      <stop offset="0.55" stop-color="#FFC857" stop-opacity="0.14"/>
+      <stop offset="1" stop-color="#FFC857" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glowMaskGrad" cx="270" cy="560" r="161" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#fff" stop-opacity="1"/>
+      <stop offset="0.6" stop-color="#fff" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#fff" stop-opacity="0"/>
+    </radialGradient>
+    <mask id="glowMask" maskUnits="userSpaceOnUse" x="0" y="0" width="540" height="960">
+      <circle cx="270" cy="560" r="161" fill="url(#glowMaskGrad)"/>
+    </mask>
+
+    <!-- 부채꼴 빛: 위쪽 오른쪽(-50°)으로 60°, 사거리 220. 앞쪽 가장자리가 가장 밝다 -->
+    <radialGradient id="fanGrad" cx="270" cy="560" r="220" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFC857" stop-opacity="0.34"/>
+      <stop offset="0.8" stop-color="#FFC857" stop-opacity="0.2"/>
+      <stop offset="0.94" stop-color="#FFE0A8" stop-opacity="0.85"/>
+      <stop offset="1" stop-color="#FFE0A8" stop-opacity="0"/>
+    </radialGradient>
+    <clipPath id="fanClip">
+      <path d="M270,560 L308.2,343.3 A220,220 0 0,1 476.7,484.8 Z"/>
+    </clipPath>
+
+    <radialGradient id="vignette" cx="270" cy="540" r="640" gradientUnits="userSpaceOnUse">
+      <stop offset="0.55" stop-color="#08061A" stop-opacity="0"/>
+      <stop offset="1" stop-color="#08061A" stop-opacity="0.6"/>
+    </radialGradient>
+
+    <!-- 종이 겹 모양 -->
+    <path id="farLayer" d="M0,336 L0,246 Q14,214 36,236 Q50,198 78,222 Q96,190 122,218 Q140,204 154,226 L172,226 L172,206 L196,186 L220,206 L220,232 Q240,206 262,228 Q282,196 306,222 Q326,192 350,220 L362,220 L362,200 L384,182 L406,200 L406,226 Q426,200 448,226 Q470,194 494,222 Q516,206 540,232 L540,336 Z"/>
+    <path id="groundLayer" d="M0,320 Q62,300 124,314 Q194,330 262,308 Q332,292 402,312 Q472,330 540,306 L540,960 L0,960 Z"/>
+    <g id="nearLayer">
+      <path d="M0,378 Q40,388 32,428 Q62,450 36,488 Q54,522 22,552 L0,556 Z"/>
+      <path d="M0,640 Q48,648 42,700 Q72,726 46,772 Q62,812 30,852 L0,856 Z"/>
+      <path d="M540,412 Q498,424 506,466 Q476,492 504,532 L540,540 Z"/>
+      <path d="M540,690 Q490,700 496,750 Q466,782 498,824 L540,830 Z"/>
+      <!-- 땅 위 오린 풀 덤불 (빛이 닿으면 색을 되찾는다) -->
+      <path d="M372,438 Q378,418 392,428 Q400,410 414,424 Q428,416 432,436 Q418,446 394,446 Z"/>
+      <path d="M128,712 Q134,692 148,702 Q158,686 170,700 Q184,694 186,714 Q168,722 146,722 Z"/>
+      <path d="M396,734 Q402,716 416,726 Q426,710 440,724 Q452,718 454,738 Q436,746 414,746 Z"/>
+    </g>
+
+    <!-- 파닥(박쥐) 실루엣 -->
+    <g id="bat">
+      <path d="M-4,-1 C-9,-10 -18,-11 -25,-4 C-20,-3 -18,1 -17,5 C-13,2 -9,3 -5,6 Z"/>
+      <path d="M4,-1 C9,-10 18,-11 25,-4 C20,-3 18,1 17,5 C13,2 9,3 5,6 Z"/>
+      <ellipse cx="0" cy="1" rx="6.5" ry="9"/>
+      <path d="M-5,-6 L-4,-13 L-1,-8 Z M5,-6 L4,-13 L1,-8 Z"/>
+    </g>
+    <path id="flame" d="M0,-18 C7,-9 12,-2 12,6 C12,14 6,19 0,19 C-6,19 -12,14 -12,6 C-12,-2 -7,-9 0,-18 Z"/>
+    <path id="flameCore" d="M0,-6 C3,-2 5,1 5,5 C5,9 3,11 0,11 C-3,11 -5,9 -5,5 C-5,1 -3,-2 0,-6 Z"/>
+  </defs>
+
+  <!-- 1. 뒷판(하늘): 한밤중 NIGHT -->
+  <rect width="540" height="960" fill="#1B1F3B"/>
+
+  <!-- 바늘구멍 별: 콤보 12(10 단계)라 일부만 켜짐. 꺼진 별은 흐린 점 -->
+  <g fill="#8A8FA8" opacity="0.28">
+    <circle cx="44" cy="150" r="1.3"/><circle cx="118" cy="132" r="1.2"/><circle cx="186" cy="168" r="1.3"/>
+    <circle cx="246" cy="138" r="1.2"/><circle cx="332" cy="160" r="1.3"/><circle cx="428" cy="134" r="1.2"/>
+    <circle cx="502" cy="170" r="1.3"/><circle cx="286" cy="182" r="1.1"/><circle cx="148" cy="190" r="1.1"/>
+    <circle cx="456" cy="186" r="1.2"/>
+  </g>
+  <g fill="#FFE0A8">
+    <g filter="url(#starGlow)" opacity="0.9">
+      <circle cx="80" cy="168" r="2.6"/><circle cx="214" cy="146" r="2.4"/><circle cx="300" cy="130" r="2.6"/>
+      <circle cx="376" cy="174" r="2.4"/><circle cx="470" cy="150" r="2.6"/><circle cx="160" cy="142" r="2.2"/>
+    </g>
+    <circle cx="80" cy="168" r="1.4"/><circle cx="214" cy="146" r="1.3"/><circle cx="300" cy="130" r="1.4"/>
+    <circle cx="376" cy="174" r="1.3"/><circle cx="470" cy="150" r="1.4"/><circle cx="160" cy="142" r="1.2"/>
+  </g>
+
+  <!-- 2. 먼 숲·지붕 겹 -->
+  <use href="#farLayer" fill="#131129" filter="url(#paperShadow)"/>
+
+  <!-- 3. 마을 공터(땅) 겹 -->
+  <use href="#groundLayer" fill="#2A2F5A" filter="url(#paperShadow)"/>
+
+  <!-- 4. 가까운 덤불 겹 -->
+  <use href="#nearLayer" fill="#100E22" filter="url(#paperShadow)"/>
+
+  <!-- 등불 빛이 닿은 겹은 색을 되찾는다: 땅·덤불의 '켜진 종이' 버전을 글로우 원 안에만 -->
+  <g mask="url(#glowMask)">
+    <use href="#groundLayer" fill="#4D4560"/>
+    <use href="#nearLayer" fill="#3E3346"/>
+  </g>
+
+  <!-- 부채꼴 안: 켜진 종이 + 빛 -->
+  <g clip-path="url(#fanClip)">
+    <use href="#groundLayer" fill="#705F67"/>
+    <use href="#nearLayer" fill="#8A6A45"/>
+    <path d="M372,438 Q378,418 392,428 Q400,410 414,424 Q428,416 432,436" fill="none" stroke="#FFC857" stroke-width="2" stroke-linecap="round"/>
+  </g>
+  <path d="M270,560 L308.2,343.3 A220,220 0 0,1 476.7,484.8 Z" fill="url(#fanGrad)"/>
+  <path d="M308.2,343.3 A220,220 0 0,1 476.7,484.8" fill="none" stroke="#FFE0A8" stroke-width="2.5" stroke-linecap="round" opacity="0.85"/>
+
+  <!-- 등불 글로우 -->
+  <circle cx="270" cy="560" r="161" fill="url(#glow)"/>
+
+  <!-- 5. 어둠에 변한 이웃: 왼쪽에서 오는 파닥 무리 -->
+  <g fill="#05040C" opacity="0.35">
+    <ellipse cx="72" cy="492" rx="11" ry="4"/><ellipse cx="108" cy="522" rx="11" ry="4"/><ellipse cx="62" cy="552" rx="11" ry="4"/>
+    <ellipse cx="452" cy="782" rx="11" ry="4"/><ellipse cx="488" cy="818" rx="11" ry="4"/><ellipse cx="190" cy="402" rx="11" ry="4"/>
+  </g>
+  <g fill="#2E2A4A" stroke="#A89CD9" stroke-opacity="0.45" stroke-width="1.4" filter="url(#smallShadow)">
+    <use href="#bat" transform="translate(72,470) rotate(16)"/>
+    <use href="#bat" transform="translate(108,500) rotate(12) scale(1,0.7)"/>
+    <use href="#bat" transform="translate(62,530) rotate(20)"/>
+    <!-- 아래 오른쪽에서 오는 무리 -->
+    <use href="#bat" transform="translate(452,760) rotate(-28) scale(1,0.75)"/>
+    <use href="#bat" transform="translate(488,796) rotate(-32)"/>
+    <!-- 위에서 내려오는 한 마리 -->
+    <use href="#bat" transform="translate(190,380) rotate(150) scale(1,0.8)"/>
+  </g>
+
+  <!-- 빛을 받아 제 색(LAVENDER)을 되찾고 날개를 접은 채 덤불로 올라가는 파닥 -->
+  <circle cx="404" cy="410" r="22" fill="#FFC857" opacity="0.22"/>
+  <g transform="translate(404,410) scale(0.55,1)" fill="#A89CD9" stroke="#F6F1E7" stroke-opacity="0.6" stroke-width="1.2">
+    <use href="#bat"/>
+  </g>
+
+  <!-- 6. 등불 + 대기 링 + 시너지 호 -->
+  <path d="M308.1,582 A44,44 0 0,1 231.9,582" fill="none" stroke="#8A8FA8" stroke-opacity="0.35" stroke-width="4" stroke-linecap="round"/>
+  <path d="M308.1,582 A44,44 0 0,1 260.9,603" fill="none" stroke="#FFC857" stroke-width="4" stroke-linecap="round"/>
+  <ellipse cx="270" cy="586" rx="18" ry="6" fill="#05040C" opacity="0.35"/>
+  <circle cx="270" cy="560" r="23" fill="none" stroke="#3A2A1E" stroke-width="4"/>
+  <circle cx="270" cy="560" r="20" fill="#FFC857"/>
+  <circle cx="270" cy="560" r="9" fill="#FFF1C9"/>
+  <path d="M270,531 A29,29 0 0,1 297.6,551" fill="none" stroke="#FFE0A8" stroke-width="2" stroke-linecap="round" opacity="0.85"/>
+
+  <!-- 7. 루미(고양이 등불지기): 빛 방향으로 고개를 돌림 -->
+  <ellipse cx="310" cy="614" rx="17" ry="5" fill="#05040C" opacity="0.35"/>
+  <g filter="url(#smallShadow)">
+    <path d="M326,604 Q342,600 338,586" fill="none" stroke="#E0A06C" stroke-width="5" stroke-linecap="round"/>
+    <rect x="292" y="588" width="36" height="24" rx="12" fill="#F2B880"/>
+    <path d="M306,572 L309,556 L316,568 Z M318,567 L326,555 L327,571 Z" fill="#F2B880"/>
+    <circle cx="317" cy="578" r="13" fill="#F2B880"/>
+    <circle cx="322" cy="575" r="1.8" fill="#1B1F3B"/>
+    <circle cx="314" cy="574" r="1.8" fill="#1B1F3B"/>
+  </g>
+
+  <!-- 화면 가장자리 어둠 -->
+  <rect width="540" height="960" fill="url(#vignette)" pointer-events="none"/>
+
+  <!-- 8. 앞 종이 프레임: 위 띠 (밤 진행 · 점수 · 콤보) -->
+  <path d="M0,0 H540 V112 Q470,121 400,113 Q330,105 260,114 Q190,122 120,112 Q60,105 0,114 Z" fill="#120F24" filter="url(#paperShadow)"/>
+  <!-- 밤 진행 바: 초저녁 40 | 한밤중 50 | 새벽 전 30, 지금 64초 -->
+  <line x1="28" y1="40" x2="512" y2="40" stroke="#8A8FA8" stroke-opacity="0.35" stroke-width="4" stroke-linecap="round"/>
+  <line x1="28" y1="40" x2="286" y2="40" stroke="#FFC857" stroke-width="4" stroke-linecap="round"/>
+  <line x1="189" y1="31" x2="189" y2="49" stroke="#FFC857" stroke-width="2"/>
+  <line x1="391" y1="31" x2="391" y2="49" stroke="#8A8FA8" stroke-opacity="0.6" stroke-width="2"/>
+  <circle cx="286" cy="40" r="8" fill="#F6F1E7"/>
+  <circle cx="290" cy="37" r="7" fill="#120F24"/>
+  <circle cx="512" cy="40" r="5" fill="none" stroke="#F2B880" stroke-width="2"/>
+
+  <g font-family="'Pretendard Variable', Pretendard, 'Malgun Gothic', sans-serif" font-weight="800">
+    <text x="28" y="94" font-size="30" fill="#FFC857" style="font-variant-numeric: tabular-nums">4,820</text>
+    <text x="392" y="92" font-size="18" fill="#F2B880" text-anchor="end" font-weight="700">×2.0</text>
+    <text x="470" y="96" font-size="42" fill="#FFC857" text-anchor="end">x12</text>
+  </g>
+  <!-- 콤보 유지 남은 시간 링 -->
+  <circle cx="496" cy="80" r="14" fill="none" stroke="#8A8FA8" stroke-opacity="0.35" stroke-width="3"/>
+  <path d="M496,66 A14,14 0 1,1 482.7,84.3" fill="none" stroke="#FFC857" stroke-width="3" stroke-linecap="round"/>
+
+  <!-- 9. 앞 종이 프레임: 아래 띠 (불꽃 5개 · 일시정지) -->
+  <path d="M0,848 Q60,838 120,846 Q200,855 270,845 Q350,836 420,847 Q480,855 540,844 V960 H0 Z" fill="#120F24" filter="url(#paperShadowUp)"/>
+  <!-- HP 72 = 불꽃 3개 + 0.6개, 마지막 하나는 꺼짐 -->
+  <g transform="translate(46,904)"><use href="#flame" fill="#FFC857"/><use href="#flameCore" fill="#FFF1C9"/></g>
+  <g transform="translate(94,904)"><use href="#flame" fill="#FFC857"/><use href="#flameCore" fill="#FFF1C9"/></g>
+  <g transform="translate(142,904)"><use href="#flame" fill="#FFC857"/><use href="#flameCore" fill="#FFF1C9"/></g>
+  <g transform="translate(190,912) scale(0.6)"><use href="#flame" fill="#FFC857"/><use href="#flameCore" fill="#FFF1C9"/></g>
+  <g transform="translate(238,904)"><use href="#flame" fill="none" stroke="#8A8FA8" stroke-opacity="0.6" stroke-width="2"/></g>
+  <!-- 일시정지: 유일한 터치 요소, 민트 테두리 -->
+  <circle cx="490" cy="904" r="26" fill="none" stroke="#9ED9B5" stroke-width="2.5"/>
+  <rect x="481" y="894" width="6" height="20" rx="2" fill="#9ED9B5"/>
+  <rect x="493" y="894" width="6" height="20" rx="2" fill="#9ED9B5"/>
+</svg>

@@ -1,0 +1,88 @@
+{
+  "meta": {
+    "title": "LIGHT DEFENSE",
+    "version": "design-draft-2026-11-12",
+    "note": "Values marked provisional are implementation starting points, not user-approved final balance."
+  },
+  "stage": {
+    "normalDurationSeconds": 100,
+    "climaxStartProgress": 0.7,
+    "heartsPerStage": 3,
+    "lanternCount": {
+      "firstStage": 1,
+      "min": 1,
+      "max": 4,
+      "note": "Increase gradually by stage; exact progression TBD."
+    }
+  },
+  "lightLevels": {
+    "levels": [
+      "low",
+      "medium",
+      "bright",
+      "veryBright"
+    ],
+    "minimumLevel": "low",
+    "playerLightLinkedToLP": true,
+    "lanternActivationLevel": "veryBright",
+    "centralSourceFailureLevel": "low",
+    "note": "Use continuous internal values if needed, but map them to these four presentation bands."
+  },
+  "player": {
+    "startingCharacter": "lumi",
+    "playableCharacters": [
+      "lumi",
+      "rabbit",
+      "squirrel"
+    ],
+    "hpMax": 100,
+    "respawnInvulnerabilitySeconds": 2.0,
+    "note": "hpMax and invulnerability are provisional defaults; tune after prototype."
+  },
+  "lp": {
+    "minimum": 15,
+    "maximum": 100,
+    "naturalRegenPerSecond": 2,
+    "centralSourceRegenPerSecond": 8,
+    "activeLanternRegenPerSecond": 4,
+    "attackCost": 5,
+    "lanternActivationCost": 0,
+    "note": "All numeric values are provisional. lanternActivationCost=0 avoids contradictory drain until user confirms activation cost."
+  },
+  "score": {
+    "lanternActivation": 50,
+    "hostileEnemyRemoved": 100,
+    "lostResidentRescued": 200,
+    "passiveMercy": 300,
+    "bossClear": 1000,
+    "completeVictoryMultiplier": 2.5,
+    "comboWindowSeconds": 3.0
+  },
+  "items": {
+    "windFeather": {
+      "durationSeconds": 8,
+      "moveSpeedMultiplier": 1.35
+    },
+    "starNecklace": {
+      "durationSeconds": 8,
+      "enemyMoveSpeedMultiplier": 0.7
+    },
+    "fireflyBottle": {
+      "lpRestore": 35
+    },
+    "goldenAcorn": {
+      "durationSeconds": 10,
+      "summonedAllies": 2
+    },
+    "lightCharm": {
+      "hpRestore": 25,
+      "lpRestore": 25
+    }
+  },
+  "spawning": {
+    "itemMinLightLevel": "medium",
+    "preferLanternAndBorderRegions": true,
+    "maxGroundItems": 3,
+    "note": "Spawn counts/chances must be tuned after a playable prototype."
+  }
+}

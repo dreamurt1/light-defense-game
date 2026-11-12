@@ -1,0 +1,57 @@
+{
+  "pack": "Lumi Idle 8-Direction Sprite Pack",
+  "version": "1.0",
+  "canvas": {
+    "width": 256,
+    "height": 256,
+    "format": "RGBA PNG"
+  },
+  "directions": [
+    {
+      "angle": 0,
+      "name": "front",
+      "file": "lumi_idle_000_front"
+    },
+    {
+      "angle": 45,
+      "name": "front_right",
+      "file": "lumi_idle_045_front_right"
+    },
+    {
+      "angle": 90,
+      "name": "right",
+      "file": "lumi_idle_090_right"
+    },
+    {
+      "angle": 135,
+      "name": "back_right",
+      "file": "lumi_idle_135_back_right"
+    },
+    {
+      "angle": 180,
+      "name": "back",
+      "file": "lumi_idle_180_back"
+    },
+    {
+      "angle": 225,
+      "name": "back_left",
+      "file": "lumi_idle_225_back_left",
+      "derived_by": "horizontal mirror of 135°"
+    },
+    {
+      "angle": 270,
+      "name": "left",
+      "file": "lumi_idle_270_left",
+      "derived_by": "horizontal mirror of 90°"
+    },
+    {
+      "angle": 315,
+      "name": "front_left",
+      "file": "lumi_idle_315_front_left",
+      "derived_by": "horizontal mirror of 45°"
+    }
+  ],
+  "mouth": "closed",
+  "parts": "Parts_Reference_Crops are transparent visual reference crops from each sprite; they are not fully isolated rig-ready layers.",
+  "svg": "SVG_Vector contains color-quantized vector-traced paths from the corresponding PNG sprites."
+}

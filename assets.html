@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>라이트 디펜스 · 에셋 시트</title>
+    <style>
+      body { margin: 0; padding: 24px; background: #0f1130; color: #f6f1e7; font-family: 'Pretendard Variable', Pretendard, sans-serif; }
+      h1 { margin: 0 0 4px; color: #ffc857; font-size: 22px; }
+      h2 { margin: 28px 0 10px; font-size: 16px; color: #f2b880; }
+      p { margin: 0 0 16px; color: #c9c6d6; font-size: 13px; }
+      .sheet { display: inline-block; margin: 0 16px 16px 0; vertical-align: top; }
+      .sheet canvas { display: block; max-width: 100%; background: repeating-conic-gradient(#232750 0 25%, #1b1f3b 0 50%) 0 0 / 16px 16px; border-radius: 6px; }
+      .sheet span { display: block; margin-top: 6px; font-size: 12px; color: #c9c6d6; }
+    </style>
+  </head>
+  <body>
+    <h1>라이트 디펜스 · 에셋 시트</h1>
+    <p>개발 전용 페이지. 모든 에셋을 투명 배경 스프라이트 시트로 그린다. <code>npm run assets</code>가 이 페이지를 열어 public/assets/로 내보낸다.</p>
+    <main id="sheets"></main>
+    <script type="module" src="/src/dev/assetExport.ts"></script>
+  </body>
+</html>
