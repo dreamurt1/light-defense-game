@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-11-04T04:59:47.420Z",
+  "generatedAt": "2026-11-12T11:02:13.558Z",
   "title": "Design System: 라이트 디펜스 (Light Defense)",
   "extensions": {
     "colorMeta": {
@@ -259,9 +259,9 @@
           "#ebedfc"
         ]
       },
-      "track-synergy": {
+      "track-meter": {
         "role": "neutral",
-        "displayName": "시너지 게이지 홈",
+        "displayName": "막대 홈 (빛·광원)",
         "canonical": "oklch(25.4% 0.056 278.7)",
         "tonalRamp": [
           "#070722",
@@ -407,51 +407,6 @@
           "#b2a47f",
           "#d6c9a2",
           "#fceec6"
-        ]
-      },
-      "flame-outer": {
-        "role": "tertiary",
-        "displayName": "불꽃 바깥",
-        "canonical": "oklch(75.0% 0.167 50.8)",
-        "tonalRamp": [
-          "#1a0400",
-          "#3e1901",
-          "#692f02",
-          "#984704",
-          "#c96005",
-          "#f58131",
-          "#fdb78f",
-          "#feeadf"
-        ]
-      },
-      "flame-inner": {
-        "role": "tertiary",
-        "displayName": "불꽃 안쪽",
-        "canonical": "oklch(88.1% 0.142 87.9)",
-        "tonalRamp": [
-          "#120a00",
-          "#2f2302",
-          "#533f01",
-          "#785d0c",
-          "#a17d0b",
-          "#ca9e1b",
-          "#f0c34d",
-          "#feedc4"
-        ]
-      },
-      "flame-out": {
-        "role": "neutral",
-        "displayName": "꺼진 불꽃",
-        "canonical": "oklch(48.4% 0.045 281.4)",
-        "tonalRamp": [
-          "#09081d",
-          "#21223a",
-          "#3e3f5a",
-          "#5c5e7b",
-          "#7d809d",
-          "#a0a2c1",
-          "#c4c6e7",
-          "#ecedfc"
         ]
       },
       "village-ground-dark": {
@@ -747,15 +702,15 @@
       },
       "score": {
         "displayName": "Score · 결과 점수",
-        "purpose": "결과 패널의 오늘 밤 점수. tabular, 0.9초 카운트업."
+        "purpose": "결과 판의 오늘 점수. tabular, 0.9초 카운트업."
       },
       "headline": {
         "displayName": "Headline · 시트 제목",
-        "purpose": "결과·일시정지 제목. 일시정지는 30u."
+        "purpose": "결과 제목(아침이 왔어요 / 마을이 환해졌어요 / 오늘은 여기까지)과 일시정지 제목. 일시정지는 30u."
       },
       "title": {
         "displayName": "Title · HUD 한 줄",
-        "purpose": "밤 시계, 점수, 콤보. tabular."
+        "purpose": "위 HUD의 밤 시계, 점수, 콤보. tabular. 아래 HUD의 켠 등불 수는 700 15u."
       },
       "button": {
         "displayName": "Button",
@@ -763,11 +718,11 @@
       },
       "body": {
         "displayName": "Body",
-        "purpose": "시트 부제."
+        "purpose": "시트 부제, 홈 슬로건."
       },
       "label": {
         "displayName": "Label",
-        "purpose": "결과 통계 라벨, 노월 줄, 카드 설명(14~16u)."
+        "purpose": "결과 통계 라벨, 카드 설명, 선택 화면 소개·능력치·안내 줄(14~16u)."
       },
       "wordmark": {
         "displayName": "Wordmark · 홈 로고",
@@ -780,8 +735,8 @@
     },
     "unit": {
       "name": "--u",
-      "value": "calc(100cqw / 540)",
-      "purpose": "논리 폭 540 기준 UI 단위. 프론트매터의 cqw 값은 이 단위의 환산."
+      "value": "calc(100cqw / 540) (세로) · calc(100cqh / 540) (가로)",
+      "purpose": "짧은 변 540 기준 UI 단위. 같은 휴대폰을 돌려도 글자·버튼 크기가 같다. 프론트매터의 cqw 값은 세로 환산."
     },
     "shadows": [
       {
@@ -860,11 +815,6 @@
         "purpose": "보조·원 버튼 누름."
       },
       {
-        "name": "glow-flame",
-        "value": "drop-shadow(0 0 calc(var(--u) * 5) rgba(255, 140, 90, 0.55))",
-        "purpose": "켜진 불꽃."
-      },
-      {
         "name": "glow-spark",
         "value": "drop-shadow(0 0 calc(var(--u) * 6) rgba(255, 200, 87, 0.7))",
         "purpose": "결과·설정 판 모서리 금빛 별."
@@ -875,11 +825,6 @@
         "purpose": "밤 진행 바의 현재 위치 별."
       },
       {
-        "name": "glow-synergy-full",
-        "value": "0 0 calc(var(--u) * 18) color-mix(in srgb, #ffc857 70%, transparent)",
-        "purpose": "시너지 가득."
-      },
-      {
         "name": "score-glow",
         "value": "0 calc(var(--u) * 2) calc(var(--u) * 6) rgba(120, 60, 10, 0.5), 0 0 calc(var(--u) * 18) rgba(255, 200, 87, 0.35)",
         "purpose": "결과 점수 글자(text-shadow)."
@@ -887,7 +832,7 @@
       {
         "name": "edge-low-hp",
         "value": "inset 0 0 calc(var(--u) * 90) calc(var(--u) * 8) color-mix(in srgb, #ff8c5a 55%, transparent)",
-        "purpose": "저HP 가장자리 맥박(1초)."
+        "purpose": "저HP 가장자리 맥박(1초). HP 막대 채움도 같은 주기로 잔불색."
       },
       {
         "name": "edge-hit",
@@ -908,6 +853,26 @@
         "name": "world-cast",
         "value": "canvas shadowBlur 6–14, rgba(6, 4, 14, 0.55)",
         "purpose": "월드 소품 아래 투영 그림자."
+      },
+      {
+        "name": "meter-groove",
+        "value": "inset 0 calc(var(--u) * 2) calc(var(--u) * 3) rgba(5, 4, 12, 0.5), 0 0 0 calc(var(--u) * 1) rgba(158, 217, 181, 0.35)",
+        "purpose": "HP·빛(LP)·중앙 광원 막대의 파인 홈."
+      },
+      {
+        "name": "source-hit",
+        "value": "0 0 calc(var(--u) * 12) color-mix(in srgb, #ff8c5a 70%, transparent)",
+        "purpose": "중앙 광원이 맞을 때 광원 막대에 0.35초."
+      },
+      {
+        "name": "glow-stations-all",
+        "value": "drop-shadow(0 0 calc(var(--u) * 6) color-mix(in srgb, #ffc857 60%, transparent))",
+        "purpose": "모든 등불이 켜진 HUD 등불 아이콘."
+      },
+      {
+        "name": "glow-locked-portrait",
+        "value": "drop-shadow(0 0 calc(var(--u) * 10) color-mix(in srgb, #a89cd9 45%, transparent))",
+        "purpose": "선택 화면의 잠긴 친구(빛을 잃은 모습) 큰 초상."
       }
     ],
     "motion": [
@@ -1013,15 +978,45 @@
       },
       {
         "name": "aim-guide",
-        "value": "per-frame Phaser Graphics",
-        "purpose": "조준 부채꼴은 끄는 동안 매 프레임 다시 그림, 놓으면 사라짐."
+        "value": "per-frame Phaser Graphics · #FFE66D 50% (대기 22%)",
+        "purpose": "조준 부채꼴은 끄는 동안 루미 중심에서 매 프레임 다시 그림(반지름만 끈 거리에 비례), 놓으면 사라짐."
+      },
+      {
+        "name": "meter-fill",
+        "value": "transform scaleX 0.2s ease-out",
+        "purpose": "HP·빛(LP)·중앙 광원 막대. 광원 낮음·저HP는 1s ease-in-out 잔불 맥박."
+      },
+      {
+        "name": "heart-lost",
+        "value": "0.5s ease-out (30%에서 1.12배)",
+        "purpose": "하트를 잃을 때 하트 묶음이 튄다."
+      },
+      {
+        "name": "station-bump",
+        "value": "0.4s cubic-bezier(0.16, 1, 0.3, 1) (1.3배에서)",
+        "purpose": "등불이 켜질 때 HUD 등불 아이콘."
+      },
+      {
+        "name": "beacon-pulse",
+        "value": "sin(t / 260ms) ≈ 1.6s 주기",
+        "purpose": "화면 밖 꺼진 등불을 가리키는 호박 마름모의 원광이 천천히 숨 쉰다(깜빡임 규칙 안)."
+      },
+      {
+        "name": "all-lit-flash",
+        "value": "#ffe0a8 ADD 22% → 0",
+        "purpose": "모든 등불이 켜지면 화면이 한 번 환해진다(대광원 연출을 대체)."
       }
     ],
     "breakpoints": [
       {
         "name": "stage",
         "value": "width: min(100vw, 100dvh * 9 / 16); height: 100dvh",
-        "purpose": "단일 9:16 상자. 미디어 쿼리 대신 컨테이너 단위로 비례."
+        "purpose": "세로 상자(9:16). 미디어 쿼리 대신 컨테이너 단위로 비례."
+      },
+      {
+        "name": "landscape",
+        "value": ":root[data-layout='landscape'] · width: min(100vw, 100dvh * 1280 / 540); height: min(100dvh, 100vw * 540 / 720)",
+        "purpose": "가로 상자(4:3~21:9, PC 기본·휴대폰을 눕히면). 위 띠는 얇게 가운데로, 아래 띠는 가운데 둥근 판으로, 스틱은 양 아래 구석."
       },
       {
         "name": "hover",
@@ -1030,8 +1025,8 @@
       }
     ],
     "villageTones": {
-      "source": "src/art/village.ts (DARK/LIT, drawWorld 1080×1920)",
-      "note": "DARK와 LIT는 같은 키를 가진 짝. drawWorld가 넓은 월드 전체를 두 벌로 그려 village-dark/village-lit로 내보내고, 빛은 켜진 판을 마스크로 드러낸다.",
+      "source": "src/art/village.ts (DARK/LIT, drawWorld 3200×1800)",
+      "note": "DARK와 LIT는 같은 키를 가진 짝. drawWorld가 16:9 월드 전체를 두 벌로 그려 village-dark/village-lit로 내보내고, 빛(루미 둘레·중앙 광원·켜진 등불)은 켜진 판을 마스크로 드러낸다. 새 사물(중앙 광원 밝음·약함·꺼짐, 개구리 frog-dark/frog-true, 토리·도토 초상 true/lost)도 두 벌로 그린다.",
       "DARK": {
         "ground": "#211d33",
         "stones": [
@@ -1163,32 +1158,32 @@
       "name": "위 HUD 띠",
       "kind": "nav",
       "refersTo": "hud-top",
-      "description": "달 + 밤 시계, 민트 진행 바(네 갈래 별 위치·새벽 별), 점수, 호박 콤보와 유지 시간 밑줄. 터치 요소 없음.",
+      "description": "달 + \"밤 mm:ss\", 민트 진행 바(한밤중·클라이맥스 눈금, 네 갈래 별 위치·새벽 별), 점수, 호박 콤보와 유지 시간 밑줄. 터치 요소 없음.",
       "html": "<div class=\"ds-root\"><header class=\"ds-hud\"><span class=\"ds-clock\"><svg class=\"ds-moon\" viewBox=\"0 0 24 24\"><path d=\"M15.5 3.2A9 9 0 1 0 20.8 15 7.2 7.2 0 0 1 15.5 3.2Z\" fill=\"currentColor\"/></svg>밤 00:31</span><span class=\"ds-bar\" style=\"--p:.26\"><span class=\"ds-bar__fill\"></span><span class=\"ds-bar__star\"><svg viewBox=\"0 0 24 24\"><path d=\"M12 1.5c.5 5.2 2.8 8 10.5 10.5C14.8 14.5 12.5 17.3 12 22.5 11.5 17.3 9.2 14.5 1.5 12 9.2 9.5 11.5 6.7 12 1.5Z\" fill=\"currentColor\"/></svg></span></span><span class=\"ds-stat\">점수 2,875</span><span class=\"ds-rule\"></span><span class=\"ds-stat ds-combo\">콤보 ×10</span></header></div>",
       "css": ".ds-root{--night:#1b1f3b;--predawn:#120f24;--dawn:#f2b880;--amber:#ffc857;--mint:#9ed9b5;--lavender:#a89cd9;--ember:#ff8c5a;--paper:#f6f1e7;--ash:#8a8fa8;--paper-soft:color-mix(in srgb,var(--paper) 74%,var(--ash));--u:calc(360px/540);font-family:'Pretendard Variable', Pretendard, 'Noto Sans KR', system-ui, sans-serif;--u:calc(390px/540);width:390px;background:#2b2741}.ds-hud{display:flex;align-items:center;gap:calc(var(--u)*12);padding:calc(var(--u)*18) calc(var(--u)*22) calc(var(--u)*16);background:rgba(17,18,40,.9);color:var(--paper);font-size:calc(var(--u)*18);font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}.ds-clock{display:flex;align-items:center;gap:calc(var(--u)*7)}.ds-moon{width:calc(var(--u)*28);height:calc(var(--u)*28)}.ds-bar{position:relative;flex:1;height:calc(var(--u)*11);margin:0 calc(var(--u)*14) 0 calc(var(--u)*4);border-radius:999px;background:#33365e;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--paper) 22%,transparent)}.ds-bar__fill{position:absolute;inset:0;border-radius:inherit;background:linear-gradient(to right,#c8f1e1,var(--mint));transform:scaleX(var(--p));transform-origin:left}.ds-bar__star{position:absolute;left:calc(var(--p)*100%);top:50%;width:calc(var(--u)*26);height:calc(var(--u)*26);translate:-50% -50%;color:#fff;filter:drop-shadow(0 0 calc(var(--u)*5) var(--mint))}.ds-bar__star svg{display:block;width:100%;height:100%}.ds-rule{width:1px;height:calc(var(--u)*26);background:color-mix(in srgb,var(--dawn) 45%,transparent)}.ds-combo{position:relative;color:var(--amber);font-weight:700}.ds-combo::after{content:'';position:absolute;left:0;right:0;bottom:calc(var(--u)*-7);height:calc(var(--u)*2);border-radius:999px;background:color-mix(in srgb,var(--amber) 75%,transparent);transform:scaleX(.6);transform-origin:left}"
     },
     {
-      "name": "아래 HUD (불꽃 HP · 시너지 · 장착물 칸)",
+      "name": "아래 HUD (하트·HP · 빛 · 중앙 광원 · 켠 등불)",
       "kind": "custom",
       "refersTo": "hud-bottom",
-      "description": "불꽃 5개(20HP당 하나), 민트 테두리에 금빛이 차오르는 시너지, 둥근 사각 장착물 칸(M3까지 꺼진 자리).",
-      "html": "<div class=\"ds-root\"><footer class=\"ds-floor\"><span class=\"ds-flames\"><svg class=\"ds-flame\" viewBox=\"0 0 28 36\"><path fill=\"#ff8a3c\" d=\"M14 1.2c1.3 3.9 5.7 6.8 7.9 10.6 1.5 2.5 2.3 5 2.3 7.9 0 6-4.6 10.8-10.2 10.8S3.8 25.7 3.8 19.7c0-3.9 1.8-6.7 4.1-9 .1 2.4 1 4.2 2.6 5.1-.4-5.1 1.3-10.2 3.5-14.6Z\"/><path fill=\"#ffd25e\" d=\"M14.2 13.6c1.2 2.6 4.6 4.5 4.6 8.4 0 3-2.2 5.4-4.8 5.4s-4.8-2.4-4.8-5.4c0-1.9.8-3.3 1.9-4.4.2 1.2.7 2 1.5 2.5-.2-2.3.5-4.5 1.6-6.5Z\"/><ellipse fill=\"#fff4cf\" cx=\"14\" cy=\"24\" rx=\"2\" ry=\"2.6\"/></svg><svg class=\"ds-flame\" viewBox=\"0 0 28 36\"><path fill=\"#ff8a3c\" d=\"M14 1.2c1.3 3.9 5.7 6.8 7.9 10.6 1.5 2.5 2.3 5 2.3 7.9 0 6-4.6 10.8-10.2 10.8S3.8 25.7 3.8 19.7c0-3.9 1.8-6.7 4.1-9 .1 2.4 1 4.2 2.6 5.1-.4-5.1 1.3-10.2 3.5-14.6Z\"/><path fill=\"#ffd25e\" d=\"M14.2 13.6c1.2 2.6 4.6 4.5 4.6 8.4 0 3-2.2 5.4-4.8 5.4s-4.8-2.4-4.8-5.4c0-1.9.8-3.3 1.9-4.4.2 1.2.7 2 1.5 2.5-.2-2.3.5-4.5 1.6-6.5Z\"/><ellipse fill=\"#fff4cf\" cx=\"14\" cy=\"24\" rx=\"2\" ry=\"2.6\"/></svg><svg class=\"ds-flame\" viewBox=\"0 0 28 36\"><path fill=\"#ff8a3c\" d=\"M14 1.2c1.3 3.9 5.7 6.8 7.9 10.6 1.5 2.5 2.3 5 2.3 7.9 0 6-4.6 10.8-10.2 10.8S3.8 25.7 3.8 19.7c0-3.9 1.8-6.7 4.1-9 .1 2.4 1 4.2 2.6 5.1-.4-5.1 1.3-10.2 3.5-14.6Z\"/><path fill=\"#ffd25e\" d=\"M14.2 13.6c1.2 2.6 4.6 4.5 4.6 8.4 0 3-2.2 5.4-4.8 5.4s-4.8-2.4-4.8-5.4c0-1.9.8-3.3 1.9-4.4.2 1.2.7 2 1.5 2.5-.2-2.3.5-4.5 1.6-6.5Z\"/><ellipse fill=\"#fff4cf\" cx=\"14\" cy=\"24\" rx=\"2\" ry=\"2.6\"/></svg><svg class=\"ds-flame\" viewBox=\"0 0 28 36\"><path fill=\"#ff8a3c\" d=\"M14 1.2c1.3 3.9 5.7 6.8 7.9 10.6 1.5 2.5 2.3 5 2.3 7.9 0 6-4.6 10.8-10.2 10.8S3.8 25.7 3.8 19.7c0-3.9 1.8-6.7 4.1-9 .1 2.4 1 4.2 2.6 5.1-.4-5.1 1.3-10.2 3.5-14.6Z\"/><path fill=\"#ffd25e\" d=\"M14.2 13.6c1.2 2.6 4.6 4.5 4.6 8.4 0 3-2.2 5.4-4.8 5.4s-4.8-2.4-4.8-5.4c0-1.9.8-3.3 1.9-4.4.2 1.2.7 2 1.5 2.5-.2-2.3.5-4.5 1.6-6.5Z\"/><ellipse fill=\"#fff4cf\" cx=\"14\" cy=\"24\" rx=\"2\" ry=\"2.6\"/></svg><svg class=\"ds-flame ds-flame--out\" viewBox=\"0 0 28 36\"><path fill=\"#5a5c78\" d=\"M14 1.2c1.3 3.9 5.7 6.8 7.9 10.6 1.5 2.5 2.3 5 2.3 7.9 0 6-4.6 10.8-10.2 10.8S3.8 25.7 3.8 19.7c0-3.9 1.8-6.7 4.1-9 .1 2.4 1 4.2 2.6 5.1-.4-5.1 1.3-10.2 3.5-14.6Z\"/></svg></span><span class=\"ds-rule\"></span><span class=\"ds-track\"><span class=\"ds-track__fill\"></span></span><span class=\"ds-slot\"><svg viewBox=\"0 0 24 24\"><path d=\"M12 2.8l2.6 5.6 6.1.7-4.5 4.2 1.2 6-5.4-3-5.4 3 1.2-6-4.5-4.2 6.1-.7Z\" fill=\"currentColor\"/></svg></span></footer></div>",
-      "css": ".ds-root{--night:#1b1f3b;--predawn:#120f24;--dawn:#f2b880;--amber:#ffc857;--mint:#9ed9b5;--lavender:#a89cd9;--ember:#ff8c5a;--paper:#f6f1e7;--ash:#8a8fa8;--paper-soft:color-mix(in srgb,var(--paper) 74%,var(--ash));--u:calc(360px/540);font-family:'Pretendard Variable', Pretendard, 'Noto Sans KR', system-ui, sans-serif;--u:calc(390px/540);width:390px}.ds-floor{display:flex;align-items:center;gap:calc(var(--u)*14);padding:calc(var(--u)*16) calc(var(--u)*22) calc(var(--u)*18);background:#14152e;border-top:1px solid color-mix(in srgb,var(--paper) 14%,transparent)}.ds-flames{display:flex;align-items:flex-end;gap:calc(var(--u)*6)}.ds-flame{width:calc(var(--u)*30);height:calc(var(--u)*39);filter:drop-shadow(0 0 calc(var(--u)*5) rgba(255,140,60,.55))}.ds-flame--out{filter:none}.ds-rule{width:1px;height:calc(var(--u)*44);background:color-mix(in srgb,var(--paper) 22%,transparent)}.ds-track{position:relative;flex:1;height:calc(var(--u)*22);border:calc(var(--u)*2.5) solid var(--mint);border-radius:999px;background:#1d1f3d;overflow:hidden}.ds-track__fill{position:absolute;inset:calc(var(--u)*3);border-radius:999px;background:linear-gradient(to right,#ffd76e,#f5a646);transform:scaleX(.45);transform-origin:left}.ds-slot{display:grid;place-items:center;width:max(44px,calc(var(--u)*54));height:max(44px,calc(var(--u)*54));border:1.5px solid color-mix(in srgb,var(--paper) 30%,transparent);border-radius:calc(var(--u)*12);background:color-mix(in srgb,var(--paper) 5%,transparent);color:color-mix(in srgb,var(--amber) 45%,var(--night))}.ds-slot svg{width:calc(var(--u)*30);height:calc(var(--u)*30)}"
+      "description": "하트 3개 위·HP 막대 아래(하트 잔불색, HP 채움 잔불 → 새벽빛), 빛(LP)·중앙 광원 막대 두 줄(track-meter 홈, data-band 0이면 잔불), 켠 등불 수, 일시정지 원 버튼. 값이 바뀔 때만 갱신.",
+      "html": "<div class=\"ds-root\"><footer class=\"ds-floor\"><div class=\"ds-vitals\"><span class=\"ds-hearts\"><svg class=\"ds-heart\" viewBox=\"0 0 24 24\"><path d=\"M12 20.6 4.6 13.4C2.4 11.2 2.5 7.6 4.9 5.6c2.1-1.8 5.1-1.4 6.8.6l.3.4.3-.4c1.7-2 4.7-2.4 6.8-.6 2.4 2 2.5 5.6.3 7.8Z\" fill=\"currentColor\"/></svg><svg class=\"ds-heart\" viewBox=\"0 0 24 24\"><path d=\"M12 20.6 4.6 13.4C2.4 11.2 2.5 7.6 4.9 5.6c2.1-1.8 5.1-1.4 6.8.6l.3.4.3-.4c1.7-2 4.7-2.4 6.8-.6 2.4 2 2.5 5.6.3 7.8Z\" fill=\"currentColor\"/></svg><svg class=\"ds-heart ds-heart--empty\" viewBox=\"0 0 24 24\"><path d=\"M12 20.6 4.6 13.4C2.4 11.2 2.5 7.6 4.9 5.6c2.1-1.8 5.1-1.4 6.8.6l.3.4.3-.4c1.7-2 4.7-2.4 6.8-.6 2.4 2 2.5 5.6.3 7.8Z\" fill=\"currentColor\"/></svg></span><span class=\"ds-hp\"><span class=\"ds-hp__fill\"></span></span></div><span class=\"ds-rule\"></span><div class=\"ds-meters\"><div class=\"ds-meter ds-meter--lp\"><svg viewBox=\"0 0 24 24\"><path d=\"M12 1.5c.5 5.2 2.8 8 10.5 10.5C14.8 14.5 12.5 17.3 12 22.5 11.5 17.3 9.2 14.5 1.5 12 9.2 9.5 11.5 6.7 12 1.5Z\" fill=\"currentColor\"/></svg><span class=\"ds-track\"><span class=\"ds-fill\" style=\"--p:.8\"></span></span></div><div class=\"ds-meter ds-meter--source\" data-band=\"1\"><svg viewBox=\"0 0 24 24\"><path d=\"M12 2.2 17.4 10 12 21.8 6.6 10Z\" fill=\"currentColor\"/><path d=\"M12 2.2 10.6 11.6 12 21.8\" stroke=\"#FFF6DA\" stroke-width=\"1.1\" fill=\"none\" opacity=\".7\"/></svg><span class=\"ds-track\"><span class=\"ds-fill\" style=\"--p:.45\"></span></span></div></div><div class=\"ds-stations\"><svg viewBox=\"0 0 24 24\"><path d=\"M7 8.2C7 6.4 9.2 4.2 12 3.2c2.8 1 5 3.2 5 5Z\" fill=\"currentColor\" opacity=\".85\"/><rect x=\"8\" y=\"8.6\" width=\"8\" height=\"9\" rx=\"2.2\" fill=\"currentColor\"/><rect x=\"9.6\" y=\"10.2\" width=\"4.8\" height=\"5.8\" rx=\"1.4\" fill=\"#FFF1C9\" opacity=\".9\"/><rect x=\"7\" y=\"18.2\" width=\"10\" height=\"2.6\" rx=\"1.2\" fill=\"currentColor\"/></svg><span>0/1</span></div><button class=\"ds-round\" type=\"button\" aria-label=\"일시정지\"><svg viewBox=\"0 0 24 24\"><rect x=\"6.5\" y=\"5\" width=\"3.8\" height=\"14\" rx=\"1.6\" fill=\"currentColor\"/><rect x=\"13.7\" y=\"5\" width=\"3.8\" height=\"14\" rx=\"1.6\" fill=\"currentColor\"/></svg></button></footer></div>",
+      "css": ".ds-root{--night:#1b1f3b;--predawn:#120f24;--dawn:#f2b880;--amber:#ffc857;--mint:#9ed9b5;--lavender:#a89cd9;--ember:#ff8c5a;--paper:#f6f1e7;--ash:#8a8fa8;--paper-soft:color-mix(in srgb,var(--paper) 74%,var(--ash));font-family:'Pretendard Variable', Pretendard, 'Noto Sans KR', system-ui, sans-serif;--u:calc(390px/540);width:390px}.ds-floor{display:flex;align-items:center;gap:calc(var(--u)*14);padding:calc(var(--u)*16) calc(var(--u)*22) calc(var(--u)*18);background:#14152e;border-top:1px solid color-mix(in srgb,var(--paper) 14%,transparent);box-shadow:inset 0 calc(var(--u)*1.5) 0 rgba(246,241,231,.1);color:var(--paper)}.ds-vitals{flex:none;display:grid;gap:calc(var(--u)*5);width:calc(var(--u)*92)}.ds-hearts{display:flex;gap:calc(var(--u)*4)}.ds-heart{width:calc(var(--u)*26);height:calc(var(--u)*26);color:var(--paper-soft)}.ds-heart--empty{color:#4a4c68;transform:scale(.85)}.ds-hp{position:relative;height:calc(var(--u)*9);border-radius:999px;background:#2a2c4c;overflow:hidden;box-shadow:inset 0 calc(var(--u)*2) calc(var(--u)*3) rgba(5,4,12,.5),0 0 0 calc(var(--u)*1) rgba(158,217,181,.35)}.ds-hp__fill{position:absolute;inset:0;border-radius:inherit;background:var(--paper-soft);transform:scaleX(.7);transform-origin:left}.ds-rule{width:1px;height:calc(var(--u)*44);background:color-mix(in srgb,var(--paper) 22%,transparent)}.ds-meters{flex:1;display:grid;gap:calc(var(--u)*6);min-width:0}.ds-meter{display:flex;align-items:center;gap:calc(var(--u)*6)}.ds-meter>svg{flex:none;width:calc(var(--u)*20);height:calc(var(--u)*20);color:var(--amber)}.ds-meter--source>svg{color:#ffd98a}.ds-track{position:relative;flex:1;height:calc(var(--u)*15);border:calc(var(--u)*2) solid var(--mint);border-radius:999px;background:#1d1f3d;overflow:hidden;box-shadow:inset 0 calc(var(--u)*2) calc(var(--u)*3) rgba(5,4,12,.5),0 0 0 calc(var(--u)*1) rgba(158,217,181,.35)}.ds-fill{position:absolute;inset:calc(var(--u)*2);border-radius:999px;background:linear-gradient(to right,#ffd76e,#f5a646);transform:scaleX(var(--p));transform-origin:left;transition:transform .2s ease-out}.ds-meter--source .ds-track{border-color:color-mix(in srgb,var(--amber) 70%,var(--paper))}.ds-meter--source .ds-fill{background:linear-gradient(to right,#ffb35c,#fff1c9)}.ds-meter[data-band='0'] .ds-fill{background:var(--ember)}.ds-meter--source:hover .ds-track{animation:ds-low 1s ease-in-out infinite}@keyframes ds-low{50%{border-color:var(--ember)}}.ds-stations{flex:none;display:grid;justify-items:center;gap:calc(var(--u)*2);min-width:calc(var(--u)*44);color:color-mix(in srgb,var(--amber) 45%,var(--night))}.ds-stations svg{width:calc(var(--u)*28);height:calc(var(--u)*28)}.ds-stations span{font-size:calc(var(--u)*15);font-weight:700;color:var(--paper);font-variant-numeric:tabular-nums}.ds-stations:hover{color:var(--amber);filter:drop-shadow(0 0 calc(var(--u)*6) color-mix(in srgb,var(--amber) 60%,transparent))}.ds-round{display:grid;place-items:center;width:max(48px,calc(var(--u)*56));height:max(48px,calc(var(--u)*56));padding:0;border:calc(var(--u)*2.5) solid color-mix(in srgb,var(--paper) 85%,transparent);border-radius:50%;color:var(--paper);cursor:pointer;background:linear-gradient(to bottom,rgba(255,255,255,.1),rgba(255,255,255,0) 55%),radial-gradient(circle at 50% 35%,rgba(52,57,108,.9),rgba(17,18,40,.92));box-shadow:inset 0 calc(var(--u)*1.5) 0 rgba(246,241,231,.16),0 calc(var(--u)*4) calc(var(--u)*10) rgba(5,4,12,.4);transition:transform .12s ease-out,box-shadow .2s ease-out}.ds-round svg{width:calc(var(--u)*26);height:calc(var(--u)*26)}.ds-round:hover,.ds-round:focus-visible{box-shadow:0 0 calc(var(--u)*14) color-mix(in srgb,var(--paper) 25%,transparent)}.ds-round:active{transform:scale(1.04)}"
     },
     {
       "name": "두 스틱 (왼쪽 이동 · 오른쪽 빛)",
       "kind": "custom",
       "refersTo": "stick-light",
-      "description": "아래 HUD 띠 바로 위 양쪽 엄지 자리. 이동은 종이색 손잡이, 빛은 호박 손잡이와 별. 왼쪽부터 이동 · 빛(호버·포커스로 겨눔) · 취소 · 대기 링.",
+      "description": "아래 HUD 띠 바로 위 양쪽 엄지 자리. 이동은 보라 유리 원판에 연보라 구슬 손잡이, 빛은 호박 테두리·손잡이와 별. 왼쪽부터 이동 · 빛(호버·포커스로 겨눔) · 취소 · 대기 링.",
       "html": "<div class=\"ds-root\"><div class=\"ds-stick\" tabindex=\"0\" aria-label=\"이동\"><span class=\"ds-base\"><span class=\"ds-knob\"></span></span></div><div class=\"ds-stick ds-stick--light\" tabindex=\"0\" aria-label=\"빛\"><span class=\"ds-base\"><span class=\"ds-knob\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M12 1.5c.7 5.3 2.9 8.3 10.5 10.5-7.6 2.2-9.8 5.2-10.5 10.5-.7-5.3-2.9-8.3-10.5-10.5C9.1 9.8 11.3 6.8 12 1.5Z\" fill=\"currentColor\"/></svg></span></span></div><div class=\"ds-stick ds-stick--light is-cancel\" aria-label=\"빛 취소\"><span class=\"ds-base\"><span class=\"ds-knob\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M12 1.5c.7 5.3 2.9 8.3 10.5 10.5-7.6 2.2-9.8 5.2-10.5 10.5-.7-5.3-2.9-8.3-10.5-10.5C9.1 9.8 11.3 6.8 12 1.5Z\" fill=\"currentColor\"/></svg></span></span></div><div class=\"ds-stick ds-stick--light is-cooling\" aria-label=\"빛 대기\"><span class=\"ds-base\"><span class=\"ds-knob\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M12 1.5c.7 5.3 2.9 8.3 10.5 10.5-7.6 2.2-9.8 5.2-10.5 10.5-.7-5.3-2.9-8.3-10.5-10.5C9.1 9.8 11.3 6.8 12 1.5Z\" fill=\"currentColor\"/></svg></span></span></div></div>",
-      "css": ".ds-root{--night:#1b1f3b;--amber:#ffc857;--paper:#f6f1e7;--ash:#8a8fa8;--u:calc(300px/540);display:flex;flex-wrap:wrap;gap:16px;padding:16px;background:#2b2741}.ds-stick{display:grid;place-items:center;width:calc(var(--u)*176);height:calc(var(--u)*176);outline:none}.ds-base{position:relative;display:grid;place-items:center;width:calc(var(--u)*140);height:calc(var(--u)*140);border-radius:50%;border:calc(var(--u)*2) solid color-mix(in srgb,var(--paper) 45%,transparent);background:radial-gradient(circle at 50% 32%,rgba(64,70,128,.6),rgba(20,21,46,.55) 70%);box-shadow:inset 0 calc(var(--u)*2) 0 rgba(255,255,255,.08),0 calc(var(--u)*6) calc(var(--u)*18) rgba(5,4,12,.4);transition:border-color .15s,box-shadow .2s}.ds-knob{display:grid;place-items:center;width:calc(var(--u)*62);height:calc(var(--u)*62);border-radius:50%;background:radial-gradient(circle at 40% 30%,#fffaf0,var(--paper) 55%,#d6cfc2);box-shadow:0 calc(var(--u)*4) calc(var(--u)*10) rgba(5,4,12,.45),inset 0 calc(var(--u)*-3) calc(var(--u)*4) rgba(120,100,80,.25)}.ds-stick:hover .ds-base,.ds-stick:focus-visible .ds-base{border-color:color-mix(in srgb,var(--paper) 80%,transparent)}.ds-stick--light .ds-base{width:calc(var(--u)*150);height:calc(var(--u)*150);border-color:color-mix(in srgb,var(--amber) 70%,transparent)}.ds-stick--light .ds-knob{width:calc(var(--u)*72);height:calc(var(--u)*72);color:var(--night);background:radial-gradient(circle at 40% 30%,#fff4d2,#ffd77a 45%,#f2ad3f);box-shadow:0 calc(var(--u)*4) calc(var(--u)*12) rgba(5,4,12,.45),0 0 calc(var(--u)*16) color-mix(in srgb,var(--amber) 45%,transparent),inset 0 calc(var(--u)*-3) calc(var(--u)*5) rgba(150,80,20,.35)}.ds-stick--light .ds-knob svg{width:calc(var(--u)*32);height:calc(var(--u)*32)}.ds-stick--light:hover .ds-base,.ds-stick--light:focus-visible .ds-base,.ds-stick--light:active .ds-base{border-color:var(--amber);box-shadow:inset 0 calc(var(--u)*2) 0 rgba(255,255,255,.1),0 0 calc(var(--u)*26) color-mix(in srgb,var(--amber) 50%,transparent)}.ds-stick--light.is-cancel .ds-base{border-color:var(--ash);box-shadow:none}.ds-stick--light.is-cancel .ds-knob{filter:grayscale(.85) brightness(.8)}.ds-stick--light.is-cooling .ds-base::after{content:'';position:absolute;inset:calc(var(--u)*-7);border-radius:50%;background:conic-gradient(var(--amber) 230deg,transparent 0);-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - var(--u)*4),#000 calc(100% - var(--u)*4));mask:radial-gradient(farthest-side,transparent calc(100% - var(--u)*4),#000 calc(100% - var(--u)*4));opacity:.9}.ds-stick--light.is-cooling .ds-knob{filter:saturate(.6) brightness(.88)}"
+      "css": ".ds-root{--night:#1b1f3b;--amber:#ffc857;--paper:#f6f1e7;--ash:#8a8fa8;--u:calc(300px/540);display:flex;flex-wrap:wrap;gap:16px;padding:16px;background:#2b2741}.ds-stick{display:grid;place-items:center;width:calc(var(--u)*176);height:calc(var(--u)*176);outline:none}.ds-base{position:relative;display:grid;place-items:center;width:calc(var(--u)*140);height:calc(var(--u)*140);border-radius:50%;border:calc(var(--u)*2.5) solid rgba(185,168,240,.7);background:radial-gradient(circle at 50% 35%,rgba(126,104,196,.42),rgba(52,40,96,.5) 72%);box-shadow:inset 0 calc(var(--u)*2) 0 rgba(255,255,255,.08),0 calc(var(--u)*6) calc(var(--u)*18) rgba(5,4,12,.4);transition:border-color .15s,box-shadow .2s}.ds-knob{display:grid;place-items:center;width:calc(var(--u)*62);height:calc(var(--u)*62);border-radius:50%;background:radial-gradient(circle at 40% 30%,#f1ecff,#c9b8f4 50%,#8f78d4);box-shadow:0 calc(var(--u)*4) calc(var(--u)*10) rgba(5,4,12,.45),inset 0 calc(var(--u)*-3) calc(var(--u)*5) rgba(70,50,140,.35)}.ds-stick:hover .ds-base,.ds-stick:focus-visible .ds-base{border-color:rgba(214,200,255,.95)}.ds-stick--light .ds-base{width:calc(var(--u)*150);height:calc(var(--u)*150);border-color:color-mix(in srgb,var(--amber) 70%,transparent)}.ds-stick--light .ds-knob{width:calc(var(--u)*72);height:calc(var(--u)*72);color:var(--night);background:radial-gradient(circle at 40% 30%,#fff4d2,#ffd77a 45%,#f2ad3f);box-shadow:0 calc(var(--u)*4) calc(var(--u)*12) rgba(5,4,12,.45),0 0 calc(var(--u)*16) color-mix(in srgb,var(--amber) 45%,transparent),inset 0 calc(var(--u)*-3) calc(var(--u)*5) rgba(150,80,20,.35)}.ds-stick--light .ds-knob svg{width:calc(var(--u)*32);height:calc(var(--u)*32)}.ds-stick--light:hover .ds-base,.ds-stick--light:focus-visible .ds-base,.ds-stick--light:active .ds-base{border-color:var(--amber);box-shadow:inset 0 calc(var(--u)*2) 0 rgba(255,255,255,.1),0 0 calc(var(--u)*26) color-mix(in srgb,var(--amber) 50%,transparent)}.ds-stick--light.is-cancel .ds-base{border-color:var(--ash);box-shadow:none}.ds-stick--light.is-cancel .ds-knob{filter:grayscale(.85) brightness(.8)}.ds-stick--light.is-cooling .ds-base::after{content:'';position:absolute;inset:calc(var(--u)*-7);border-radius:50%;background:conic-gradient(var(--amber) 230deg,transparent 0);-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - var(--u)*4),#000 calc(100% - var(--u)*4));mask:radial-gradient(farthest-side,transparent calc(100% - var(--u)*4),#000 calc(100% - var(--u)*4));opacity:.9}.ds-stick--light.is-cooling .ds-knob{filter:saturate(.6) brightness(.88)}"
     },
     {
       "name": "결과 판",
       "kind": "card",
       "refersTo": "result-panel",
-      "description": "마을 위 아래쪽에 떠 있는 둥근 남색 판. 제목·부제, dt/dd 통계 줄(점수는 호박), 주요·보조 알약 2열 + 흐린 알약 한 줄. 클리어는 새벽빛이 스민다.",
-      "html": "<div class=\"ds-root\"><section class=\"ds-res\"><h2 class=\"ds-res__t\">오늘 밤은 여기까지</h2><p class=\"ds-res__s\">버틴 시간 01:42 · 되찾은 이웃 37명</p><dl class=\"ds-res__stats\"><div class=\"ds-res__row\"><dt>오늘 밤 점수</dt><dd class=\"ds-res__score\">12,480</dd></div><div class=\"ds-res__row\"><dt>최대 콤보</dt><dd>×24</dd></div></dl><div class=\"ds-res__act\"><button class=\"ds-pill ds-pill--primary\" type=\"button\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M7 4.5v15l12-7.5z\" fill=\"currentColor\"/></svg>다시 한 번</button><button class=\"ds-pill ds-pill--secondary\" type=\"button\">홈으로</button><button class=\"ds-pill ds-pill--ghost ds-res__wide\" type=\"button\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><rect x=\"9\" y=\"6\" width=\"6\" height=\"14\" rx=\"1.2\" fill=\"currentColor\"/><rect x=\"3\" y=\"11\" width=\"5.5\" height=\"9\" rx=\"1.2\" fill=\"currentColor\"/><rect x=\"15.5\" y=\"13.5\" width=\"5.5\" height=\"6.5\" rx=\"1.2\" fill=\"currentColor\"/></svg>지난 밤들에 남기기</button></div></section></div>",
+      "description": "마을 위 아래쪽에 떠 있는 둥근 남색 판. 제목·부제, dt/dd 통계 줄(오늘 점수는 호박), 주요·보조 알약 2열 + 흐린 알약 한 줄. 아침이 왔어요·마을이 환해졌어요는 새벽빛이 스민다.",
+      "html": "<div class=\"ds-root\"><section class=\"ds-res\"><h2 class=\"ds-res__t\">오늘은 여기까지</h2><p class=\"ds-res__s\">버틴 시간 01:12 · 구출한 주민 3명</p><dl class=\"ds-res__stats\"><div class=\"ds-res__row\"><dt>오늘 점수</dt><dd class=\"ds-res__score\">4,350</dd></div><div class=\"ds-res__row\"><dt>최대 콤보</dt><dd>×12</dd></div><div class=\"ds-res__row\"><dt>구출한 주민</dt><dd>3명</dd></div><div class=\"ds-res__row\"><dt>돌려보낸 어둠의 주민</dt><dd>11명</dd></div><div class=\"ds-res__row\"><dt>켠 등불</dt><dd>1 / 1</dd></div></dl><div class=\"ds-res__act\"><button class=\"ds-pill ds-pill--primary\" type=\"button\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M7 4.5v15l12-7.5z\" fill=\"currentColor\"/></svg>다시 한 번</button><button class=\"ds-pill ds-pill--secondary\" type=\"button\">홈으로</button><button class=\"ds-pill ds-pill--ghost ds-res__wide\" type=\"button\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><rect x=\"9\" y=\"6\" width=\"6\" height=\"14\" rx=\"1.2\" fill=\"currentColor\"/><rect x=\"3\" y=\"11\" width=\"5.5\" height=\"9\" rx=\"1.2\" fill=\"currentColor\"/><rect x=\"15.5\" y=\"13.5\" width=\"5.5\" height=\"6.5\" rx=\"1.2\" fill=\"currentColor\"/></svg>지난 밤들에 남기기</button></div></section></div>",
       "css": ".ds-root{--night:#1b1f3b;--predawn:#120f24;--dawn:#f2b880;--amber:#ffc857;--mint:#9ed9b5;--lavender:#a89cd9;--ember:#ff8c5a;--paper:#f6f1e7;--ash:#8a8fa8;--paper-soft:color-mix(in srgb,var(--paper) 74%,var(--ash));--hairline:color-mix(in srgb,var(--paper) 14%,transparent);--u:calc(390px/540);font-family:'Pretendard Variable', Pretendard, 'Noto Sans KR', system-ui, sans-serif;color:var(--paper);width:390px;padding:0 calc(var(--u)*24) 20px;background:#2b2741}.ds-pill{display:inline-flex;align-items:center;justify-content:center;gap:calc(var(--u)*10);min-height:max(48px,calc(var(--u)*60));padding:0 calc(var(--u)*20);border-radius:999px;font:inherit;font-size:calc(var(--u)*19);font-weight:700;cursor:pointer;transition:transform .12s ease-out,box-shadow .2s ease-out}.ds-pill svg{width:calc(var(--u)*22);height:calc(var(--u)*22)}.ds-pill:active{transform:scale(1.04)}.ds-pill:focus-visible{outline:2px solid var(--amber);outline-offset:3px}.ds-pill--primary{border:calc(var(--u)*1.5) solid #d08a2c;background:linear-gradient(to bottom,rgba(255,255,255,.5),rgba(255,255,255,0) 46%),linear-gradient(to bottom,#ffdc85,var(--amber) 52%,#f0a43a);color:var(--night);text-shadow:0 1px 0 rgba(255,244,214,.7);box-shadow:inset 0 calc(var(--u)*2) 0 rgba(255,250,235,.65),inset 0 calc(var(--u)*-4) calc(var(--u)*6) rgba(160,84,20,.38),0 calc(var(--u)*6) calc(var(--u)*14) rgba(110,54,10,.42)}.ds-pill--secondary{border:calc(var(--u)*2) solid color-mix(in srgb,var(--paper) 55%,transparent);background:linear-gradient(to bottom,rgba(255,255,255,.1),rgba(255,255,255,0) 50%),linear-gradient(to bottom,rgba(52,57,108,.92),rgba(20,21,46,.92));color:var(--paper);box-shadow:inset 0 calc(var(--u)*1.5) 0 rgba(246,241,231,.16),0 calc(var(--u)*5) calc(var(--u)*12) rgba(5,4,12,.4)}.ds-pill--ghost{border:calc(var(--u)*1.5) solid color-mix(in srgb,var(--paper) 28%,transparent);background:transparent;color:var(--paper-soft);font-weight:600}.ds-res{background:radial-gradient(120% 60% at 50% 0%,rgba(168,156,217,.14),rgba(168,156,217,0) 60%),linear-gradient(to bottom,#262a56,#181b3a);border:1px solid color-mix(in srgb,var(--paper) 16%,transparent);border-radius:calc(var(--u)*28);padding:calc(var(--u)*32) calc(var(--u)*30) calc(var(--u)*20);text-align:center;box-shadow:inset 0 0 0 calc(var(--u)*1) rgba(246,241,231,.05),inset 0 calc(var(--u)*1.5) 0 rgba(246,241,231,.14),0 calc(var(--u)*14) calc(var(--u)*40) rgba(5,4,12,.55)}.ds-res__t{margin:0;font-size:calc(var(--u)*38);font-weight:800;letter-spacing:-.02em}.ds-res__s{margin:calc(var(--u)*10) 0 0;font-size:calc(var(--u)*17);color:var(--paper-soft)}.ds-res__stats{margin:calc(var(--u)*20) 0 0;text-align:left}.ds-res__row{display:flex;align-items:center;justify-content:space-between;min-height:calc(var(--u)*46);border-bottom:1px solid var(--hairline);font-size:calc(var(--u)*15);color:var(--paper-soft)}.ds-res__row:last-child{border-bottom:0}.ds-res__row dd{margin:0;font-size:calc(var(--u)*20);font-weight:700;color:var(--paper);font-variant-numeric:tabular-nums}.ds-res__row .ds-res__score{font-size:calc(var(--u)*36);font-weight:800;color:var(--amber)}.ds-res__act{display:grid;grid-template-columns:1fr 1fr;gap:calc(var(--u)*12);margin-top:calc(var(--u)*20)}.ds-res__wide{grid-column:1/-1}"
     },
     {
@@ -1266,16 +1261,16 @@
   ],
   "narrative": {
     "northStar": "빛이 닿은 곳만 켜지는 밤 마을",
-    "overview": "화면 전체는 살짝 기울여 내려다본 작은 동물 마을의 판석 광장이다. 마을(1080×1920 월드, 화면의 네 배)은 늘 차가운 남색·보랏빛으로 잠들어 있고, 등불지기가 손에 든 등불을 들고 걸어 다니면 카메라가 부드럽게 따라간다. 빛을 보내면 60° 호박빛 부채꼴이 퍼지고 그 안의 돌·나무·풀숲만 **같은 마을의 '켜진' 판**(호박 갈색 돌, 따뜻한 나무, 올리브 잎, 분홍빛 꽃)으로 드러난다. 빛은 새 색을 칠하지 않고 이미 있는 마을을 깨운다. 콤보가 쌓이면 창문과 처마 등불이 하나씩 켜지고 반딧불이 늘어, 판의 성과가 점수판이 아니라 마을의 밝기로 보인다.\n\nUI는 마을을 덮지 않는 두 개의 어두운 띠(위: 시간·점수·콤보, 아래: 불꽃·시너지·장착물·일시정지), 아래 띠 바로 위 양쪽 엄지 자리의 두 스틱(왼쪽 종이색 이동, 오른쪽 호박 빛), 그리고 필요할 때만 위·아래에서 미끄러져 들어오는 남색 판으로 이뤄진다. 스틱 사이와 광장 가운데는 비워 둔다. 글자는 Pretendard 한 가족이고 굵기로만 위계를 나눈다. 강조는 호박색 하나이며, 순간의 손맛(콤보 단계)은 진한 갈색 외곽선을 두른 큰 금빛 글자와 네 갈래 별로 터진다.\n\n떠 있는 것은 모두 '만든 물건'의 재질을 가진다. 호박 알약은 윗면 광택 띠와 진한 호박 테두리를 두른 사탕 같고, 보조 알약·원 버튼·스틱 바닥은 위가 조금 밝은 남색 유리이며, 판과 카드는 아주 옅은 종이 결과 윗변의 가는 빛줄을 가진다. 메뉴 화면도 같은 밤 마을 위에 얹힌다. 홈은 등불을 든 루미의 마을 그림을 그대로 깔고 위아래만 가라앉혀 로고와 메뉴를 얹고, 선택·상점·지난 밤들은 같은 그림을 흐리고 어둡게 깐 위에 남색 막을 덮고 남색 카드를 쌓는다. 카드 묶음 안에서 '지금 고른 것'만 따뜻한 갈색으로 켜진다. 고르는 일도 빛이 닿는 일이다.\n\n확인된 거부: 무기·폭발·체력바 문법의 판타지 디펜스·쿼터뷰 RPG, 평평한 톱다운 맵(Super Animal Royale 같은 인상), 피·붉은 피격 표현.",
+    "overview": "화면 전체는 살짝 기울여 내려다본 작은 동물 마을의 판석 광장이다. 마을(16:9 3200×1800 월드, 2026-11-06)은 늘 차가운 남색·보랏빛으로 잠들어 있고, 가운데에 금이 간 결정을 띄운 돌 받침의 **중앙 광원**이, 외곽에 바닥에 놓인 **등불 스테이션**이 있다. 루미는 등불을 들지 않고(2026-11-12) 맨몸으로 걸어 다니며, 카메라가 부드럽게 따라간다. 빛은 루미 둘레·중앙 광원·켜진 등불 세 곳에 고이고, 빛을 보내면 루미의 중심에서 60° 호박빛 부채꼴이 퍼지며 그 안의 돌·나무·풀숲만 **같은 마을의 '켜진' 판**(호박 갈색 돌, 따뜻한 나무, 올리브 잎, 분홍빛 꽃)으로 드러난다. 빛은 새 색을 칠하지 않고 이미 있는 마을을 깨운다. 콤보가 쌓이면 창문과 처마 등불이 하나씩 켜지고 반딧불이 늘어, 판의 성과가 점수판이 아니라 마을의 밝기로 보인다.\n\nUI는 마을을 덮지 않는 두 개의 어두운 띠(위: 시간·진행·점수·콤보, 아래: 하트·HP · 빛(LP)·중앙 광원 막대 · 켠 등불 수 · 일시정지), 아래 띠 바로 위 양쪽 엄지 자리의 두 스틱(왼쪽 연보라 이동, 오른쪽 호박 빛), 그리고 필요할 때만 위·아래에서 미끄러져 들어오는 남색 판으로 이뤄진다. 스틱 사이와 광장 가운데는 비워 둔다. 글자는 Pretendard 한 가족이고 굵기로만 위계를 나눈다. 강조는 호박색 하나이며, 순간의 손맛(콤보 단계)은 진한 갈색 외곽선을 두른 큰 금빛 글자와 네 갈래 별로 터진다.\n\n떠 있는 것은 모두 '만든 물건'의 재질을 가진다. 호박 알약은 윗면 광택 띠와 진한 호박 테두리를 두른 사탕 같고, 보조 알약·원 버튼·스틱 바닥은 위가 조금 밝은 남색 유리이며, 판과 카드는 아주 옅은 종이 결과 윗변의 가는 빛줄을 가진다. 메뉴 화면도 같은 밤 마을 위에 얹힌다. 홈은 등불을 든 루미의 마을 그림을 그대로 깔고 위아래만 가라앉혀 로고와 메뉴를 얹고, 선택·상점·지난 밤들은 같은 그림을 흐리고 어둡게 깐 위에 남색 막을 덮고 남색 카드를 쌓는다. 카드 묶음 안에서 '지금 고른 것'만 따뜻한 갈색으로 켜진다. 고르는 일도 빛이 닿는 일이다.\n\n확인된 거부: 무기·폭발·체력바 문법의 판타지 디펜스·쿼터뷰 RPG, 평평한 톱다운 맵(Super Animal Royale 같은 인상), 피·붉은 피격 표현.",
     "keyCharacteristics": [
       "차가운 남색 바탕 + 빛과 주인공에만 호박빛.",
       "모든 월드 요소를 어두운 판과 켜진 판 두 벌로 칠하고, 빛은 마스크로 켜진 판을 드러낸다.",
-      "위아래 어두운 HUD 띠, 아래 띠 위 양쪽 엄지 자리에 스틱 둘, 그 사이와 가운데 광장은 비운다.",
+      "위아래 어두운 HUD 띠(가로 화면에서는 위 띠는 얇게, 아래는 가운데 작은 판), 아래 띠 위 양쪽 엄지 자리에 스틱 둘, 그 사이와 가운데 광장은 비운다.",
       "메뉴는 남색 카드 묶음, 고른 카드 하나만 호박 테두리 + 따뜻한 갈색으로 켜진다.",
       "떠 있는 면은 광택·유리·종이 결·윗변 빛줄의 재질을 갖는다. 평평한 단색 도형으로 두지 않는다.",
       "알약과 원, 둥근 모서리만. 날카로운 각진 UI 없음.",
       "반응은 그림자보다 빛의 번짐(글로우)으로.",
-      "모든 크기는 논리 폭 540 기준 단위로 비례한다."
+      "모든 크기는 짧은 변 540 기준 단위로 비례한다."
     ],
     "rules": [
       {
@@ -1289,8 +1284,8 @@
         "section": "colors"
       },
       {
-        "name": "The 잠긴 것은 그림자 Rule",
-        "body": "잠긴 등불지기는 초상을 거의 검은 실루엣(밝기 0.08~0.12, 채도 0)으로 두고 라벤더로 조건을 적는다. 어둠에 변한 이웃처럼 아직 빛이 닿지 않은 것으로 보인다. 회색 반투명으로 잠금을 표현하지 않는다.",
+        "name": "The 잠긴 친구는 빛을 잃은 모습 Rule",
+        "body": "잠긴 친구는 필터로 누른 실루엣이 아니라 따로 그린 '빛을 잃은 모습' 초상(검은 털 + 옅게 빛나는 라벤더 눈)으로 두고, 큰 초상에는 라벤더 45% 10u 후광, 아래에 라벤더 700 안내 글자를 붙인다. 구출할 친구가 어둠의 주민과 같은 모습으로 보인다. 회색 반투명이나 밝기 필터로 잠금을 표현하지 않는다.",
         "section": "colors"
       },
       {
@@ -1305,7 +1300,7 @@
       },
       {
         "name": "The 아직 아니면 재 Rule",
-        "body": "'지금 놓으면 빛이 안 나간다'는 상태(빛 대기 중 조준, 끌었다 가운데로 되돌린 취소)는 호박을 빼고 재색과 채도 낮춤으로 보여 준다. 빨강이나 경고 아이콘을 쓰지 않는다.",
+        "body": "'지금 놓으면 빛이 안 나간다'는 상태는 호박을 빼거나 낮춰 보여 준다. 끌었다 가운데로 되돌린 취소는 재색 테두리와 채도 낮춤, 대기 중 조준 부채꼴은 같은 노랑을 22%로 흐린다. 빨강이나 경고 아이콘을 쓰지 않는다.",
         "section": "colors"
       },
       {
@@ -1325,7 +1320,7 @@
       },
       {
         "name": "The 540 단위 Rule",
-        "body": "UI 치수는 px가 아니라 `--u` 배수로 쓴다. 예외는 접근성 하한뿐이다: 알약 `max(48px, …)`, 원 버튼·탭·입력칸·장착물 칸 `max(44px, …)`, 스위치 `max(52px, …)`×`max(30px, …)`, 입력 글자 `max(16px, …)`, seed 글자 `max(11px, …)`. 스틱은 하한이 필요 없을 만큼 크다(가장 작은 손 닿는 영역 176u).",
+        "body": "UI 치수는 px가 아니라 `--u` 배수로 쓴다. 예외는 접근성 하한뿐이다: 알약 `max(48px, …)`, 원 버튼·탭·입력칸·로스터 칸 `max(44px, …)`, 스위치 `max(52px, …)`×`max(30px, …)`, 입력 글자 `max(16px, …)`, seed 글자 `max(11px, …)`. 스틱은 하한이 필요 없을 만큼 크다(가장 작은 손 닿는 영역 176u).",
         "section": "layout"
       },
       {
@@ -1353,13 +1348,14 @@
       "Do 새 화면의 주요 행동 하나를 호박 알약, 나머지를 종이 테두리 유리 알약, 가장 덜 중요한 것을 흐린 알약으로 만든다(최소 48×48, 누르면 1.04배 + 글로우).",
       "Do 새 메뉴 화면은 위쪽 막대(뒤로 원 버튼 + 가운데 제목) + 카드 재질 묶음으로 만들고, 고른 것 하나만 호박 테두리 + lit-card로 켠다.",
       "Do 새로 떠 있는 면에는 윗변 빛줄, 위가 밝은 면, 흐린 바닥 그림자를 주고, 판과 카드에는 `--grain`을 깐다.",
-      "Do 잠긴 것은 실루엣과 라벤더 조건 글자로 보여 준다.",
-      "Do 모든 UI 치수를 `--u`(540 기준) 배수로 쓰고, 터치 표적만 px 하한을 둔다.",
+      "Do 잠긴 친구는 빛을 잃은 모습 초상과 라벤더 후광·안내 글자로 보여 준다.",
+      "Do 모든 UI 치수를 `--u`(짧은 변 540 기준) 배수로 쓰고, 터치 표적만 px 하한을 둔다.",
       "Do 플레이 조작은 왼쪽 걷기·오른쪽 빛 두 스틱으로 두고, '아직 안 나간다'는 재색으로 알린다.",
       "Do 월드에 새 소품·배경을 그릴 때 `DARK`와 `LIT` 두 톤을 같이 정의하고, 빛은 켜진 판을 드러내는 방식으로 표현한다.",
-      "Do 위험은 잔불색 맥박과 불꽃이 꺼지는 것으로만 보여 준다.",
-      "Do 성과(콤보)를 마을이 밝아지는 것(창문·등불·반딧불)으로 함께 보여 준다.",
+      "Do 위험은 잔불색 맥박(HP 막대·중앙 광원 막대·화면 가장자리)과 막대가 줄어드는 것으로만 보여 준다.",
+      "Do 성과(콤보·등불 점화)를 마을이 밝아지는 것(창문·등불·반딧불·화면 섬광)으로 함께 보여 준다.",
       "Do 바뀌는 숫자는 모두 tabular-nums와 단색으로 쓴다.",
+      "Do 화면 밖 목표는 가장자리 표지로 알린다: 적은 라벤더 삼각형, 찾아갈 등불은 숨 쉬는 호박 마름모.",
       "Do 모든 연출에 `prefers-reduced-motion` 대체를 두고, 깜빡임은 초당 3회 이하로 둔다."
     ],
     "donts": [

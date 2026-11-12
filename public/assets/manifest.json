@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-12T09:08:10.734Z",
+  "generatedAt": "2026-11-12T10:52:48.540Z",
   "sheets": [
     {
       "key": "portrait-lumi",
@@ -33,6 +33,32 @@
       "category": "characters",
       "label": "도토 초상",
       "file": "characters/portrait-doto.png",
+      "frameWidth": 192,
+      "frameHeight": 192,
+      "frames": 1,
+      "res": 1,
+      "source": "code",
+      "load": true,
+      "anims": []
+    },
+    {
+      "key": "portrait-tori-lost",
+      "category": "characters",
+      "label": "토리 초상 (빛을 잃은 모습)",
+      "file": "characters/portrait-tori-lost.png",
+      "frameWidth": 192,
+      "frameHeight": 192,
+      "frames": 1,
+      "res": 1,
+      "source": "code",
+      "load": true,
+      "anims": []
+    },
+    {
+      "key": "portrait-doto-lost",
+      "category": "characters",
+      "label": "도토 초상 (빛을 잃은 모습)",
+      "file": "characters/portrait-doto-lost.png",
       "frameWidth": 192,
       "frameHeight": 192,
       "frames": 1,

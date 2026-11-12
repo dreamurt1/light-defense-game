@@ -257,9 +257,9 @@
   height: calc(var(--u) * 252);
 }
 
+/* 잠긴 친구는 빛을 잃은 모습 그림(검은 털 + 보랏빛 눈)에 라벤더 기운만 (2026-11-12) */
 .select__portrait.is-locked {
-  filter: brightness(0.08) saturate(0)
-    drop-shadow(0 0 calc(var(--u) * 6) color-mix(in srgb, var(--lavender) 75%, transparent));
+  filter: drop-shadow(0 0 calc(var(--u) * 10) color-mix(in srgb, var(--lavender) 45%, transparent));
 }
 
 .select__name {
@@ -299,8 +299,9 @@
 
 .select__roster {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: calc(var(--u) * 10);
+  grid-template-columns: repeat(3, calc(var(--u) * 104));
+  justify-content: center;
+  gap: calc(var(--u) * 14);
   margin-top: calc(var(--u) * 18);
 }
 
@@ -323,8 +324,8 @@
   height: 100%;
 }
 
-.roster-card.is-locked img {
-  filter: brightness(0.12) saturate(0);
+.roster-card.is-locked {
+  background: var(--predawn);
 }
 
 .roster-card__lock {
@@ -345,46 +346,6 @@
   border: calc(var(--u) * 3) solid var(--amber);
   background: linear-gradient(to bottom, #4a3522, #2c2120);
   box-shadow: 0 0 calc(var(--u) * 14) color-mix(in srgb, var(--amber) 40%, transparent);
-}
-
-.select__subhead {
-  margin: calc(var(--u) * 20) 0 calc(var(--u) * 8);
-  font-size: calc(var(--u) * 17);
-  font-weight: 700;
-}
-
-.select__gear {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: calc(var(--u) * 8);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.gear-card {
-  display: grid;
-  align-content: center;
-  gap: calc(var(--u) * 4);
-  min-height: calc(var(--u) * 70);
-  padding: calc(var(--u) * 8) calc(var(--u) * 6);
-  border: 1px solid var(--hairline);
-  border-radius: calc(var(--u) * 14);
-  background: #1d1f3d;
-  text-align: center;
-}
-
-.gear-card.is-current {
-  border-color: color-mix(in srgb, var(--amber) 60%, transparent);
-}
-
-.gear-card strong {
-  font-size: calc(var(--u) * 14);
-}
-
-.gear-card span {
-  font-size: calc(var(--u) * 12);
-  color: var(--paper-soft);
 }
 
 .select__note {
@@ -845,10 +806,6 @@
   line-height: 1.1;
 }
 
-.result__witch {
-  margin: calc(var(--u) * 10) 0 0;
-}
-
 .sheet--result .sheet__actions {
   grid-template-columns: 1fr 1fr;
   margin-top: calc(var(--u) * 20);
@@ -936,16 +893,8 @@
 }
 
 :root[data-layout='landscape'] .select__roster {
-  grid-template-columns: repeat(5, minmax(0, calc(var(--u) * 84)));
+  grid-template-columns: repeat(3, minmax(0, calc(var(--u) * 92)));
   justify-content: center;
-}
-
-:root[data-layout='landscape'] .select__subhead {
-  margin: calc(var(--u) * 12) 0 calc(var(--u) * 6);
-}
-
-:root[data-layout='landscape'] .gear-card {
-  min-height: calc(var(--u) * 58);
 }
 
 :root[data-layout='landscape'] .select__go {

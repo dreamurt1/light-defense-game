@@ -2,12 +2,12 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8" />
-<title>라이트 디펜스 기획서 개정 사항</title>
+<title>라이트 디펜스 게임 개발 기획서 (2026-11-12 개정판)</title>
 <!--
-  기획서 개정 사항 원본 (2026-11-06 라이언 지시: 스킬·기획서에 반영할 내용은 즉시 갱신하고 알린다).
-  npm run doc:plan → 이 문서를 A4 PDF로 만들어 원본 기획서 9쪽 앞에 붙인
-  reference/라이트_디펜스_게임개발기획서(가칭)_개정판.pdf 를 만든다. 원본 PDF는 손대지 않는다.
-  새 결정이 생기면 해당 절 표에 줄을 더하고(날짜 표시), 맨 위 개정일을 고친다.
+  기획서 개정판 원본. npm run doc:plan → 이 문서를 A4 PDF로 만들어
+  reference/라이트_디펜스_게임개발기획서(가칭)_개정판.pdf 를 쓴다(2026-11-12 라이언 지시로 새 기획 전체를 본문으로 다시 씀).
+  원본 PDF(2026-10-28)·XMind PDF는 손대지 않는다. 기획서 PDF는 라이언이 고치라고 할 때만 다시 만든다(CLAUDE.md 0절).
+  새 결정이 생기면 본문의 해당 절과 맨 뒤 '개정 이력'에 날짜와 함께 적는다.
 -->
 <style>
   @font-face {
@@ -21,146 +21,246 @@
     --lavender: #a89cd9; --paper: #f6f1e7; --ash: #8a8fa8; --ink: #22243a; --line: #d9d4ea;
   }
   * { box-sizing: border-box; }
-  body { margin: 0; font-family: 'Pretendard Variable', 'Malgun Gothic', sans-serif; color: var(--ink); font-size: 9.6pt; line-height: 1.55; }
-  .masthead { background: var(--night); color: var(--paper); border-radius: 10px; padding: 16px 20px 14px; margin-bottom: 14px; }
+  body { margin: 0; font-family: 'Pretendard Variable', 'Malgun Gothic', sans-serif; color: var(--ink); font-size: 9.6pt; line-height: 1.55; word-break: keep-all; }
+  .masthead { background: var(--night); color: var(--paper); border-radius: 10px; padding: 18px 20px 16px; margin-bottom: 14px; }
   .masthead .kicker { letter-spacing: 0.32em; font-size: 7.6pt; color: var(--lavender); }
-  .masthead h1 { margin: 4px 0 2px; font-size: 19pt; font-weight: 800; }
+  .masthead h1 { margin: 4px 0 4px; font-size: 21pt; font-weight: 800; }
   .masthead h1 em { font-style: normal; color: var(--amber); }
+  .masthead .slogan { margin: 0 0 6px; color: var(--amber); font-size: 10.5pt; font-weight: 600; }
   .masthead p { margin: 0; color: #cfcbe6; font-size: 9pt; }
   .rule { border-left: 4px solid var(--amber); background: #fff8e6; padding: 8px 12px; border-radius: 6px; margin: 0 0 12px; }
-  h2 { font-size: 12pt; margin: 16px 0 6px; padding-bottom: 3px; border-bottom: 2px solid var(--night); break-after: avoid; }
+  h2 { font-size: 12.5pt; margin: 18px 0 6px; padding-bottom: 3px; border-bottom: 2px solid var(--night); break-after: avoid; }
   h2 small { font-weight: 500; color: var(--ash); font-size: 8.6pt; margin-left: 6px; }
-  table { width: 100%; border-collapse: collapse; margin: 4px 0 6px; break-inside: auto; }
+  h3 { font-size: 10.4pt; margin: 12px 0 4px; color: var(--dusk); break-after: avoid; }
+  p { margin: 3px 0 6px; }
+  table { width: 100%; border-collapse: collapse; margin: 4px 0 8px; break-inside: auto; }
   tr { break-inside: avoid; }
   th { background: var(--dusk); color: var(--paper); text-align: left; font-weight: 700; font-size: 8.6pt; padding: 5px 7px; }
   td { border-bottom: 1px solid var(--line); padding: 5px 7px; vertical-align: top; }
-  td.was { color: #6b6f86; width: 30%; }
-  /* 한국어 낱말이 중간에 끊기지 않게, 첫 칸은 낱말 폭만큼 */
-  body { word-break: keep-all; }
-  td:first-child { width: 66px; }
-  td.date { white-space: nowrap; color: var(--ash); font-size: 8.2pt; width: 62px; }
+  td:first-child { white-space: nowrap; }
   td b { color: var(--night); }
-  .tag { display: inline-block; font-size: 7.6pt; padding: 0 5px; border-radius: 4px; background: #ece8f8; color: #4c4580; margin-right: 3px; }
+  td.date { white-space: nowrap; color: var(--ash); font-size: 8.2pt; width: 70px; }
+  .tag { display: inline-block; font-size: 7.4pt; padding: 0 5px; border-radius: 4px; background: #ece8f8; color: #4c4580; margin-left: 2px; white-space: nowrap; }
+  .tag--todo { background: #e6f4ec; color: #2f6b4b; }
   .note { color: #5c6078; font-size: 8.6pt; margin: 2px 0 8px; }
   ul { margin: 2px 0 6px; padding-left: 16px; }
   li { margin: 1px 0; }
+  .shots { display: flex; gap: 10px; justify-content: center; align-items: flex-start; margin: 8px 0 4px; break-inside: avoid; }
+  .shots figure { margin: 0; text-align: center; }
+  .shots img { height: 250px; border-radius: 8px; border: 1px solid var(--line); display: block; }
+  .shots figcaption, .map figcaption { font-size: 8pt; color: var(--ash); margin-top: 3px; }
+  .map { margin: 6px 0 4px; text-align: center; break-inside: avoid; }
+  .map img { width: 100%; border-radius: 8px; border: 1px solid var(--line); display: block; }
+  .page-break { break-before: page; }
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px; }
 </style>
 </head>
 <body>
 <div class="masthead">
-  <div class="kicker">LIGHT DEFENSE · 게임 개발 기획서 · 개정 사항</div>
-  <h1>라이트 디펜스 <em>개정 사항</em></h1>
-  <p>개정일 2026-11-12 · 기준: 2026-10-28 통합본(뒤의 9쪽) → 2026-11-12 새 기획(XMind) · 근거: 라이언 지시 기록(프로젝트 CLAUDE.md)</p>
+  <div class="kicker">LIGHT DEFENSE · 게임 개발 기획서 · 2026-11-12 개정판</div>
+  <h1>라이트 디펜스 <em>Light Defense</em></h1>
+  <p class="slogan">작은 빛으로, 마을을 되찾아요.</p>
+  <p>개정일 2026-11-12 · 원본: 라이언의 새 기획(XMind 1112) · 이전 기획서(2026-10-28 통합본)와 그 사이 개정을 대체 · 근거: 프로젝트 CLAUDE.md 라이언 지시 기록</p>
 </div>
-<p class="rule"><b>이 개정 사항이 뒤의 본문보다 우선한다.</b> 본문에서 바뀐 곳을 절 번호로 짚었다. 표의 ‘본문’은 2026-10-28 내용, ‘개정’은 지금 게임에 들어간 내용이다. ‘제안’ 표시는 기획서에 없던 값을 개발 중 정한 것으로, 휴대폰 체감 후 조정한다.</p>
+<p class="rule"><b>이 개정판이 2026-10-28 기획서와 이전 개정 사항을 대체한다.</b> 충돌하면 가장 최근에 수정된 것을 따른다. 옛 본문 중 새 기획과 충돌하지 않는 결정(두 스틱 조작, 가로 화면, 아트 디렉션 등)은 본문에 그대로 옮겼다. <span class="tag">제안</span>은 새 기획에 없던 값을 개발 중 정한 것으로, 휴대폰 체감 후 조정한다. <span class="tag tag--todo">Phase n</span>은 아직 개발 전인 항목이다.</p>
 
-<h2>0. 2026-11-12 새 기획으로 전면 개편 <small>XMind 1112 · 이 표가 아래 모든 표보다 우선</small></h2>
-<p class="rule"><b>라이언의 새 기획(XMind, 2026-11-12)이 옛 기획서와 아래 개정 표를 대체한다.</b> 충돌하면 가장 최근에 수정된 것을 따른다. 작업 문서는 프로젝트의 <code>docs/design/</code>(GAME_DESIGN·OPEN_QUESTIONS 답), 기존 코드와의 차이는 <code>docs/CODEBASE_AUDIT.md</code>. 아래 1~10절의 조작·화면 개정(두 스틱, 끈 거리 비례 원뿔, 루미 중심, 가로 화면 등)은 새 기획과 충돌하지 않아 그대로 유효하다.</p>
+<div class="shots">
+  <figure><img src="../../sketches/new-plan/start-hint.png" alt="" /><figcaption>플레이 시작 — 중앙 광원과 루미</figcaption></figure>
+  <figure><img src="../../sketches/new-plan/select-tori.png" alt="" /><figcaption>캐릭터 선택 — 잠긴 친구(빛을 잃은 모습)</figcaption></figure>
+  <figure><img src="../../sketches/new-plan/p1-play-end.png" alt="" /><figcaption>결과 — 완전 승리</figcaption></figure>
+</div>
+
+<h2>1. 개요</h2>
 <table>
-  <tr><th>항목</th><th>옛 기획(본문·개정)</th><th>새 기획</th><th>날짜</th></tr>
-  <tr><td><b>장르 · 한 판</b></td><td class="was">하룻밤 120초(초저녁·한밤중·새벽 전), 등불 HP 100을 지킴</td><td>캐주얼 액션 디펜스 + 로밍·등불 복구. <b>스테이지 약 100초, 끝 = 아침</b>, 진행 70%부터 클라이맥스. 맵 가운데 <b>중앙 광원</b>(최후 보루) + 외곽 <b>등불 스테이션</b> 1~4개(첫 스테이지 1개)</td><td class="date">11-12</td></tr>
-  <tr><td><b>주인공 자원</b></td><td class="was">주인공 HP 없음, 등불을 손에 듦(11-04)</td><td><b>HP + 하트 3 + LP(빛 자원).</b> HP 0 → 하트 −1, 중앙 광원 옆에서 HP 100%로 부활(무적 2.5초 <span class="tag">제안</span>). 하트 0 = 게임 오버. 루미는 <b>등불을 들지 않고 스스로 빛을 쏜다</b>. LP는 발사·등불 켜기에 쓰이고 최소 '낮음'(0이 되지 않음), 중앙 광원 > 켜진 등불 > 들판 순으로 회복</td><td class="date">11-12</td></tr>
-  <tr><td><b>광도</b></td><td class="was">마을 분위기(밤이 흐르며 밝아짐·피격하면 어두워짐)</td><td>4단계(낮음·중간·밝음·크게 밝음). 맵 전체·주인공 주변(LP 비례)·중앙 광원(HP 비례, 중간에서 시작)·등불(HP 없이 광도 게이지)이 각자 광도를 가짐. 중앙 광원 피격 시 맵 광도 크게 하락, 주인공 피격 시 조금 하락. 모든 등불이 켜지면 맵 전체 광도 버프</td><td class="date">11-12</td></tr>
-  <tr><td><b>승패</b></td><td class="was">120초 버티면 새벽(클리어), 등불 HP 0이면 여기까지</td><td>기본 승리 = 아침에 하트 ≥1 + 중앙 광원 켜짐. 완전 승리 = 광원·모든 등불이 '밝음' 이상(점수 2~3배, <span class="tag">제안 ×2.5</span>). 하트 0 또는 광원 꺼짐 = 오늘은 여기까지. 보스 스테이지는 보스 HP 0이면 승리</td><td class="date">11-12</td></tr>
-  <tr><td><b>적</b></td><td class="was">어둠에 변한 이웃 6종(파닥·그르르·말랑·호오·킥킥·노월), 모두 되돌림</td><td>세 무리: <b>잃어버린 빛의 주민</b>(개구리·고슴도치·레서판다 — 빛으로 구출, 마을로 귀환) / <b>어둠의 호스틸</b>(박쥐·웨어울프·뱀파이어 — 맵 밖으로) / <b>어둠의 패시브</b>(올빼미·나방·반딧불이 — 공격하지 않음, 그냥 지나가면 자비 점수, 여러 번 공격하면 호스틸 급증) / 보스 마녀 노월. 여우·삵은 넣지 않음</td><td class="date">11-12</td></tr>
-  <tr><td><b>캐릭터</b></td><td class="was">등불지기 5종(루미·토리·도토·바루·몽이), 판 수 등으로 해금</td><td>루미(기본), 토리(토끼)·도토(다람쥐) — 잃어버린 친구, 구출 스테이지에서 구하면 해금. 추가 없음</td><td class="date">11-12</td></tr>
-  <tr><td><b>장착물 · 아이템</b></td><td class="was">장착물 4종 중 1개 선택, 아이템 2종(반딧불 병·별사탕), 시너지 게이지·대광원</td><td><b>장착물 없음 → 소모형 아이템 5종</b>(바람 깃털·별 목걸이·반딧불 병·황금 도토리·빛의 부적), 시작 전 챙기고 맵에서도 얻으며 1회 사용. 시너지·대광원 없음</td><td class="date">11-12</td></tr>
-  <tr><td><b>조작</b></td><td class="was">짧게 탭 = 가장 가까운 이웃(없으면 바라보는 쪽)</td><td>짧게 탭 = 반자동: <b>사거리 안에 적이 없으면 쏘지 않는다</b>. 스틱 좌우 바꾸기(설정)</td><td class="date">11-12</td></tr>
-  <tr><td><b>맵</b></td><td class="was">마을 하나</td><td>맵 3종 = 스테이지 테마(빛의 마을·경계·어둠의 마을). 바위·건물·울타리·강+다리, 풀숲(일정 시간 뒤 은신이 풀림)</td><td class="date">11-12</td></tr>
-  <tr><td><b>화면 · 문구</b></td><td class="was">설명·튜토리얼·대사 없음, 홈 '오늘 밤 등불지기'</td><td>첫 플레이 튜토리얼 스테이지 필수(이후 건너뛰기), 짧은 스토리 소개, 패시브 대사. 홈 = 게임하기·캐릭터 선택·설정(소리·음량·가로/세로)·상점, 테스트 페이지는 배포 판에 없음. 결과 = 오늘 전투 개요. 가로 기본·세로 제공. UI 금지어(죽·처치·킬·실패)는 유지, 게임 오버 문구는 "오늘은 여기까지"</td><td class="date">11-12</td></tr>
-  <tr><td><b>점수</b></td><td class="was">이웃 점수 × 콤보 배율, 클리어 +1000 + HP×10</td><td>등불 켜기(낮음) < 호스틸(기본) < 잃어버린 주민(높음), 자비 > 호스틸, 보스 최고. 콤보 유지 중 모든 점수에 추가 <span class="tag">제안 50·100·200·300·1000, 콤보 3초</span></td><td class="date">11-12</td></tr>
+  <tr><th>항목</th><th>내용</th></tr>
+  <tr><td><b>장르</b></td><td>캐주얼 액션 디펜스 + 로밍·등불 복구. 고양이 루미가 넓은 밤 마을을 돌아다니며 빛을 쏴 중앙 광원을 지키고 외곽 등불을 다시 켠다</td></tr>
+  <tr><td><b>플랫폼</b></td><td>웹 브라우저(Firebase Hosting, https://light-defense-game.web.app). 모바일 우선·PC 동시 지원. 웹·모바일 모두 <b>가로가 기본, 세로 제공</b></td></tr>
+  <tr><td><b>한 판</b></td><td>스테이지 약 <b>100초</b>, 끝 = <b>아침</b>. 진행 70%부터 클라이맥스</td></tr>
+  <tr><td><b>지킬 것</b></td><td>맵 가운데 <b>중앙 광원</b>(최후 보루, 꺼지면 게임 오버) + 외곽 <b>등불 스테이션</b> 1~4개(첫 스테이지 1개)</td></tr>
+  <tr><td><b>주인공 자원</b></td><td><b>HP + 하트 3개 + LP</b>(빛 자원)</td></tr>
+  <tr><td><b>핵심 재미</b></td><td>① 외곽 등불을 켜러 나갈지 중앙을 지킬지(모두 켜면 맵 전체 광도 버프) ② 콤보를 끊지 않고 점수를 불리는 긴장감 ③ 싸울 뜻이 없는 패시브 주민을 그냥 지나칠지(자비 점수)</td></tr>
+  <tr><td><b>주 플레이어</b></td><td>틈새 시간 캐주얼: 출퇴근·대기 중 짧은 판 반복, 지인과 점수 비교</td></tr>
 </table>
 
-<h2>1. 개요 <small>조작·시점·플랫폼</small></h2>
-<table>
-  <tr><th>항목</th><th>본문</th><th>개정</th><th>날짜</th></tr>
-  <tr><td><b>조작</b></td><td class="was">입력은 탭 하나. 주인공은 이동하지 않는다. 조이스틱 없음</td><td><b>두 스틱(브롤스타즈식).</b> 왼쪽 아래 = 이동 스틱(끄는 쪽으로 걷기). 오른쪽 아래 = 빛 스틱: 끄는 동안 원뿔 범위가 보이고, 끈 채로 방향을 고르고, 놓으면 발사. 짧게 탭하면 가장 가까운 이웃에게 자동 조준, 가운데로 되돌려 놓으면 취소. 두 버튼은 구석에 너무 붙이지 않는다</td><td class="date">11-04</td></tr>
-  <tr><td><b>등불</b></td><td class="was">화면 중앙보다 약간 아래 (270, 560)에 고정</td><td><b>등불지기가 손에 들고 다닌다.</b> 이웃은 등불을 쫓아오고, 붙어 있다가 등불이 멀어지면 다시 쫓는다</td><td class="date">11-04</td></tr>
-  <tr><td><b>시점 · 공간</b></td><td class="was">단일 화면, 스크롤 없음, 논리 해상도 540×960</td><td>화면은 540×960 세로 그대로, <b>마을은 2400×2400 정사각</b>으로 넓고 카메라가 등불지기를 따라간다. 카메라·등불지기 모두 마을 밖으로 못 나간다. 숨을 수 있는 풀숲과 장애물이 있다 <span class="tag">제안 크기</span></td><td class="date">11-04</td></tr>
-  <tr><td><b>PC</b></td><td class="was">마우스 클릭 = 탭</td><td>WASD·방향키로 걷고, <b>마우스 왼쪽 버튼을 누른 채 끄는 동안 원뿔</b>(방향 = 커서 쪽 360°, 반지름 = 루미 중심에서 커서까지 거리, 걸으면서도 조절), 놓으면 발사. 루미 몸 위(48 안)에서 놓으면 취소 <span class="tag">제안 48</span></td><td class="date">11-06</td></tr>
-  <tr><td><b>레퍼런스</b></td><td class="was">Super Animal Royale(밝은 동물 캐스트)</td><td>Super Animal Royale를 떠올리게 하는 평평한 톱다운·벽돌 격자 결은 <b>피한다</b>. 공간감·디자인 1순위는 레퍼런스 그림 「달빛 숲의 등불지기 고양이」. 판단이 안 서는 조작 세부는 브롤스타즈의 공격 방식을 따른다</td><td class="date">10-30 · 11-06</td></tr>
-</table>
-
-<table>
-  <tr><th>항목</th><th>본문</th><th>개정</th><th>날짜</th></tr>
-  <tr><td><b>가로 화면</b></td><td class="was">모바일 세로 9:16, PC는 같은 화면을 가운데 두고 양옆 배경</td><td>세로·가로 둘 다. 휴대폰은 기기 방향(판 중에 돌리면 자동 일시정지), PC는 창을 꽉 채우는 가로가 기본 + 설정에서 세로 선택 + 전체 화면 버튼. 보이는 범위는 짧은 변 540 고정(물체 크기 그대로, 프레임만 바뀜), 가로 폭은 화면 비율 720~1280. 메뉴는 가로 배치(등불지기 2열·상점 6칸·설정 2열·결과 판 오른쪽)</td><td class="date">11-06</td></tr>
-  <tr><td><b>마을 크기</b></td><td class="was">(11-04 개정) 정사각 2400×2400</td><td><b>16:9 3200×1800</b>(면적 같음). 풀숲·장애물은 크기 그대로 위치만 옮김. 시작 위치 가운데</td><td class="date">11-06</td></tr>
-  <tr><td><b>두 스틱</b></td><td class="was">—</td><td>두 스틱의 가운데를 같은 수평선에</td><td class="date">11-06</td></tr>
-</table>
-
-<h2>3. 세계관과 톤 <small>문구 표</small></h2>
-<table>
-  <tr><th>위치</th><th>본문</th><th>개정</th><th>날짜</th></tr>
-  <tr><td>결과·일시정지 버튼</td><td class="was">다시 한 번 / 마을로 / 지난 밤들에 남기기</td><td>다시 한 번 / <b>홈으로</b> / 지난 밤들에 남기기</td><td class="date">11-06</td></tr>
-</table>
-<p class="note">새로 생긴 문구(모두 금지어 없음): 스플래시 “등불을 켜는 중…” · 휴대폰을 가로로 들었을 때 홈 메뉴 “오늘 밤 등불지기 / 지난 밤들 / 상점 / 테스트” · 선택 “등불을 켜요”, “장착물은 곧 고를 수 있어요”, “아직 잠겨 있어요” · 일시정지 “잠시 쉬어요 / 계속” · 설정 조작 안내 “왼쪽으로 걷고, 오른쪽으로 겨눠요”, “PC는 WASD로 걷고, 마우스를 끌었다 놓아 빛을 보내요” · 상점 “준비 중”, “겉모습만 바뀌어요. 능력치는 팔지 않아요.” · 지난 밤들 “아직 남긴 밤이 없어요” · 콤보 단계 “마을이 환해져요!” · 테스트 판 시계 자리 “테스트”. 슬로건 “탭 한 번, 빛 한 줄기.”는 두 스틱 조작과 어긋나지만 그대로 두었다(열린 결정 11).</p>
-
-<h2>4. 코어 게임플레이</h2>
-<table>
-  <tr><th>규칙</th><th>본문</th><th>개정</th><th>날짜</th></tr>
-  <tr><td><b>빛 생성</b></td><td class="was">화면 어디든 탭 → 등불에서 그 방향으로 60° 부채꼴, 사거리 180~260</td><td>빛은 <b>루미의 중심</b>에서 나간다(원뿔·부채꼴·판정 모두). 60° 원뿔의 <b>반지름은 끈 거리에 비례</b>(스틱 반지름 대비 0~1 × 사거리, 끝까지 끌면 사거리 끝 — 브롤스타즈 던지기형). 놓으면 그 길이로 빛이 0.25초에 퍼진다. 짧게 탭(자동 조준)은 사거리 끝까지. 다음 발사까지 0.4초 대기는 그대로</td><td class="date">11-06</td></tr>
-  <tr><td><b>사거리</b></td><td class="was">캐릭터별 180~260</td><td><b>1.5배: 270~390</b>(원뿔 반지름 1.5배 지시). 캐릭터 사이 비율은 그대로</td><td class="date">11-06</td></tr>
-  <tr><td><b>조준 표시</b></td><td class="was">—</td><td>밝은 노랑 50% 원뿔, 선 없음, 바닥에(캐릭터·물체 아래) 깔린다. 원뿔을 통째로 늘이지 않고 반지름 길이만 바뀐다. 빛이 대기 중이면 같은 노랑을 22%로 <span class="tag">제안 22%</span></td><td class="date">11-06</td></tr>
-  <tr><td><b>이동</b></td><td class="was">없음</td><td>속도 <b>225</b>(처음 제안 150의 1.5배). 걷기 범위는 마을 둘레를 뺀 곳(위 250 = 집 줄, 옆 100·아래 110 = 덤불 띠). 발 판정 반지름 26 <span class="tag">제안</span></td><td class="date">11-04 · 11-06</td></tr>
-  <tr><td><b>풀숲·장애물</b></td><td class="was">없음</td><td>풀숲 8곳: 들어가면 숨음(등불지기·등불 반투명, 빛 고임 절반), 140 안의 이웃만 알아채고 나머지는 루미를 못 보고 마을을 맴돎(2026-11-06: 속도 0.6배, 180~420 떨어진 지점을 차례로, 제안), 빛을 쏘면 1초 드러남. 장애물(바위 8·술통 4·등불 기둥 5): 등불지기는 못 지나감, 파닥은 날아서 무시, 빛은 통과 <span class="tag">제안</span></td><td class="date">11-04</td></tr>
-  <tr><td><b>본문 끝 설명</b></td><td class="was">조작은 “막고 싶은 방향을 탭한다” 하나로 끝난다</td><td>조작은 “걸으며 자리를 잡고, 막고 싶은 쪽으로 끌었다 놓는다”. 60°·0.4초의 뜻(오차 흡수, 연타 방지)은 그대로</td><td class="date">11-04</td></tr>
-</table>
-
-<h2>5. 한 판의 흐름</h2>
-<table>
-  <tr><th>시간대</th><th>본문</th><th>개정</th><th>날짜</th></tr>
-  <tr><td><b>초저녁</b></td><td class="was">동시 최대 6, 생성 간격 2.5 → 1.8초</td><td>출몰 30% 감소: 동시 최대 <b>4</b>, 생성 간격 <b>3.6 → 2.6초</b>. 첫 스테이지가 어려우면 안 된다(측정: 아무것도 안 하면 21초 버팀, 자동 조준이면 40초 끝까지 등불 HP 100). 파닥 무리 2~4마리는 공통 성질이라 그대로</td><td class="date">11-06</td></tr>
-</table>
-
-<h2>7. 시스템</h2>
-<table>
-  <tr><th>항목</th><th>본문</th><th>개정</th><th>날짜</th></tr>
-  <tr><td><b>시너지 게이지</b></td><td class="was">되돌림마다 +8(콤보 10 이상 +12), 초당 −4</td><td>차는 속도 30% 빠르게: <b>+10.4</b>(콤보 10 이상 <b>+15.6</b>), 초당 −4는 그대로</td><td class="date">11-06</td></tr>
-</table>
-
-<h2>8-1. 마을 분위기 <small>비주얼</small></h2>
-<table>
-  <tr><th>항목</th><th>본문</th><th>개정</th><th>날짜</th></tr>
-  <tr><td><b>밝아짐</b></td><td class="was">시간대마다 배경이 DUSK → NIGHT → PREDAWN으로 어두워짐</td><td>밤이 흐를수록 켜진 마을이 전체에 드러나 <b>점점 밝아지고, 그 속도는 점점 빨라진다</b>(0.55 × 진행률²) <span class="tag">제안</span></td><td class="date">11-06</td></tr>
-  <tr><td><b>피격 어둠</b></td><td class="was">—</td><td>등불이 맞으면 마을이 약간 어두워지고, 밤이 깊을수록 그 깊이가 깊다. HP에 묶여 <b>회복하면 그만큼 크게 밝아진다</b>(어두움 = (1 − HP 비율) × (0.16 + 0.24 × 진행률)) <span class="tag">제안</span></td><td class="date">11-06</td></tr>
-</table>
-
-<h2>6. 캐릭터</h2>
-<table>
-  <tr><th>항목</th><th>본문</th><th>개정</th><th>날짜</th></tr>
-  <tr><td><b>사거리 표</b></td><td class="was">루미 220 · 토리 180 · 도토 200 · 바루 260 · 몽이 200</td><td>루미 <b>330</b> · 토리 <b>270</b> · 도토 <b>300</b> · 바루 <b>390</b> · 몽이 <b>300</b> (위력·특성·해금은 그대로)</td><td class="date">11-06</td></tr>
-  <tr><td><b>루미 모습</b></td><td class="was">—</td><td>360° 8방위로 걷는다. 정지·걷기 그림은 ChatGPT 8방향 팩(256px, <code>reference/Lumi_8_Direction_Pack/</code>), 게임 안 크기는 그림 한 칸 128×128. 공격(웅크렸다 내밀기 0.2초)·피격(움찔·흔들림 0.3초 + 흰 번쩍임)·부활(새 밤 시작, 빛기둥 속에 나타남)은 같은 그림 위의 동작 효과. 등불이 꺼지면 그 자리에 잠든다(zzz). 선택 화면 초상은 <code>lumi_idle_045_front_right.png</code> <span class="tag">동작 수치 제안</span></td><td class="date">11-04 · 11-06</td></tr>
-  <tr><td><b>바라보는 쪽</b></td><td class="was">—</td><td>걷는 방향. 빛 스틱·마우스로 끄는(겨누는) 동안에도 그대로이고, 빛을 보내는 순간(공격 동작 0.2초)에만 그 방향을 본다</td><td class="date">11-06</td></tr>
-  <tr><td><b>피격 연출</b></td><td class="was">—</td><td>등불이 맞으면 루미가 이웃 반대쪽으로 14 밀리고 화면이 0.12초 가볍게 흔들린다(움직임 줄이기 설정 존중) <span class="tag">제안</span></td><td class="date">11-04</td></tr>
-</table>
-
-<h2>8. 화면, 플랫폼, 비주얼, 사운드</h2>
-<table>
-  <tr><th>항목</th><th>본문</th><th>개정</th><th>날짜</th></tr>
-  <tr><td><b>스플래시</b></td><td class="was">—</td><td>앱을 열면 흐린 홈 그림·일렁이는 등불·금빛 로고·불러오기 막대·“등불을 켜는 중…”, 최소 1.2초 뒤 사라짐</td><td class="date">11-04</td></tr>
-  <tr><td><b>엔트리(홈)</b></td><td class="was">해 질 녘 언덕의 등불 하나, 탭하면 시작</td><td>레퍼런스 그림 배경 + 메뉴: 오늘 밤 등불지기(→ 선택) · 지난 밤들 · 상점(준비 중) · <b>테스트</b> · ⚙ 설정. 왼쪽 아래 프로필. ‘탭 두 번에 시작’은 그대로</td><td class="date">10-30 · 11-06</td></tr>
-  <tr><td><b>테스트 판</b></td><td class="was">—</td><td>같은 마을·같은 조작, 이웃이 오지 않고 밤 시계가 흐르지 않는다(끝·결과·랭킹 없음). 루미가 걷는 모습 확인용, 일시정지 → 홈으로</td><td class="date">11-06</td></tr>
-  <tr><td><b>플레이 HUD</b></td><td class="was">상단 시간·점수·콤보 / 하단 불꽃·장착물·일시정지</td><td>위 한 줄 = 달·“밤 mm:ss”·민트 진행 바·점수·콤보. 아래 = 불꽃 5개·시너지 게이지·장착물 칸·일시정지. 아래 띠 바로 위 양쪽에 두 스틱. 화면 밖 이웃은 가장자리 라벤더 화살표로 알림 <span class="tag">제안</span></td><td class="date">10-30 · 11-04</td></tr>
-  <tr><td><b>그 밖의 화면</b></td><td class="was">—</td><td>선택(아치 속 큰 초상·5칸·장착물), 상점(스킨·등불·빛 색 탭, M6 전까지 준비 중), 지난 밤들(오늘·이번 주·전체), 설정(배경음악·효과음·진동·닉네임·조작 안내), 일시정지 “잠시 쉬어요”, 결과(새벽 / 여기까지 두 톤), 보스 체력바(라벤더)</td><td class="date">10-30</td></tr>
-  <tr><td><b>아트 디렉션</b></td><td class="was">아트 리소스 없음, Phaser Graphics 도형 플레이스홀더</td><td>레퍼런스 그림(<code>reference/ChatGPT-Images/</code>, 1순위 「달빛 숲의 등불지기 고양이」)이 기준: 작은 동물들의 밤 마을, 크고 불규칙한 판석 광장, 따뜻한 창문과 처마 등불, 남색 + 호박빛 대비, 빛이 닿은 곳만 켜짐. 실제 그림은 라이언이 ChatGPT로 만들고 <code>art-src/</code> → 가져오기 도구로 넣는다</td><td class="date">10-30 · 11-04</td></tr>
-  <tr><td><b>버튼</b></td><td class="was">보조 버튼 민트 테두리</td><td>보조 버튼은 어두운 바탕에 <b>밝은 테두리</b>(레퍼런스에 맞춤). 주요 버튼 호박 채움은 그대로</td><td class="date">10-30</td></tr>
-</table>
-
-<h2>9. 기술 스택과 로드맵</h2>
-<table>
-  <tr><th>항목</th><th>본문</th><th>개정</th><th>날짜</th></tr>
-  <tr><td><b>서버·로그인·호스팅</b></td><td class="was">Node.js + Fastify · PostgreSQL, Google OAuth 2.0, 정적 CDN + 소형 VPS, REST /api/*</td><td><b>Firebase로 전부 대체</b>: Hosting(https://light-defense-game.web.app), Authentication(Google), Cloud Firestore(서울 asia-northeast3, <code>RemoteRanking</code>이 SDK로 직접 읽고 씀). 점수 제출 필드·랭킹 규칙·<code>LocalRanking</code> 폴백·오프라인 토스트는 그대로</td><td class="date">10-28</td></tr>
-  <tr><td><b>UI 구현</b></td><td class="was">Phaser 씬(HudScene·버튼·카드)</td><td>메뉴와 HUD는 캔버스 위 <b>HTML/CSS 오버레이</b>(프레임워크 없이 TS). Phaser는 Boot → Preload → Play만 돈다</td><td class="date">10-28</td></tr>
-  <tr><td><b>M5</b></td><td class="was">Fastify + PostgreSQL, Google 로그인, RemoteRanking, 점수 검증</td><td>Firebase Auth + Firestore 랭킹, RemoteRanking, 점수 검증(보안 규칙 또는 Cloud Functions — M5에서 결정). 게스트는 Firebase 익명 로그인 제안</td><td class="date">10-28</td></tr>
-  <tr><td><b>개발 규칙 추가</b></td><td class="was">—</td><td>스킬·기획서에 반영할 결정은 즉시 갱신하고 라이언에게 알린다(이 개정 사항이 그 기록)</td><td class="date">11-06</td></tr>
-</table>
-
-<h2>10. 열린 결정 <small>추가된 항목 (괄호는 지금 값)</small></h2>
+<h2>2. 세계관과 톤</h2>
 <ul>
-  <li>8. 두 스틱 조작 수치: 이동 속도 225, 마을 2400×2400, 스틱 데드존 0.18, 자동 조준(사거리 안 가장 가까운 이웃, 없으면 가장 가까운 이웃), 붙은 이웃은 등불이 닿는 거리 ×1.25 밖으로 멀어지면 떨어짐, PC 마우스 취소 반경 48, 발 판정 반지름 26 (휴대폰 체감 후 조정)</li>
-  <li>9. 장애물이 빛도 막는지 (막지 않음 — 브롤스타즈는 벽이 공격을 막음), 땅으로 걷는 이웃(그르르·말랑·킥킥, M2)이 장애물을 돌아가는지 (M2에서 돌아가게)</li>
-  <li>10. 풀숲 숨기 수치: 알아채는 거리 140, 빛을 쏘면 1초 드러남, 숨었을 때 불투명도 0.45 (그대로)</li>
-  <li>11. 슬로건 “탭 한 번, 빛 한 줄기.”를 두 스틱 조작에 맞게 바꿀지 (그대로)</li>
+  <li><b>빛의 마을과 어둠의 마을</b>: 서로 다른 환경에서 사는 주민들의 영역. 빛의 마을이 넓어지자 공격적인 어둠의 주민들이 외곽 등불을 꺼뜨렸고, 빛을 잃은 빛의 주민 일부는 본래 모습을 잃고 어둠의 무리에 섞였다(= 잃어버린 주민).</li>
+  <li><b>중앙 광원</b>: 마을의 심장이자 수호 토템. 어둠의 습격으로 금이 갔고, 꺼지면 마을이 함락된다.</li>
+  <li><b>루미</b>: 소중한 친구(토끼 토리, 다람쥐 도토)를 잃은 고양이. 중앙 광원에 마을을 지켜 달라고 빌다가, 흩어진 광원의 파편에서 빛을 쏘는 힘을 얻었다. 등불을 들지 않고 스스로 빛을 쏜다.</li>
+  <li><b>어둠의 주민</b>: 모두가 적은 아니다. 호스틸은 빛의 영역을 침략하고, 패시브는 전투 의지 없이 배회한다. 보스 <b>마녀 노월</b>(가칭)은 빛 때문에 터전을 잃는 어둠의 주민을 지키려 한다.</li>
+  <li><b>메시지</b>: 갈등은 한 번에 풀리지 않는다. 서로를 존중하는 무리가 조금씩 늘어 이해와 공존으로 나아간다.</li>
+  <li><b>톤</b>: 차분하고 은은하되 우울하지 않게, 플레이는 캐주얼하고 박진감 있게. 세계관은 짧게 — 첫 플레이 튜토리얼 스테이지의 짧은 스토리 소개(이후 건너뛰기), 패시브 주민의 한 줄 대사, 색·빛·소리. 피·폭발·비명 없음.</li>
+  <li><b>문구 규칙</b>: 짧게(한 줄 20자 안팎), 존댓말 "~요". UI 금지어 <b>죽·처치·킬·실패</b>. 게임 오버는 '패배' 대신 "오늘은 여기까지". 처리한 적은 "구출한 주민" / "돌려보낸 어둠의 주민".</li>
 </ul>
+
+<h2>3. 캐릭터 <small>플레이어블 3명, 추가 없음</small></h2>
+<table>
+  <tr><th>이름</th><th>동물</th><th>사거리 / 위력</th><th>특성 <span class="tag">제안</span></th><th>해금</th></tr>
+  <tr><td><b>루미</b> Lumi</td><td>검은 고양이(주황 스카프·초록 눈)</td><td>330 / 10</td><td>밤눈: 주변 빛 반경 ×1.15</td><td>기본</td></tr>
+  <tr><td><b>토리</b> Tori</td><td>토끼(흰 털·민트 리본)</td><td>270 / 8</td><td>빠른 손: 빛 대기 ×0.8</td><td>구출 스테이지 <span class="tag tag--todo">Phase 5</span></td></tr>
+  <tr><td><b>도토</b> Doto</td><td>다람쥐(붉은 갈색·복슬한 꼬리·황금 도토리)</td><td>300 / 9</td><td>볼주머니: 아이템 효과 ×1.5</td><td>구출 스테이지 <span class="tag tag--todo">Phase 5</span></td></tr>
+</table>
+<p class="note">공통: 이동 225, HP 100, 하트 3, LP 10~100, 빛 60° 부채꼴·대기 0.4초(토리 0.32초)·넉백 70·스턴 0.3초. 토리·도토는 루미의 잃어버린 친구라 잠긴 동안 선택 화면에 빛을 잃은 모습(검은 털 + 보랏빛 눈)으로 보인다.</p>
+
+<h2>4. 적 <small>세 무리 + 보스</small></h2>
+<table>
+  <tr><th>무리</th><th>정체</th><th>빛으로 HP가 다하면</th><th>공격</th></tr>
+  <tr><td><b>잃어버린 빛의 주민</b></td><td>빛을 잃고 어둠에 적응한 빛의 마을 주민</td><td>본래 모습을 되찾아 <b>중앙으로 뛰어가는 몸짓과 함께 사라짐 = 구출</b>(점수 높음)</td><td>루미·광원·등불</td></tr>
+  <tr><td><b>어둠의 호스틸</b></td><td>빛을 위협으로 여기지만 영역을 지키려 침입</td><td>맵 바깥으로 돌아가며 사라짐</td><td>루미·광원·등불</td></tr>
+  <tr><td><b>어둠의 패시브</b></td><td>전투 의지 없이 어둠의 마을·경계를 배회</td><td>이득 없음(여러 번 공격하면 호스틸 급증 — 분노)</td><td>하지 않음. 길·아이템 자리를 막는다. 공격하지 않고 지나가면 <b>자비 점수</b></td></tr>
+  <tr><td><b>보스</b></td><td>마녀 노월(가칭)</td><td>보스 스테이지 승리</td><td>보스 패턴 <span class="tag tag--todo">Phase 5</span></td></tr>
+</table>
+<table>
+  <tr><th>이름</th><th>무리</th><th>HP</th><th>속도</th><th>루미 피해 / 주기</th><th>광원 피해</th><th>점수</th><th>행동</th><th>상태</th></tr>
+  <tr><td><b>박쥐</b></td><td>호스틸</td><td>8</td><td>150</td><td>3 / 1.0초</td><td>0.6</td><td>100</td><td>지그재그, 1~3마리 무리, 날아서 장애물 무시</td><td>구현</td></tr>
+  <tr><td>웨어울프</td><td>호스틸</td><td>30</td><td>95</td><td>10 / 1.4초</td><td>4</td><td>150</td><td>곧게 돌진, 넉백 절반</td><td><span class="tag tag--todo">Phase 3</span></td></tr>
+  <tr><td>뱀파이어</td><td>호스틸</td><td>18</td><td>120</td><td>6 / 1.0초</td><td>3</td><td>130</td><td>빛·등불을 피해 돌아감</td><td><span class="tag tag--todo">Phase 3</span></td></tr>
+  <tr><td><b>개구리</b></td><td>잃어버린 주민</td><td>16</td><td>85</td><td>3 / 1.2초</td><td>0.8</td><td>200</td><td>폴짝폴짝. 구출되면 연둣빛 제 모습으로 중앙 쪽에 뛰어감</td><td>구현</td></tr>
+  <tr><td>고슴도치</td><td>잃어버린 주민</td><td>22</td><td>70</td><td>6 / 1.2초</td><td>3</td><td>220</td><td>곧게</td><td><span class="tag tag--todo">Phase 3</span></td></tr>
+  <tr><td>레서판다</td><td>잃어버린 주민</td><td>14</td><td>115</td><td>4 / 1.0초</td><td>2</td><td>200</td><td>지그재그</td><td><span class="tag tag--todo">Phase 3</span></td></tr>
+  <tr><td>올빼미 · 나방 · 반딧불이</td><td>패시브</td><td>6~10</td><td>40~55</td><td>—</td><td>—</td><td>자비 300</td><td>배회, 빛을 피하는 몸짓, 한 줄 대사</td><td><span class="tag tag--todo">Phase 3</span></td></tr>
+  <tr><td>마녀 노월</td><td>보스</td><td>200</td><td>50</td><td>—</td><td>—</td><td>1000</td><td>보스 패턴</td><td><span class="tag tag--todo">Phase 5</span></td></tr>
+</table>
+<p class="note">수치는 모두 <span class="tag">제안</span>. 적 AI: 루미가 보이고 480 안이면 루미, 아니면 가장 가까운 광원(중앙·켜진 등불)을 노린다. 붙으면 주기마다 피해(밀려났다 다시 붙어도 주기를 지킴). 빛에 닿을 때의 반응(움찔·눈 가림·느려짐·등불 피하기)과 적의 필살기(속도 스턴·체력 밀어냄·광도 깎기·방어)는 <span class="tag tag--todo">Phase 3</span>. 패시브 대사: "너무 밝아..", "싸우기 싫어..", "저 빛이 무서워", "우리도 여기서 살고 있어".</p>
+
+<h2 class="page-break">5. 코어 게임플레이</h2>
+<h3>5-1. 조작 — 두 스틱(브롤스타즈식)</h3>
+<table>
+  <tr><th>입력</th><th>동작</th></tr>
+  <tr><td><b>왼쪽 스틱</b> / WASD·방향키</td><td>걷기(속도 225). 장애물·광원 받침·등불 밑동은 지나갈 수 없다</td></tr>
+  <tr><td><b>오른쪽 스틱 끌기</b> / 마우스 누른 채 끌기</td><td><b>루미의 중심</b>에서 60° 원뿔 범위(밝은 노랑 50%, 선 없음)가 바닥에 보인다. 반지름 = 끈 거리에 비례(스틱 0~1 × 사거리, 마우스 = 커서까지 거리). 걸으면서도 조절</td></tr>
+  <tr><td><b>놓기</b></td><td>그 방향·그 길이로 발사. 다음 발사까지 0.4초</td></tr>
+  <tr><td><b>짧게 탭</b></td><td>반자동: 사거리 안의 가장 가까운 적에게. <b>사거리 안에 적이 없으면 쏘지 않는다</b>(LP도 쓰지 않음)</td></tr>
+  <tr><td><b>취소</b></td><td>끌었다 가운데로 되돌려 놓기 / 마우스를 루미 위(48 안)에서 놓기</td></tr>
+  <tr><td><b>스틱 좌우 바꾸기</b></td><td>설정 <span class="tag tag--todo">Phase 6</span></td></tr>
+</table>
+<h3>5-2. 루미 — HP·하트·LP</h3>
+<ul>
+  <li><b>HP 100, 하트 3개</b>(스테이지마다). 적에게 맞으면 HP만 준다(LP는 그대로). 4초 동안 맞지 않으면 초당 +1, 중앙 광원 220 안에서는 초당 +6 <span class="tag">제안</span></li>
+  <li><b>HP 0</b> → 하트 1개를 잃고 그 자리에 잠듦 → 1.5초 뒤 중앙 광원 아래에서 <b>HP 100%</b>로 다시 나타남. 무적 2.5초, 부활 빛기둥이 둘레의 적을 밀어냄 <span class="tag">제안</span></li>
+  <li><b>하트 0</b> → 게임 오버("오늘은 여기까지")</li>
+  <li><b>LP</b>(빛 자원): 10(= 광도 '낮음', 0이 되지 않음)~100, 시작 100. 발사마다 −6, 꺼진 등불을 켜면 −10(남은 양과 상관없이 켜짐). 초당 회복: 들판 3 · 켜진 등불 곁 6 · 중앙 광원 곁 12. LP가 바닥에 가까울수록 사거리·위력 ×0.7까지 약해짐 <span class="tag">제안</span></li>
+</ul>
+<h3>5-3. 광도</h3>
+<p>0~100 연속값을 <b>4단계</b>로 나눈다: 25 미만 낮음 · 50 미만 중간 · 75 미만 밝음 · 그 이상 크게 밝음.</p>
+<table>
+  <tr><th>대상</th><th>규칙</th></tr>
+  <tr><td><b>중앙 광원</b></td><td>광도 = HP. '중간'(45)에서 시작해 초당 +0.4 오른다. 적이 붙으면 줄고, 10에 닿으면 꺼짐 = 게임 오버 <span class="tag">제안</span></td></tr>
+  <tr><td><b>등불 스테이션</b></td><td>HP 없이 광도 게이지. 꺼짐(10) → 빛을 맞으면 1.2초 뒤 켜짐(100) → 적에게 맞으면 광원 피해의 절반씩 줄고 10이면 다시 꺼짐(다시 켤 수 있음). 맵 전체 광도가 더 크면 그 값을 따른다 <span class="tag">제안</span></td></tr>
+  <tr><td><b>맵 전체</b></td><td>진행할수록 점점 빨리 밝아진다(0.55 × 진행²). <b>모든 등불이 켜지면 ×1.35 버프.</b> 중앙 광원이 맞으면 크게, 루미가 맞으면 조금 어두워지고(클라이맥스에는 더 크게) 서서히 회복 <span class="tag">제안</span></td></tr>
+  <tr><td><b>루미 주변</b></td><td>LP에 비례해 넓게 밝힌다. 진행할수록 넓어짐</td></tr>
+  <tr><td><b>지역</b></td><td>빛의 마을 낮음→크게 밝음, 경계 중간 그라데이션, 어둠의 마을 낮음→중간 <span class="tag tag--todo">Phase 2</span></td></tr>
+</table>
+<h3>5-4. 빛</h3>
+<p>60° 부채꼴이 쏜 자리에서 0.25초에 퍼지며 앞쪽 가장자리가 닿는 순간 한 번씩 맞힌다. 맞히는 것: 적과 꺼진 등불. 장애물은 빛을 막지 않는다. 위력 = 캐릭터 위력 × LP 약해짐.</p>
+
+<h2>6. 스테이지</h2>
+<table>
+  <tr><th>항목</th><th>내용</th></tr>
+  <tr><td><b>흐름</b></td><td>① 첫 화면이 중앙 광원과 루미를 비춘다(루미는 빛기둥 속에 나타남) ② 0~70%: 어두운 마을을 로밍하며 적을 돌려보내고 구출하고, 외곽 등불을 켤지 중앙을 지킬지 고른다 ③ 70%~ 클라이맥스: 적이 크게 늘고 광도 변화가 커진다 ④ 아침: 마을이 켜지고 남은 적이 물러난다</td></tr>
+  <tr><td><b>시간대(연출)</b></td><td>0~40% 초저녁 · 40~70% 한밤중 · 70%~ 새벽 전(클라이맥스) · 끝 = 아침</td></tr>
+  <tr><td><b>1스테이지</b></td><td>빛의 마을, 100초, 등불 1개. 평소: 동시 최대 3, 생성 간격 4.0→3.0초, 박쥐 3 : 개구리 1(처음 6초는 박쥐만). 클라이맥스: 동시 최대 6, 2.4→2.0초, 박쥐 3 : 개구리 2. <b>첫 스테이지는 쉽게</b>(라이언) <span class="tag">제안</span></td></tr>
+  <tr><td><b>스테이지 진행</b></td><td>맵 3종 = 스테이지 테마(빛의 마을·경계·어둠의 마을), 오를수록 등불 1→4개, 구출 스테이지에서 토리·도토 해금, 노월 보스 스테이지 <span class="tag tag--todo">Phase 5</span></td></tr>
+</table>
+<h3>승패</h3>
+<table>
+  <tr><th>결과</th><th>조건</th><th>화면 문구</th></tr>
+  <tr><td><b>기본 승리</b></td><td>아침에 하트 1개 이상 + 중앙 광원 켜짐</td><td>아침이 왔어요 / 중앙 광원을 지켰어요 · 남은 하트 {n}개</td></tr>
+  <tr><td><b>완전 승리</b></td><td>아침에 중앙 광원과 모든 등불이 '밝음' 이상 → 총점 ×2.5 <span class="tag">제안</span></td><td>마을이 환해졌어요 / 중앙 광원과 등불이 모두 밝게 빛나요 · 점수 ×2.5</td></tr>
+  <tr><td><b>게임 오버</b></td><td>하트 0 또는 중앙 광원 꺼짐</td><td>오늘은 여기까지 / 버틴 시간 · 구출한 주민 (광원이 꺼지면 "중앙 광원이 잠들었어요")</td></tr>
+  <tr><td><b>보스 스테이지</b></td><td>보스 HP 0이면 승리 <span class="tag tag--todo">Phase 5</span></td><td>—</td></tr>
+</table>
+
+<h2>7. 맵</h2>
+<div class="map">
+  <img src="../../sketches/new-plan/map-stations.png" alt="" />
+  <figcaption>빛의 마을 전체(3200×1800). 가운데 중앙 광원, 둘레 네 곳은 등불 스테이션이 놓일 수 있는 자리 후보. <b>첫 스테이지는 등불 1개</b> — 판마다 네 곳 중 한 곳에만 생긴다(이 판은 ★ 남서쪽)</figcaption>
+</div>
+<ul>
+  <li>마을 16:9 <b>3200×1800</b>, 카메라가 루미를 따라가고 둘 다 마을 밖으로 못 나간다. 화면은 짧은 변 540 고정(가로 폭 720~1280)이라 물체 크기는 그대로, 보는 프레임만 바뀐다.</li>
+  <li><b>중앙 광원</b>(1600, 900). <b>등불 자리 후보</b> 서쪽(850, 900) · 동쪽(2350, 950) · 북동쪽(2000, 520) · 남서쪽(1150, 1350) — 중앙에서 450~900 떨어진 외곽. 스테이지의 등불 수만큼(<b>첫 스테이지 1개</b>, 이후 최대 4개) 판마다 seed로 고른다. 화면 밖의 꺼진 등불은 가장자리에 숨 쉬듯 번지는 <b>호박빛 마름모</b>로 알리고, 판 시작에 "호박빛 표시를 따라 꺼진 등불을 켜요"라고 한 번 안내한다 <span class="tag">제안</span></li>
+  <li><b>풀숲</b> 8곳: 들어가면 반투명, 140 안의 적만 알아채고 쫓던 적은 3초 맴돌다 광원으로, 빛을 쏘면 1초 드러남. 오래 숨으면 루미 자신의 빛 때문에 은신이 풀림 <span class="tag tag--todo">Phase 2</span></li>
+  <li><b>장애물</b>: 바위·술통·등불 기둥 + 광원 받침·등불 밑동(루미는 못 지나감, 박쥐는 날아서 무시). 마을 건물·울타리·강과 다리, 지역 3구획 <span class="tag tag--todo">Phase 2</span></li>
+</ul>
+
+<h2>8. 점수·콤보·자비·아이템</h2>
+<div class="cols">
+<table>
+  <tr><th>점수</th><th></th></tr>
+  <tr><td>등불 켜기</td><td>50</td></tr>
+  <tr><td>호스틸 돌려보냄</td><td>적 점수(박쥐 100)</td></tr>
+  <tr><td>잃어버린 주민 구출</td><td>적 점수(개구리 200)</td></tr>
+  <tr><td>자비</td><td>300</td></tr>
+  <tr><td>보스</td><td>1000</td></tr>
+  <tr><td>아침까지</td><td>+500</td></tr>
+  <tr><td>완전 승리</td><td>총점 ×2.5</td></tr>
+</table>
+<div>
+  <p><b>콤보</b>: 구출·돌려보냄마다 +1, 3초 안에 다음이 없으면 끊김(0). 배율 1 + ⌊콤보÷5⌋×0.5(최대 4)가 유지 중 얻는 <b>모든 점수</b>에 붙는다. 5·10·20·30마다 금빛 "콤보 ×N". <span class="tag">제안</span></p>
+  <p><b>자비</b>: <b>어둠의 패시브 주민</b> 곁에서 공격하지 않고 지나가면 자비 점수. 횟수 제한 없음(같은 주민은 멀어졌다 다시 와야 다시 판정). 패시브를 여러 번 공격하면 호스틸 스폰이 늘어난다(분노) <span class="tag tag--todo">Phase 3</span></p>
+</div>
+</div>
+<table>
+  <tr><th>아이템 <span class="tag tag--todo">Phase 4</span></th><th>효과 <span class="tag">제안</span></th></tr>
+  <tr><td><b>바람 깃털</b></td><td>이동 ×1.35, 8초</td></tr>
+  <tr><td><b>별 목걸이</b></td><td>적 이동 ×0.7, 8초</td></tr>
+  <tr><td><b>반딧불 병</b></td><td>LP +35</td></tr>
+  <tr><td><b>황금 도토리</b></td><td>구출한 주민 2명이 10초 함께 싸움</td></tr>
+  <tr><td><b>빛의 부적</b></td><td>HP·LP +25, 스테이지마다 1개 기본</td></tr>
+</table>
+<p class="note">장착물은 없어지고 아이템이 대신한다. 모두 소모형: 시작 전에 챙기고 맵에서도 얻으며 1회 사용. 광도 '중간' 이상 구역·등불 둘레·경계에서 자주 나오고, 등불이 모두 꺼졌거나 광원에 적이 몰리면 가까운 곳에만. 바닥에는 최대 3개.</p>
+
+<h2 class="page-break">9. 화면·비주얼·사운드</h2>
+<table>
+  <tr><th>화면</th><th>구성</th></tr>
+  <tr><td><b>스플래시</b></td><td>흐린 홈 그림·일렁이는 등불·금빛 로고·불러오기 막대, 최소 1.2초</td></tr>
+  <tr><td><b>홈</b></td><td>로고 + 슬로건 "작은 빛으로, 마을을 되찾아요." · <b>게임하기</b> · 지난 밤들 · 상점 · ⚙. 첫 플레이는 튜토리얼 스테이지 필수, 이후 건너뛰기 <span class="tag tag--todo">Phase 6</span></td></tr>
+  <tr><td><b>캐릭터 선택</b></td><td>아치 속 큰 초상, 좌우 화살표, 이름·소개·사거리·위력·특성, 3칸 명단. 잠긴 친구는 빛을 잃은 모습 + "잃어버린 친구예요. 구출하면 함께해요". 버튼 "빛을 밝혀요". 아이템 챙기기 <span class="tag tag--todo">Phase 4</span></td></tr>
+  <tr><td><b>플레이 HUD</b></td><td>위 한 줄: 달 · "밤 mm:ss" · 민트 진행 바(한밤중·클라이맥스 눈금) · 점수 · 콤보. 아래 띠: 하트 3개 + HP 막대 · 빛(LP) 막대 · 중앙 광원 막대(낮으면 잔불 맥박) · 켠 등불 수 · 일시정지. 양쪽 엄지 자리에 두 스틱. 화면 밖 적은 라벤더 화살표, 꺼진 등불은 호박빛 마름모</td></tr>
+  <tr><td><b>결과</b></td><td>오늘 전투 개요: 제목·부제(6절), 통계 오늘 점수 · 최대 콤보 · 구출한 주민 · 돌려보낸 어둠의 주민 · 켠 등불. 다시 한 번 / 홈으로 / 지난 밤들에 남기기</td></tr>
+  <tr><td><b>설정</b></td><td>배경음악·효과음·진동, 닉네임, 조작 안내. 추가: 음량, 가로/세로, 스틱 좌우 바꾸기 <span class="tag tag--todo">Phase 6</span></td></tr>
+  <tr><td><b>지난 밤들 · 상점</b></td><td>오늘·이번 주·전체 랭킹(지금은 이 기기 안) / 상점 "준비 중"(수익 모델: 아이템 샵·광고·기부)</td></tr>
+</table>
+<ul>
+  <li><b>아트 디렉션</b>: 레퍼런스 그림 「달빛 숲의 등불지기 고양이」 — 작은 동물들의 아늑한 밤 마을, 크고 불규칙한 판석 광장, 따뜻한 창문과 처마 등불, <b>어두운 남색 + 따뜻한 호박빛</b> 대비, 빛이 닿은 곳만 켜짐. 판타지 디펜스·쿼터뷰 RPG처럼 보이지 않게. 빛을 잃은 존재는 보랏빛 눈의 검은 털뭉치, 제 모습은 귀엽고 제 색.</li>
+  <li><b>그림</b>: 루미는 ChatGPT 8방향 대기·걷기 팩(그림 한 칸 128×128). 그 밖의 그림(중앙 광원·등불·적·토리·도토 초상·마을)은 <b>임시 그림을 직접 코드로 그린다</b>(2026-11-12 라이언).</li>
+  <li><b>레퍼런스</b>: Stray·OneShot(분위기·색감, 빛의 테마) · Cult of the Lamb(2.5D, 지면 재질) · Undertale(자비) · Brawl Stars(두 스틱, 맵·풀숲) · Super Animal Royale(친숙한 동물 구성·구획 배치만, 평평한 톱다운 결은 피함).</li>
+  <li><b>팔레트</b>: NIGHT #1B1F3B · DUSK #2A2F5A · PREDAWN #120F24 · DAWN #F2B880 · AMBER #FFC857 · MINT #9ED9B5 · LAVENDER #A89CD9 · EMBER #FF8C5A · PAPER #F6F1E7 · ASH #8A8FA8. 폰트 Pretendard → Noto Sans KR. 알약형 버튼(주요 호박 채움, 보조 밝은 테두리, 최소 48×48).</li>
+  <li><b>사운드</b> <span class="tag tag--todo">Phase 6</span>: BGM 홈·플레잉·상점·튜토리얼, 효과음 조준·발사·적중·등불 점화·아이템·클리어·게임 오버, 진동(피격·콤보, 설정으로 끔).</li>
+  <li><b>모바일 필수</b>: 60fps, 깜빡임 초당 3회 이하, 소리는 첫 입력 이후, 터치 중 스크롤·확대 막기.</li>
+</ul>
+
+<h2>10. 기술과 서버</h2>
+<table>
+  <tr><th>계층</th><th>선택</th></tr>
+  <tr><td><b>클라이언트</b></td><td>Phaser 3.90 · TypeScript 5 · Vite · Vitest. 2D 스프라이트 + 깊이 정렬 + 빛 오버레이(2.5D)</td></tr>
+  <tr><td><b>UI</b></td><td>메뉴와 HUD는 캔버스 위 HTML/CSS 오버레이(프레임워크 없이 TS), 게임과는 이벤트로만 연결</td></tr>
+  <tr><td><b>데이터</b></td><td>밸런스 수치는 전부 JSON(<code>src/data/</code>), 순수 로직은 Phaser 없이 테스트</td></tr>
+  <tr><td><b>서버</b></td><td>Firebase: Hosting(https://light-defense-game.web.app), Authentication·Firestore(서울) 랭킹은 핵심 플레이 검증 뒤. 지금 랭킹은 이 기기 안</td></tr>
+</table>
+
+<h2>11. 개발 단계</h2>
+<table>
+  <tr><th>단계</th><th>목표</th><th>상태</th></tr>
+  <tr><td><b>Phase 0</b></td><td>기존 코드 감사</td><td>완료 11-12</td></tr>
+  <tr><td><b>Phase 1</b></td><td>핵심 판: 중앙 광원·등불 1·루미 HP/하트/LP·박쥐·개구리·100초 승패·HUD·결과</td><td>완료 11-12 (라이브)</td></tr>
+  <tr><td><b>Phase 2</b></td><td>광도 모델 완성·등불 여러 개·전체 버프·지역 3구획·강·다리·울타리·건물·풀숲 은신 시간</td><td></td></tr>
+  <tr><td><b>Phase 3</b></td><td>적 무리 차별화(호스틸 3·잃어버린 주민 3·패시브 3), 빛 반응, 필살기, 자비·분노·대사, 클라이맥스 연출</td><td></td></tr>
+  <tr><td><b>Phase 4</b></td><td>아이템 5종, 점수·콤보, 완전 승리 보상, 결과 요약</td><td></td></tr>
+  <tr><td><b>Phase 5</b></td><td>맵 3종(스테이지 테마), 스테이지 진행(등불 1→4), 토리·도토 구출·해금, 노월 보스 스테이지</td><td></td></tr>
+  <tr><td><b>Phase 6</b></td><td>튜토리얼·설정(음량·스틱 좌우·휴대폰 방향)·사운드·모바일 마무리</td><td></td></tr>
+</table>
+<p class="note">한 Phase를 끝내고 검증·보고한 뒤 다음으로 간다. 세부 수치·작은 설계는 개발 중 정해 <span class="tag">제안</span>으로 표시하고, 큰 방향만 라이언이 정한다.</p>
+
+<h2>12. 개정 이력</h2>
+<table>
+  <tr><th>날짜</th><th>내용</th></tr>
+  <tr><td class="date">10-28</td><td>통합 기획서(가칭): 탭 한 번으로 빛을 보내 하룻밤 120초 동안 등불을 지키는 세로 아케이드 디펜스. 서버는 Firebase로 전부 대체, 메뉴·HUD는 HTML/CSS 오버레이</td></tr>
+  <tr><td class="date">10-30</td><td>아트 디렉션을 레퍼런스 그림(<code>reference/ChatGPT-Images/</code>)으로: 작은 동물들의 밤 마을, 남색과 호박빛 대비. Super Animal Royale 같은 평평한 톱다운은 피함</td></tr>
+  <tr><td class="date">11-04</td><td>조작을 브롤스타즈식 두 스틱으로(이동·빛), 넓은 마을 + 카메라 따라감, 풀숲·장애물. 루미 8방향 모습</td></tr>
+  <tr><td class="date">11-06</td><td>루미 중심의 원뿔(반지름 = 끈 거리 비례), 사거리 1.5배, 이동 225, PC 마우스 끌어 놓기, 가로 화면(마을 16:9 3200×1800), 첫 스테이지 쉽게</td></tr>
+  <tr><td class="date">11-12</td><td><b>새 기획(XMind 1112)으로 전면 개편</b>: 중앙 광원 + 등불 스테이션, 루미 HP·하트·LP, 광도 4단계, 100초 스테이지와 클라이맥스, 적 세 무리(구출·돌려보냄·자비), 장착물 → 아이템, 시너지·대광원 없앰, 캐릭터 3명(도토는 다람쥐), 반자동은 대상이 없으면 쏘지 않음, 맵 3종 = 스테이지 테마, 게임 오버 "오늘은 여기까지". Phase 1 완료·라이브 반영. 자비는 어둠의 패시브 주민 대상(확정), 잃어버린 주민은 구출되면 중앙으로 뛰어가는 몸짓과 함께 사라짐, 정해진 에셋(루미) 외 그림은 임시 그림을 직접 그림</td></tr>
+</table>
+<p class="note">이전 원본: <code>reference/라이트_디펜스_게임개발기획서(가칭).pdf</code>(2026-10-28)와 라이언의 XMind <code>reference/light-defense-xmind-1112.pdf</code>는 그대로 보관한다.</p>
 </body>
 </html>

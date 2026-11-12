@@ -370,8 +370,9 @@ body {
 .heart {
   width: calc(var(--u) * 26);
   height: calc(var(--u) * 26);
-  color: #ff7a8a;
-  filter: drop-shadow(0 0 calc(var(--u) * 4) rgba(255, 110, 130, 0.5));
+  /* 팔레트 안에서: 하트는 잔불색(빨강을 쓰지 않는다, 2026-11-12) */
+  color: var(--ember);
+  filter: drop-shadow(0 0 calc(var(--u) * 4) color-mix(in srgb, var(--ember) 50%, transparent));
   transition: color 0.3s, filter 0.3s, transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -404,7 +405,7 @@ body {
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background: linear-gradient(to right, #ff8a7a, #ffb36b);
+  background: linear-gradient(to right, var(--ember), var(--dawn));
   transform: scaleX(var(--p, 1));
   transform-origin: left center;
   transition: transform 0.2s ease-out;
@@ -868,11 +869,6 @@ body {
   letter-spacing: -0.02em;
   color: var(--amber);
   font-variant-numeric: tabular-nums;
-}
-
-.result__witch {
-  font-size: calc(var(--u) * 15);
-  color: var(--lavender);
 }
 
 .result__stats {

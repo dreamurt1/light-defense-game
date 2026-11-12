@@ -5,6 +5,8 @@ import { h, svg } from '../dom';
 import { chevronLeftIcon } from '../icons';
 
 export const portraitUrl = (id: CharacterId): string => `assets/characters/portrait-${id}.png`;
+/** 잠긴 친구(토리·도토)의 빛을 잃은 모습 초상 (2026-11-12) */
+export const lostPortraitUrl = (id: CharacterId): string => `assets/characters/portrait-${id}-lost.png`;
 
 export function screenBar(title: string, back: ScreenId = 'home'): HTMLElement {
   const backButton = h('button', { class: 'icon-button', type: 'button', 'aria-label': '뒤로' }, svg(chevronLeftIcon));

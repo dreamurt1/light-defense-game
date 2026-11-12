@@ -12,13 +12,16 @@ const INSET = {
 const SIZE = 11;
 const COLOR = 0xa89cd9;
 const BEACON = 0xffc857;
+/** 등불 마름모는 적 화살표보다 크고 천천히 숨 쉬듯 번진다(1.6초 주기 — 깜빡임 규칙 안, 2026-11-12 등불을 찾기 쉽게, 제안) */
+const BEACON_SIZE = 17;
+const BEACON_PULSE_MS = 260;
 /** 이만큼 떨어지면 가장 옅게 */
 const FAR = 520;
 
 export class EdgeArrows {
   private readonly g: Phaser.GameObjects.Graphics;
 
-  constructor(scene: Phaser.Scene) {
+  constructor(private readonly scene: Phaser.Scene) {
     this.g = scene.add.graphics().setScrollFactor(0).setDepth(4600);
   }
 
@@ -55,16 +58,25 @@ export class EdgeArrows {
       const alpha = 0.95 - 0.6 * Math.min(1, outside / FAR);
       const a = Math.atan2(dy, dx);
       if (beacon) {
-        g.fillStyle(BEACON, 0.9);
-        g.fillPoints(
-          [
-            { x: px + Math.cos(a) * SIZE, y: py + Math.sin(a) * SIZE },
-            { x: px + Math.cos(a + Math.PI / 2) * SIZE * 0.6, y: py + Math.sin(a + Math.PI / 2) * SIZE * 0.6 },
-            { x: px - Math.cos(a) * SIZE * 0.7, y: py - Math.sin(a) * SIZE * 0.7 },
-            { x: px + Math.cos(a - Math.PI / 2) * SIZE * 0.6, y: py + Math.sin(a - Math.PI / 2) * SIZE * 0.6 },
-          ],
-          true,
-        );
+        const pulse = 0.5 + 0.5 * Math.sin(this.scene.time.now / BEACON_PULSE_MS);
+        const S = BEACON_SIZE;
+        // 안쪽으로 조금 들여 번지는 빛이 화면 밖으로 잘리지 않게
+        const bx = px - Math.cos(a) * 6;
+        const by = py - Math.sin(a) * 6;
+        g.fillStyle(BEACON, 0.14 + 0.16 * pulse);
+        g.fillCircle(bx, by, S + 4 + 6 * pulse);
+        const pts = [
+          { x: bx + Math.cos(a) * S, y: by + Math.sin(a) * S },
+          { x: bx + Math.cos(a + Math.PI / 2) * S * 0.6, y: by + Math.sin(a + Math.PI / 2) * S * 0.6 },
+          { x: bx - Math.cos(a) * S * 0.7, y: by - Math.sin(a) * S * 0.7 },
+          { x: bx + Math.cos(a - Math.PI / 2) * S * 0.6, y: by + Math.sin(a - Math.PI / 2) * S * 0.6 },
+        ];
+        g.fillStyle(BEACON, 0.95);
+        g.fillPoints(pts, true);
+        g.lineStyle(2, 0x120f24, 0.8);
+        g.strokePoints(pts, true);
+        g.fillStyle(0xfff1c9, 1);
+        g.fillCircle(bx, by, 3);
         continue;
       }
       g.fillStyle(COLOR, alpha);

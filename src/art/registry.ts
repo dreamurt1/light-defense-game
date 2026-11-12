@@ -4,6 +4,7 @@
 // 그림(ChatGPT로 생성, docs/art-order.md)이 art-src/<분류>/에 있으면 코드 그림 대신 그 그림을 art 규격대로 다듬어 쓴다.
 import { GameData, type CharacterId } from '../data';
 import { KEEPER_SPRITE, PORTRAIT, drawKeeperFrame, drawPortrait } from './characters';
+import { drawFriendPortrait } from './friends';
 import {
   FAN_TEXTURE_RADIUS,
   GLOW_SIZE,
@@ -123,8 +124,21 @@ const characters: SheetDef[] = [
       frameWidth: PORTRAIT.size,
       frameHeight: PORTRAIT.size,
       frames: 1,
-      draw: (ctx) => drawPortrait(ctx, id),
+      draw: (ctx) => (id === 'lumi' ? drawPortrait(ctx, id) : drawFriendPortrait(ctx, id, 'true')),
       // 선택·상점 카드에서 크게 보이므로 3배 해상도, 발끝 = 188
+      art: { poses: ['sit'], frames: still(1), fit: 'contain', box: { x: 10, y: 8, w: 172, h: 180 }, align: 'feet', res: 3 },
+    }),
+  ),
+  // 잠긴 친구(2026-11-12): 빛을 잃은 모습 — 검은 털 + 보랏빛 눈 (구출하면 제 모습 초상으로)
+  ...(['tori', 'doto'] as const).map(
+    (id): SheetDef => ({
+      key: `portrait-${id}-lost`,
+      category: 'characters',
+      label: `${GameData.characters.find((c) => c.id === id)?.name ?? id} 초상 (빛을 잃은 모습)`,
+      frameWidth: PORTRAIT.size,
+      frameHeight: PORTRAIT.size,
+      frames: 1,
+      draw: (ctx) => drawFriendPortrait(ctx, id, 'lost'),
       art: { poses: ['sit'], frames: still(1), fit: 'contain', box: { x: 10, y: 8, w: 172, h: 180 }, align: 'feet', res: 3 },
     }),
   ),

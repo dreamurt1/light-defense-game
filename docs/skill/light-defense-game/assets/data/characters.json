@@ -31,7 +31,7 @@
     },
     "unlock": "rescue",
     "color": "#F6F1E7",
-    "blurb": "빠르지만 빛은 작아요. 손이 빠른 걸 좋아한다면.",
+    "blurb": "루미의 단짝 토끼. 빛은 작아도 손이 빨라요.",
     "voicePitchHz": 660
   },
   {
@@ -48,7 +48,7 @@
     },
     "unlock": "rescue",
     "color": "#D9A066",
-    "blurb": "주워 온 건 뭐든 알뜰하게 써요.",
+    "blurb": "도토리를 아끼는 다람쥐. 아이템을 알뜰하게 써요.",
     "voicePitchHz": 880
   }
 ]

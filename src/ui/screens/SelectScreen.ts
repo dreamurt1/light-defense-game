@@ -5,7 +5,7 @@ import { RunState } from '../../core/RunState';
 import { GameData, type CharacterDef } from '../../data';
 import { h, svg } from '../dom';
 import { chevronLeftIcon, chevronRightIcon, lockIcon, playIcon } from '../icons';
-import { portraitUrl, screenBar, screenShell } from './common';
+import { lostPortraitUrl, portraitUrl, screenBar, screenShell } from './common';
 
 /** 특성 이름과 짧은 설명 (제안: 새 기획에 특성이 없어 기존 이름을 이어 씀) */
 const TRAIT: Record<CharacterDef['trait'], string> = {
@@ -14,7 +14,7 @@ const TRAIT: Record<CharacterDef['trait'], string> = {
   cheekPouch: '볼주머니 · 아이템 효과 1.5배',
 };
 
-/** 잠긴 친구 안내 (진행도 판정은 Phase 5) */
+/** 잠긴 친구 안내 (진행도 판정은 Phase 5). 잠긴 동안은 빛을 잃은 모습 초상을 보여 준다 */
 const LOCKED_LINE = '잃어버린 친구예요. 구출하면 함께해요';
 const isLocked = (c: CharacterDef) => c.unlock !== null;
 
@@ -50,7 +50,7 @@ export class SelectScreen {
       const b = h(
         'button',
         { class: 'roster-card', type: 'button', 'aria-label': `${c.name}${locked ? ' (잠김)' : ''}` },
-        h('img', { src: portraitUrl(c.id), alt: '', width: 64, height: 64 }),
+        h('img', { src: locked ? lostPortraitUrl(c.id) : portraitUrl(c.id), alt: '', width: 64, height: 64 }),
         locked ? h('span', { class: 'roster-card__lock' }, svg(lockIcon)) : '',
       );
       if (locked) b.classList.add('is-locked');
@@ -91,7 +91,7 @@ export class SelectScreen {
     this.index = (i + chars.length) % chars.length;
     const c = chars[this.index];
     const locked = isLocked(c);
-    this.portrait.src = portraitUrl(c.id);
+    this.portrait.src = locked ? lostPortraitUrl(c.id) : portraitUrl(c.id);
     this.portrait.classList.toggle('is-locked', locked);
     this.name.textContent = c.name;
     this.nameEn.textContent = c.nameEn;
