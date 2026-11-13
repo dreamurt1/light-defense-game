@@ -205,7 +205,7 @@
     "orbitSpeed": 0.22,
     "enterSec": 1.6,
     "hitRadius": 46,
-    "summonEverySec": 7,
+    "summonEverySec": 6,
     "summonCount": 2,
     "summonCap": 6,
     "orbEverySec": 4.5,

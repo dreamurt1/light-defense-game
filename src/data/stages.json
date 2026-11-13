@@ -52,7 +52,7 @@
     "spawn": {
       "onlyHostileUntilSec": 5,
       "normal": { "maxAlive": 7, "intervalStart": 2.4, "intervalEnd": 1.8, "weights": { "bat": 2, "vampire": 1, "werewolf": 1, "redpanda": 1, "hedgehog": 1, "frog": 1 } },
-      "climax": { "maxAlive": 11, "intervalStart": 1.4, "intervalEnd": 1.15, "weights": { "bat": 2, "vampire": 2, "werewolf": 2, "redpanda": 1, "hedgehog": 1, "frog": 1 } }
+      "climax": { "maxAlive": 10, "intervalStart": 1.5, "intervalEnd": 1.2, "weights": { "bat": 2, "vampire": 2, "werewolf": 2, "redpanda": 1, "hedgehog": 1, "frog": 1 } }
     },
     "passive": { "intervalSec": 12, "maxAlive": 2, "weights": { "firefly": 1, "owl": 1 } },
     "rescue": { "enemyId": "doto-lost", "atProgress": 0.3 },
@@ -68,7 +68,7 @@
     "spawn": {
       "onlyHostileUntilSec": 5,
       "normal": { "maxAlive": 5, "intervalStart": 3.0, "intervalEnd": 2.4, "weights": { "bat": 2, "vampire": 1, "werewolf": 1, "frog": 1 } },
-      "climax": { "maxAlive": 9, "intervalStart": 1.7, "intervalEnd": 1.4, "weights": { "bat": 2, "vampire": 1, "werewolf": 1, "frog": 1 } }
+      "climax": { "maxAlive": 9, "intervalStart": 1.7, "intervalEnd": 1.4, "weights": { "bat": 2, "vampire": 1, "werewolf": 2, "frog": 1 } }
     },
     "passive": { "intervalSec": 16, "maxAlive": 1, "weights": { "moth": 1, "firefly": 1 } },
     "boss": { "enemyId": "witch", "atSec": 8 },
