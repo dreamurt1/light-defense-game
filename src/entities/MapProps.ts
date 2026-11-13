@@ -9,6 +9,8 @@ import { texScale } from '../core/textureRes';
 import { GameData } from '../data';
 import type { Rect } from '../systems/obstacles';
 import { COTTAGE_LAMPS, COTTAGE_WINDOWS } from '../art/village';
+import { Occluders } from './Occluders';
+import type { Vec } from '../systems/fan';
 
 const MAP = GameData.map;
 const HIDE = GameData.game.hide;
@@ -24,6 +26,8 @@ export class MapProps {
   readonly obstacles: Rect[];
   readonly bushes: Rect[];
   private readonly bushLeaves: Phaser.GameObjects.Image[][];
+  /** 등불지기를 가리면 반투명해지는 물체들 (2026-11-13) */
+  readonly occluders = new Occluders();
 
   constructor(scene: Phaser.Scene) {
     const rng = new Rng(8803);
@@ -37,31 +41,36 @@ export class MapProps {
         for (let i = 0; i < n; i++) {
           const x = ob.x + ((i + 0.5) * ob.w) / n + rng.range(-6, 6);
           const y = ob.y + ob.h * rng.range(0.45, 0.75);
-          scene.add
+          const rock = scene.add
             .image(x, y, TextureKeys.villageRock, 0)
             .setOrigin(0.5, 0.7)
             .setScale(rng.range(1.05, 1.45) * texScale(TextureKeys.villageRock))
             .setFlipX(rng.chance(0.5))
             .setDepth(bottom);
+          this.occluders.add([rock], bottom);
         }
       } else if (ob.kind === 'barrels') {
-        scene.add
+        const barrel = scene.add
           .image(ob.x + ob.w / 2, bottom + 6, TextureKeys.villageBarrel, 0)
           .setOrigin(0.5, 1)
           .setScale(texScale(TextureKeys.villageBarrel))
           .setDepth(bottom);
+        this.occluders.add([barrel], bottom);
       } else if (ob.kind === 'wall' || ob.kind === 'fence') {
-        drawWall(scene, ob, ob.kind);
+        const rise = WALL_RISE[ob.kind];
+        this.occluders.add([drawWall(scene, ob, ob.kind)], bottom, { x: ob.x, y: ob.y - rise, w: ob.w, h: ob.h + rise });
       } else if (ob.kind === 'house') {
-        placeHouse(scene, ob, ob.variant ?? 0, !!ob.flip);
+        const house = placeHouse(scene, ob, ob.variant ?? 0, !!ob.flip);
+        this.occluders.add(house, bottom, house.length > 1 ? undefined : { x: ob.x - 14, y: bottom - 170, w: ob.w + 28, h: 170 });
       } else if (ob.kind === 'river') {
         // 강물은 아래에서 한 번에 그린다 (판정만)
       } else {
-        scene.add
+        const post = scene.add
           .image(ob.x + ob.w / 2, bottom, TextureKeys.villageLampPost, 0)
           .setOrigin(LAMP_FOOT.x, LAMP_FOOT.y)
           .setScale(texScale(TextureKeys.villageLampPost))
           .setDepth(bottom);
+        this.occluders.add([post], bottom);
       }
     }
 
@@ -89,8 +98,9 @@ export class MapProps {
     });
   }
 
-  /** 등불지기가 들어가 있는 풀숲(번호, 없으면 -1)을 반투명하게 */
-  update(dt: number, inside: number): void {
+  /** 등불지기가 들어가 있는 풀숲(번호, 없으면 -1)을 반투명하게, 등불지기를 가리는 물체도 반투명하게 */
+  update(dt: number, inside: number, keeper: Vec | null = null): void {
+    this.occluders.update(dt, keeper);
     const k = Math.min(1, dt * 8);
     this.bushLeaves.forEach((leaves, i) => {
       const target = i === inside ? HIDE.bushAlphaInside : BUSH_ALPHA;
@@ -103,7 +113,7 @@ export class MapProps {
 const WALL_RISE = { wall: 26, fence: 22 };
 
 /** 돌담·나무 울타리: 바닥 사각형(판정)을 위로 솟은 덩어리로 그린다. 밑변 y로 앞뒤를 정한다 */
-function drawWall(scene: Phaser.Scene, r: Rect, kind: 'wall' | 'fence'): void {
+function drawWall(scene: Phaser.Scene, r: Rect, kind: 'wall' | 'fence'): Phaser.GameObjects.Graphics {
   const g = scene.add.graphics().setDepth(r.y + r.h);
   const rise = WALL_RISE[kind];
   if (kind === 'wall') {
@@ -116,7 +126,7 @@ function drawWall(scene: Phaser.Scene, r: Rect, kind: 'wall' | 'fence'): void {
     for (let x = r.x + 18; x < r.x + r.w - 6; x += 22) g.lineBetween(x, front, x, r.y + r.h);
     g.lineBetween(r.x, front + (r.y + r.h - front) / 2, r.x + r.w, front + (r.y + r.h - front) / 2);
     g.fillStyle(0xa89cd9, 0.18).fillRect(r.x + 2, r.y - rise + 2, r.w - 4, 3);
-    return;
+    return g;
   }
   // 세로 울타리: 기둥이 위아래로 늘어서고 가로대가 세로로
   if (r.h > r.w * 2) {
@@ -125,7 +135,7 @@ function drawWall(scene: Phaser.Scene, r: Rect, kind: 'wall' | 'fence'): void {
     g.fillStyle(0x5a4636, 1);
     for (let i = 0; i <= n; i++) g.fillRect(r.x + 3, r.y - rise + (i * (r.h - 6)) / n, r.w - 6, 8);
     g.lineStyle(1, 0x1b1f3b, 0.7).strokeRect(r.x + 3, r.y - rise, r.w - 6, r.h + rise);
-    return;
+    return g;
   }
   // 울타리: 기둥 + 가로대 두 줄
   const posts = Math.max(2, Math.round(r.w / 34));
@@ -136,6 +146,7 @@ function drawWall(scene: Phaser.Scene, r: Rect, kind: 'wall' | 'fence'): void {
   }
   g.fillStyle(0x7a5e48, 1).fillRect(r.x, r.y - rise + 6, r.w, 6).fillRect(r.x, r.y - rise + 18, r.w, 6);
   g.lineStyle(1, 0x1b1f3b, 0.7).strokeRect(r.x, r.y - rise + 6, r.w, 18);
+  return g;
 }
 
 /** 오두막 그림 키 (src/art에서 그린 임시 그림, 없으면 아래 대체 그림) */
@@ -145,13 +156,14 @@ const houseKey = (variant: number) => `village-cottage-${variant}`;
  * 오두막: 판정 사각형(밑동) 아래 가운데에 세운다. 2.5D라 밑변 y로 앞뒤를 정한다.
  * 창문에는 따뜻한 불빛(어둠 속 따뜻한 빛)을 겹친다
  */
-function placeHouse(scene: Phaser.Scene, r: Rect, variant: number, flip: boolean): void {
+function placeHouse(scene: Phaser.Scene, r: Rect, variant: number, flip: boolean): (Phaser.GameObjects.Image | Phaser.GameObjects.Graphics)[] {
   const bottom = r.y + r.h;
   const key = houseKey(variant);
   if (scene.textures.exists(key)) {
     const cx = r.x + r.w / 2;
     const ground = bottom + 6;
-    scene.add.image(cx, ground, key, 0).setOrigin(0.5, 1).setScale(texScale(key)).setFlipX(flip).setDepth(bottom);
+    const house = scene.add.image(cx, ground, key, 0).setOrigin(0.5, 1).setScale(texScale(key)).setFlipX(flip).setDepth(bottom);
+    const parts: Phaser.GameObjects.Image[] = [house];
     // 창문·처마 등불의 따뜻한 빛 (어둠 속 따뜻한 빛, 뒤집힌 집이면 x도 뒤집음)
     const glow = (p: { x: number; y: number }, size: number, alpha: number) =>
       scene.add
@@ -161,9 +173,9 @@ function placeHouse(scene: Phaser.Scene, r: Rect, variant: number, flip: boolean
         .setAlpha(alpha)
         .setScale(size / 256)
         .setDepth(bottom + 0.1);
-    for (const w of COTTAGE_WINDOWS[variant] ?? []) glow(w, 70, 0.32);
-    for (const l of COTTAGE_LAMPS[variant] ?? []) glow(l, 96, 0.45);
-    return;
+    for (const w of COTTAGE_WINDOWS[variant] ?? []) parts.push(glow(w, 70, 0.32));
+    for (const l of COTTAGE_LAMPS[variant] ?? []) parts.push(glow(l, 96, 0.45));
+    return parts;
   }
   // 대체 그림: 벽·지붕·창문 (그림이 들어오기 전 임시)
   const g = scene.add.graphics().setDepth(bottom);
@@ -174,6 +186,7 @@ function placeHouse(scene: Phaser.Scene, r: Rect, variant: number, flip: boolean
   g.fillStyle(0xffc857, 0.85).fillRect(r.x + r.w * 0.22, top + 22, 20, 18).fillRect(r.x + r.w * 0.62, top + 22, 20, 18);
   g.fillStyle(0x1b1f3b, 1).fillRect(r.x + r.w / 2 - 12, bottom - r.h * 0.4 - 38, 24, 38);
   g.lineStyle(1.5, 0x120f24, 0.9).strokeRect(r.x, top, r.w, wallH + r.h * 0.4);
+  return [g];
 }
 
 /** 강물 색 (밤) */

@@ -70,6 +70,16 @@ export class LightStation {
     return this.cfg.radius;
   }
 
+  /** 등불지기를 가릴 수 있는 그림 (반투명 처리용) */
+  get art(): Phaser.GameObjects.Image {
+    return this.sprite;
+  }
+
+  /** 밑동 y (앞뒤 순서) */
+  get footY(): number {
+    return this.foot.y;
+  }
+
   /** 노란 화살표 끝 높이: 게이지 위 / 밑동 아래 (빛이 맞는 점 기준) */
   get arrowLift(): number {
     return this.topAbove + GAUGE.gap + GAUGE.h + 12;

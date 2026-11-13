@@ -49,6 +49,11 @@ export class CentralSource {
     this.gauge = new SourceGauge(scene, cfg.x, cfg.y - this.topAbove - GAUGE.gap, GAUGE.w, GAUGE.h);
   }
 
+  /** 등불지기를 가릴 수 있는 그림 (반투명 처리용) */
+  get art(): Phaser.GameObjects.Image {
+    return this.sprite;
+  }
+
   /** 노란 화살표 끝 높이: 게이지 위 / 받침 아래 */
   get arrowLift(): number {
     return this.topAbove + GAUGE.gap + GAUGE.h + 12;

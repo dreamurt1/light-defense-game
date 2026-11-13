@@ -115,3 +115,19 @@ describe('밸런스 안전장치 (2026-11-13 라이언: 첫 스테이지는 쉽�
     for (let i = 1; i < climax.length - 1; i++) expect(climax[i]).toBeGreaterThanOrEqual(climax[i - 1]);
   });
 });
+
+describe('가리는 물체 반투명 (2026-11-13 라이언: 장애물 뒤쪽의 루미가 잘 보이게)', () => {
+  it('뒤에서 겹치면 반투명, 앞에 서거나 벗어나면 다시 불투명', async () => {
+    const { Occluders } = await import('../src/entities/Occluders');
+    const obj = { alpha: 1, setAlpha(v: number) { this.alpha = v; } };
+    const occ = new Occluders();
+    // 집: 마을 좌표 (100,0)~(260,200), 밑변 y 200
+    occ.add([obj], 200, { x: 100, y: 0, w: 160, h: 200 });
+    for (let i = 0; i < 30; i++) occ.update(1 / 30, { x: 180, y: 150 }); // 집 뒤(밑변보다 위)
+    expect(obj.alpha).toBeLessThan(0.6);
+    for (let i = 0; i < 30; i++) occ.update(1 / 30, { x: 180, y: 260 }); // 집 앞
+    expect(obj.alpha).toBeGreaterThan(0.95);
+    for (let i = 0; i < 30; i++) occ.update(1 / 30, { x: 600, y: 150 }); // 멀리
+    expect(obj.alpha).toBeGreaterThan(0.95);
+  });
+});

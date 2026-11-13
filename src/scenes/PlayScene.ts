@@ -126,6 +126,7 @@ export class PlayScene extends Phaser.Scene {
     this.keeper = new Lightkeeper(this, keeperDef, start.x, start.y);
     this.stage = new VillageStage(this, this.keeper.pos);
     this.props = new MapProps(this);
+    for (const o of this.sources.occluders()) this.props.occluders.add([o.art], o.depth); // 가리면 반투명 (2026-11-13)
     this.obstacles = [...this.props.obstacles, ...this.sources.footprints];
     this.aimGuide = new AimGuide(this, CFG.light.fanDeg);
     this.fx = new LightFx(this);
@@ -423,7 +424,7 @@ export class PlayScene extends Phaser.Scene {
     // 풀숲에 너무 오래 있으면 들킨다 (2026-11-13 라이언)
     if (this.rules.stealth.update(dt, this.bushIn >= 0)) bus.emit('stealth:exposed');
     this.rules.walk(Math.hypot(next.x - this.keeper.pos.x, next.y - this.keeper.pos.y));
-    this.props.update(dt, this.bushIn);
+    this.props.update(dt, this.bushIn, down ? null : next);
     // 숨으면 반투명, 무적이면 완만하게 맥박
     const pulse = this.vitals.invulnLeft > 0 ? 0.6 + 0.4 * Math.cos(this.time_ * Math.PI * 2 * INVULN_PULSE_HZ) : 1;
     this.keeper.setVeil((this.hidden ? CFG.hide.keeperAlpha : 1) * pulse);

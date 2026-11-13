@@ -64,6 +64,11 @@ export class Sources {
     ];
   }
 
+  /** 등불지기를 가릴 수 있는 광원 그림들과 밑동 y (가리면 반투명, 2026-11-13) */
+  occluders(): { art: Phaser.GameObjects.Image; depth: number }[] {
+    return [{ art: this.central.art, depth: this.central.footprint.y + this.central.footprint.h }, ...this.stations.map((s) => ({ art: s.art, depth: s.footY }))];
+  }
+
   /** 광원 자리 (적이 들이받는 효과의 위치) */
   posOf(id: string): { x: number; y: number } | null {
     return id === 'central' ? this.central.pos : (this.stationById(id)?.pos ?? null);
