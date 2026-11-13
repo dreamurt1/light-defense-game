@@ -35,8 +35,8 @@
     "blurb": "빛과 어둠의 경계. 어딘가에 토리가 있어요.",
     "spawn": {
       "onlyHostileUntilSec": 5,
-      "normal": { "maxAlive": 4, "intervalStart": 3.6, "intervalEnd": 2.8, "weights": { "bat": 3, "vampire": 1, "frog": 1, "hedgehog": 1 } },
-      "climax": { "maxAlive": 7, "intervalStart": 2.2, "intervalEnd": 1.8, "weights": { "bat": 3, "vampire": 2, "frog": 2, "hedgehog": 1 } }
+      "normal": { "maxAlive": 5, "intervalStart": 3.0, "intervalEnd": 2.4, "weights": { "bat": 3, "vampire": 1, "frog": 1, "hedgehog": 1 } },
+      "climax": { "maxAlive": 8, "intervalStart": 1.8, "intervalEnd": 1.5, "weights": { "bat": 3, "vampire": 2, "frog": 2, "hedgehog": 1 } }
     },
     "passive": { "intervalSec": 12, "maxAlive": 2, "weights": { "owl": 1, "moth": 1 } },
     "rescue": { "enemyId": "tori-lost", "atProgress": 0.3 },
@@ -51,8 +51,8 @@
     "blurb": "어둠의 주민들이 사는 곳. 도토를 찾아요.",
     "spawn": {
       "onlyHostileUntilSec": 5,
-      "normal": { "maxAlive": 5, "intervalStart": 3.2, "intervalEnd": 2.5, "weights": { "bat": 2, "vampire": 1, "werewolf": 1, "redpanda": 1, "hedgehog": 1, "frog": 1 } },
-      "climax": { "maxAlive": 8, "intervalStart": 2.0, "intervalEnd": 1.6, "weights": { "bat": 2, "vampire": 2, "werewolf": 2, "redpanda": 1, "hedgehog": 1, "frog": 1 } }
+      "normal": { "maxAlive": 7, "intervalStart": 2.4, "intervalEnd": 1.8, "weights": { "bat": 2, "vampire": 1, "werewolf": 1, "redpanda": 1, "hedgehog": 1, "frog": 1 } },
+      "climax": { "maxAlive": 10, "intervalStart": 1.5, "intervalEnd": 1.2, "weights": { "bat": 2, "vampire": 2, "werewolf": 2, "redpanda": 1, "hedgehog": 1, "frog": 1 } }
     },
     "passive": { "intervalSec": 12, "maxAlive": 2, "weights": { "firefly": 1, "owl": 1 } },
     "rescue": { "enemyId": "doto-lost", "atProgress": 0.3 },
@@ -67,8 +67,8 @@
     "blurb": "마녀 노월이 찾아와요. 빛으로 마음을 열어요.",
     "spawn": {
       "onlyHostileUntilSec": 5,
-      "normal": { "maxAlive": 3, "intervalStart": 4.0, "intervalEnd": 3.4, "weights": { "bat": 2, "vampire": 1, "werewolf": 1, "frog": 1 } },
-      "climax": { "maxAlive": 5, "intervalStart": 2.6, "intervalEnd": 2.2, "weights": { "bat": 2, "vampire": 1, "werewolf": 1, "frog": 1 } }
+      "normal": { "maxAlive": 5, "intervalStart": 3.0, "intervalEnd": 2.4, "weights": { "bat": 2, "vampire": 1, "werewolf": 1, "frog": 1 } },
+      "climax": { "maxAlive": 9, "intervalStart": 1.7, "intervalEnd": 1.4, "weights": { "bat": 2, "vampire": 1, "werewolf": 2, "frog": 1 } }
     },
     "passive": { "intervalSec": 16, "maxAlive": 1, "weights": { "moth": 1, "firefly": 1 } },
     "boss": { "enemyId": "witch", "atSec": 8 },

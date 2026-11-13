@@ -63,7 +63,7 @@
     "invulnSec": 2.5,
     "regenDelaySec": 4,
     "regenPerSec": 1,
-    "centralRegenPerSec": 6,
+    "centralRegenPerSec": 3,
     "hurtKnockback": 14,
     "lowHpRatio": 0.3,
     "respawnPushRadius": 240,
@@ -96,10 +96,10 @@
   "central": {
     "x": 1600,
     "y": 900,
-    "radius": 56,
+    "radius": 74,
     "footprint": {
-      "w": 96,
-      "h": 40
+      "w": 132,
+      "h": 46
     },
     "start": 45,
     "max": 100,
@@ -110,10 +110,10 @@
     "glowMax": 330
   },
   "station": {
-    "radius": 34,
+    "radius": 44,
     "footprint": {
-      "w": 40,
-      "h": 22
+      "w": 52,
+      "h": 28
     },
     "off": 10,
     "on": 100,
@@ -135,7 +135,12 @@
     "closeAggro": 150,
     "stuckSec": 0.35,
     "detourDist": 220,
-    "detourSec": 0.9
+    "detourSec": 0.9,
+    "slamBack": 56,
+    "slamSec": 0.28,
+    "chargeDist": 70,
+    "chargeLead": 0.45,
+    "chargeSpeed": 2.2
   },
   "light": {
     "mode": "aimStick",
@@ -191,7 +196,7 @@
     "spawnMinDist": 620,
     "shyDist": 150,
     "shySpeedMultiplier": 1.5,
-    "angryDamage": 3,
+    "angryDamage": 4,
     "angrySpeedMultiplier": 1.35
   },
   "boss": {
@@ -200,7 +205,7 @@
     "orbitSpeed": 0.22,
     "enterSec": 1.6,
     "hitRadius": 46,
-    "summonEverySec": 7,
+    "summonEverySec": 6,
     "summonCount": 2,
     "summonCap": 6,
     "orbEverySec": 4.5,
@@ -223,6 +228,7 @@
     "controls": "2026-11-04 라이언 지시: 브롤스타즈식 두 스틱, 넓은 마을 + 카메라 따라감. 2026-11-06: 빛 스틱·마우스 모두 끈 거리에 비례해 원뿔 반지름. 2026-11-12: 반자동(짧은 탭)은 사거리 안에 적이 없으면 쏘지 않음",
     "map": "2026-11-06부터 16:9 3200x1800. 등불 자리 후보는 map.json stations(스테이지가 seed로 고름)",
     "concept": "2026-11-13 컨셉 시연판(제안): 풀숲에 maxHiddenSec 넘게 있으면 들킴(라이언: 오래 있으면 적이 알고 공격) — 그동안 적이 알아채는 거리 ×exposedAggroMultiplier. 자비 = 패시브 주민 곁 radius 안에 dwellSec 머무는 동안 공격하지 않으면",
-    "concept2": "2026-11-13 코드에서 옮김(모두 제안): enemyAi.closeAggro = 역할이 chase가 아닌 적(웨어울프·뱀파이어)도 이 거리 안의 주인공은 공격, stuckSec 동안 벽에 막히면 detourDist 옆으로 detourSec 돌아감. items.slots 칸, pickRadius 안에서 줍기, 중앙 광원·켜진 등불에서 spawnRingMin~Max 둘레에 생김. passive = 패시브 주민·빛을 잃은 친구는 루미에게서 spawnMinDist 밖에 나타남, 루미가 shyDist 안이면 ×shySpeedMultiplier로 피함, 화나면 피해 angryDamage·빠르기 ×angrySpeedMultiplier. boss = 노월: 중앙 광원 둘레 orbitRx×orbitRy 타원을 orbitSpeed(rad/s)로, 등장 enterSec(그동안 빛이 안 닿음), 판정 반지름 hitRadius, summonEverySec마다 박쥐 summonCount(마을의 박쥐가 summonCap 이상이면 쉼), orbEverySec마다 어둠 구슬(빠르기 orbSpeed, 광원 피해 orbDamage, 빛 판정 orbRadius, 빛으로 없애면 score.orbPop). tutorial.walkGoal = 튜토리얼 걷기 거리. practice.centralFloor = 연습장·튜토리얼에서 중앙 광원이 이 아래로 내려가지 않음"
+    "concept2": "2026-11-13 코드에서 옮김(모두 제안): enemyAi.closeAggro = 역할이 chase가 아닌 적(웨어울프·뱀파이어)도 이 거리 안의 주인공은 공격, stuckSec 동안 벽에 막히면 detourDist 옆으로 detourSec 돌아감. items.slots 칸, pickRadius 안에서 줍기, 중앙 광원·켜진 등불에서 spawnRingMin~Max 둘레에 생김. passive = 패시브 주민·빛을 잃은 친구는 루미에게서 spawnMinDist 밖에 나타남, 루미가 shyDist 안이면 ×shySpeedMultiplier로 피함, 화나면 피해 angryDamage·빠르기 ×angrySpeedMultiplier. boss = 노월: 중앙 광원 둘레 orbitRx×orbitRy 타원을 orbitSpeed(rad/s)로, 등장 enterSec(그동안 빛이 안 닿음), 판정 반지름 hitRadius, summonEverySec마다 박쥐 summonCount(마을의 박쥐가 summonCap 이상이면 쉼), orbEverySec마다 어둠 구슬(빠르기 orbSpeed, 광원 피해 orbDamage, 빛 판정 orbRadius, 빛으로 없애면 score.orbPop). tutorial.walkGoal = 튜토리얼 걷기 거리. practice.centralFloor = 연습장·튜토리얼에서 중앙 광원이 이 아래로 내려가지 않음",
+    "slam": "2026-11-13 몸박치기(라이언: 붙어 있지 말고 들이받게): 목표 가까이(chargeDist 안)에서 다음 공격 주기까지 숨을 고르다가 chargeLead초 남으면 ×chargeSpeed로 돌진, 부딪히는 순간 피해를 주고 slamSec 동안 slamBack만큼 튕겨 물러난다. 공격 주기(damageTickSec)는 그대로라 초당 피해는 같다(제안)"
   }
 }

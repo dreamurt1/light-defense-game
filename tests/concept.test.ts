@@ -98,3 +98,20 @@ describe('생명체 모습 방향 (2026-11-13)', () => {
     expect(critterView({ x: 0, y: 0 }, 'back')).toBe('back');
   });
 });
+
+describe('밸런스 안전장치 (2026-11-13 라이언: 첫 스테이지는 쉽게, 등불은 스테이지가 오를수록 많이)', () => {
+  it('1스테이지 적의 초당 피해·동시 최대 상한', async () => {
+    const { enemyById } = await import('../src/data');
+    const s1 = stageById('stage-1');
+    const ids = new Set([...Object.keys(s1.spawn.normal.weights), ...Object.keys(s1.spawn.climax.weights)]);
+    for (const id of ids) {
+      const e = enemyById(id as Parameters<typeof enemyById>[0]);
+      expect(e.damage / e.damageTickSec, id).toBeLessThanOrEqual(4);
+    }
+    expect(s1.spawn.normal.maxAlive).toBeLessThanOrEqual(3);
+  });
+  it('1~3스테이지는 오를수록 클라이맥스 동시 최대가 줄지 않는다 (4스테이지는 노월 소환이 따로 더해짐)', () => {
+    const climax = STAGE_ORDER.map((id) => stageById(id).spawn.climax.maxAlive);
+    for (let i = 1; i < climax.length - 1; i++) expect(climax[i]).toBeGreaterThanOrEqual(climax[i - 1]);
+  });
+});

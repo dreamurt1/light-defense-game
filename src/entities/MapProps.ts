@@ -8,6 +8,7 @@ import { TextureKeys } from '../core/TextureKeys';
 import { texScale } from '../core/textureRes';
 import { GameData } from '../data';
 import type { Rect } from '../systems/obstacles';
+import { COTTAGE_LAMPS, COTTAGE_WINDOWS } from '../art/village';
 
 const MAP = GameData.map;
 const HIDE = GameData.game.hide;
@@ -148,13 +149,20 @@ function placeHouse(scene: Phaser.Scene, r: Rect, variant: number, flip: boolean
   const bottom = r.y + r.h;
   const key = houseKey(variant);
   if (scene.textures.exists(key)) {
-    const img = scene.add
-      .image(r.x + r.w / 2, bottom + 6, key, 0)
-      .setOrigin(0.5, 1)
-      .setScale(texScale(key))
-      .setFlipX(flip)
-      .setDepth(bottom);
-    void img;
+    const cx = r.x + r.w / 2;
+    const ground = bottom + 6;
+    scene.add.image(cx, ground, key, 0).setOrigin(0.5, 1).setScale(texScale(key)).setFlipX(flip).setDepth(bottom);
+    // 창문·처마 등불의 따뜻한 빛 (어둠 속 따뜻한 빛, 뒤집힌 집이면 x도 뒤집음)
+    const glow = (p: { x: number; y: number }, size: number, alpha: number) =>
+      scene.add
+        .image(cx + (flip ? -p.x : p.x), ground + p.y, TextureKeys.glow)
+        .setTint(0xffc857)
+        .setBlendMode(Phaser.BlendModes.ADD)
+        .setAlpha(alpha)
+        .setScale(size / 256)
+        .setDepth(bottom + 0.1);
+    for (const w of COTTAGE_WINDOWS[variant] ?? []) glow(w, 70, 0.32);
+    for (const l of COTTAGE_LAMPS[variant] ?? []) glow(l, 96, 0.45);
     return;
   }
   // 대체 그림: 벽·지붕·창문 (그림이 들어오기 전 임시)
