@@ -13,7 +13,7 @@ export const RunState = {
   nickname: DEFAULT_NICKNAME,
   seed: makeSeed(),
   lastResult: null as RunResult | null,
-  /** 홈의 `테스트` 판(개발 모드만): 적이 오지 않고 시간이 흐르지 않는다 (루미가 걷는 모습 확인용) */
+  /** 홈의 `테스트` 판 = 연습장(2026-11-13 라이언: 스타파크식 — 같은 마을, 적 적게, 끝나지 않음). stageId는 'practice' */
   test: false,
 
   newRun(): void {

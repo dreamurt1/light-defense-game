@@ -567,6 +567,9 @@ export class PlayScene extends Phaser.Scene {
       characterId: this.keeper.def.id,
       seed: RunState.seed,
       continued: false,
+      mercy: 0,
+      itemsUsed: 0,
+      bossCalmed: false,
     };
     RunState.lastResult = result;
     return result;

@@ -23,6 +23,10 @@ export interface RunResult {
   characterId: CharacterId;
   seed: number;
   continued: boolean;
+  /** 2026-11-13 컨셉 시연판: 자비 받은 횟수, 쓴 아이템 수, 노월을 진정시켰는지 */
+  mercy: number;
+  itemsUsed: number;
+  bossCalmed: boolean;
 }
 
 export type ComboReason = 'gain' | 'timeout';
@@ -51,6 +55,24 @@ export interface GameEvents {
   'station:lit': { x: number; y: number; allLit: boolean };
   'item:spawn': { itemId: string; x: number; y: number };
   'item:pickup': { itemId: string; x: number; y: number };
+  /** 아이템을 씀 (효과 시간이 있으면 durationSec) */
+  'item:use': { itemId: string; durationSec: number };
+  /** 아이템 칸 (null = 빈 칸) */
+  'item:slots': { slots: (string | null)[] };
+  /** 자비: 패시브 주민을 공격하지 않고 지나감 */
+  'mercy:gain': { enemyId: EnemyId; x: number; y: number; score: number };
+  /** 패시브 주민이 빛에 맞아 화남 */
+  'passive:upset': { enemyId: EnemyId; x: number; y: number };
+  /** 빛을 잃은 친구(토리·도토)를 되찾음 → 해금 */
+  'friend:rescued': { characterId: CharacterId };
+  /** 노월이 어둠 구슬을 던지거나 박쥐를 부름 */
+  'boss:attack': { kind: 'orb' | 'summon' };
+  /** 풀숲에 너무 오래 있어 들킴 (2026-11-13 라이언) */
+  'stealth:exposed': undefined;
+  /** 튜토리얼 단계 (0부터, done = 끝) */
+  /** 진행 저장이 바뀜 (튜토리얼·스테이지·친구) */
+  'progress:change': undefined;
+  'tutorial:step': { step: number; total: number; text: string; done: boolean };
   'night:phase': { phase: NightPhase; t: number };
   'witch:spawn': undefined;
   'witch:returned': undefined;
@@ -64,6 +86,8 @@ export interface GameEvents {
   'score:change': { score: number; gained: number };
   /** UI → 게임 명령 */
   'ui:pause-toggle': undefined;
+  /** HUD 아이템 칸 누름 (0·1) */
+  'ui:use-item': { slot: number };
   'ui:restart': undefined;
   // 아래는 화면 이동용 (2026-10-30 화면 레이아웃 추가)
   'ui:assets-ready': undefined;

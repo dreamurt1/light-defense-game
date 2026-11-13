@@ -5,7 +5,8 @@
 import { BAND_BRIGHT, bandOf } from './lightLevel';
 
 export type StageOutcome = 'victory' | 'complete' | 'over';
-export type EndReason = 'time' | 'hearts' | 'central';
+/** boss = 노월을 진정시킴, tutorial = 튜토리얼을 마침 (2026-11-13) */
+export type EndReason = 'time' | 'hearts' | 'central' | 'boss' | 'tutorial';
 
 export interface OutcomeInput {
   timeUp: boolean;

@@ -8,7 +8,20 @@ import stagesJson from './stages.json';
 import mapJson from './map.json';
 
 export type CharacterId = 'lumi' | 'tori' | 'doto';
-export type EnemyId = 'bat' | 'werewolf' | 'vampire' | 'frog' | 'hedgehog' | 'redpanda' | 'owl' | 'moth' | 'firefly' | 'witch';
+export type EnemyId =
+  | 'bat'
+  | 'werewolf'
+  | 'vampire'
+  | 'frog'
+  | 'hedgehog'
+  | 'redpanda'
+  | 'owl'
+  | 'moth'
+  | 'firefly'
+  | 'witch'
+  /** 빛을 잃은 친구 (구출 스테이지, 되찾으면 해금) */
+  | 'tori-lost'
+  | 'doto-lost';
 /** 적 무리: 어둠의 호스틸 / 잃어버린 빛의 주민(호스틸, 구출) / 어둠의 패시브 / 보스 */
 export type EnemyKind = 'hostile' | 'lost' | 'passive' | 'boss';
 /** 하늘빛 시간대(연출용). predawn = 클라이맥스(진행 70%부터) */
@@ -171,6 +184,8 @@ export interface EnemyDef {
   behavior: string;
   behaviorParams?: Record<string, number | boolean>;
   group?: EnemyGroup;
+  /** 빛을 잃은 친구: 되찾으면 이 캐릭터가 해금 */
+  friend?: CharacterId;
 }
 
 export interface SpawnTable {
@@ -189,6 +204,20 @@ export interface StageDef {
   /** 등불 스테이션 수 (1~4) */
   stations: number;
   spawn: { onlyHostileUntilSec?: number; normal: SpawnTable; climax: SpawnTable };
+  /** 패시브 주민 (동시 최대에 넣지 않는 별도 줄) */
+  passive?: { intervalSec: number; maxAlive: number; weights: Partial<Record<EnemyId, number>> };
+  /** 빛을 잃은 친구가 진행 atProgress에 나타남 */
+  rescue?: { enemyId: EnemyId; atProgress: number };
+  /** 보스 스테이지 */
+  boss?: { enemyId: EnemyId; atSec: number };
+  /** 맵에 아이템이 생기는 간격 */
+  items?: { intervalSec: number; firstSec: number };
+  /** 튜토리얼 판 (시계가 멈추고 단계를 따라감) */
+  tutorial?: boolean;
+  /** 연습장 (홈 테스트 = 스타파크식): 끝나지 않음, 적 적게 */
+  practice?: boolean;
+  /** 선택 화면에 보이는 짧은 소개 */
+  blurb?: string;
 }
 
 export interface ItemDef {
@@ -219,7 +248,8 @@ export interface MapRect {
 /** 마을 배치(map.json): 숨을 수 있는 풀숲, 지나갈 수 없는 장애물, 바닥 문양, 등불 스테이션 자리 후보 */
 export interface MapDef {
   bushes: MapRect[];
-  obstacles: (MapRect & { kind: 'rocks' | 'barrels' | 'lamp' })[];
+  /** wall·fence = 2026-11-13 미로 요소(브롤스타즈식 길목) */
+  obstacles: (MapRect & { kind: 'rocks' | 'barrels' | 'lamp' | 'wall' | 'fence' })[];
   rings: { x: number; y: number }[];
   stations: { x: number; y: number }[];
 }
@@ -241,6 +271,9 @@ export function stageById(id: string): StageDef {
 }
 
 /** 지금 게임에 나오는 적 */
+/** 스테이지 순서 (선택 화면·진행) */
+export const STAGE_ORDER = ['stage-1', 'stage-2', 'stage-3', 'stage-4'] as const;
+
 export const IMPLEMENTED_ENEMIES: readonly EnemyId[] = GameData.enemies.filter((e) => e.implemented).map((e) => e.id);
 
 /** 스테이지 길이로 하늘빛 시간대를 초 단위로 (NightClock 설정) */

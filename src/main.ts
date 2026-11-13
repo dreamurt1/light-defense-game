@@ -8,6 +8,7 @@ import { gameConfig } from './config';
 import { mountUi } from './ui/UiRoot';
 import { runSplash } from './ui/Splash';
 import { applyLayout, watchLayout } from './ui/layout';
+import { watchProgress } from './core/Progress';
 
 // 스플래시는 index.html에 이미 보이고 있다: 불러오기 진행을 받을 준비를 게임보다 먼저
 runSplash();
@@ -15,6 +16,7 @@ runSplash();
 applyLayout();
 const game = new Phaser.Game(gameConfig);
 watchLayout(game);
+watchProgress();
 const uiRoot = document.getElementById('ui');
 if (uiRoot) mountUi(uiRoot, game);
 
