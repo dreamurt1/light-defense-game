@@ -11,6 +11,7 @@ import type { Rect } from '../../systems/obstacles';
 import type { ScoreCalculator } from '../../systems/ScoreCalculator';
 import { Stealth } from '../../systems/stealth';
 import { TutorialScript, type TutorialSignal } from '../../systems/tutorial';
+import type { EndReason, StageOutcome } from '../../systems/stageOutcome';
 import type { EnemyField } from './EnemyField';
 import type { Items } from './Items';
 
@@ -82,6 +83,14 @@ export class StageRules {
   signal(s: TutorialSignal): void {
     if (!this.tutorial?.signal(s)) return;
     this.enterStep();
+  }
+
+  /** 판 끝 판정: 튜토리얼을 마침 / 연습장·튜토리얼은 끝나지 않음 / 노월을 진정시킴(이유 boss) / 그 밖은 judged 그대로 */
+  verdict(judged: { outcome: StageOutcome; reason: EndReason } | null, bossCalmed: boolean, safe: boolean): { outcome: StageOutcome; reason: EndReason } | null {
+    if (this.tutorialDone) return { outcome: 'victory', reason: 'tutorial' };
+    if (safe) return null;
+    if (judged && bossCalmed && judged.outcome !== 'over') return { outcome: judged.outcome, reason: 'boss' };
+    return judged;
   }
 
   get tutorialDone(): boolean {

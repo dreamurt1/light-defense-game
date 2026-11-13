@@ -2,6 +2,14 @@
 
 수치 원본은 `assets/data/game.json`·`stages.json`·`enemies.json`·`items.json`·`map.json`. 새 기획(XMind)에 없는 수치는 모두 제안이고, 라이언은 세부를 Claude 판단에 맡긴다(첫 스테이지는 쉽게). 옛 시스템(하룻밤 120초·손 등불 HP·시너지·대광원·장착물·방해 요소 안개/달그림자)은 없어졌다.
 
+> **2026-11-13 팀 컨셉 시연판 (아래 본문·11-12 요약보다 우선)** — 라이언: 13시 팀 시연, 전체 Phase를 한 번에 가볍게. 치명적이지 않으면 Claude 판단, 그림은 임시, 사운드는 Web Audio 합성만, 디자인보다 기능 우선.
+> - 스테이지(`stages.json`): tutorial(필수, 6단계) · stage-1 빛의 마을 등불 1 · stage-2 경계 등불 2 + 토리 구출 · stage-3 어둠의 마을 등불 3 + 도토 구출 · stage-4 등불 4 + 노월 · practice(홈 `테스트` = 스타파크식 연습장). 진행 `src/core/Progress.ts`(앞 스테이지를 깨면 열림, 선택 화면 '시연: 모두 열기').
+> - 적 9종 구현(`entities/enemies/Creature.ts` 데이터 구동): 호스틸 역할 role(박쥐 추적·웨어울프 중앙 광원·뱀파이어 등불), 잃어버린 주민 구출, 패시브 떠돌기·빛 피하기·대사, **자비**(곁 200 안 1.5초, 300점) · **분노**(맞으면 주인공을 쫓음). 빛을 잃은 친구 `tori-lost`·`doto-lost` → `friend:rescued` → 해금.
+> - 아이템(`scenes/play/Items.ts`, `systems/inventory.ts`): 칸 2개, 빛의 부적 기본 1개, 광원·켜진 등불 둘레에 생김, PC Q·E. 노월(`scenes/play/Boss.ts`): 둘레를 돌며 박쥐 소환·어둠 구슬, HP 200, 진정 = 바로 아침(이유 boss).
+> - 맵: `map.json` wall·fence 미로 요소(걷는 적은 막히고 우회, 나는 적은 넘음). 풀숲에 4초 넘게 있으면 들킴(`systems/stealth.ts`). 테마 = `VillageStage.setTheme` 색조.
+> - UI: 이야기 카드(`ui/Story.ts`) → 튜토리얼 안내 띠(`tutorial:step`), 선택 화면 스테이지 4칸, 결과 '다음 밤으로', 설정 스틱 좌우·이야기 다시 보기, 사운드 `src/audio/*`.
+> - 미룬 것: 강·다리·건물·구획 시야, 필살기, 시작 전 아이템 고르기, 녹음 음원, 음량 슬라이더.
+
 ## 코어 루프
 
 1. 스테이지가 시작되면 첫 화면이 중앙 광원과 루미를 비춘다(루미는 광원 바로 아래에서 빛기둥 속에 나타남).

@@ -11,6 +11,7 @@ import { Creature } from '../entities/enemies/Creature';
 import { Items } from './play/Items';
 import { Boss } from './play/Boss';
 import { StageRules } from './play/StageRules';
+import { followCamera, HudFeed, keepSafe, makeRoam, panForResult } from './play/sceneKit';
 import { VillageStage } from '../entities/VillageStage';
 import { KEEPER_FOOT_Y, Lightkeeper } from '../entities/Lightkeeper';
 import { AimGuide } from '../entities/AimGuide';
@@ -44,14 +45,6 @@ const OVER_SEC = 1.5;
 const DAWN_SEC = 2;
 /** 프레임이 길게 끊겨도 한 번에 너무 많이 진행하지 않게 */
 const MAX_DT = 1 / 20;
-/**
- * 판이 끝나면 결과 판이 루미를 가리지 않게 월드를 민다 (제안: 기획서에 없음).
- * 세로: 결과 판이 아래에서 올라오므로 위로. 가로: 결과 판이 오른쪽에 서므로 왼쪽으로(화면 폭 비율)
- */
-const END_PAN = { portraitY: 230, landscapeX: 0.22 };
-const END_PAN_MS = 700;
-/** 카메라가 루미를 따라가는 부드러움 (제안) */
-const FOLLOW_LERP = 0.14;
 const WALK_AREA = walkArea(CFG.world.width, CFG.world.height, CFG.keeper.walkInset);
 /** 루미 몸 가운데에서 발까지: 장애물·풀숲은 발 위치로 판정한다 (2.5D) */
 const FEET_Y = KEEPER_FOOT_Y;
@@ -100,10 +93,10 @@ export class PlayScene extends Phaser.Scene {
   private bushIn = -1;
   /** 빛을 쏜 뒤 풀숲 속에서도 드러나 있는 남은 시간 */
   private revealLeft = 0;
-  private roamRng = new Rng(1);
+  /** 숨은 루미를 놓친 적이 맴돌 다음 지점 */
+  private roamPoint = makeRoam(new Rng(1), WALK_AREA);
   private time_ = 0;
-  /** HUD에 마지막으로 알린 값 (바뀔 때만 이벤트) */
-  private shown = { hp: -1, lp: -1, central: -1 };
+  private hud = new HudFeed();
   // 2026-11-13 컨셉 시연판: 아이템 · 노월 · 스테이지 규칙(패시브·자비·친구·은신·튜토리얼)
   private items!: Items;
   private boss: Boss | null = null;
@@ -123,8 +116,8 @@ export class PlayScene extends Phaser.Scene {
     this.stickMove = { x: 0, y: 0 };
     this.moveVec = { x: 0, y: 0 };
     this.stickAim = null;
-    this.shown = { hp: -1, lp: -1, central: -1 };
-    this.roamRng = new Rng(RunState.seed + 17);
+    this.hud = new HudFeed();
+    this.roamPoint = makeRoam(new Rng(RunState.seed + 17), WALK_AREA);
 
     // 첫 화면은 중앙 광원과 주인공을 비춘다(XMind): 루미는 광원 바로 아래에서 시작
     this.sources = new Sources(this, rng, this.stageDef.stations);
@@ -253,11 +246,7 @@ export class PlayScene extends Phaser.Scene {
       this.lp.update(dt, nearCentral ? 'central' : nearStation ? 'station' : 'field');
     }
     this.light.rangeMultiplier = this.lp.effectiveness;
-    if (this.safe) {
-      // 연습장·튜토리얼은 끝나지 않는다
-      if (!this.vitals.down) this.vitals.hearts = CFG.stage.hearts;
-      central.state.value = Math.max(central.state.value, 40);
-    }
+    if (this.safe) keepSafe(this.vitals, central.state);
     this.emitVitals();
 
     const calmed = !!this.boss?.calmed;
@@ -269,13 +258,7 @@ export class PlayScene extends Phaser.Scene {
       stationLevels: this.sources.stationLevels,
       bands: CFG.lightLevels.bands,
     });
-    const verdict = this.rules.tutorialDone
-      ? { outcome: 'victory' as const, reason: 'tutorial' as const }
-      : this.safe
-        ? null
-        : judged && calmed && judged.outcome !== 'over'
-          ? { outcome: judged.outcome, reason: 'boss' as const }
-          : judged;
+    const verdict = this.rules.verdict(judged, calmed, this.safe);
     if (verdict) {
       this.end(verdict.outcome, verdict.reason);
       return;
@@ -344,19 +327,7 @@ export class PlayScene extends Phaser.Scene {
 
   /** 중앙 광원 광도 / 등불 광도가 줄어든다 (적의 공격·노월의 구슬) */
   private damageSource(target: string, amount: number, by: EnemyId): void {
-    if (target === 'central') {
-      const c = this.sources.central;
-      c.state.damage(amount);
-      c.hit();
-      this.sources.mapLight.hit('central', this.clock.climax);
-      bus.emit('central:hit', { value: c.state.value, by });
-      this.emitVitals(true);
-      return;
-    }
-    const s = this.sources.stationById(target);
-    if (!s) return;
-    s.hit();
-    if (s.state.damage(amount)) this.sources.emitStations();
+    if (this.sources.damage(target, amount, by, this.clock.climax)) this.emitVitals(true);
   }
 
   /** 노월·어둠 구슬에 빛이 닿음 */
@@ -429,18 +400,6 @@ export class PlayScene extends Phaser.Scene {
     if (allLit) this.stage.celebrate(this.keeper.pos, CELEBRATE_SEC);
   }
 
-  /**
-   * 카메라가 루미를 부드럽게 따라간다. Phaser의 startFollow는 그리기 직전에 스크롤을 바꿔
-   * 이번 프레임 빛 마스크(VillageStage)가 한 프레임 늦게 어긋나므로, 여기서 직접 스크롤을 정한다.
-   */
-  private followCamera(target: Vec, dt: number): void {
-    const cam = this.cameras.main;
-    const k = 1 - Math.pow(1 - FOLLOW_LERP, dt * 60);
-    const tx = Math.min(CFG.world.width - cam.width, Math.max(0, target.x - cam.width / 2));
-    const ty = Math.min(CFG.world.height - cam.height, Math.max(0, target.y - cam.height / 2));
-    cam.setScroll(cam.scrollX + (tx - cam.scrollX) * k, cam.scrollY + (ty - cam.scrollY) * k);
-  }
-
   /** 풀숲 속에 있고, 빛을 쏜 직후가 아니면 숨은 것 */
   private get hidden(): boolean {
     return this.bushIn >= 0 && this.revealLeft <= 0 && !this.rules.stealth.exposed;
@@ -466,7 +425,7 @@ export class PlayScene extends Phaser.Scene {
     const pulse = this.vitals.invulnLeft > 0 ? 0.6 + 0.4 * Math.cos(this.time_ * Math.PI * 2 * INVULN_PULSE_HZ) : 1;
     this.keeper.setVeil((this.hidden ? CFG.hide.keeperAlpha : 1) * pulse);
     this.keeper.moveTo(next.x, next.y, input, dt);
-    this.followCamera(next, dt);
+    followCamera(this.cameras.main, next, dt);
     // 빛 스틱이 우선, 아니면 PC 마우스 끌기. 원뿔 반지름은 끈 거리에 비례 (스틱: 사거리 × 끈 정도, 마우스: 커서까지 거리)
     const stick = this.stickAim;
     const drag = stick ? null : this.desktop.dragPoint();
@@ -475,16 +434,6 @@ export class PlayScene extends Phaser.Scene {
     const reach = stick ? stick.power * this.light.range : (mouse?.range ?? this.light.range);
     this.aimGuide.draw(this.keeper.pos, aim, reach, this.light.ready);
   }
-
-  /** 맴돌 다음 지점: 지금 자리에서 roamMin~roamMax 떨어진 마을 안 아무 곳 (제안) */
-  private readonly roamPoint = (from: Vec): Vec => {
-    const a = this.roamRng.range(0, Math.PI * 2);
-    const d = this.roamRng.range(CFG.hide.roamMin, CFG.hide.roamMax);
-    return {
-      x: Math.min(WALK_AREA.x + WALK_AREA.w, Math.max(WALK_AREA.x, from.x + Math.cos(a) * d)),
-      y: Math.min(WALK_AREA.y + WALK_AREA.h, Math.max(WALK_AREA.y, from.y + Math.sin(a) * d)),
-    };
-  };
 
   private mouseAim(point: Vec): { angle: number; range: number } | null {
     return dragAim(this.keeper.pos, point, this.light.range, CFG.controls.mouseCancelRadius);
@@ -557,21 +506,7 @@ export class PlayScene extends Phaser.Scene {
 
   /** HUD 갱신: 값이 바뀌었을 때만 (force = 피격 등 바로) */
   private emitVitals(force = false): void {
-    const hp = Math.ceil(this.vitals.hp);
-    if (force || hp !== this.shown.hp) {
-      this.shown.hp = hp;
-      bus.emit('player:vitals', { hp, maxHp: this.vitals.maxHp, hearts: this.vitals.hearts, maxHearts: CFG.stage.hearts });
-    }
-    const lp = Math.round(this.lp.value);
-    if (force || lp !== this.shown.lp) {
-      this.shown.lp = lp;
-      bus.emit('lp:change', { value: lp, min: this.lp.min, max: this.lp.max });
-    }
-    const central = Math.round(this.sources.central.state.value);
-    if (force || central !== this.shown.central) {
-      this.shown.central = central;
-      bus.emit('central:change', { value: central, max: CFG.central.max, outAt: CFG.central.outAt });
-    }
+    this.hud.emit(this.vitals, this.lp, this.sources.central.state.value, force);
   }
 
   private togglePause(): void {
@@ -602,7 +537,7 @@ export class PlayScene extends Phaser.Scene {
       this.stage.fadeOut(OVER_SEC);
       const result = this.result(outcome, reason);
       this.time.delayedCall(OVER_SEC * 1000, () => {
-        this.panForResult();
+        panForResult(this.cameras.main, this.keeper.pos);
         bus.emit('game:over', { result });
       });
       return;
@@ -616,24 +551,16 @@ export class PlayScene extends Phaser.Scene {
     for (const e of this.field.active) if (e.def.kind !== 'passive') e.hitByLight(e.hp, 0, CFG.light.stunSec, { from: home, home });
     const result = this.result(outcome, reason);
     this.time.delayedCall(DAWN_SEC * 1000, () => {
-      this.panForResult();
+      panForResult(this.cameras.main, this.keeper.pos);
       bus.emit('game:clear', { result });
     });
-  }
-
-  private panForResult(): void {
-    const cam = this.cameras.main;
-    const landscape = cam.width > cam.height;
-    const x = this.keeper.pos.x + (landscape ? cam.width * END_PAN.landscapeX : 0);
-    const y = this.keeper.pos.y + (landscape ? 0 : END_PAN.portraitY);
-    cam.pan(x, y, END_PAN_MS, 'Cubic.easeOut');
   }
 
   /** 화면 크기가 바뀜 (세로 ↔ 가로, 창 크기): 화면에 붙은 층과 적이 나오는 가장자리를 새 크기로 */
   private onResize(gameSize: Phaser.Structs.Size): void {
     this.stage.resize(gameSize.width, gameSize.height);
     this.field.setArea(gameSize.width, gameSize.height);
-    if (!this.ended) this.followCamera(this.keeper.pos, 1);
+    if (!this.ended) followCamera(this.cameras.main, this.keeper.pos, 1);
   }
 
   private result(outcome: StageOutcome, reason: EndReason): RunResult {

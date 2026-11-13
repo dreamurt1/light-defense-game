@@ -1,5 +1,13 @@
 # 기술 구조와 개발 로드맵
 
+> **2026-11-13 팀 컨셉 시연판 (아래 본문·11-12 요약보다 우선)** — 라이언: 13시 팀 시연, 전체 Phase를 한 번에 가볍게. 치명적이지 않으면 Claude 판단, 그림은 임시, 사운드는 Web Audio 합성만, 디자인보다 기능 우선.
+> - 스테이지(`stages.json`): tutorial(필수, 6단계) · stage-1 빛의 마을 등불 1 · stage-2 경계 등불 2 + 토리 구출 · stage-3 어둠의 마을 등불 3 + 도토 구출 · stage-4 등불 4 + 노월 · practice(홈 `테스트` = 스타파크식 연습장). 진행 `src/core/Progress.ts`(앞 스테이지를 깨면 열림, 선택 화면 '시연: 모두 열기').
+> - 적 9종 구현(`entities/enemies/Creature.ts` 데이터 구동): 호스틸 역할 role(박쥐 추적·웨어울프 중앙 광원·뱀파이어 등불), 잃어버린 주민 구출, 패시브 떠돌기·빛 피하기·대사, **자비**(곁 200 안 1.5초, 300점) · **분노**(맞으면 주인공을 쫓음). 빛을 잃은 친구 `tori-lost`·`doto-lost` → `friend:rescued` → 해금.
+> - 아이템(`scenes/play/Items.ts`, `systems/inventory.ts`): 칸 2개, 빛의 부적 기본 1개, 광원·켜진 등불 둘레에 생김, PC Q·E. 노월(`scenes/play/Boss.ts`): 둘레를 돌며 박쥐 소환·어둠 구슬, HP 200, 진정 = 바로 아침(이유 boss).
+> - 맵: `map.json` wall·fence 미로 요소(걷는 적은 막히고 우회, 나는 적은 넘음). 풀숲에 4초 넘게 있으면 들킴(`systems/stealth.ts`). 테마 = `VillageStage.setTheme` 색조.
+> - UI: 이야기 카드(`ui/Story.ts`) → 튜토리얼 안내 띠(`tutorial:step`), 선택 화면 스테이지 4칸, 결과 '다음 밤으로', 설정 스틱 좌우·이야기 다시 보기, 사운드 `src/audio/*`.
+> - 미룬 것: 강·다리·건물·구획 시야, 필살기, 시작 전 아이템 고르기, 녹음 음원, 음량 슬라이더.
+
 > **2026-11-12 새 기획 개정 요약 (아래 본문보다 우선)**
 > - 마일스톤 M0~M6 → **Phase 0~6**(`docs/design/IMPLEMENTATION_PLAN.md`): 0 감사(완료) · 1 핵심 판(완료 2026-11-12) · 2 광도·등불·맵 · 3 적 무리·자비 · 4 아이템·점수 · 5 맵 3종·스테이지·구출 해금·보스 · 6 튜토리얼·설정·사운드·배포.
 > - 구조 추가: `src/scenes/play/EnemyField.ts`(스폰·적 이동), `src/scenes/play/Sources.ts`(중앙 광원·등불·맵 광도), 엔티티 `CentralSource`·`LightStation`·`enemies/Frog`, 순수 로직 `systems/vitals.ts`·`lightPoints.ts`·`lightLevel.ts`·`centralSource.ts`·`lightStation.ts`·`stageOutcome.ts`(+ `tests/stage.test.ts`). 데이터 `stages.json` 추가, `waves.json`·`equipment.json` 삭제, `Lantern` 엔티티 삭제.

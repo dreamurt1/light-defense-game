@@ -31,7 +31,9 @@
     "roamSpeed": 0.6,
     "roamMin": 180,
     "roamMax": 420,
-    "lostSightSec": 3
+    "lostSightSec": 3,
+    "maxHiddenSec": 4,
+    "exposedAggroMultiplier": 1.6
   },
   "controls": {
     "deadzone": 0.18,
@@ -172,6 +174,10 @@
     "dipMax": 0.5,
     "gloomPerDip": 0.8
   },
+  "mercy": {
+    "radius": 200,
+    "dwellSec": 1.5
+  },
   "_notes": {
     "changed": "2026-11-12 새 기획(XMind 1112) 전환: 한 판 = 스테이지(길이는 stages.json, 약 100초, 끝 = 아침), 70%부터 클라이맥스. 지킬 것 = 맵 가운데 중앙 광원 + 등불 스테이션. 루미는 HP·하트·LP를 갖고 스스로 빛을 쏜다(손 등불 없음). 시너지·대광원·장착물 없음. 수치는 모두 제안(라이언: 알아서, 첫 스테이지는 쉽게)",
     "lightLevels": "광도는 0~100 연속값을 4단계로: 25 미만 낮음, 50 미만 중간, 75 미만 밝음, 그 이상 크게 밝음. 중앙 광원은 outAt(10)에 닿으면 꺼진다(게임 오버). 등불은 off(10)에서 시작해 빛을 맞으면 igniteSec 뒤 on(100)",
@@ -179,6 +185,7 @@
     "lp": "발사마다 castCost, 꺼진 등불을 켜면 stationCost(쏜 뒤 깎임, 남은 양과 상관없이 켜짐 — XMind). min에 가까울수록 사거리·위력이 weakest배까지 약해짐",
     "village": "맵 전체 광도: 진행² × brightenMax(모든 등불이 켜지면 × buffMultiplier)에서 피격 dip을 뺀다. 광원 피격은 크게, 주인공 피격은 조금, 클라이맥스에는 × climaxDipMultiplier. dip은 초당 dipRecoverPerSec씩 회복",
     "controls": "2026-11-04 라이언 지시: 브롤스타즈식 두 스틱, 넓은 마을 + 카메라 따라감. 2026-11-06: 빛 스틱·마우스 모두 끈 거리에 비례해 원뿔 반지름. 2026-11-12: 반자동(짧은 탭)은 사거리 안에 적이 없으면 쏘지 않음",
-    "map": "2026-11-06부터 16:9 3200x1800. 등불 자리 후보는 map.json stations(스테이지가 seed로 고름)"
+    "map": "2026-11-06부터 16:9 3200x1800. 등불 자리 후보는 map.json stations(스테이지가 seed로 고름)",
+    "concept": "2026-11-13 컨셉 시연판(제안): 풀숲에 maxHiddenSec 넘게 있으면 들킴(라이언: 오래 있으면 적이 알고 공격) — 그동안 적이 알아채는 거리 ×exposedAggroMultiplier. 자비 = 패시브 주민 곁 radius 안에 dwellSec 머무는 동안 공격하지 않으면"
   }
 }

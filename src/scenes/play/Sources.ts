@@ -4,7 +4,7 @@
 import type Phaser from 'phaser';
 import { bus } from '../../core/events';
 import type { Rng } from '../../core/rng';
-import { GameData } from '../../data';
+import { GameData, type EnemyId } from '../../data';
 import { CentralSource } from '../../entities/CentralSource';
 import { LightStation } from '../../entities/LightStation';
 import type { LightPool } from '../../entities/VillageStage';
@@ -90,6 +90,23 @@ export class Sources {
 
   stationById(id: string): LightStation | undefined {
     return this.stations.find((s) => s.id === id);
+  }
+
+  /** 적의 공격·노월의 구슬: 중앙 광원 또는 등불 광도가 준다. @returns 중앙 광원이 맞았으면 true */
+  damage(target: string, amount: number, by: EnemyId, climax: boolean): boolean {
+    if (target === 'central') {
+      const c = this.central;
+      c.state.damage(amount);
+      c.hit();
+      this.mapLight.hit('central', climax);
+      bus.emit('central:hit', { value: c.state.value, by });
+      return true;
+    }
+    const s = this.stationById(target);
+    if (!s) return false;
+    s.hit();
+    if (s.state.damage(amount)) this.emitStations();
+    return false;
   }
 
   emitStations(): void {
