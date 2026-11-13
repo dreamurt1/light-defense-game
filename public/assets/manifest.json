@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-13T00:40:46.982Z",
+  "generatedAt": "2026-11-13T04:54:42.223Z",
   "sheets": [
     {
       "key": "portrait-lumi",
@@ -1081,8 +1081,8 @@
       "category": "objects",
       "label": "중앙 광원 (밝음·약함·꺼짐)",
       "file": "objects/central-source.png",
-      "frameWidth": 128,
-      "frameHeight": 176,
+      "frameWidth": 176,
+      "frameHeight": 236,
       "frames": 3,
       "res": 1,
       "source": "code",

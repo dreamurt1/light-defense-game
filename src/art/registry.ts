@@ -303,7 +303,8 @@ const objects: SheetDef[] = [
       poses: ['lit', 'out'],
       frames: [{ pose: 0 }, { pose: 0, filter: 'brightness(0.7) saturate(0.75)' }, { pose: 1 }],
       fit: 'contain',
-      box: { x: 4, y: 2, w: 120, h: 160 },
+      // 그림 칸에 맞춘 상자: 아래 = 받침 바닥(footY) 조금 아래 (2026-11-13 중앙 광원을 키우며 CENTRAL에서 계산)
+      box: { x: 4, y: 2, w: CENTRAL.w - 8, h: CENTRAL.footY + 2 },
       align: 'feet',
       res: 2,
     },
