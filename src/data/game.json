@@ -96,10 +96,10 @@
   "central": {
     "x": 1600,
     "y": 900,
-    "radius": 56,
+    "radius": 74,
     "footprint": {
-      "w": 96,
-      "h": 40
+      "w": 132,
+      "h": 46
     },
     "start": 45,
     "max": 100,

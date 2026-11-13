@@ -80,7 +80,7 @@ export class CentralSource {
     this.sprite.setFrame(s.out ? FRAME.out : band === 0 ? FRAME.low : FRAME.lit);
     // 결정 둘레의 빛: 광도에 비례, 아주 천천히 숨 쉰다
     const r = s.out ? 0 : 60 + 70 * s.ratio;
-    this.halo.setScale((r * 2) / 256).setAlpha(s.out ? 0 : 0.35 + 0.06 * Math.sin(this.t * 1.6));
+    this.halo.setScale((r * 2) / 256).setAlpha(s.out ? 0 : 0.26 + 0.05 * Math.sin(this.t * 1.6)); // 2026-11-13 큰 결정이 하얗게 날아가지 않게 0.35 → 0.26
     this.gauge.update(dt, s.value / this.cfg.max, s.value, s.out ? 'off' : 'on');
   }
 }
