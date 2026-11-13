@@ -209,7 +209,7 @@ UI는 한국어, 코드 식별자는 영어 id.
 - 프로젝트 플러그인(`.claude/settings.json`): typescript-lsp, playwright, context7, feature-dev, firebase. 사용자 플러그인: impeccable.
 - **화면 확인은 창을 띄우지 않고 한다.** playwright MCP는 창을 띄우므로 쓰지 않는다. dev 서버를 켠 상태에서 `npm run shot -- "<url>" <out.png> <대기ms> [폭] [높이] [배율] [phone]`(헤드리스 크롬, 상태 줄에 hp·하트·lp·광원·등불·구출·돌려보냄 출력). 개발 모드 URL 옵션: `?autoplay=초`(가장 가까운 적에게 쏘다가 그 시각 빛이 퍼지는 순간 멈춤, 사거리 안의 꺼진 등불은 먼저 켬), `&lamp`(꺼진 등불로 걸어가 켜고 다 켜면 광원 곁으로 돌아와 지킴), `&idle`(쏘지 않고 결과까지), `&walk`, `&burst`, `&pause`, `&aim`, `?screen=select|shop|ranking|play`, `?autoplay=20&preview=boss`, `?autoplay=200&preview=dawn`(끝 3초 전으로). 휴대폰 가로 `… 844 390 2 phone`, PC 가로 `… 1280 720 1`. 한 판을 끝까지 돌려 기록하려면 CDP 스크립트로 `__game.scene.getScene('Play')`의 `vitals·lp·sources·field·score`를 몇 초마다 읽는다. 보여 줄 이미지는 프로젝트 폴더(`sketches/new-plan/` 등)에 저장한다.
 - **루미 시트 자르기**: `npm run art:lumi`가 `reference/LUMI-sprites` 시트와 8방향 대기·걷기 팩을 `art-src/lumi/`로 맞추고(`src/art/lumiSheet.ts`), `npm run art:import`가 `lumi-8dir` 시트로 묶는다.
-- **스킬·기획 갱신**: `npm run doc:skill`(스킬 데이터 복사·동기화 사본·zip), `npm run doc:plan`(지시가 올 때만). PDF 글자 확인은 `pdfjs-dist`(Python·poppler 없음).
+- **스킬·기획 갱신**: `npm run doc:skill`(스킬 데이터 복사·동기화 사본·zip — zip은 Node로 직접 만든다: PowerShell Compress-Archive는 경로를 역슬래시로 적어 claude.ai가 "invalid characters"로 거절, 2026-11-13), `npm run doc:plan`(지시가 올 때만). PDF 글자 확인은 `pdfjs-dist`(Python·poppler 없음).
 - 에셋을 고치면 `npm run assets`(포트 5179 임시 Vite + 헤드리스 렌더링). 시트 모음 미리보기는 dev 서버의 `/assets.html`. 없어진 키의 옛 PNG는 직접 지운다.
 - **ChatGPT 그림 넣기**(선택 — 기본은 Claude 임시 그림): `docs/art-order.md`대로 만든 PNG를 `art-src/<분류>/<키>.png`에 넣고 `npm run art:import`(규격 `src/art/registry.ts`, 배경 지우기 `src/art/cutout.ts`).
 - dev 서버: `npm run dev`(포트 5173). 개발 모드에서만 `window.__game`.
