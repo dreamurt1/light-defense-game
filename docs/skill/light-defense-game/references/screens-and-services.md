@@ -43,6 +43,8 @@ index.html 스플래시 → BootScene → PreloadScene ─(ui:load-progress)→ 
 | 결과 | `src/ui/ResultSheet.ts` | 결과, 랭킹 등록, 재시작 | 게임 오버/클리어 두 톤, 마을 위 가운데 패널, 통계 줄은 점수·최대 콤보만 |
 | 설정 | `src/ui/SettingsSheet.ts` | 배경음악/효과음/진동, 닉네임, 조작 설명 1장(두 스틱 그림) | 홈의 ⚙와 일시정지에서 연다 |
 
+> 당겨서 새로고침(2026-11-13): 판 밖 화면에서는 휴대폰 브라우저의 위→아래 끌기 새로고침을 막지 않는다(`<html data-screen>`, `style.css`). 판에서는 `touch-action: none`·`overscroll-behavior: none`으로 조작만 받는다.
+
 - 판 단위 상태(플레이어 id, 닉네임, 선택 캐릭터·장착물, seed, 직전 결과, 테스트 판 여부 `test`)는 `src/core/RunState.ts` 객체 하나로 공유하고 `scene.start(key, data)`로 넘기지 않는다.
 - 결과의 "다시 한 번"은 엔트리를 거치지 않고 선택 화면으로 바로 간다(직전 선택이 기본값이라 탭 한 번이면 재시작). 일시정지의 "다시 한 번"은 같은 선택으로 바로 새 밤을 시작한다.
 - 게임 중 버튼 `마을로`는 `홈으로`로 바뀌었다(2026-11-06 개정).

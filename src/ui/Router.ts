@@ -4,6 +4,7 @@
 // 2026-11-13 컨셉 시연판: 홈 '테스트' = 연습장(stageId 'practice', test=true). 처음 하는 유저의 '게임하기'는
 // 이야기 → 튜토리얼(stageId 'tutorial')로 바로 들어온다(HomeScreen). 선택 화면으로 갈 때 튜토리얼·연습장 스테이지가
 // 남아 있으면 아직 안 깬 가장 앞 스테이지로 되돌린다.
+// 2026-11-13 라이언: 게임 중이 아니면 휴대폰 브라우저의 '당겨서 새로고침'이 되게 — <html data-screen>으로 CSS가 판 밖에서만 풀어 준다(style.css).
 import type Phaser from 'phaser';
 import { bus, type ScreenId } from '../core/events';
 import { Progress } from '../core/Progress';
@@ -48,6 +49,7 @@ export class Router {
     }
     this.current = to;
     this.root.dataset.screen = to;
+    document.documentElement.dataset.screen = to;
     this.views[to]?.show?.();
   }
 

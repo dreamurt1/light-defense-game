@@ -75,6 +75,18 @@ body {
   box-shadow: 0 30px 90px rgba(0, 0, 0, 0.55);
 }
 
+/* 당겨서 새로고침 (2026-11-13 라이언: 폰 웹에서 게임 중이 아니면 위에서 아래로 끌어 새로고침).
+   판(일시정지·결과 포함)에서는 스틱·빛 조작이 새로고침·스크롤로 새지 않게 위처럼 막고,
+   그 밖의 화면(스플래시·홈·선택·지난 밤들·상점·이야기·설정)에서는 브라우저의 세로 끌기를 돌려준다. <html data-screen> = ui/Router.ts */
+:root:not([data-screen='play']),
+:root:not([data-screen='play']) body {
+  overscroll-behavior-y: auto;
+}
+
+:root:not([data-screen='play']) .stage {
+  touch-action: pan-y;
+}
+
 /* 가로 화면 (2026-11-06 라이언 지시: PC 꽉 찬 화면·휴대폰 가로, <html data-layout> = ui/layout.ts).
    창을 꽉 채우되 비율은 4:3 ~ 21:9로 묶는다(게임 논리 폭 720~1280과 같은 범위라 캔버스가 상자를 꼭 채움, 그 밖은 띠). */
 :root[data-layout='landscape'] .stage {
