@@ -97,6 +97,14 @@ export const lockIcon = `
   <path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5" fill="none" stroke="currentColor" stroke-width="2.2"/>
 </svg>`;
 
+/** 새싹 (홈의 `튜토리얼`: 처음 밤을 언제든 다시, 2026-11-13) */
+export const tutorialIcon = `
+<svg class="pill__icon" viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M12 21v-8" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" fill="none"/>
+  <path d="M12 13C12 8 8.5 5.5 3.5 6c0 4.6 3.4 7.4 8.5 7Z" fill="currentColor"/>
+  <path d="M12 12c0-4.4 3-6.7 8.5-6.4 0 4.1-3 6.6-8.5 6.4Z" fill="currentColor" opacity=".8"/>
+</svg>`;
+
 /** 발바닥 (홈의 `테스트`: 루미가 걸어 보는 판) */
 export const pawIcon = `
 <svg class="pill__icon" viewBox="0 0 24 24" aria-hidden="true">

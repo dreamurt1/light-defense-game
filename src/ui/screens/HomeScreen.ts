@@ -3,12 +3,14 @@
 // 시트의 재화·레벨은 기획에 없어 넣지 않는다.
 // 2026-11-13 컨셉 시연판(라이언): 처음 하는 유저는 튜토리얼을 꼭 거친다 — '게임하기' → 이야기(건너뛰기 가능) → 튜토리얼 판.
 // 튜토리얼을 마치면(Progress.tutorialDone) '게임하기'는 선택 화면으로. '테스트' = 연습장(스타파크식)은 항상 보인다.
+// 2026-11-13 라이언: '튜토리얼' 버튼을 따로 — 이미 해 본 유저도 언제든 다시. 마친 뒤엔 바로 튜토리얼 판,
+// 아직 안 했으면 '게임하기'와 같이 이야기 → 튜토리얼.
 import { bus } from '../../core/events';
 import { Progress } from '../../core/Progress';
 import { RunState } from '../../core/RunState';
 import { openStory } from '../Story';
 import { h, svg } from '../dom';
-import { gearIcon, pawIcon, playIcon, podiumIcon, shopIcon } from '../icons';
+import { gearIcon, pawIcon, playIcon, podiumIcon, shopIcon, tutorialIcon } from '../icons';
 import { portraitUrl, screenShell } from './common';
 
 export class HomeScreen {
@@ -21,18 +23,11 @@ export class HomeScreen {
 
     const start = h('button', { class: 'pill pill--primary', type: 'button' }, svg(playIcon), '게임하기');
     start.addEventListener('click', () => {
-      if (Progress.tutorialDone) {
-        bus.emit('ui:navigate', { to: 'select' });
-        return;
-      }
-      openStory({
-        finalLabel: '시작해요',
-        onDone: () => {
-          RunState.stageId = 'tutorial';
-          bus.emit('ui:start-run');
-        },
-      });
+      if (Progress.tutorialDone) bus.emit('ui:navigate', { to: 'select' });
+      else startTutorial(true);
     });
+    const tutorial = h('button', { class: 'pill pill--secondary home__tutorial', type: 'button', 'aria-label': '튜토리얼: 처음 밤을 다시 해 봐요' }, svg(tutorialIcon), '튜토리얼');
+    tutorial.addEventListener('click', () => startTutorial(!Progress.tutorialDone));
     const ranking = h('button', { class: 'pill pill--secondary', type: 'button' }, svg(podiumIcon), '지난 밤들');
     ranking.addEventListener('click', () => bus.emit('ui:navigate', { to: 'ranking' }));
     const shop = h('button', { class: 'pill pill--secondary', type: 'button' }, svg(shopIcon), '상점');
@@ -51,7 +46,7 @@ export class HomeScreen {
         h('h1', { class: 'logo' }, h('span', { class: 'logo__en' }, 'LIGHT', h('br'), 'DEFENSE'), h('span', { class: 'logo__ko' }, '라이트 디펜스')),
         h('p', { class: 'home__slogan' }, '작은 빛으로, 마을을 되찾아요.'),
       ),
-      h('nav', { class: 'home__menu', 'aria-label': '메뉴' }, start, ranking, shop, test),
+      h('nav', { class: 'home__menu', 'aria-label': '메뉴' }, start, ranking, shop, tutorial, test),
       h(
         'div',
         { class: 'profile' },
@@ -65,4 +60,14 @@ export class HomeScreen {
   show(): void {
     this.name.textContent = RunState.nickname;
   }
+}
+
+/** 튜토리얼 판(처음 밤) 시작. 처음 하는 유저는 이야기 카드부터 */
+function startTutorial(withStory: boolean): void {
+  const go = (): void => {
+    RunState.stageId = 'tutorial';
+    bus.emit('ui:start-run');
+  };
+  if (withStory) openStory({ finalLabel: '시작해요', onDone: go });
+  else go();
 }
