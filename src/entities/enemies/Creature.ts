@@ -9,6 +9,7 @@ import Phaser from 'phaser';
 import { TextureKeys } from '../../core/TextureKeys';
 import { texScale } from '../../core/textureRes';
 import { GameData, type EnemyDef } from '../../data';
+import type { Rng } from '../../core/rng';
 import { CREATURES, creatureAnim, creatureKey, isCreature, type CreatureArt } from '../../art/creatures';
 import { Enemy, type EnemyContext, type EnemyStep, type ReturnContext } from './Enemy';
 import { sayAbove } from '../Bubble';
@@ -35,11 +36,14 @@ export class Creature extends Enemy {
   private readonly art: CreatureArt | null;
   private readonly amplitude: number;
   private readonly period: number;
-  private talkLeft = 1.2 + Math.random() * 2;
+  /** 첫 대사까지: 생성 때 seed 난수로 정한다 */
+  private talkLeft: number;
   private wanderTo: { x: number; y: number } | null = null;
 
-  constructor(scene: Phaser.Scene, def: EnemyDef, x: number, y: number) {
+  /** @param rng 대사 타이밍·대사 고르기·첫 동작 칸 (판 seed에서, 같은 seed면 같은 밤) */
+  constructor(scene: Phaser.Scene, def: EnemyDef, x: number, y: number, private readonly rng: Rng) {
     super(scene, def, x, y);
+    this.talkLeft = rng.range(1.2, 3.2);
     this.amplitude = Number(def.behaviorParams?.amplitude ?? 0);
     this.period = Number(def.behaviorParams?.periodSec ?? 1);
     this.art = isCreature(def.id) ? CREATURES[def.id] : null;
@@ -51,7 +55,7 @@ export class Creature extends Enemy {
       const key = creatureKey(def.id, look);
       this.sprite = scene.add.sprite(0, 0, key, 0).setOrigin(0.5, this.art.cy / this.art.size).setScale(texScale(key));
       const anim = creatureAnim(def.id, look);
-      if (scene.anims.exists(anim)) this.sprite.play({ key: anim, startFrame: Math.floor(Math.random() * 2) });
+      if (scene.anims.exists(anim)) this.sprite.play({ key: anim, startFrame: rng.int(0, 1) });
       if (this.art.flies) this.shadow.setPosition(0, this.art.size * 0.35);
     } else {
       // 빛을 잃은 친구: 초상 그림을 작게 (임시)
@@ -158,10 +162,10 @@ export class Creature extends Enemy {
   private talk(dt: number, ctx: EnemyContext, lines: readonly string[]): void {
     this.talkLeft -= dt;
     if (this.talkLeft > 0) return;
-    this.talkLeft = TALK_EVERY + Math.random() * 3;
+    this.talkLeft = TALK_EVERY + this.rng.range(0, 3);
     const p = ctx.player;
     if (!p || Math.hypot(p.x - this.x, p.y - this.y) > 520) return;
-    sayAbove(this.scene, this, lines[Math.floor(Math.random() * lines.length)], -((this.art?.size ?? FRIEND_SIZE) * 0.9));
+    sayAbove(this.scene, this, this.rng.pick(lines), -((this.art?.size ?? FRIEND_SIZE) * 0.9));
   }
 
   protected playReturn(ctx: ReturnContext): void {

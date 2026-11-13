@@ -35,6 +35,8 @@ export class EnemyField {
     private readonly spawner: Spawner,
     private readonly world: { width: number; height: number },
     private readonly margin: number,
+    /** 주민 대사 타이밍 등 (판 seed에서) */
+    private readonly rng: Rng,
   ) {}
 
   /** 빛을 맞힐 수 있는 적 (퇴장 중이 아닌) */
@@ -120,7 +122,7 @@ export class EnemyField {
     if (id === 'bat') return new Bat(this.scene, enemyById('bat'), x, y);
     if (id === 'frog') return new Frog(this.scene, enemyById('frog'), x, y);
     if (id === 'witch') return null;
-    return new Creature(this.scene, enemyById(id), x, y);
+    return new Creature(this.scene, enemyById(id), x, y, this.rng);
   }
 
   /** Spawner는 화면 크기 기준 가장자리 점을 준다: 지금 보이는 영역의 같은 자리에서 조금 바깥으로 밀고 마을 안으로 자른다 */

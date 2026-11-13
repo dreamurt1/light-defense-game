@@ -154,7 +154,7 @@ export class PlayScene extends Phaser.Scene {
       { width: this.scale.width, height: this.scale.height, margin: CFG.playfield.margin },
       IMPLEMENTED_ENEMIES,
     );
-    this.field = new EnemyField(this, spawner, CFG.world, CFG.playfield.margin);
+    this.field = new EnemyField(this, spawner, CFG.world, CFG.playfield.margin, new Rng(RunState.seed + 71));
     this.field.obstacles = this.obstacles;
     const sd = this.stageDef;
     this.safe = !!(sd.practice || sd.tutorial);
