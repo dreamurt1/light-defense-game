@@ -204,7 +204,7 @@ UI는 한국어, 코드 식별자는 영어 id.
 
 ## 11. 개발 환경
 
-- Node v24, npm 11, firebase-tools 15 (dreamurt1@gmail.com 로그인), Windows 11.
+- Node v24, npm 11, firebase-tools 15 (라이언 계정 로그인), Windows 11.
 - **git**(2026-11-12 시작, 라이언 허락): 이 폴더만의 저장소, 작성자 설정은 저장소 로컬, `core.autocrlf false`. 첫 커밋 = 구 기획 스냅샷. 커밋은 단계가 끝날 때.
 - 프로젝트 플러그인(`.claude/settings.json`): typescript-lsp, playwright, context7, feature-dev, firebase. 사용자 플러그인: impeccable.
 - **화면 확인은 창을 띄우지 않고 한다.** playwright MCP는 창을 띄우므로 쓰지 않는다. dev 서버를 켠 상태에서 `npm run shot -- "<url>" <out.png> <대기ms> [폭] [높이] [배율] [phone]`(헤드리스 크롬, 상태 줄에 hp·하트·lp·광원·등불·구출·돌려보냄 출력). 개발 모드 URL 옵션: `?autoplay=초`(가장 가까운 적에게 쏘다가 그 시각 빛이 퍼지는 순간 멈춤, 사거리 안의 꺼진 등불은 먼저 켬), `&lamp`(꺼진 등불로 걸어가 켜고 다 켜면 광원 곁으로 돌아와 지킴), `&idle`(쏘지 않고 결과까지), `&walk`, `&burst`, `&pause`, `&aim`, `?screen=select|shop|ranking|play`, `?autoplay=20&preview=boss`, `?autoplay=200&preview=dawn`(끝 3초 전으로). 휴대폰 가로 `… 844 390 2 phone`, PC 가로 `… 1280 720 1`. 한 판을 끝까지 돌려 기록하려면 CDP 스크립트로 `__game.scene.getScene('Play')`의 `vitals·lp·sources·field·score`를 몇 초마다 읽는다. 보여 줄 이미지는 프로젝트 폴더(`sketches/new-plan/` 등)에 저장한다.
