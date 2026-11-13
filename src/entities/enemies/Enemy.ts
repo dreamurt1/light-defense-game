@@ -1,4 +1,4 @@
-// 적 공통 (2026-11-12 새 기획): 목표(주인공·중앙 광원·켜진 등불)로 다가가 닿으면 멈춰서 주기마다 피해,
+// 적 공통 (2026-11-12 새 기획): 목표(주인공·중앙 광원·켜진 등불)로 다가가 몸으로 들이받아 피해를 준다(2026-11-13 몸박치기),
 // 빛에 맞으면 넉백·스턴, HP 0이면 무리별로 퇴장한다(잃어버린 주민 = 구출되어 마을로, 호스틸 = 맵 밖으로).
 //  - 목표 고르기: 주인공이 보이고 aggroRadius 안이면 주인공, 아니면 가장 가까운 광원(중앙 광원·켜진 등불)
 //  - 숨은 주인공을 쫓던 적은 lostSightSec 동안 마을을 맴돌다(2026-11-06 라이언 지시) 광원으로 간다
@@ -17,9 +17,11 @@ type Role = 'chase' | 'central' | 'station';
 /** 역할 공격 거리·벽 우회 (원본 game.json enemyAi.closeAggro·stuckSec·detourDist·detourSec, 제안) */
 const AI = GameData.game.enemyAi;
 const CLOSE_AGGRO = AI.closeAggro;
+// 몸박치기 수치는 game.json enemyAi.slamBack·slamSec·chargeDist·chargeLead·chargeSpeed
 const STUCK_SEC = AI.stuckSec;
 const DETOUR = { dist: AI.detourDist, sec: AI.detourSec };
 
+/** attached = 목표 곁에서 다음 들이받기를 기다리며 숨 고르는 중 (2026-11-13부터 붙어 있지 않음) */
 export type EnemyState = 'approach' | 'attached' | 'stunned' | 'returning';
 
 /** 'player' 또는 광원 id('central', 'station-0' …) */
@@ -86,6 +88,10 @@ export abstract class Enemy extends Phaser.GameObjects.Container {
   private detourLeft = 0;
   private detour: Vec = { x: 0, y: 0 };
   private lastDir = { x: 0, y: 1 };
+  /** 들이받은 뒤 튕겨 물러나는 남은 시간과 방향 */
+  private recoilLeft = 0;
+  private recoilTotal = 0;
+  private readonly recoilDir = new Phaser.Math.Vector2();
 
   constructor(
     scene: Phaser.Scene,
@@ -155,6 +161,23 @@ export abstract class Enemy extends Phaser.GameObjects.Container {
   protected abstract playReturn(ctx: ReturnContext): void;
   protected abstract playHit(): void;
 
+  /** 들이받는 순간의 몸짓: 부딪히는 쪽으로 납작해졌다 돌아온다 (종마다 바꿀 수 있음) */
+  protected playSlam(): void {
+    this.scene.tweens.add({ targets: this, scaleX: 1.18, scaleY: 0.84, duration: 70, yoyo: true, ease: 'Quad.easeOut' });
+  }
+
+  /** 들이받고 튕겨 물러난다 (피해가 없는 부딪힘은 반만) */
+  private bounceOff(goal: Vec, full: boolean): void {
+    this.recoilDir.set(this.x - goal.x, this.y - goal.y);
+    if (this.recoilDir.lengthSq() < 1) this.recoilDir.set(-this.lastDir.x, -this.lastDir.y);
+    this.recoilDir.normalize();
+    this.recoilTotal = AI.slamSec * (full ? 1 : 0.6);
+    this.recoilLeft = this.recoilTotal;
+    this.base.set(this.x, this.y);
+    this.mode = 'approach';
+    if (full) this.playSlam();
+  }
+
   /** 빛에 맞음. HP 0이 되어 퇴장하면 true */
   hitByLight(power: number, knockback: number, stunSec: number, ctx: ReturnContext): boolean {
     if (!this.targetable) return false;
@@ -193,19 +216,39 @@ export abstract class Enemy extends Phaser.GameObjects.Container {
       return out;
     }
 
+    if (this.recoilLeft > 0) {
+      // 들이받은 뒤 튕겨 물러남: 속도를 선형으로 줄여 정확히 slamBack(피해 없는 부딪힘은 그보다 짧게)만큼
+      const back = AI.slamBack * (this.recoilTotal / AI.slamSec);
+      const speed = ((2 * back) / this.recoilTotal) * (this.recoilLeft / this.recoilTotal);
+      this.base.x += this.recoilDir.x * speed * dt;
+      this.base.y += this.recoilDir.y * speed * dt;
+      this.setPosition(this.base.x, this.base.y);
+      this.recoilLeft -= dt;
+      this.setDepth(this.y);
+      return out;
+    }
+
     const goal = this.chooseTarget(dt, ctx);
+    const reach = goal ? goal.radius + this.radius : 0;
+    const dist = goal ? Phaser.Math.Distance.Between(this.x, this.y, goal.x, goal.y) : Infinity;
 
     if (this.mode === 'attached') {
-      if (!goal || Phaser.Math.Distance.Between(this.x, this.y, goal.x, goal.y) > (goal.radius + this.radius) * ctx.detachRatio) {
+      // 숨 고르기: 목표가 멀어지면 다시 쫓고, 다음 공격 주기가 다가오면 돌진한다
+      if (!goal || dist > reach * ctx.detachRatio + AI.chargeDist) {
         this.mode = 'approach';
         this.base.set(this.x, this.y);
         return out;
       }
-      if (this.tickLeft <= 0) {
-        this.tickLeft = this.def.damageTickSec;
-        out.hit = { target: goal.id, damage: this.attackDamage, sourceDamage: this.def.sourceDamage };
+      if (this.tickLeft > AI.chargeLead) {
+        const dir = new Phaser.Math.Vector2(goal.x - this.base.x, goal.y - this.base.y).normalize();
+        // 제자리에서 앞뒤로 들썩이며 노려본다
+        const paw = Math.sin(this.age * 9) * 3;
+        this.setPosition(this.base.x + dir.x * paw, this.base.y + dir.y * paw);
+        this.face(dir);
+        this.setDepth(this.y);
+        return out;
       }
-      return out;
+      this.mode = 'approach';
     }
 
     // 맴돌기(숨은 주인공을 놓침) 또는 목표로 다가간다
@@ -226,6 +269,15 @@ export abstract class Enemy extends Phaser.GameObjects.Container {
     const toward = new Phaser.Math.Vector2(dest.x - this.base.x, dest.y - this.base.y);
     const dir = toward.clone().normalize();
     this.lastDir = { x: dir.x, y: dir.y };
+    // 목표 곁(chargeDist 안)에 왔는데 아직 공격 주기가 남았으면 멈춰 숨을 고르고, 곧이면 빠르게 돌진한다
+    const near = goal && dest === goal && dist - reach <= AI.chargeDist;
+    if (near && this.tickLeft > AI.chargeLead) {
+      this.mode = 'attached';
+      this.base.set(this.x, this.y);
+      this.face(dir);
+      return out;
+    }
+    if (near) pace *= AI.chargeSpeed;
     const move = this.def.speed * ctx.speedMultiplier * pace * dt;
     this.base.x += dir.x * move;
     this.base.y += dir.y * move;
@@ -237,12 +289,14 @@ export abstract class Enemy extends Phaser.GameObjects.Container {
     this.face(dir);
     this.setDepth(this.y);
 
-    if (goal && Phaser.Math.Distance.Between(this.x, this.y, goal.x, goal.y) <= goal.radius + this.radius) {
-      this.mode = 'attached';
-      // 닿는 순간 첫 피해를 주고 이후 주기마다 (제안: 기획서에 없음 — 첫 피해 시점). 주기가 안 됐으면 기다린다
+    if (goal && Phaser.Math.Distance.Between(this.x, this.y, goal.x, goal.y) <= reach) {
+      // 들이받음: 주기가 됐으면 피해를 주고 튕겨 물러난다. 아직이면(목표가 다가와 부딪힘) 피해 없이 살짝 물러난다
       if (this.tickLeft <= 0) {
         this.tickLeft = this.def.damageTickSec;
         out.hit = { target: goal.id, damage: this.attackDamage, sourceDamage: this.def.sourceDamage };
+        this.bounceOff(goal, true);
+      } else {
+        this.bounceOff(goal, false);
       }
     }
     return out;

@@ -83,7 +83,7 @@ export class Hud {
     const hpRow = h('div', { class: 'vitals__hp-row' }, h('span', { class: 'gauge-label', 'aria-hidden': 'true' }, 'HP'), h('span', { class: 'vitals__hp', role: 'img', 'aria-label': 'HP' }, this.hp));
     const vitals = h('div', { class: 'vitals', role: 'group', 'aria-label': '루미' }, this.heartsBox, hpRow);
     this.lp = meter('meter--lp', '빛 (LP)', starIcon, 'LP');
-    this.source = meter('meter--source', '중앙 광원', crystalIcon);
+    this.source = meter('meter--source', '중앙 광원', crystalIcon, '광원');
     this.stationsCount = h('span', { class: 'stations__count' }, '0/0');
     this.stations = h('div', { class: 'stations', role: 'img', 'aria-label': '켠 등불' }, svg(lampIcon), this.stationsCount);
     this.slots = [0, 1].map((i) => {

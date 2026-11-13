@@ -111,7 +111,21 @@ export interface GameConfig {
   /** 루미 주변 빛(LP에 비례, 스테이지가 흐를수록 넓어짐) */
   aura: { glowMin: number; glowMax: number; growWithProgress: number };
   /** closeAggro·stuckSec·detour* = 2026-11-13 역할별 호스틸·미로 벽 우회 */
-  enemyAi: { aggroRadius: number; retargetSec: number; detachRatio: number; closeAggro: number; stuckSec: number; detourDist: number; detourSec: number };
+  /** slam*·charge* = 2026-11-13 몸박치기 */
+  enemyAi: {
+    aggroRadius: number;
+    retargetSec: number;
+    detachRatio: number;
+    closeAggro: number;
+    stuckSec: number;
+    detourDist: number;
+    detourSec: number;
+    slamBack: number;
+    slamSec: number;
+    chargeDist: number;
+    chargeLead: number;
+    chargeSpeed: number;
+  };
   light: {
     mode: 'aimStick';
     fanDeg: number;
@@ -274,8 +288,15 @@ export interface MapRect {
 /** 마을 배치(map.json): 숨을 수 있는 풀숲, 지나갈 수 없는 장애물, 바닥 문양, 등불 스테이션 자리 후보 */
 export interface MapDef {
   bushes: MapRect[];
-  /** wall·fence = 2026-11-13 미로 요소(브롤스타즈식 길목) */
-  obstacles: (MapRect & { kind: 'rocks' | 'barrels' | 'lamp' | 'wall' | 'fence' })[];
+  /**
+   * wall·fence = 2026-11-13 미로 요소(브롤스타즈식 길목). house = 오두막 밑동(variant 0~2 그림, flip 좌우),
+   * river = 강 구간(걷는 것은 못 건넘, 다리 자리는 비움) — 2026-11-13 라이언: 곳곳에 집·울타리·강·다리
+   */
+  obstacles: (MapRect & { kind: 'rocks' | 'barrels' | 'lamp' | 'wall' | 'fence' | 'house' | 'river'; variant?: number; flip?: boolean })[];
+  /** 강 그림 (마을 위아래 끝까지 이어짐). 판정은 obstacles의 river 구간 */
+  river?: { x: number; w: number };
+  /** 다리 (판정 없음, 바닥 그림) */
+  bridges?: MapRect[];
   rings: { x: number; y: number }[];
   stations: { x: number; y: number }[];
   /** 빛을 잃은 친구(토리·도토)가 기다리는 자리 후보 (2026-11-13) */

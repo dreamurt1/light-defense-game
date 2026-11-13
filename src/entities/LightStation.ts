@@ -7,13 +7,14 @@ import { texScale } from '../core/textureRes';
 import { LANTERN, LANTERN_FRAME } from '../art/objects';
 import type { GameConfig } from '../data';
 import { StationState } from '../systems/lightStation';
+import { SourceGauge } from './SourceGauge';
 import type { Rect } from '../systems/obstacles';
 
 // 제안: 기획서에 없음
-/** 바닥에 세운 등불 크기 */
-const SCALE = 1.15;
-/** 게이지 */
-const GAUGE = { w: 46, h: 6, below: 12 };
+/** 바닥에 세운 등불 크기 (2026-11-13 라이언: 조금 큼직하게 1.15 → 1.5) */
+const SCALE = 1.5;
+/** 광도 게이지: 등불 꼭대기 위 (2026-11-13 라이언: 잘 보이게 — 46×6 받침 아래 → 64×9 그림 위) */
+const GAUGE = { w: 64, h: 9, gap: 14 };
 
 export class LightStation {
   readonly state: StationState;
@@ -21,7 +22,11 @@ export class LightStation {
   readonly pos: { x: number; y: number };
   private readonly sprite: Phaser.GameObjects.Image;
   private readonly halo: Phaser.GameObjects.Image;
-  private readonly gaugeFill: Phaser.GameObjects.Rectangle;
+  private readonly gauge: SourceGauge;
+  /** 유리(빛이 맞는 점)에서 그림 꼭대기까지 */
+  private readonly topAbove: number;
+  /** 유리에서 밑동까지 */
+  private readonly footBelow: number;
   private t = 0;
 
   constructor(
@@ -46,14 +51,9 @@ export class LightStation {
       .setOrigin(0.5, bottom / LANTERN.h)
       .setScale(SCALE * texScale(TextureKeys.lantern))
       .setDepth(foot.y);
-    scene.add
-      .rectangle(foot.x, foot.y + GAUGE.below, GAUGE.w + 4, GAUGE.h + 4, 0x14152e, 0.85)
-      .setStrokeStyle(1, 0xf6f1e7, 0.35)
-      .setDepth(foot.y + 0.2);
-    this.gaugeFill = scene.add
-      .rectangle(foot.x - GAUGE.w / 2, foot.y + GAUGE.below, GAUGE.w, GAUGE.h, 0xffc857, 1)
-      .setOrigin(0, 0.5)
-      .setDepth(foot.y + 0.3);
+    this.footBelow = glassAbove;
+    this.topAbove = (LANTERN.glassY - 1) * SCALE;
+    this.gauge = new SourceGauge(scene, foot.x, this.pos.y - this.topAbove - GAUGE.gap, GAUGE.w, GAUGE.h);
   }
 
   get id(): string {
@@ -70,6 +70,15 @@ export class LightStation {
     return this.cfg.radius;
   }
 
+  /** 노란 화살표 끝 높이: 게이지 위 / 밑동 아래 (빛이 맞는 점 기준) */
+  get arrowLift(): number {
+    return this.topAbove + GAUGE.gap + GAUGE.h + 12;
+  }
+
+  get arrowDrop(): number {
+    return this.footBelow + 14;
+  }
+
   /** 빛을 맞음: 꺼져 있으면 점화가 시작된다(유리가 점점 달아오름) */
   ignite(): boolean {
     if (!this.state.ignite()) return false;
@@ -81,6 +90,9 @@ export class LightStation {
   hit(): void {
     this.sprite.setTint(0xb8a8e0);
     this.scene.time.delayedCall(90, () => this.sprite.clearTint());
+    // 들이받혀 흔들리고 게이지가 번쩍인다 (2026-11-13 공격 효과)
+    this.scene.tweens.add({ targets: this.sprite, angle: { from: -6, to: 0 }, duration: 220, ease: 'Back.easeOut' });
+    this.gauge.flash();
   }
 
   /** @returns 이번 프레임에 켜졌으면 true */
@@ -98,10 +110,9 @@ export class LightStation {
       const lit = s.mode === 'on' ? 0.25 + 0.3 * s.ratio : s.mode === 'igniting' ? 0.4 * igniteP : 0;
       this.halo.setScale((this.radiusFor(mapLevel) * 2) / 256).setAlpha(lit + (lit > 0 ? 0.04 * Math.sin(this.t * 2) : 0));
     }
-    // 광도 게이지 (꺼져 있으면 비어 있음)
-    const shown = s.mode === 'igniting' ? igniteP : Math.max(0, s.ratio);
-    this.gaugeFill.setScale(shown, 1);
-    this.gaugeFill.setFillStyle(s.mode === 'igniting' ? 0xfff1c9 : s.ratio < 0.35 ? 0xff8c5a : 0xffc857, 1);
+    // 광도 게이지 (꺼져 있으면 비어 있고 흐리게)
+    const level = s.mode === 'on' ? s.level(mapLevel) : 0;
+    this.gauge.update(dt, s.mode === 'igniting' ? igniteP : s.mode === 'on' ? level / this.cfg.on : 0, level, s.mode === 'igniting' ? 'igniting' : s.mode === 'on' ? 'on' : 'off');
     return justLit;
   }
 

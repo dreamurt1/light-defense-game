@@ -313,6 +313,8 @@ export class PlayScene extends Phaser.Scene {
   /** 적의 공격이 닿음: 주인공 HP / 중앙 광원 광도 / 등불 광도 */
   private applyHit(e: Enemy, hit: NonNullable<EnemyStep['hit']>): void {
     const climax = this.clock.climax;
+    const to = hit.target === 'player' ? this.keeper.pos : this.sources.posOf(hit.target); // 몸박치기 효과 (2026-11-13)
+    if (to) this.fx.slam(e.x + (to.x - e.x) * 0.45, e.y + (to.y - e.y) * 0.45 - 12);
     if (hit.target === 'player') {
       const res = this.vitals.hurt(hit.damage);
       if (res === 'none') return;

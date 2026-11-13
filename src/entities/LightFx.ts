@@ -50,6 +50,28 @@ export class LightFx {
     this.scene.tweens.add({ targets: fx, scale: fx.scale * 2.1, alpha: 0, duration: 300, ease: 'Quad.easeOut', onComplete: () => fx.destroy() });
   }
 
+  /**
+   * 적이 들이받음 (2026-11-13 라이언: 등불·광원을 공격하는 효과): 부딪힌 자리에 보랏빛 고리가 번지고
+   * 어둠 조각이 튄다. 피·폭발 대신 '빛이 흔들리는' 느낌으로
+   */
+  slam(x: number, y: number): void {
+    const scene = this.scene;
+    const ring = scene.add.image(x, y, TextureKeys.fxImpact).setTint(0xa89cd9).setAlpha(0.85).setScale(0.22 * texScale(TextureKeys.fxImpact)).setDepth(4031);
+    scene.tweens.add({ targets: ring, scale: ring.scale * 2.2, alpha: 0, duration: 260, ease: 'Quad.easeOut', onComplete: () => ring.destroy() });
+    if (prefersReducedMotion()) return;
+    for (let i = 0; i < 5; i++) {
+      const a = (i / 5) * Math.PI * 2 + Math.random() * 0.8;
+      const d = 24 + Math.random() * 22;
+      const shard = scene.add
+        .image(x, y, TextureKeys.fxStar)
+        .setTint(i % 2 ? 0x6b4fa8 : 0xc8b8ff)
+        .setScale((0.32 + Math.random() * 0.12) * texScale(TextureKeys.fxStar))
+        .setRotation(a)
+        .setDepth(4032);
+      scene.tweens.add({ targets: shard, x: x + Math.cos(a) * d, y: y + Math.sin(a) * d - 6, alpha: 0, duration: 340, ease: 'Cubic.easeOut', onComplete: () => shard.destroy() });
+    }
+  }
+
   /** 등불이 맞음 (루미 위에 아픈 별) */
   hurt(x: number, y: number): void {
     const fx = this.sprite(TextureKeys.fxHurt, x, y - 42, 4030, 0.5);
