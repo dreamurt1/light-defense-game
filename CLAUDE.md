@@ -127,7 +127,7 @@ UI는 한국어, 코드 식별자는 영어 id.
   - 스플래시(2026-11-04): `index.html`에 직접 그린 스플래시가 스크립트보다 먼저 보이고 `src/ui/Splash.ts`가 불러오기를 채운 뒤 최소 1.2초 후 사라진다. 가로로 낮은 화면에서는 등불과 글자가 나란히(2026-11-06).
   - 홈 `테스트`: **2026-11-13부터 연습장**(라이언: 스타파크식 — 같은 마을, 적 2마리 안팎·세 무리 고루, 시계 멈춤·끝나지 않음, HUD 시계 자리 "테스트"), 정식 판에도 보인다. `RunState.test` + `stageId 'practice'`, `ui:start-test`. (11-06 적 없이 걷는 판 → 11-12 개발 모드만 → 11-13 연습장)
   - 화면 이동은 `src/ui/Router.ts`(`#ui[data-screen]`), 화면 CSS는 `src/ui/screens.css`.
-- **HUD (2026-11-12)**: 위 한 줄 = 달·"밤 mm:ss"·민트 진행 바(한밤중·클라이맥스 눈금)·점수·콤보. 아래 = 하트 3개 + HP 막대 · 빛(LP) 막대 · 중앙 광원 광도 막대(**HP·LP 막대 앞에 'HP'·'LP' 글자**, 2026-11-13 라이언 — LP는 별 아이콘 자리, 광원 막대에는 글자를 쓰지 않음(결정 아이콘), 가로 하단 판은 막대가 보이게 폭 600u까지)(낮음이면 잔불 주황 맥박) · 켠 등불 수(1/1) · 일시정지. 화면 밖 적은 라벤더 화살표, 꺼진 등불·위험한 광원·빛을 잃은 친구는 노란 화살표(화면 안이면 그 위에서, `EdgeArrows`, 2026-11-13). 판이 끝나면 등불지기는 정면 정지 자세(`Lightkeeper.rest`), 일시정지 중엔 애니메이션도 멈춤.
+- **HUD (2026-11-12)**: 위 한 줄 = 달·"밤 mm:ss"·민트 진행 바(한밤중·클라이맥스 눈금)·점수·콤보. 아래 = 하트 3개 + HP 막대 · 빛(LP) 막대 · 중앙 광원 광도 막대(**HP·LP 막대 앞에 'HP'·'LP' 글자**, 2026-11-13 라이언 — LP는 별 아이콘 자리, 광원 막대에는 글자를 쓰지 않음(결정 아이콘), 가로 하단 판은 막대가 보이게 폭 600u까지. **폭 ÷ 높이가 17:9보다 좁은 가로(태블릿 4:3·3:2·16:10, PC 16:9 창, 아이폰 SE)는 판을 바닥 가운데 600u로 두고 두 스틱을 그 위로 올림** — 스틱 사이에 판이 들어갈 자리가 모자라 막대가 찌그러졌음, 2026-11-13 태블릿 확인)(낮음이면 잔불 주황 맥박) · 켠 등불 수(1/1) · 일시정지. 화면 밖 적은 라벤더 화살표, 꺼진 등불·위험한 광원·빛을 잃은 친구는 노란 화살표(화면 안이면 그 위에서, `EdgeArrows`, 2026-11-13). 판이 끝나면 등불지기는 정면 정지 자세(`Lightkeeper.rest`), 일시정지 중엔 애니메이션도 멈춤.
 - **아트 디렉션 = `reference/ChatGPT-Images/`의 레퍼런스 이미지 (2026-10-30)**, 공간감 1순위 「달빛 숲의 등불지기 고양이.png」. 새 기획 레퍼런스(Stray·OneShot 분위기, Cult of the Lamb 2.5D·지면 재질, Undertale 자비, Brawl Stars 조작·맵, Super Animal Royale은 **친숙한 동물 구성과 구획 배치만** 참고 — 10-30 지시대로 SAR의 평평한 톱다운 결은 피함).
   - 무대: 작은 동물들의 밤 마을, 어두운 마을 / 켜진 마을 두 겹을 빛 마스크로 드러냄. 빛 고임은 루미 주변·중앙 광원·켜진 등불(`VillageStage.update(dt, pools)`), 맵 전체 광도가 켜진 마을 드러남과 어둠 덮개를 정한다.
   - 대비: 어두운 남색 + 따뜻한 호박빛. 빛과 어둠은 색만이 아니라 밝기·외곽·입자로도 구분.
@@ -174,7 +174,7 @@ UI는 한국어, 코드 식별자는 영어 id.
 - **수치는 JSON, 로직은 TS.** 밸런스 수치는 `src/data/*.json`에만. 새 기획에 없는 값은 합리적으로 정해 주석과 보고에 "제안"으로 표시한다.
 - **순수 로직 분리 + Vitest.** 게임 상태 갱신·판정(HP·LP·광도·승패·점수·스폰·부채꼴)은 Phaser 없이 쓴다. 충돌·공격 판정·적 AI·점수·광도 계산을 서로 섞지 않는다.
 - **delta time**: 이동·대기·타이머는 dt로(프레임률이 달라도 같게). 게임은 초당 60번 상한(`config.ts fps.limit`).
-- **입력**: 모바일 터치와 PC 마우스·키보드를 같은 `input:*` 이벤트로. 터치 중 스크롤·확대가 조작을 방해하지 않게(`touch-action: none`, `user-scalable=no`). **단, 판 밖(스플래시·홈·선택·지난 밤들·상점·이야기)에서는 휴대폰 브라우저의 '당겨서 새로고침'이 되게 푼다**(2026-11-13 라이언, `<html data-screen>` ≠ play일 때 `.stage` = `pan-y`·`overscroll-behavior-y: auto`, `style.css`). 판(일시정지·결과 포함)에서는 그대로 막는다.
+- **입력**: 모바일 터치와 PC 마우스·키보드를 같은 `input:*` 이벤트로. 터치 중 스크롤·확대가 조작을 방해하지 않게(`touch-action: none`, `user-scalable=no`). **단, 판 밖(스플래시·홈·선택·지난 밤들·상점·이야기)에서는 휴대폰·태블릿 브라우저의 '당겨서 새로고침'이 되게 푼다**(2026-11-13 라이언, `<html data-screen>` ≠ play일 때 `.stage` = `pan-y`·`overscroll-behavior-y: auto`·html `overflow-y: auto`(사파리), `style.css`). 판(일시정지·결과 포함)에서는 그대로 막는다.
 - **이벤트로 연결**: 로직은 이벤트만 발행, HUD·사운드·진동은 구독. 씬 파일이 600줄을 넘으면 나눈다.
 - **상태 공유**: 씬 간 데이터는 `RunState`(characterId·stageId·seed). 난수는 seed를 받는 `src/core/rng.ts`에서만(재현 가능).
 - **성능**: 테스터 버벅임은 공격 등 효과에서 보고됨(2026-11-12) — 라이언이 나중에 다시 검증하고 알려 준다. 모양이 변하지 않는 도형은 `generateTexture`로 구워 이미지로. Phaser 도형(Rectangle)의 길이는 `width`가 아니라 `setScale`·`setSize`로 바꾼다(2026-11-12 등불 게이지).
@@ -210,7 +210,7 @@ UI는 한국어, 코드 식별자는 영어 id.
 - Node v24, npm 11, firebase-tools 15 (라이언 계정 로그인), Windows 11.
 - **git**(2026-11-12 시작, 라이언 허락): 이 폴더만의 저장소, 작성자 설정은 저장소 로컬, `core.autocrlf false`. 첫 커밋 = 구 기획 스냅샷. 커밋은 단계가 끝날 때. **2026-11-13부터 커밋할 때마다 GitHub에도 올린다**(`git push`, 원격 origin = https://github.com/dreamurt1/light-defense-game, **공개** 저장소, 브랜치 main). 작성자 메일은 GitHub 비공개 주소(`dreamurt1@users.noreply.github.com`) — 공개 저장소라 개인 메일·비밀값을 커밋하지 않는다.
 - 프로젝트 플러그인(`.claude/settings.json`): typescript-lsp, playwright, context7, feature-dev, firebase. 사용자 플러그인: impeccable.
-- **화면 확인은 창을 띄우지 않고 한다.** playwright MCP는 창을 띄우므로 쓰지 않는다. dev 서버를 켠 상태에서 `npm run shot -- "<url>" <out.png> <대기ms> [폭] [높이] [배율] [phone]`(헤드리스 크롬, 상태 줄에 hp·하트·lp·광원·등불·구출·돌려보냄 출력). 개발 모드 URL 옵션: `?autoplay=초`(가장 가까운 적에게 쏘다가 그 시각 빛이 퍼지는 순간 멈춤, 사거리 안의 꺼진 등불은 먼저 켬), `&lamp`(꺼진 등불로 걸어가 켜고 다 켜면 광원 곁으로 돌아와 지킴), `&idle`(쏘지 않고 결과까지), `&walk`, `&burst`, `&pause`, `&aim`, `?screen=select|shop|ranking|play`, `?autoplay=20&preview=boss`, `?autoplay=200&preview=dawn`(끝 3초 전으로). 휴대폰 가로 `… 844 390 2 phone`, PC 가로 `… 1280 720 1`. 한 판을 끝까지 돌려 기록하려면 CDP 스크립트로 `__game.scene.getScene('Play')`의 `vitals·lp·sources·field·score`를 몇 초마다 읽는다. 보여 줄 이미지는 프로젝트 폴더(`sketches/new-plan/` 등)에 저장한다.
+- **화면 확인은 창을 띄우지 않고 한다.** playwright MCP는 창을 띄우므로 쓰지 않는다. dev 서버를 켠 상태에서 `npm run shot -- "<url>" <out.png> <대기ms> [폭] [높이] [배율] [phone]`(헤드리스 크롬, 상태 줄에 hp·하트·lp·광원·등불·구출·돌려보냄 출력). 개발 모드 URL 옵션: `?autoplay=초`(가장 가까운 적에게 쏘다가 그 시각 빛이 퍼지는 순간 멈춤, 사거리 안의 꺼진 등불은 먼저 켬), `&lamp`(꺼진 등불로 걸어가 켜고 다 켜면 광원 곁으로 돌아와 지킴), `&idle`(쏘지 않고 결과까지), `&walk`, `&burst`, `&pause`, `&aim`, `?screen=select|shop|ranking|play`, `?autoplay=20&preview=boss`, `?autoplay=200&preview=dawn`(끝 3초 전으로). 휴대폰 가로 `… 844 390 2 phone`, PC 가로 `… 1280 720 1`, **태블릿**(2026-11-13 라이언: 가로·세로 모두) `… 820 1180 1 phone`·`… 1180 820 1 phone`(아이패드), `800 1280`·`1280 800`(갤럭시 탭) — 태블릿도 손가락 입력이라 기기 방향을 따르고, 세로는 9:16 상자 양옆에 밤 배경 띠. 한 판을 끝까지 돌려 기록하려면 CDP 스크립트로 `__game.scene.getScene('Play')`의 `vitals·lp·sources·field·score`를 몇 초마다 읽는다. 보여 줄 이미지는 프로젝트 폴더(`sketches/new-plan/` 등)에 저장한다.
 - **루미 시트 자르기**: `npm run art:lumi`가 `reference/LUMI-sprites` 시트와 8방향 대기·걷기 팩을 `art-src/lumi/`로 맞추고(`src/art/lumiSheet.ts`), `npm run art:import`가 `lumi-8dir` 시트로 묶는다.
 - **스킬·기획 갱신**: `npm run doc:skill`(스킬 데이터 복사·동기화 사본·zip — zip은 Node로 직접 만든다: PowerShell Compress-Archive는 경로를 역슬래시로 적어 claude.ai가 "invalid characters"로 거절, 2026-11-13), `npm run doc:plan`(지시가 올 때만). PDF 글자 확인은 `pdfjs-dist`(Python·poppler 없음).
 - 에셋을 고치면 `npm run assets`(포트 5179 임시 Vite + 헤드리스 렌더링). 시트 모음 미리보기는 dev 서버의 `/assets.html`. 없어진 키의 옛 PNG는 직접 지운다.
@@ -282,6 +282,7 @@ UI는 한국어, 코드 식별자는 영어 id.
 - 2026-11-13 · 장애물 뒤쪽에 루미(등불지기)가 있으면 반투명으로 잘 보이게(3절).
 - 2026-11-13 · 홈에 `튜토리얼` 버튼을 따로 — 이미 튜토리얼을 해 본 유저도 다시 할 수 있게(2·5절).
 - 2026-11-13 · 폰 웹에서 게임 중이 아니면 위에서 아래로 끌어 새로고침되게(당겨서 새로고침, 8절 입력).
+- 2026-11-13 · 태블릿 웹에서도 잘 도는지 확인: 가로·세로 모두, 새로고침(게임 중 제외)도. → 덜 넓은 가로에서 아래 판 찌그러짐을 고침(5절 HUD), 사파리용 새로고침 보완(8절), 확인 크기(11절).
 - 2026-11-13 · GitHub 공개 저장소 dreamurt1/light-defense-game에 프로젝트 전체를 올림(공유 편의). **커밋할 때마다 GitHub에도 올린다**(11절).
 - 2026-11-13 · `hand-offs/light-defense-xmind-1112.pdf`가 12일 최신 XMind(= `reference/` 사본과 같은 파일). 참고하되 그 뒤의 지시가 우선(0절).
 - 2026-11-12 · 첫 번째 스테이지는 등불이 한 개여야 한다(3절, 지금도 1개 — 지도의 네 곳은 그 1개가 놓일 수 있는 후보 자리).

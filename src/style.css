@@ -83,6 +83,12 @@ body {
   overscroll-behavior-y: auto;
 }
 
+/* 아이패드·아이폰 사파리는 문서(뷰포트)가 overflow: hidden이면 끌기 자체를 막아 새로고침도 안 된다:
+   판 밖에서는 html만 auto로(body가 100% 높이로 잘라 내므로 실제로 스크롤될 내용은 없다) */
+:root:not([data-screen='play']) {
+  overflow-y: auto;
+}
+
 :root:not([data-screen='play']) .stage {
   touch-action: pan-y;
 }
@@ -1102,6 +1108,20 @@ body {
   bottom: 0;
   left: max(0px, env(safe-area-inset-left, 0px));
   right: max(0px, env(safe-area-inset-right, 0px));
+}
+
+/* 덜 넓은 가로 화면(폭 ÷ 높이 < 17:9 — 태블릿 4:3·3:2·16:10, PC 16:9 창 등, 2026-11-13 태블릿 확인):
+   두 스틱 사이(폭 − 440)에 아래 판이 들어갈 자리가 모자라 LP·광원 막대가 찌그러졌다.
+   → 아래 판은 바닥 가운데에 제 폭(600)으로 두고, 두 스틱은 세로 화면처럼 그 판 바로 위로 올린다.
+   휴대폰 가로(대개 2:1 이상)는 지금처럼 스틱 사이에 판. */
+@media (max-aspect-ratio: 17/9) {
+  :root[data-layout='landscape'] .hud-bottom__row {
+    width: min(calc(var(--u) * 600), 100%);
+  }
+
+  :root[data-layout='landscape'] .sticks {
+    bottom: 100%;
+  }
 }
 
 /* 재질 층(finish.css)의 아래 띠 결·윗선은 가로에서 띠가 없으므로 끈다 */
