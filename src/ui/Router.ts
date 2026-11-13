@@ -54,6 +54,7 @@ export class Router {
     this.root.dataset.screen = to;
     document.documentElement.dataset.screen = to;
     this.views[to]?.show?.();
+    bus.emit('ui:screen', { to });
   }
 
   get screen(): ScreenId | null {

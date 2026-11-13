@@ -94,6 +94,8 @@ export interface GameEvents {
   /** 스플래시 불러오기 막대 (0~1) */
   'ui:load-progress': { value: number };
   'ui:navigate': { to: ScreenId };
+  /** 화면이 실제로 바뀜 (Router.go, 뒤로·앞으로가기 기록용, 2026-11-13) */
+  'ui:screen': { to: ScreenId };
   /** 선택 화면의 `등불을 켜요` */
   'ui:start-run': undefined;
   /** 홈의 `테스트`: 같은 마을, 이웃 없음, 시간 제한 없음 (2026-11-06 라이언 지시) */
