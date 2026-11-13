@@ -114,6 +114,7 @@ export class PlayScene extends Phaser.Scene {
     this.stageDef = stageById(RunState.stageId);
     const rng = new Rng(RunState.seed);
     Object.assign(this, { rescued: 0, retreated: 0, paused: false, ended: false, test: RunState.test, bushIn: -1, revealLeft: 0, time_: 0 });
+    freeze(this, false); // 앞 판이 어떻게 끝났든 멈춘 채 시작하지 않게 (애니메이션 멈춤은 게임 전체에 걸린다, 2026-11-13)
     this.stickMove = { x: 0, y: 0 };
     this.moveVec = { x: 0, y: 0 };
     this.stickAim = null;
@@ -195,9 +196,9 @@ export class PlayScene extends Phaser.Scene {
     this.scale.on(Phaser.Scale.Events.RESIZE, this.onResize, this);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.scale.off(Phaser.Scale.Events.RESIZE, this.onResize, this);
-      // 일시정지 중에 홈으로 나가도 다음 판이 멈춘 채 시작하지 않게
-      this.time.paused = false;
-      this.tweens.resumeAll();
+      // 일시정지 중에 홈으로 나가도 다음 판이 멈춘 채 시작하지 않게. 애니메이션 멈춤(anims.pauseAll)은 게임 전체에 걸리므로 꼭 함께 푼다
+      // (2026-11-13 라이언: PC·엣지에서 루미가 정지 모습으로 미끄러지듯 걷던 버그 — 시간·트윈만 풀고 애니메이션을 안 풀었음)
+      freeze(this, false);
       this.unsubscribe.forEach((off) => off());
       this.game.events.off(Phaser.Core.Events.HIDDEN, this.pauseIfRunning, this);
     });

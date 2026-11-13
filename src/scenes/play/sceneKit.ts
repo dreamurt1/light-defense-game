@@ -71,7 +71,8 @@ export class HudFeed {
   }
 }
 
-/** 일시정지: 트윈·애니메이션·타이머를 함께 멈춘다 (애니메이션을 안 멈추면 걷던 루미가 제자리 걸음, 2026-11-13) */
+/** 일시정지: 트윈·애니메이션·타이머를 함께 멈춘다 (애니메이션을 안 멈추면 걷던 루미가 제자리 걸음, 2026-11-13).
+ *  주의: 애니메이션 멈춤은 게임 전체(AnimationManager)에 걸린다 — 판을 닫거나 새로 시작할 때 꼭 freeze(scene, false)로 푼다 */
 export function freeze(scene: Phaser.Scene, paused: boolean): void {
   if (paused) {
     scene.tweens.pauseAll();
