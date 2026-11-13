@@ -5,6 +5,7 @@
 // 색은 팔레트에서 섞은 값이고(제안: 기획서에 없음), 모양의 흔들림은 고정 seed라 매번 같다.
 import { Rng } from '../core/rng';
 import { GameData } from '../data';
+import { mix } from './kit';
 
 const W = GameData.game.viewport.width;
 const H = GameData.game.viewport.height;
@@ -665,6 +666,793 @@ function bunting(ctx: Ctx, t: Tone): void {
   }
 }
 
+// ---------------------------------------------------------------------------
+// 오두막 3종 (2026-11-13 라이언: 마을 곳곳에 집). 마을 안 장애물로 세우는 독립 그림이다
+// (data/map.json kind 'house' + variant → entities/MapProps.ts placeHouse가 그림 아래 가운데를 판정 사각형 밑변 + 6에 세움).
+// 살짝 기울여 내려다본 2.5D: 정면 벽(높이 그대로) + 위에서 보이는 지붕 면(깊이도 화면 위로 같은 길이).
+// 판정 사각형(밑동 폭 140~160, 깊이 60)에 맞춰 벽 밑변 폭 ≈ 판정 폭, 지붕 깊이 ≈ 60 + 처마.
+// 그림 아래 끝 = 땅에 닿는 곳(벽 밑 gy + 접지 그림자 6). 그림자는 아래로만 드리워 좌우로 뒤집어도(flip) 어색하지 않다.
+// 창은 두 톤 모두 호박빛(어둠 속 따뜻한 불빛)이고 자리는 COTTAGE_WINDOWS로 내보내 게임이 빛을 얹는다.
+// 모양·색은 제안(기획서에 없음): 0 = 둥근 창·굴뚝·문간 등불, 1 = 좁고 높은 두 창·차양·꽃상자·연통, 2 = 넓은 집·문간 지붕·디딤돌·상자·매단 등불
+// ---------------------------------------------------------------------------
+
+const AMBER = '#FFC857';
+const AMBER_SOFT = '#F2B880';
+const AMBER_HOT = '#FFEBB8';
+const GLOW = (a: number): string => `rgba(255,200,87,${a})`;
+
+interface CottageWindow {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  shape: 'round' | 'arch' | 'square';
+}
+
+interface CottageSpec {
+  /** 그림 크기 */
+  w: number;
+  h: number;
+  /** 벽 밑(땅) y. 그림 아래 끝보다 6 위 */
+  gy: number;
+  windows: readonly CottageWindow[];
+  /** 등불 유리 가운데 */
+  lamps: readonly P[];
+}
+
+const COTTAGES: readonly CottageSpec[] = [
+  {
+    w: 204,
+    h: 228,
+    gy: 222,
+    windows: [
+      { x: 140, y: 174, w: 30, h: 30, shape: 'round' },
+      { x: 102, y: 114, w: 18, h: 18, shape: 'round' },
+    ],
+    lamps: [[39, 162]],
+  },
+  {
+    w: 190,
+    h: 236,
+    gy: 230,
+    windows: [
+      { x: 51, y: 170, w: 24, h: 30, shape: 'arch' },
+      { x: 139, y: 170, w: 24, h: 30, shape: 'arch' },
+    ],
+    lamps: [],
+  },
+  {
+    w: 224,
+    h: 230,
+    gy: 224,
+    windows: [
+      { x: 58, y: 172, w: 30, h: 28, shape: 'square' },
+      { x: 168, y: 172, w: 30, h: 28, shape: 'square' },
+    ],
+    lamps: [[140, 175]],
+  },
+];
+
+/** 오두막 창 가운데: 그림 아래 가운데 기준(y는 위가 음수). 좌우로 뒤집어 세우면 x 부호를 바꿔 쓴다 */
+export const COTTAGE_WINDOWS: readonly (readonly { x: number; y: number }[])[] = COTTAGES.map((c) =>
+  c.windows.map((w) => ({ x: w.x - c.w / 2, y: w.y - c.h })),
+);
+
+/** 오두막 등불(문간 등불·매단 등불) 유리 가운데: COTTAGE_WINDOWS와 같은 기준 */
+export const COTTAGE_LAMPS: readonly (readonly { x: number; y: number }[])[] = COTTAGES.map((c) =>
+  c.lamps.map(([x, y]) => ({ x: x - c.w / 2, y: y - c.h })),
+);
+
+/** rgba 색의 투명한 끝 (그라데이션용) */
+function clearOf(rgba: string): string {
+  return rgba.replace(/[\d.]+\)\s*$/, '0)');
+}
+
+function withClip(ctx: Ctx, pts: P[], draw: () => void): void {
+  ctx.save();
+  poly(ctx, pts);
+  ctx.clip();
+  draw();
+  ctx.restore();
+}
+
+function polyline(ctx: Ctx, pts: P[]): void {
+  ctx.beginPath();
+  pts.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)));
+}
+
+/** 땅에 닿는 부드러운 그림자: 벽 밑 gy를 가운데로 위아래 ry (그림 아래 끝을 넘지 않음) */
+function groundShadow(ctx: Ctx, t: Tone, x0: number, x1: number, gy: number, ry = 6): void {
+  const rx = (x1 - x0) / 2;
+  ctx.save();
+  ctx.translate((x0 + x1) / 2, gy);
+  ctx.scale(1, ry / rx);
+  const g = ctx.createRadialGradient(0, 0, 0, 0, 0, rx);
+  g.addColorStop(0, t.shadow);
+  g.addColorStop(0.8, t.shadow);
+  g.addColorStop(1, clearOf(t.shadow));
+  ctx.fillStyle = g;
+  ctx.beginPath();
+  ctx.arc(0, 0, rx, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
+/** 판자벽: 세로 판자 또는 가로 비늘판, 땅 쪽은 조금 어둡게 */
+function boardWall(ctx: Ctx, t: Tone, pts: P[], color: string, kind: 'vertical' | 'clapboard', step: number): void {
+  ctx.fillStyle = color;
+  poly(ctx, pts);
+  ctx.fill();
+  const xs = pts.map((p) => p[0]);
+  const ys = pts.map((p) => p[1]);
+  const [x0, x1, y0, y1] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)];
+  withClip(ctx, pts, () => {
+    if (kind === 'vertical') {
+      planks(ctx, t, x0, x1, y0, y1, step);
+    } else {
+      for (let y = y1 - step; y > y0; y -= step) {
+        ctx.strokeStyle = t.plank;
+        ctx.lineWidth = 1.6;
+        ctx.beginPath();
+        ctx.moveTo(x0, y);
+        ctx.lineTo(x1, y);
+        ctx.stroke();
+        ctx.strokeStyle = t.stoneHi;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(x0, y + 1.6);
+        ctx.lineTo(x1, y + 1.6);
+        ctx.stroke();
+      }
+    }
+    const g = ctx.createLinearGradient(0, y1 - 44, 0, y1);
+    g.addColorStop(0, clearOf(t.stoneLo));
+    g.addColorStop(1, t.stoneLo);
+    ctx.fillStyle = g;
+    ctx.fillRect(x0, y1 - 44, x1 - x0, 44);
+  });
+}
+
+/** 처마가 벽에 드리우는 그늘: 지붕 앞 선을 조금 내려 벽 안에만 */
+function eaveShade(ctx: Ctx, t: Tone, wall: P[], edge: P[], drop = 6, width = 12): void {
+  withClip(ctx, wall, () => {
+    ctx.strokeStyle = t.stoneLo;
+    ctx.lineWidth = width;
+    ctx.lineJoin = 'round';
+    polyline(
+      ctx,
+      edge.map(([x, y]): P => [x, y + drop]),
+    );
+    ctx.stroke();
+  });
+}
+
+/** 벽 밑 주춧돌 (rows줄) */
+function foundation(ctx: Ctx, t: Tone, x0: number, x1: number, gy: number, h: number, seed: number, rows = 1): void {
+  const rng = new Rng(seed);
+  ctx.fillStyle = t.stones[2];
+  ctx.fillRect(x0, gy - h * rows, x1 - x0, h * rows);
+  for (let r = 0; r < rows; r++) {
+    const top = gy - h * (r + 1);
+    let x = x0 - (r % 2 ? 8 : 0);
+    while (x < x1) {
+      const w = rng.range(13, 22);
+      const a = Math.max(x, x0) + 1;
+      const b = Math.min(x + w, x1) - 1;
+      if (b - a > 3) {
+        ctx.fillStyle = t.stones[rng.int(0, 4)];
+        ctx.beginPath();
+        ctx.roundRect(a, top + 1, b - a, h - 2, 3);
+        ctx.fill();
+        ctx.fillStyle = t.stoneHi;
+        ctx.fillRect(a + 2, top + 1, b - a - 4, 1.5);
+      }
+      x += w;
+    }
+  }
+}
+
+function windowPath(ctx: Ctx, shape: CottageWindow['shape'], cx: number, cy: number, rw: number, rh: number): void {
+  ctx.beginPath();
+  if (shape === 'round') ctx.ellipse(cx, cy, rw, rh, 0, 0, Math.PI * 2);
+  else if (shape === 'arch') ctx.roundRect(cx - rw, cy - rh, rw * 2, rh * 2, [rw, rw, 2, 2]);
+  else ctx.roundRect(cx - rw, cy - rh, rw * 2, rh * 2, 2);
+}
+
+/** 창·등불 둘레 벽에 번지는 불빛 (벽 안에만) */
+function wallGlow(ctx: Ctx, wall: P[], spots: readonly { x: number; y: number; r: number }[]): void {
+  withClip(ctx, wall, () => {
+    for (const s of spots) {
+      const g = ctx.createRadialGradient(s.x, s.y, s.r * 0.25, s.x, s.y, s.r);
+      g.addColorStop(0, GLOW(0.32));
+      g.addColorStop(1, GLOW(0));
+      ctx.fillStyle = g;
+      ctx.fillRect(s.x - s.r, s.y - s.r, s.r * 2, s.r * 2);
+    }
+  });
+}
+
+/** 호박빛 창: 나무틀 + 빛나는 유리 + 십자 창살 (+ 창턱) */
+function glowWindow(ctx: Ctx, t: Tone, win: CottageWindow, sill = true): void {
+  const { x, y, w, h, shape } = win;
+  ctx.fillStyle = t.woodDark;
+  windowPath(ctx, shape, x, y, w / 2 + 3.5, h / 2 + 3.5);
+  ctx.fill();
+  const g = ctx.createRadialGradient(x - w * 0.12, y + h * 0.12, 1, x, y, Math.max(w, h) * 0.72);
+  g.addColorStop(0, AMBER_HOT);
+  g.addColorStop(0.5, AMBER);
+  g.addColorStop(1, AMBER_SOFT);
+  ctx.fillStyle = g;
+  windowPath(ctx, shape, x, y, w / 2, h / 2);
+  ctx.fill();
+  ctx.save();
+  windowPath(ctx, shape, x, y, w / 2, h / 2);
+  ctx.clip();
+  // 틀의 깊이: 유리 위쪽에 얇은 그늘
+  ctx.fillStyle = 'rgba(122,62,22,0.28)';
+  ctx.fillRect(x - w / 2, y - h / 2, w, 3.5);
+  ctx.strokeStyle = t.woodDark;
+  ctx.lineWidth = 2.4;
+  const midY = shape === 'arch' ? y + h * 0.06 : y;
+  ctx.beginPath();
+  ctx.moveTo(x, y - h / 2);
+  ctx.lineTo(x, y + h / 2);
+  ctx.moveTo(x - w / 2, midY);
+  ctx.lineTo(x + w / 2, midY);
+  ctx.stroke();
+  ctx.restore();
+  if (sill && shape !== 'round') {
+    ctx.fillStyle = t.woodDark;
+    ctx.fillRect(x - w / 2 - 6, y + h / 2 + 2, w + 12, 5);
+    ctx.fillStyle = t.stoneHi;
+    ctx.fillRect(x - w / 2 - 6, y + h / 2 + 2, w + 12, 1.5);
+  }
+}
+
+/** 아치 문: 틀 + 판자 + 손잡이, 문 밑 틈으로 새는 불빛 (peek = 문에 난 작은 둥근 창) */
+function cottageDoor(ctx: Ctx, t: Tone, cx: number, gy: number, w: number, h: number, peek = false): void {
+  const r = w / 2;
+  ctx.fillStyle = t.woodDark;
+  ctx.beginPath();
+  ctx.roundRect(cx - r - 4, gy - h - 4, w + 8, h + 4, [r + 4, r + 4, 0, 0]);
+  ctx.fill();
+  ctx.fillStyle = t.wood;
+  ctx.beginPath();
+  ctx.roundRect(cx - r, gy - h, w, h, [r, r, 0, 0]);
+  ctx.fill();
+  ctx.save();
+  ctx.beginPath();
+  ctx.roundRect(cx - r, gy - h, w, h, [r, r, 0, 0]);
+  ctx.clip();
+  planks(ctx, t, cx - r, cx + r, gy - h, gy, 7);
+  const g = ctx.createLinearGradient(0, gy - h, 0, gy - h + 16);
+  g.addColorStop(0, t.stoneLo);
+  g.addColorStop(1, clearOf(t.stoneLo));
+  ctx.fillStyle = g;
+  ctx.fillRect(cx - r, gy - h, w, 16);
+  ctx.fillStyle = GLOW(0.85);
+  ctx.fillRect(cx - r + 2, gy - 2.5, w - 4, 2);
+  if (peek) {
+    ctx.fillStyle = t.woodDark;
+    ctx.beginPath();
+    ctx.arc(cx, gy - h + r + 4, 6.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = AMBER;
+    ctx.beginPath();
+    ctx.arc(cx, gy - h + r + 4, 4.5, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
+  ctx.fillStyle = '#C99A4E';
+  ctx.beginPath();
+  ctx.arc(cx + r * 0.55, gy - h * 0.44, 2.2, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+/** 문 앞 디딤돌: 윗면 + 앞면 (땅보다 4 앞으로) */
+function doorStep(ctx: Ctx, t: Tone, cx: number, gy: number, w: number): void {
+  ctx.fillStyle = t.stones[1];
+  ctx.beginPath();
+  ctx.roundRect(cx - w / 2, gy - 1, w, 5, 2);
+  ctx.fill();
+  ctx.fillStyle = t.stones[4];
+  ctx.beginPath();
+  ctx.roundRect(cx - w / 2 + 1, gy - 5, w - 2, 5, 2);
+  ctx.fill();
+  ctx.fillStyle = t.stoneHi;
+  ctx.fillRect(cx - w / 2 + 3, gy - 5, w - 6, 1.5);
+}
+
+/**
+ * 지붕 면: 칠한 뒤 처마(o → o+u)와 나란한 비늘 기와 줄을 깊이 방향(v, 화면 위)으로 rows줄,
+ * 뒤쪽(용마루 쪽)은 조금 어둡게
+ */
+function roofFace(ctx: Ctx, t: Tone, pts: P[], color: string, o: P, u: P, v: P, rows: number): void {
+  ctx.fillStyle = color;
+  poly(ctx, pts);
+  ctx.fill();
+  withClip(ctx, pts, () => {
+    const len = Math.hypot(u[0], u[1]);
+    const [ux, uy] = [u[0] / len, u[1] / len];
+    const vl = Math.hypot(v[0], v[1]);
+    const [vx, vy] = [v[0] / vl, v[1] / vl];
+    const tile = 13;
+    const row = (j: number, off: number): void => {
+      const f = (j + 0.35) / rows;
+      const shift = j % 2 ? tile / 2 : 0;
+      const bx = o[0] + v[0] * f - ux * (tile * 2 + shift) - vx * off;
+      const by = o[1] + v[1] * f - uy * (tile * 2 + shift) - vy * off;
+      ctx.beginPath();
+      for (let s = 0; s < len + tile * 4; s += tile) {
+        const ax = bx + ux * s;
+        const ay = by + uy * s;
+        // 기와 아래 끝은 처마 쪽(-v)으로 볼록
+        ctx.moveTo(ax, ay);
+        ctx.quadraticCurveTo(ax + (ux * tile) / 2 - vx * 6, ay + (uy * tile) / 2 - vy * 6, ax + ux * tile, ay + uy * tile);
+      }
+      ctx.stroke();
+    };
+    for (let j = 0; j < rows; j++) {
+      // 기와 끝 아래 그늘 → 밝은 끝선: 겹친 기와의 두께
+      ctx.strokeStyle = t.stoneLo;
+      ctx.lineWidth = 2.6;
+      row(j, 2);
+      ctx.strokeStyle = t.roofHi;
+      ctx.lineWidth = 1.8;
+      row(j, 0);
+    }
+    const g = ctx.createLinearGradient(o[0], o[1], o[0] + v[0], o[1] + v[1]);
+    g.addColorStop(0, clearOf(t.stoneLo));
+    g.addColorStop(1, t.stoneLo);
+    ctx.fillStyle = g;
+    poly(ctx, pts);
+    ctx.fill();
+  });
+}
+
+/** 나무 테두리 선 (처마 끝·용마루) + 위에 밝은 한 줄 */
+function trim(ctx: Ctx, t: Tone, pts: P[], width: number, hi = true): void {
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.strokeStyle = t.woodDark;
+  ctx.lineWidth = width;
+  polyline(ctx, pts);
+  ctx.stroke();
+  if (hi) {
+    ctx.strokeStyle = t.roofHi;
+    ctx.lineWidth = 1.4;
+    polyline(
+      ctx,
+      pts.map(([x, y]): P => [x, y - width / 2 + 0.8]),
+    );
+    ctx.stroke();
+  }
+}
+
+/** 지붕 뒤 가장자리에 걸리는 달빛 */
+function moonRim(ctx: Ctx, t: Tone, pts: P[]): void {
+  ctx.save();
+  ctx.globalAlpha = 0.5;
+  ctx.strokeStyle = t.flowerHi;
+  ctx.lineWidth = 1.5;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  polyline(ctx, pts);
+  ctx.stroke();
+  ctx.restore();
+}
+
+/** 돌 굴뚝: 앞면(밑변은 지붕 면을 따라 기욺) + 갓 + 윗면(연기 구멍) */
+function chimney(ctx: Ctx, t: Tone, x: number, w: number, top: number, baseL: number, baseR: number, depth: number): void {
+  const front: P[] = [
+    [x, top],
+    [x + w, top],
+    [x + w, baseR],
+    [x, baseL],
+  ];
+  ctx.fillStyle = t.rock;
+  poly(ctx, front);
+  ctx.fill();
+  withClip(ctx, front, () => {
+    ctx.strokeStyle = t.stoneLo;
+    ctx.lineWidth = 1.5;
+    for (let y = top + 8, k = 0; y < Math.max(baseL, baseR); y += 8, k++) {
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineTo(x + w, y);
+      const jx = x + (k % 2 ? w * 0.35 : w * 0.68);
+      ctx.moveTo(jx, y - 8);
+      ctx.lineTo(jx, y);
+      ctx.stroke();
+    }
+    ctx.fillStyle = t.stoneHi;
+    ctx.fillRect(x, top, 2.5, Math.max(baseL, baseR) - top);
+  });
+  // 갓과 윗면
+  ctx.fillStyle = t.woodDark;
+  ctx.fillRect(x - 3, top - 1, w + 6, 5);
+  ctx.fillStyle = t.stones[4];
+  ctx.fillRect(x - 3, top - 1 - depth, w + 6, depth);
+  ctx.fillStyle = '#120e1c';
+  ctx.beginPath();
+  ctx.roundRect(x + 2, top - depth + 1.5, w - 4, depth - 4, 2);
+  ctx.fill();
+}
+
+/** 작은 등불 (문간·처마에 매닮): 갓 + 호박빛 유리 + 받침 */
+function cottageLantern(ctx: Ctx, t: Tone, cx: number, cy: number): void {
+  ctx.fillStyle = t.woodDark;
+  poly(ctx, [
+    [cx - 7.5, cy - 8],
+    [cx + 7.5, cy - 8],
+    [cx + 4, cy - 13],
+    [cx - 4, cy - 13],
+  ]);
+  ctx.fill();
+  ctx.fillRect(cx - 1.5, cy - 16, 3, 3);
+  const g = ctx.createRadialGradient(cx, cy, 1, cx, cy, 9);
+  g.addColorStop(0, '#FFF6DA');
+  g.addColorStop(0.55, AMBER);
+  g.addColorStop(1, AMBER_SOFT);
+  ctx.fillStyle = g;
+  ctx.beginPath();
+  ctx.roundRect(cx - 5, cy - 8, 10, 14, 2);
+  ctx.fill();
+  ctx.strokeStyle = t.woodDark;
+  ctx.lineWidth = 1.3;
+  ctx.beginPath();
+  ctx.moveTo(cx, cy - 8);
+  ctx.lineTo(cx, cy + 6);
+  ctx.stroke();
+  ctx.fillStyle = t.woodDark;
+  ctx.fillRect(cx - 6, cy + 6, 12, 3);
+}
+
+/** 창 아래 꽃상자: 잎과 보라 꽃 */
+function flowerBox(ctx: Ctx, t: Tone, cx: number, y: number, w: number, seed: number): void {
+  const rng = new Rng(seed);
+  for (let i = 0; i < 9; i++) {
+    const x = cx - w / 2 + 3 + (i / 8) * (w - 6) + rng.range(-1.5, 1.5);
+    ctx.fillStyle = [t.leaf, t.leafMid, t.leafDark][rng.int(0, 2)];
+    ctx.beginPath();
+    ctx.ellipse(x, y - 2 - rng.range(0, 3), rng.range(3.5, 5.5), rng.range(2.2, 3.2), rng.range(-0.8, 0.8), 0, Math.PI * 2);
+    ctx.fill();
+  }
+  for (let i = 0; i < 4; i++) {
+    const x = cx - w / 2 + 6 + (i / 3) * (w - 12) + rng.range(-1, 1);
+    const fy = y - 5 - rng.range(0, 3);
+    ctx.fillStyle = t.flower;
+    for (let k = 0; k < 5; k++) {
+      const a = (k / 5) * Math.PI * 2;
+      ctx.beginPath();
+      ctx.arc(x + Math.cos(a) * 2.2, fy + Math.sin(a) * 2.2, 1.8, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.fillStyle = t.flowerHi;
+    ctx.beginPath();
+    ctx.arc(x, fy, 1.2, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.fillStyle = t.wood;
+  ctx.beginPath();
+  ctx.roundRect(cx - w / 2, y, w, 9, 2);
+  ctx.fill();
+  ctx.fillStyle = t.woodDark;
+  ctx.fillRect(cx - w / 2, y, w, 2);
+  ctx.fillRect(cx - w / 2, y + 7, w, 2);
+}
+
+/** 문 위 천 차양: 벽에 붙은 위는 좁고 앞으로 내민 아래는 넓게, 줄무늬, 아래 끝은 물결 */
+function awning(ctx: Ctx, t: Tone, cx: number, top: number, bottom: number, w: number): void {
+  const half = w / 2;
+  const n = 5;
+  const step = (w + 4) / n;
+  const shape = (): void => {
+    ctx.beginPath();
+    ctx.moveTo(cx - half + 5, top);
+    ctx.lineTo(cx + half - 5, top);
+    ctx.lineTo(cx + half + 2, bottom);
+    for (let i = 0; i < n; i++) {
+      const x0 = cx + half + 2 - i * step;
+      ctx.quadraticCurveTo(x0 - step / 2, bottom + 6, x0 - step, bottom);
+    }
+    ctx.closePath();
+  };
+  // 벽에 드리운 그늘
+  ctx.fillStyle = t.stoneLo;
+  ctx.fillRect(cx - half + 2, bottom, w - 4, 7);
+  ctx.fillStyle = t.cloth;
+  shape();
+  ctx.fill();
+  ctx.save();
+  shape();
+  ctx.clip();
+  ctx.fillStyle = mix(t.cloth, t.flowerHi, 0.3);
+  for (let i = 0; i < n; i += 2) {
+    const x0 = cx - half - 2 + i * step;
+    poly(ctx, [
+      [x0 + 3, top],
+      [x0 + step - 1, top],
+      [x0 + step + 1, bottom + 8],
+      [x0 - 1, bottom + 8],
+    ]);
+    ctx.fill();
+  }
+  ctx.restore();
+  ctx.fillStyle = t.woodDark;
+  ctx.fillRect(cx - half + 3, top - 2, w - 6, 3);
+}
+
+/** 나무 상자: 앞면 + 윗면, 테두리 판자와 빗장 */
+function crate(ctx: Ctx, t: Tone, x: number, bottom: number, w: number, h: number, depth: number): void {
+  groundShadow(ctx, t, x - 3, x + w + 3, bottom, 2);
+  const top = bottom - h;
+  ctx.fillStyle = mix(t.wood, t.flowerHi, 0.12);
+  ctx.fillRect(x, top - depth, w, depth);
+  ctx.strokeStyle = t.plank;
+  ctx.lineWidth = 1.2;
+  for (let k = 1; k < 3; k++) {
+    ctx.beginPath();
+    ctx.moveTo(x, top - (depth * k) / 3);
+    ctx.lineTo(x + w, top - (depth * k) / 3);
+    ctx.stroke();
+  }
+  ctx.fillStyle = t.wood;
+  ctx.fillRect(x, top, w, h);
+  ctx.strokeStyle = t.woodDark;
+  ctx.lineWidth = 2.4;
+  ctx.strokeRect(x + 1.2, top + 1.2, w - 2.4, h - 2.4);
+  ctx.beginPath();
+  ctx.moveTo(x + 2, top + 2);
+  ctx.lineTo(x + w - 2, bottom - 2);
+  ctx.stroke();
+  ctx.fillStyle = t.stoneHi;
+  ctx.fillRect(x, top - depth, w, 1.2);
+}
+
+/** 0: 둥근 창 오두막 — 앞을 향한 박공(세모 벽), 둥근 창 둘, 문간 등불, 돌 굴뚝 */
+function cottage0(ctx: Ctx, t: Tone): void {
+  const c = COTTAGES[0];
+  const { gy } = c;
+  const cx = 102;
+  const L = 24;
+  const R = 180;
+  const s = 54 / 78; // 박공 경사
+  const apex: P = [cx, 79];
+  const edgeY = (x: number): number => apex[1] + Math.abs(x - cx) * s;
+  const eaveL: P = [8, edgeY(8)];
+  const eaveR: P = [196, edgeY(196)];
+  const D = 64; // 지붕 깊이 (판정 깊이 60 + 처마)
+  const roof = mix(t.roof, t.ring, 0.42);
+  const wall: P[] = [[L, gy], [R, gy], [R, edgeY(R)], apex, [L, edgeY(L)]];
+
+  groundShadow(ctx, t, L - 12, R + 12, gy);
+  boardWall(ctx, t, wall, t.wall, 'vertical', 12);
+  // 박공(위 세모)은 가로 비늘판 + 띠 나무
+  const gable: P[] = [[L, 142], [R, 142], [R, edgeY(R)], apex, [L, edgeY(L)]];
+  boardWall(ctx, t, gable, mix(t.wall, t.roof, 0.35), 'clapboard', 8);
+  ctx.fillStyle = t.woodDark;
+  ctx.fillRect(L, 140, R - L, 5);
+  foundation(ctx, t, L - 2, R + 2, gy, 9, 701);
+  wallGlow(ctx, wall, [
+    ...c.windows.map((w) => ({ x: w.x, y: w.y, r: w.w * 1.25 })),
+    ...c.lamps.map(([x, y]) => ({ x, y, r: 24 })),
+  ]);
+  eaveShade(ctx, t, wall, [eaveL, apex, eaveR]);
+  for (const w of c.windows) glowWindow(ctx, t, w);
+  cottageDoor(ctx, t, 72, gy, 32, 54);
+  doorStep(ctx, t, 72, gy, 44);
+  // 문간 등불: 벽에 박은 쇠고리에 매닮
+  const [lx, ly] = c.lamps[0];
+  ctx.strokeStyle = t.woodDark;
+  ctx.lineWidth = 2.4;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(lx - 8, ly - 24);
+  ctx.lineTo(lx, ly - 24);
+  ctx.lineTo(lx, ly - 16);
+  ctx.stroke();
+  cottageLantern(ctx, t, lx, ly);
+
+  // 지붕: 용마루가 앞뒤로 달리는 두 면
+  const back = (p: P): P => [p[0], p[1] - D];
+  roofFace(ctx, t, [eaveL, apex, back(apex), back(eaveL)], roof, eaveL, [apex[0] - eaveL[0], apex[1] - eaveL[1]], [0, -D], 5);
+  roofFace(ctx, t, [apex, eaveR, back(eaveR), back(apex)], mix(roof, t.woodDark, 0.3), apex, [eaveR[0] - apex[0], eaveR[1] - apex[1]], [0, -D], 5);
+  trim(ctx, t, [apex, back(apex)], 5);
+  trim(ctx, t, [back(eaveL), eaveL], 3, false);
+  trim(ctx, t, [back(eaveR), eaveR], 3, false);
+  moonRim(ctx, t, [back(eaveL), back(apex), back(eaveR)]);
+  // 굴뚝: 오른쪽 면 위, 밑변은 지붕 면을 따라
+  chimney(ctx, t, 138, 20, 30, edgeY(138) - 30, edgeY(158) - 30, 12);
+  trim(ctx, t, [eaveL, apex, eaveR], 6);
+}
+
+/** 1: 좁고 높은 두 창 오두막 — 가파른 우진각 지붕, 문 위 천 차양, 창 아래 꽃상자, 쇠 연통 */
+function cottage1(ctx: Ctx, t: Tone): void {
+  const c = COTTAGES[1];
+  const { gy } = c;
+  const cx = 95;
+  const L = 23;
+  const R = 167;
+  const wallTop = 130;
+  const eave = 138; // 앞 처마 (벽 앞으로 8 내밂)
+  const ridge = 40;
+  const back = 62; // 뒤 처마
+  const [eL, eR] = [7, 183];
+  const [rL, rR] = [45, 145];
+  const roof = mix(t.roof, t.leaf, 0.5);
+  const wall: P[] = [[L, gy], [R, gy], [R, wallTop], [L, wallTop]];
+
+  groundShadow(ctx, t, L - 12, R + 12, gy);
+  boardWall(ctx, t, wall, mix(t.wall, t.cloth, 0.3), 'clapboard', 9);
+  // 모서리 기둥
+  ctx.fillStyle = t.woodDark;
+  ctx.fillRect(L, wallTop, 5, gy - wallTop);
+  ctx.fillRect(R - 5, wallTop, 5, gy - wallTop);
+  foundation(ctx, t, L - 2, R + 2, gy, 9, 702);
+  wallGlow(
+    ctx,
+    wall,
+    c.windows.map((w) => ({ x: w.x, y: w.y, r: w.w * 1.4 })),
+  );
+  eaveShade(ctx, t, wall, [[eL, eave], [eR, eave]], 2, 14);
+  for (const w of c.windows) {
+    glowWindow(ctx, t, w, false);
+    flowerBox(ctx, t, w.x, w.y + w.h / 2 + 4, w.w + 12, 703 + w.x);
+  }
+  cottageDoor(ctx, t, cx, gy, 30, 54, true);
+  doorStep(ctx, t, cx, gy, 40);
+  awning(ctx, t, cx, gy - 70, gy - 58, 44);
+
+  // 쇠 연통: 지붕 앞면에 박혀 위로 솟음 (지붕 위에 그리고, 박힌 자리에 그늘)
+  const roofFront: P[] = [[eL, eave], [eR, eave], [rR, ridge], [rL, ridge]];
+  const hipL: P[] = [[eL, eave], [rL, ridge], [eL, back]];
+  const hipR: P[] = [[eR, eave], [eR, back], [rR, ridge]];
+  const v: P = [0, ridge - eave];
+  roofFace(ctx, t, hipL, mix(roof, t.woodDark, 0.15), [eL, eave], [eR - eL, 0], v, 7);
+  roofFace(ctx, t, hipR, mix(roof, t.woodDark, 0.35), [eL, eave], [eR - eL, 0], v, 7);
+  roofFace(ctx, t, roofFront, roof, [eL, eave], [eR - eL, 0], v, 7);
+  trim(ctx, t, [[rL, ridge], [rR, ridge]], 5);
+  trim(ctx, t, [[eL, eave], [rL, ridge]], 3.5, false);
+  trim(ctx, t, [[eR, eave], [rR, ridge]], 3.5, false);
+  moonRim(ctx, t, [[eL, back], [rL, ridge], [rR, ridge], [eR, back]]);
+
+  const px = 122;
+  const pipeBase = 70;
+  ctx.fillStyle = t.stoneLo;
+  ctx.beginPath();
+  ctx.ellipse(px + 5, pipeBase, 9, 3.5, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = mix(t.rock, t.woodDark, 0.4);
+  ctx.fillRect(px, 24, 10, pipeBase - 24);
+  ctx.fillStyle = t.stoneHi;
+  ctx.fillRect(px, 24, 2.5, pipeBase - 24);
+  ctx.fillStyle = t.woodDark;
+  for (const y of [38, 56]) ctx.fillRect(px - 1, y, 12, 3);
+  // 연통 갓
+  poly(ctx, [
+    [px - 6, 24],
+    [px + 16, 24],
+    [px + 10, 16],
+    [px, 16],
+  ]);
+  ctx.fill();
+  ctx.fillStyle = t.roofHi;
+  ctx.fillRect(px - 6, 22.5, 22, 1.5);
+  trim(ctx, t, [[eL, eave], [eR, eave]], 6);
+}
+
+/** 2: 넓은 오두막 — 옆으로 긴 박공지붕 + 문간 작은 지붕(앞을 향한 박공), 아래는 돌벽, 디딤돌, 매단 등불, 나무 상자, 용마루 뒤 굴뚝 */
+function cottage2(ctx: Ctx, t: Tone): void {
+  const c = COTTAGES[2];
+  const { gy } = c;
+  const cx = 112;
+  const L = 28;
+  const R = 196;
+  const wallTop = 138;
+  const eave = 146;
+  const ridge = 64;
+  const [eL, eR] = [12, 212];
+  const roof = mix(t.roof, t.rock, 0.55);
+  const wall: P[] = [[L, gy], [R, gy], [R, wallTop], [L, wallTop]];
+
+  groundShadow(ctx, t, L - 12, R + 12, gy);
+  boardWall(ctx, t, wall, mix(t.wall, t.wood, 0.25), 'vertical', 13);
+  // 아래 돌벽 두 줄 + 띠 나무
+  foundation(ctx, t, L - 2, R + 2, gy, 12, 704, 2);
+  ctx.fillStyle = t.woodDark;
+  ctx.fillRect(L - 2, gy - 27, R - L + 4, 4);
+  wallGlow(ctx, wall, [
+    ...c.windows.map((w) => ({ x: w.x, y: w.y, r: w.w * 1.3 })),
+    ...c.lamps.map(([x, y]) => ({ x, y, r: 26 })),
+  ]);
+  eaveShade(ctx, t, wall, [[eL, eave], [eR, eave]], 2, 14);
+  for (const w of c.windows) glowWindow(ctx, t, w);
+  cottageDoor(ctx, t, cx, gy, 34, 58, true);
+  doorStep(ctx, t, cx, gy, 52);
+
+  // 굴뚝: 용마루 뒤에 서서 위만 보인다 (지붕보다 먼저)
+  chimney(ctx, t, 44, 20, 30, 80, 80, 10);
+  // 긴 지붕 앞면: 양 끝 위 모서리를 깎은 반박공(작은 옆 면이 보임)
+  const cut = 16;
+  const v2: P = [0, ridge - eave];
+  roofFace(ctx, t, [[eL, ridge + cut], [eL + cut, ridge], [eL, ridge + 3]], mix(roof, t.woodDark, 0.2), [eL, eave], [eR - eL, 0], v2, 6);
+  roofFace(ctx, t, [[eR, ridge + cut], [eR, ridge + 3], [eR - cut, ridge]], mix(roof, t.woodDark, 0.4), [eL, eave], [eR - eL, 0], v2, 6);
+  roofFace(
+    ctx,
+    t,
+    [[eL, eave], [eR, eave], [eR, ridge + cut], [eR - cut, ridge], [eL + cut, ridge], [eL, ridge + cut]],
+    roof,
+    [eL, eave],
+    [eR - eL, 0],
+    v2,
+    6,
+  );
+  trim(ctx, t, [[eL + cut, ridge], [eR - cut, ridge]], 5);
+  moonRim(ctx, t, [[eL, ridge + 3], [eL + cut, ridge - 3], [eR - cut, ridge - 3], [eR, ridge + 3]]);
+  trim(ctx, t, [[eL, eave], [eL, ridge + cut], [eL + cut, ridge]], 3.5, false);
+  trim(ctx, t, [[eR, eave], [eR, ridge + cut], [eR - cut, ridge]], 3.5, false);
+  trim(ctx, t, [[eL, eave], [eR, eave]], 6);
+
+  // 문간 작은 지붕: 앞을 향한 박공, 뒤는 긴 지붕에 묻힘
+  const pa: P = [cx, 126];
+  const pl: P = [cx - 34, 156];
+  const pr: P = [cx + 34, 156];
+  const PD = 24;
+  const up = (p: P): P => [p[0], p[1] - PD];
+  ctx.fillStyle = t.wood;
+  poly(ctx, [pl, pa, pr]);
+  ctx.fill();
+  withClip(ctx, [pl, pa, pr], () => {
+    planks(ctx, t, pl[0], pr[0], pa[1], pl[1], 8);
+    ctx.fillStyle = t.stoneLo;
+    ctx.fillRect(pl[0], pa[1], pr[0] - pl[0], pl[1] - pa[1]);
+  });
+  // 박공 가운데 반달 장식
+  ctx.fillStyle = t.woodDark;
+  ctx.beginPath();
+  ctx.arc(cx, pl[1] - 2, 9, Math.PI, 0);
+  ctx.fill();
+  ctx.fillStyle = AMBER_SOFT;
+  ctx.beginPath();
+  ctx.arc(cx, pl[1] - 2, 6, Math.PI, 0);
+  ctx.fill();
+  // 버팀목
+  ctx.strokeStyle = t.woodDark;
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(pl[0] + 4, pl[1]);
+  ctx.lineTo(pl[0] + 10, pl[1] + 10);
+  ctx.moveTo(pr[0] - 4, pr[1]);
+  ctx.lineTo(pr[0] - 10, pr[1] + 10);
+  ctx.stroke();
+  ctx.fillStyle = t.woodDark;
+  ctx.fillRect(pl[0], pl[1] - 1, pr[0] - pl[0], 4);
+  // 긴 지붕과 만나는 골의 그늘
+  ctx.strokeStyle = t.stoneLo;
+  ctx.lineWidth = 5;
+  polyline(ctx, [up(pl), up(pa), up(pr)]);
+  ctx.stroke();
+  roofFace(ctx, t, [pl, pa, up(pa), up(pl)], roof, pl, [pa[0] - pl[0], pa[1] - pl[1]], [0, -PD], 2);
+  roofFace(ctx, t, [pa, pr, up(pr), up(pa)], mix(roof, t.woodDark, 0.3), pa, [pr[0] - pa[0], pr[1] - pa[1]], [0, -PD], 2);
+  trim(ctx, t, [pa, up(pa)], 4);
+  trim(ctx, t, [pl, pa, pr], 5);
+
+  // 처마에 매단 등불
+  const [lx, ly] = c.lamps[0];
+  ctx.strokeStyle = t.woodDark;
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(lx, pl[1] + 2);
+  ctx.lineTo(lx, ly - 15);
+  ctx.stroke();
+  cottageLantern(ctx, t, lx, ly);
+
+  // 문 옆 나무 상자
+  crate(ctx, t, 176, gy + 3, 28, 24, 9);
+  crate(ctx, t, 203, gy + 4, 15, 14, 6);
+}
+
 export interface Bounds {
   x: number;
   y: number;
@@ -690,6 +1478,15 @@ export const VILLAGE_OBJECTS: readonly VillageObject[] = [
   { key: 'bush', label: '풀숲', bounds: { x: 0, y: 0, w: 128, h: 108 }, draw: (c, t) => foliage(c, t, 64, 52, 46, 34, 6) },
   { key: 'rock', label: '바위', bounds: { x: 0, y: 0, w: 64, h: 52 }, draw: (c, t) => rock(c, t, 30, 24, 14) },
   { key: 'lamp-post', label: '등불 기둥', bounds: { x: 0, y: 0, w: 44, h: 116 }, draw: (c, t) => lanternPost(c, t, 20, 14, 104) },
+  // 마을 안 오두막 (2026-11-13): 그림 아래 가운데 = 땅에 닿는 곳
+  ...[cottage0, cottage1, cottage2].map(
+    (draw, i): VillageObject => ({
+      key: `cottage-${i}`,
+      label: ['둥근 창 오두막', '좁은 두 창 오두막', '넓은 오두막'][i],
+      bounds: { x: 0, y: 0, w: COTTAGES[i].w, h: COTTAGES[i].h },
+      draw,
+    }),
+  ),
 ];
 
 /** 마을 합성: 오브젝트를 레퍼런스 배치대로 놓는다 (그리는 순서 = 앞뒤) */

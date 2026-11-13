@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-13T00:40:46.982Z",
+  "generatedAt": "2026-11-13T05:16:49.842Z",
   "sheets": [
     {
       "key": "portrait-lumi",
@@ -1226,6 +1226,45 @@
       "file": "objects/village-lamp-post.png",
       "frameWidth": 44,
       "frameHeight": 116,
+      "frames": 2,
+      "res": 1,
+      "source": "code",
+      "load": true,
+      "anims": []
+    },
+    {
+      "key": "village-cottage-0",
+      "category": "objects",
+      "label": "둥근 창 오두막 (밤·빛 받음)",
+      "file": "objects/village-cottage-0.png",
+      "frameWidth": 204,
+      "frameHeight": 228,
+      "frames": 2,
+      "res": 1,
+      "source": "code",
+      "load": true,
+      "anims": []
+    },
+    {
+      "key": "village-cottage-1",
+      "category": "objects",
+      "label": "좁은 두 창 오두막 (밤·빛 받음)",
+      "file": "objects/village-cottage-1.png",
+      "frameWidth": 190,
+      "frameHeight": 236,
+      "frames": 2,
+      "res": 1,
+      "source": "code",
+      "load": true,
+      "anims": []
+    },
+    {
+      "key": "village-cottage-2",
+      "category": "objects",
+      "label": "넓은 오두막 (밤·빛 받음)",
+      "file": "objects/village-cottage-2.png",
+      "frameWidth": 224,
+      "frameHeight": 230,
       "frames": 2,
       "res": 1,
       "source": "code",
