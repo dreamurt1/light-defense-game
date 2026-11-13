@@ -46,6 +46,9 @@ export class Lightkeeper {
   private readonly shadow: Phaser.GameObjects.Image;
   private readonly dust: Phaser.GameObjects.Image[] = [];
   private readonly scale: number;
+  /** 등불지기별 8방향 시트(`${id}-8dir`)와 애니메이션 접두사(`${id}-`). 시트가 없으면 루미 것을 쓴다 */
+  private readonly tex: string;
+  private readonly prefix: string;
   private faceAngle = Math.PI / 2;
   private dir: Dir = 's';
   private action: Action | null = null;
@@ -65,10 +68,13 @@ export class Lightkeeper {
     this.scene = scene;
     this.pos = { x, y };
     this.shadow = scene.add.image(x, y + FOOT_Y, TextureKeys.footShadow).setScale(1.68, 1.76).setDepth(y - 1);
-    this.scale = DISPLAY * texScale(TextureKeys.lumi);
-    // M3 전까지 시트는 루미만. 다른 등불지기는 같은 규격(lumi-8dir과 같은 줄·칸)으로 추가한다
+    // 2026-11-13: 등불지기마다 같은 규격(lumi-8dir과 같은 줄·칸)의 시트. 토리·도토는 임시 코드 그림(src/art/keeperSprites.ts)
+    const own = `${def.id}-8dir`;
+    this.tex = scene.textures.exists(own) ? own : TextureKeys.lumi;
+    this.prefix = this.tex === own ? `${def.id}-` : 'lumi-';
+    this.scale = DISPLAY * texScale(this.tex);
     this.sprite = scene.add
-      .sprite(x, y + FOOT_Y, TextureKeys.lumi, 0)
+      .sprite(x, y + FOOT_Y, this.tex, 0)
       .setOrigin(0.5, FEET_Y / CELL)
       .setScale(this.scale)
       .setDepth(y);
@@ -154,7 +160,7 @@ export class Lightkeeper {
     // 판이 끝나 moveTo가 더는 불리지 않으므로 동작 중이던 모양을 여기서 되돌린다
     this.sprite.setPosition(this.pos.x, this.pos.y + FOOT_Y).setScale(this.scale).setRotation(0).setAlpha(this.veil);
     this.sprite.anims.timeScale = 1;
-    this.sprite.play('lumi-ko');
+    this.sprite.play(`${this.prefix}ko`);
     for (const d of this.dust) d.setVisible(false);
   }
 
@@ -184,11 +190,11 @@ export class Lightkeeper {
   private refresh(force: boolean): void {
     if (this.sleeping) return;
     const state = this.moving ? 'walk' : 'idle';
-    const key = `lumi-${state}-${this.dir}`;
+    const key = `${this.prefix}${state}-${this.dir}`;
     const cur = this.sprite.anims.currentAnim;
     if (!force && cur?.key === key) return;
     if (cur?.key === key && this.sprite.anims.isPlaying) return;
-    const sameState = cur?.key.startsWith(`lumi-${state}-`) ?? false;
+    const sameState = cur?.key.startsWith(`${this.prefix}${state}-`) ?? false;
     const progress = sameState ? this.sprite.anims.getProgress() : 0;
     this.sprite.play(key);
     if (sameState && progress > 0) this.sprite.anims.setProgress(progress);

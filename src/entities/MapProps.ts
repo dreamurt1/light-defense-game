@@ -48,6 +48,8 @@ export class MapProps {
           .setOrigin(0.5, 1)
           .setScale(texScale(TextureKeys.villageBarrel))
           .setDepth(bottom);
+      } else if (ob.kind === 'wall' || ob.kind === 'fence') {
+        drawWall(scene, ob, ob.kind);
       } else {
         scene.add
           .image(ob.x + ob.w / 2, bottom, TextureKeys.villageLampPost, 0)
@@ -87,4 +89,34 @@ export class MapProps {
       for (const leaf of leaves) leaf.setAlpha(leaf.alpha + (target - leaf.alpha) * k);
     });
   }
+}
+
+/** 담 높이(2.5D: 바닥 사각형 위로 솟은 만큼) — 2026-11-13 미로 요소, 임시 코드 그림 */
+const WALL_RISE = { wall: 26, fence: 22 };
+
+/** 돌담·나무 울타리: 바닥 사각형(판정)을 위로 솟은 덩어리로 그린다. 밑변 y로 앞뒤를 정한다 */
+function drawWall(scene: Phaser.Scene, r: Rect, kind: 'wall' | 'fence'): void {
+  const g = scene.add.graphics().setDepth(r.y + r.h);
+  const rise = WALL_RISE[kind];
+  if (kind === 'wall') {
+    // 앞면(어두움) + 윗면(밝음) + 돌 줄눈
+    g.fillStyle(0x2a2640, 1).fillRect(r.x, r.y - rise + r.h * 0.4, r.w, r.h * 0.6 + rise);
+    g.fillStyle(0x4b4766, 1).fillRect(r.x, r.y - rise, r.w, r.h * 0.4 + 4);
+    g.lineStyle(1.5, 0x1b1f3b, 0.9).strokeRect(r.x, r.y - rise, r.w, r.h + rise);
+    g.lineStyle(1, 0x1b1f3b, 0.55);
+    const front = r.y - rise + r.h * 0.4 + 4;
+    for (let x = r.x + 18; x < r.x + r.w - 6; x += 22) g.lineBetween(x, front, x, r.y + r.h);
+    g.lineBetween(r.x, front + (r.y + r.h - front) / 2, r.x + r.w, front + (r.y + r.h - front) / 2);
+    g.fillStyle(0xa89cd9, 0.18).fillRect(r.x + 2, r.y - rise + 2, r.w - 4, 3);
+    return;
+  }
+  // 울타리: 기둥 + 가로대 두 줄
+  const posts = Math.max(2, Math.round(r.w / 34));
+  g.fillStyle(0x5a4636, 1);
+  for (let i = 0; i <= posts; i++) {
+    const x = r.x + (i * (r.w - 8)) / posts;
+    g.fillRect(x, r.y - rise, 8, r.h + rise);
+  }
+  g.fillStyle(0x7a5e48, 1).fillRect(r.x, r.y - rise + 6, r.w, 6).fillRect(r.x, r.y - rise + 18, r.w, 6);
+  g.lineStyle(1, 0x1b1f3b, 0.7).strokeRect(r.x, r.y - rise + 6, r.w, 18);
 }

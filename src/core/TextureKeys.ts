@@ -23,6 +23,27 @@ export const TextureKeys = {
   fxReturn: 'fx-return',
   /** 루미 8방향 시트 (정지·걷기 = ChatGPT 8방향 팩, 애니메이션 키는 lumi-<idle|walk>-<방향>, lumi-ko·stun. 공격·피격·부활은 동작 효과) */
   lumi: 'lumi-8dir',
+  /** 토리·도토 8방향 시트 (2026-11-13 임시 코드 그림, lumi-8dir과 같은 배치. 애니메이션 키 tori-idle-<방향> 등) */
+  tori: 'tori-8dir',
+  doto: 'doto-8dir',
+  // 2026-11-13 새 종 (src/art/creatures.ts creatureKey, 애니메이션 = `${키}-move`)
+  werewolfDark: 'werewolf-dark',
+  vampireDark: 'vampire-dark',
+  hedgehogDark: 'hedgehog-dark',
+  hedgehogTrue: 'hedgehog-true',
+  redpandaDark: 'redpanda-dark',
+  redpandaTrue: 'redpanda-true',
+  owl: 'owl',
+  moth: 'moth',
+  firefly: 'firefly',
+  /** 노월이 던지는 어둠 구슬 */
+  fxDarkOrb: 'fx-dark-orb',
+  // 아이템 아이콘 (public/assets/items/item-<id>.png)
+  itemWindFeather: 'item-wind_feather',
+  itemStarNecklace: 'item-star_necklace',
+  itemFireflyJar: 'item-firefly_jar',
+  itemGoldenAcorn: 'item-golden_acorn',
+  itemLightCharm: 'item-light_charm',
   // LUMI 시트 VFX
   fxStar: 'fx-star',
   fxImpact: 'fx-impact',

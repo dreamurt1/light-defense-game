@@ -6,7 +6,11 @@ import Phaser from 'phaser';
 import { bus, type RunResult } from '../core/events';
 import { Rng } from '../core/rng';
 import { RunState } from '../core/RunState';
-import { characterById, GameData, IMPLEMENTED_ENEMIES, nightConfig, stageById, type StageDef } from '../data';
+import { characterById, enemyById, GameData, IMPLEMENTED_ENEMIES, nightConfig, stageById, type EnemyId, type StageDef } from '../data';
+import { Creature } from '../entities/enemies/Creature';
+import { Items } from './play/Items';
+import { Boss } from './play/Boss';
+import { StageRules } from './play/StageRules';
 import { VillageStage } from '../entities/VillageStage';
 import { KEEPER_FOOT_Y, Lightkeeper } from '../entities/Lightkeeper';
 import { AimGuide } from '../entities/AimGuide';
@@ -100,6 +104,12 @@ export class PlayScene extends Phaser.Scene {
   private time_ = 0;
   /** HUD에 마지막으로 알린 값 (바뀔 때만 이벤트) */
   private shown = { hp: -1, lp: -1, central: -1 };
+  // 2026-11-13 컨셉 시연판: 아이템 · 노월 · 스테이지 규칙(패시브·자비·친구·은신·튜토리얼)
+  private items!: Items;
+  private boss: Boss | null = null;
+  private rules!: StageRules;
+  /** 연습장·튜토리얼: 시계가 멈추고 판이 끝나지 않는다(하트·광원이 바닥나지 않음) */
+  private safe = false;
 
   constructor() {
     super('Play');
@@ -152,6 +162,16 @@ export class PlayScene extends Phaser.Scene {
       IMPLEMENTED_ENEMIES,
     );
     this.field = new EnemyField(this, spawner, CFG.world, CFG.playfield.margin);
+    this.field.obstacles = this.obstacles;
+    const sd = this.stageDef;
+    this.safe = !!(sd.practice || sd.tutorial);
+    this.items = new Items(this, sd, new Rng(RunState.seed + 31), keeperDef.trait === 'cheekPouch' ? (keeperDef.traitParams.itemEffectMultiplier ?? 1) : 1);
+    this.boss = sd.boss ? new Boss(this, sd, this.field, { x: CFG.central.x, y: CFG.central.y }) : null;
+    const host = { field: this.field, items: this.items, score: this.score, combo: this.combo, keeper: () => this.keeper.pos, litCount: () => this.sources.litCount };
+    this.rules = new StageRules(host, sd, new Rng(RunState.seed + 47), WALK_AREA);
+    (this.stage as unknown as { setTheme?: (t: StageDef['theme']) => void }).setTheme?.(sd.theme);
+    this.input.keyboard?.on('keydown-Q', () => this.useItem(0));
+    this.input.keyboard?.on('keydown-E', () => this.useItem(1));
 
     // 설정이 열려 있으면 ESC는 설정만 닫는다(SettingsSheet가 먼저 받아 preventDefault). 그때는 일시정지를 풀지 않는다
     this.input.keyboard?.on('keydown-ESC', (e: KeyboardEvent) => {
@@ -162,6 +182,7 @@ export class PlayScene extends Phaser.Scene {
     this.unsubscribe = [
       bus.on('ui:pause-toggle', () => this.togglePause()),
       bus.on('ui:restart', () => this.restart()),
+      bus.on('ui:use-item', (e) => this.useItem(e.slot)),
       bus.on('combo:change', (e) => {
         this.stage.setCombo(e.combo);
         if (e.reason === 'gain' && isComboMilestone(e.combo)) this.stage.pulse();
@@ -195,6 +216,7 @@ export class PlayScene extends Phaser.Scene {
     this.sources.emitStations();
     this.emitVitals();
     this.clock.start();
+    this.rules.start();
     this.cameras.main.fadeIn(400, 18, 15, 36);
   }
 
@@ -214,7 +236,7 @@ export class PlayScene extends Phaser.Scene {
   }
 
   private tick(dt: number): void {
-    if (!this.test) this.clock.update(dt);
+    if (!this.safe) this.clock.update(dt);
     const progress = this.clock.progress;
 
     // 광원들: 등불 점화·맵 전체 광도·중앙 광원
@@ -231,28 +253,50 @@ export class PlayScene extends Phaser.Scene {
       this.lp.update(dt, nearCentral ? 'central' : nearStation ? 'station' : 'field');
     }
     this.light.rangeMultiplier = this.lp.effectiveness;
+    if (this.safe) {
+      // 연습장·튜토리얼은 끝나지 않는다
+      if (!this.vitals.down) this.vitals.hearts = CFG.stage.hearts;
+      central.state.value = Math.max(central.state.value, 40);
+    }
     this.emitVitals();
 
-    const verdict = judgeStage({
-      timeUp: this.clock.isDawn,
+    const calmed = !!this.boss?.calmed;
+    const judged = judgeStage({
+      timeUp: this.clock.isDawn || calmed,
       hearts: this.vitals.hearts,
       centralOut: central.state.out,
       centralLevel: central.state.value,
       stationLevels: this.sources.stationLevels,
       bands: CFG.lightLevels.bands,
     });
+    const verdict = this.rules.tutorialDone
+      ? { outcome: 'victory' as const, reason: 'tutorial' as const }
+      : this.safe
+        ? null
+        : judged && calmed && judged.outcome !== 'over'
+          ? { outcome: judged.outcome, reason: 'boss' as const }
+          : judged;
     if (verdict) {
       this.end(verdict.outcome, verdict.reason);
       return;
     }
 
-    if (!this.test) this.field.spawn(dt, this.clock.t);
+    if (!this.stageDef.tutorial) this.field.spawn(dt, this.clock.t);
     for (const { enemy, hit } of this.field.step(dt, this.enemyContext())) this.applyHit(enemy, hit);
+    this.rules.update(dt, progress, !this.hidden && !this.vitals.down);
+    if (this.boss) for (const h of this.boss.update(dt, this.clock.t, this.sources.enemyTargets())) this.damageSource(h.target, h.damage, 'witch');
+    const spots = [central.pos, ...this.sources.stations.filter((s) => s.state.lit).map((s) => s.pos)];
+    for (let n = this.items.update(dt, this.keeper.pos, spots, this.obstacles, WALK_AREA).length; n > 0; n--) {
+      const gained = this.score.addItem(this.combo.combo);
+      bus.emit('score:change', { score: this.score.total, gained });
+    }
+    for (const e of this.items.updateHelpers(dt, this.keeper.pos, this.field.active)) this.hitEnemy(e, this.items.helperPower);
 
     // 빛: 적과 꺼진 등불을 맞힌다 (등불은 음수 uid)
     const enemies = this.field.active;
-    for (const hit of this.light.update(dt, [...enemies, ...this.sources.lightTargets()])) {
-      if (hit.uid < 0) this.igniteStation(this.sources.stationByUid(hit.uid));
+    for (const hit of this.light.update(dt, [...enemies, ...this.sources.lightTargets(), ...(this.boss?.lightTargets() ?? [])])) {
+      if (this.boss?.owns(hit.uid)) this.hitBoss(hit.uid);
+      else if (hit.uid < 0) this.igniteStation(this.sources.stationByUid(hit.uid));
       else {
         const e = enemies.find((t) => t.uid === hit.uid);
         if (e) this.hitEnemy(e);
@@ -261,7 +305,8 @@ export class PlayScene extends Phaser.Scene {
 
     this.combo.update(dt);
     this.field.prune();
-    this.edgeArrows.update(this.cameras.main, this.field.active, this.sources.beacons());
+    const friend = this.rules.friend;
+    this.edgeArrows.update(this.cameras.main, this.field.active, friend ? [...this.sources.beacons(), friend] : this.sources.beacons());
   }
 
   private enemyContext(): EnemyContext {
@@ -269,14 +314,15 @@ export class PlayScene extends Phaser.Scene {
     return {
       player: this.vitals.down ? null : { id: 'player', x: p.x, y: p.y, radius: CFG.keeper.radius, seen: !this.hidden },
       sources: this.sources.enemyTargets(),
-      aggroRadius: CFG.enemyAi.aggroRadius,
+      // 풀숲에 너무 오래 있어 들키면 더 멀리서도 알아챈다 (2026-11-13)
+      aggroRadius: CFG.enemyAi.aggroRadius * (this.rules.stealth.exposed ? CFG.hide.exposedAggroMultiplier : 1),
       revealDist: CFG.hide.revealDist,
       retargetSec: CFG.enemyAi.retargetSec,
       detachRatio: CFG.enemyAi.detachRatio,
       lostSightSec: CFG.hide.lostSightSec,
       roam: this.roamPoint,
       roamSpeed: CFG.hide.roamSpeed,
-      speedMultiplier: 1,
+      speedMultiplier: this.items.enemySpeedMultiplier,
     };
   }
 
@@ -293,19 +339,45 @@ export class PlayScene extends Phaser.Scene {
       this.emitVitals(true);
       return;
     }
-    if (hit.target === 'central') {
+    this.damageSource(hit.target, hit.sourceDamage, e.def.id);
+  }
+
+  /** 중앙 광원 광도 / 등불 광도가 줄어든다 (적의 공격·노월의 구슬) */
+  private damageSource(target: string, amount: number, by: EnemyId): void {
+    if (target === 'central') {
       const c = this.sources.central;
-      c.state.damage(hit.sourceDamage);
+      c.state.damage(amount);
       c.hit();
-      this.sources.mapLight.hit('central', climax);
-      bus.emit('central:hit', { value: c.state.value, by: e.def.id });
+      this.sources.mapLight.hit('central', this.clock.climax);
+      bus.emit('central:hit', { value: c.state.value, by });
       this.emitVitals(true);
       return;
     }
-    const s = this.sources.stationById(hit.target);
+    const s = this.sources.stationById(target);
     if (!s) return;
     s.hit();
-    if (s.state.damage(hit.sourceDamage)) this.sources.emitStations();
+    if (s.state.damage(amount)) this.sources.emitStations();
+  }
+
+  /** 노월·어둠 구슬에 빛이 닿음 */
+  private hitBoss(uid: number): void {
+    const r = this.boss?.hit(uid, this.keeper.def.lightPower * this.lp.effectiveness);
+    const p = this.boss?.pos;
+    if (!r) return;
+    if (p && r !== 'orb') this.fx.impact(p.x, p.y - 40);
+    if (r === 'hit') return;
+    const points = r === 'orb' ? Boss.popScore : enemyById('witch').score;
+    const gained = this.score.addReturn(points, r === 'calmed' ? this.combo.registerReturn() : this.combo.combo);
+    bus.emit('score:change', { score: this.score.total, gained });
+  }
+
+  /** 아이템 칸 (HUD 칸 · PC Q/E) */
+  private useItem(slot: number): void {
+    if (this.paused || this.ended || this.vitals.down) return;
+    if (!this.items.use(slot, { vitals: this.vitals, lp: this.lp })) return;
+    this.rules.signal('itemUsed');
+    this.stage.healGlow();
+    this.emitVitals(true);
   }
 
   /** 하트를 잃음: 그 자리에 잠들고, 하트가 남았으면 Vitals가 잠시 뒤 respawnKeeper를 부른다 */
@@ -351,6 +423,7 @@ export class PlayScene extends Phaser.Scene {
   private onStationLit(s: LightStation): void {
     this.stage.burstAt(s.pos.x, s.pos.y, 10, 1);
     const allLit = this.sources.allLit;
+    this.rules.signal('lit');
     bus.emit('station:lit', { x: s.pos.x, y: s.pos.y, allLit });
     this.sources.emitStations();
     if (allLit) this.stage.celebrate(this.keeper.pos, CELEBRATE_SEC);
@@ -370,7 +443,7 @@ export class PlayScene extends Phaser.Scene {
 
   /** 풀숲 속에 있고, 빛을 쏜 직후가 아니면 숨은 것 */
   private get hidden(): boolean {
-    return this.bushIn >= 0 && this.revealLeft <= 0;
+    return this.bushIn >= 0 && this.revealLeft <= 0 && !this.rules.stealth.exposed;
   }
 
   /** 걷기: 이동 스틱·키보드 중 센 쪽으로(마을 밖·장애물 안으로는 못 감), 카메라가 따라간다. 쓰러져 있으면 멈춤 */
@@ -380,11 +453,14 @@ export class PlayScene extends Phaser.Scene {
     const k = follow(dt, MOVE_TAU);
     this.moveVec = { x: this.moveVec.x + (raw.x - this.moveVec.x) * k, y: this.moveVec.y + (raw.y - this.moveVec.y) * k };
     const input = this.moveVec;
-    const stepped = stepMove(this.keeper.pos, input, CFG.keeper.moveSpeed, dt, WALK_AREA);
+    const stepped = stepMove(this.keeper.pos, input, CFG.keeper.moveSpeed * this.items.speedMultiplier, dt, WALK_AREA);
     const feet = pushOut({ x: stepped.x, y: stepped.y + FEET_Y }, CFG.keeper.radius, this.obstacles);
     const next = { x: feet.x, y: feet.y - FEET_Y };
     this.revealLeft = Math.max(0, this.revealLeft - dt);
     this.bushIn = bushAt(feet, this.props.bushes, BUSH_INSET);
+    // 풀숲에 너무 오래 있으면 들킨다 (2026-11-13 라이언)
+    if (this.rules.stealth.update(dt, this.bushIn >= 0)) bus.emit('stealth:exposed');
+    this.rules.walk(Math.hypot(next.x - this.keeper.pos.x, next.y - this.keeper.pos.y));
     this.props.update(dt, this.bushIn);
     // 숨으면 반투명, 무적이면 완만하게 맥박
     const pulse = this.vitals.invulnLeft > 0 ? 0.6 + 0.4 * Math.cos(this.time_ * Math.PI * 2 * INVULN_PULSE_HZ) : 1;
@@ -421,7 +497,8 @@ export class PlayScene extends Phaser.Scene {
   fire(angle: number | null, reach = Infinity): void {
     if (this.paused || this.ended || this.vitals.down) return;
     const origin = this.keeper.pos;
-    const a = angle ?? autoAimAngle(origin, this.field.active.filter((e) => e.def.kind !== 'passive'), this.light.range);
+    const aimables = [...this.field.active.filter((e) => e.def.kind !== 'passive' && !e.def.friend), ...(this.boss?.lightTargets() ?? [])];
+    const a = angle ?? autoAimAngle(origin, aimables, this.light.range);
     if (a === null) return;
     const cast = this.light.tryCast(a, reach);
     if (!cast) return;
@@ -456,14 +533,22 @@ export class PlayScene extends Phaser.Scene {
   }
 
   /** 빛이 적에게 닿음: 위력은 LP에 따라 약해진다. HP 0이면 무리별 퇴장(구출·돌려보냄) + 콤보·점수 */
-  private hitEnemy(e: Enemy): void {
+  private hitEnemy(e: Enemy, power = this.keeper.def.lightPower * this.lp.effectiveness): void {
     this.fx.impact(e.x, e.y);
-    const power = this.keeper.def.lightPower * this.lp.effectiveness;
+    const calmPassive = e instanceof Creature && e.calm;
     const returned = e.hitByLight(power, CFG.light.knockback, CFG.light.stunSec, { from: this.keeper.pos, home: this.sources.central.pos });
     bus.emit('enemy:hit', { uid: e.uid, enemyId: e.def.id, remainingHp: Math.max(0, e.hp) });
-    if (!returned) return;
+    if (calmPassive) {
+      // 공격하지 않아야 할 주민을 맞힘: 화가 난다 (점수 없음)
+      bus.emit('passive:upset', { enemyId: e.def.id, x: e.x, y: e.y });
+      this.rules.signal('upset');
+      return;
+    }
+    if (!returned || e.def.kind === 'passive') return;
+    if (e.def.friend) bus.emit('friend:rescued', { characterId: e.def.friend });
     if (e.def.kind === 'lost') this.rescued += 1;
     else this.retreated += 1;
+    this.rules.signal(e.def.kind === 'lost' ? 'rescued' : 'retreated');
     const combo = this.combo.registerReturn();
     const gained = this.score.addReturn(e.def.score, combo);
     bus.emit('enemy:returned', { enemyId: e.def.id, kind: e.def.kind, x: e.x, y: e.y, score: gained, combo });
@@ -528,7 +613,7 @@ export class PlayScene extends Phaser.Scene {
     this.stage.dawn(DAWN_SEC);
     // 아침이 오면 남은 적은 모두 스스로 물러난다(점수 없음)
     const home = this.sources.central.pos;
-    for (const e of this.field.active) e.hitByLight(e.hp, 0, CFG.light.stunSec, { from: home, home });
+    for (const e of this.field.active) if (e.def.kind !== 'passive') e.hitByLight(e.hp, 0, CFG.light.stunSec, { from: home, home });
     const result = this.result(outcome, reason);
     this.time.delayedCall(DAWN_SEC * 1000, () => {
       this.panForResult();
@@ -567,9 +652,9 @@ export class PlayScene extends Phaser.Scene {
       characterId: this.keeper.def.id,
       seed: RunState.seed,
       continued: false,
-      mercy: 0,
-      itemsUsed: 0,
-      bossCalmed: false,
+      mercy: this.rules.mercyCount,
+      itemsUsed: this.items.used,
+      bossCalmed: !!this.boss?.calmed,
     };
     RunState.lastResult = result;
     return result;

@@ -2,7 +2,9 @@
 //  - 이동: 손잡이를 미는 방향과 세기로 걷는다 → input:move
 //  - 빛: 끌면 범위가 보이고(input:aim) 놓으면 발사(input:fire). 짧게 탭하면 자동 조준, 끌었다 가운데로 되돌려 놓으면 취소
 // 손가락 두 개를 함께 쓰도록 스틱마다 pointerId를 붙잡는다. 게임과는 이벤트로만 주고받는다.
+// 설정 '스틱 좌우 바꾸기'(2026-11-13)를 켜면 .sticks--swapped 하나로 이동 스틱이 오른쪽, 빛 스틱이 왼쪽에 온다(sticks.css).
 import { bus } from '../core/events';
+import { loadSettings, onSettingsChange } from '../core/Settings';
 import { characterById, GameData } from '../data';
 import { AimStick } from '../systems/aimStick';
 import { stickVector } from '../systems/movement';
@@ -60,6 +62,13 @@ export class Sticks {
     const move = stick('move', '이동');
     this.light = stick('light', '빛', svg(starIcon));
     this.el = h('div', { class: 'sticks' }, move.el, this.light.el);
+    const swap = (on: boolean) => this.el.classList.toggle('sticks--swapped', on);
+    swap(loadSettings().sticksSwapped);
+    onSettingsChange((d) => {
+      // 바뀌는 순간 잡고 있던 손가락은 놓은 것으로 (손잡이가 엉뚱한 쪽에 남지 않게)
+      if (this.el.classList.contains('sticks--swapped') !== d.sticksSwapped) this.releaseAll();
+      swap(d.sticksSwapped);
+    });
 
     this.bind(move, {
       move: (dx, dy) => bus.emit('input:move', stickVector(dx, dy, DEADZONE)),

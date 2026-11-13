@@ -1,0 +1,358 @@
+/* ===================================================================
+   이야기 소개(ui/Story.ts) + 튜토리얼 안내 띠·스테이지 소개(ui/Toast.ts의 .guide) + 설정의 버튼 줄 — 2026-11-13 컨셉 시연판.
+   어두운 남색 위 호박빛. 빛의 마을 = 호박, 어둠의 마을·빛을 잃은 모습 = 라벤더.
+   =================================================================== */
+
+.story {
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  pointer-events: auto;
+  background: var(--predawn);
+  color: var(--paper);
+  animation: story-in 0.5s ease-out;
+}
+
+.story[hidden] {
+  display: none;
+}
+
+.story__bg {
+  position: absolute;
+  inset: -4%;
+  background: var(--predawn) url('/assets/backgrounds/home.webp') 35% 50% / cover no-repeat;
+  filter: brightness(0.42) saturate(0.85) blur(calc(var(--u) * 1.5));
+  transition: filter 0.8s ease;
+}
+
+/* 카드마다 배경의 밝기가 조금씩 달라진다: 등불이 꺼짐 → 파편의 빛 → 아침 */
+.story[data-card='lost'] .story__bg {
+  filter: brightness(0.3) saturate(0.6) hue-rotate(12deg) blur(calc(var(--u) * 2));
+}
+
+.story[data-card='dawn'] .story__bg {
+  filter: brightness(0.55) saturate(1) blur(calc(var(--u) * 1));
+}
+
+.story__stage {
+  position: relative;
+  flex: 1;
+  display: grid;
+  place-items: center;
+  padding: max(calc(var(--u) * 30), env(safe-area-inset-top, 0px)) calc(var(--u) * 28) calc(var(--u) * 10);
+  cursor: pointer;
+}
+
+.story__card {
+  display: grid;
+  justify-items: center;
+  gap: calc(var(--u) * 26);
+  max-width: calc(var(--u) * 480);
+  animation: story-card 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.story__text {
+  display: grid;
+  gap: calc(var(--u) * 10);
+  text-align: center;
+  text-wrap: balance;
+  word-break: keep-all;
+}
+
+.story__text p {
+  margin: 0;
+  font-size: calc(var(--u) * 21);
+  line-height: 1.5;
+  font-weight: 600;
+  text-shadow: 0 calc(var(--u) * 2) calc(var(--u) * 10) rgba(5, 4, 12, 0.8);
+}
+
+.story__text p + p {
+  font-size: calc(var(--u) * 18);
+  font-weight: 500;
+  color: var(--paper-soft);
+}
+
+.story__art {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: calc(var(--u) * 240);
+  height: calc(var(--u) * 220);
+}
+
+/* ① 두 마을: 호박빛 구슬과 라벤더 구슬이 나란히 */
+.story__orb {
+  position: absolute;
+  top: 50%;
+  width: calc(var(--u) * 130);
+  height: calc(var(--u) * 130);
+  border-radius: 50%;
+  translate: 0 -50%;
+}
+
+.story__orb--light {
+  left: calc(var(--u) * 6);
+  background: radial-gradient(circle at 45% 40%, #fff4d2, var(--amber) 35%, color-mix(in srgb, var(--amber) 0%, transparent) 70%);
+  animation: story-breathe 3.2s ease-in-out infinite;
+}
+
+.story__orb--dark {
+  right: calc(var(--u) * 6);
+  background: radial-gradient(circle at 55% 40%, #d9d0ff, var(--lavender) 30%, color-mix(in srgb, var(--lavender) 0%, transparent) 70%);
+  opacity: 0.75;
+  animation: story-breathe 3.2s ease-in-out 1.6s infinite;
+}
+
+.story__portrait {
+  position: relative;
+  width: calc(var(--u) * 190);
+  height: calc(var(--u) * 190);
+  object-fit: contain;
+  filter: drop-shadow(0 0 calc(var(--u) * 24) color-mix(in srgb, var(--amber) 55%, transparent));
+}
+
+.story__portrait--lost {
+  filter: drop-shadow(0 0 calc(var(--u) * 22) color-mix(in srgb, var(--lavender) 60%, transparent)) saturate(0.8);
+  animation: story-sway 3s ease-in-out infinite;
+}
+
+.story__portrait--small {
+  position: absolute;
+  right: calc(var(--u) * -4);
+  bottom: calc(var(--u) * -6);
+  width: calc(var(--u) * 110);
+  height: calc(var(--u) * 110);
+}
+
+/* ③ 중앙 광원 토템: 3칸 시트(128×176)의 첫 칸 = 밝음 */
+.story__totem {
+  width: calc(var(--u) * 128);
+  height: calc(var(--u) * 176);
+  background: url('/assets/objects/central-source.png') 0 0 / 300% 100% no-repeat;
+  filter: drop-shadow(0 0 calc(var(--u) * 28) color-mix(in srgb, var(--amber) 70%, transparent));
+  animation: story-breathe 2.6s ease-in-out infinite;
+}
+
+.story__foot {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: calc(var(--u) * 16);
+  padding: 0 calc(var(--u) * 26) max(calc(var(--u) * 34), calc(env(safe-area-inset-bottom, 0px) + var(--u) * 16));
+}
+
+.story__dots {
+  display: flex;
+  gap: calc(var(--u) * 10);
+}
+
+.story__dot {
+  width: calc(var(--u) * 9);
+  height: calc(var(--u) * 9);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--paper) 30%, transparent);
+  transition:
+    background 0.3s,
+    width 0.3s;
+}
+
+.story__dot.is-on {
+  width: calc(var(--u) * 26);
+  border-radius: 999px;
+  background: var(--amber);
+}
+
+.story__actions {
+  display: flex;
+  gap: calc(var(--u) * 14);
+  justify-content: center;
+  width: 100%;
+  max-width: calc(var(--u) * 440);
+}
+
+.story__actions .pill {
+  flex: 1;
+}
+
+.story__actions .pill[hidden] {
+  display: none;
+}
+
+/* 가로: 그림과 글을 나란히 */
+:root[data-layout='landscape'] .story__card {
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  max-width: calc(var(--u) * 820);
+  gap: calc(var(--u) * 40);
+}
+
+:root[data-layout='landscape'] .story__text {
+  text-align: left;
+}
+
+:root[data-layout='landscape'] .story__foot {
+  grid-auto-flow: column;
+  justify-content: space-between;
+  align-items: center;
+  padding-inline: max(calc(var(--u) * 40), env(safe-area-inset-left, 0px)) max(calc(var(--u) * 40), env(safe-area-inset-right, 0px));
+}
+
+:root[data-layout='landscape'] .story__actions {
+  width: calc(var(--u) * 420);
+}
+
+@keyframes story-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes story-card {
+  from {
+    opacity: 0;
+    transform: translateY(calc(var(--u) * 16));
+  }
+}
+
+@keyframes story-breathe {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.85;
+  }
+  50% {
+    transform: scale(1.06);
+    opacity: 1;
+  }
+}
+
+@keyframes story-sway {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(calc(var(--u) * -6));
+  }
+}
+
+/* ---------- 튜토리얼 안내 띠 · 스테이지 소개 (Toast 맨 위) ---------- */
+
+.guide {
+  display: grid;
+  justify-items: center;
+  gap: calc(var(--u) * 4);
+  max-width: min(92%, calc(var(--u) * 640));
+  margin-bottom: calc(var(--u) * 10);
+  padding: calc(var(--u) * 12) calc(var(--u) * 26) calc(var(--u) * 14);
+  border: calc(var(--u) * 1.5) solid color-mix(in srgb, var(--amber) 55%, transparent);
+  border-radius: calc(var(--u) * 22);
+  background: color-mix(in srgb, var(--predawn) 90%, transparent);
+  box-shadow:
+    0 calc(var(--u) * 8) calc(var(--u) * 24) var(--shadow),
+    0 0 calc(var(--u) * 22) color-mix(in srgb, var(--amber) 18%, transparent);
+  text-align: center;
+  word-break: keep-all;
+  text-wrap: balance;
+  animation: guide-in 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* 가로: 위 띠가 얇으니 안내를 조금 더 위로 (루미·중앙 광원을 덜 가리게) */
+:root[data-layout='landscape'] .guide {
+  margin-top: calc(var(--u) * -48);
+}
+
+.guide[hidden] {
+  display: none;
+}
+
+.guide.is-leaving {
+  animation: guide-out 0.4s ease-in forwards;
+}
+
+.guide__step {
+  font-size: calc(var(--u) * 13);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--mint);
+}
+
+.guide__text {
+  margin: 0;
+  font-size: calc(var(--u) * 23);
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--paper);
+}
+
+.guide__sub {
+  margin: 0;
+  font-size: calc(var(--u) * 17);
+  color: var(--paper-soft);
+}
+
+/* 잘했어요: 민트 테두리 */
+.guide.is-done {
+  border-color: var(--mint);
+}
+
+.guide.is-done .guide__text {
+  color: var(--mint);
+}
+
+/* 스테이지 소개: 이름이 크게, 소개 한 줄 */
+.guide--stage .guide__text {
+  font-size: calc(var(--u) * 28);
+  color: var(--amber);
+}
+
+@keyframes guide-in {
+  from {
+    opacity: 0;
+    transform: translateY(calc(var(--u) * -10)) scale(0.97);
+  }
+}
+
+@keyframes guide-out {
+  to {
+    opacity: 0;
+    transform: translateY(calc(var(--u) * -8));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .story,
+  .story__card,
+  .guide,
+  .guide.is-leaving {
+    animation-duration: 0.01s;
+  }
+  .story__orb,
+  .story__totem,
+  .story__portrait--lost {
+    animation: none;
+  }
+}
+
+/* 설정의 버튼 줄 (이야기 다시 보기 · 처음부터 다시) */
+.settings__buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--u) * 10);
+  margin-top: calc(var(--u) * 16);
+}
+
+.settings__buttons .pill {
+  flex: 1 1 auto;
+  min-height: max(44px, calc(var(--u) * 50));
+  font-size: calc(var(--u) * 16);
+}
+
+.settings__buttons .pill.is-confirm {
+  border-color: var(--ember);
+  color: var(--ember);
+}

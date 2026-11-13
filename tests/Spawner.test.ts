@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { Rng } from '../src/core/rng';
-import { GameData, type EnemyId } from '../src/data';
+import { GameData, type EnemyId, stageById } from '../src/data';
 import { Spawner } from '../src/systems/Spawner';
 
 const area = { width: 540, height: 960, margin: 16 };
-const stage = GameData.stages[0];
+const stage = stageById('stage-1');
 const climaxAt = GameData.game.stage.climaxAt;
 const climaxSec = stage.durationSec * climaxAt;
 

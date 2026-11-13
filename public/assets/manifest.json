@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-12T10:52:48.540Z",
+  "generatedAt": "2026-11-13T00:40:46.982Z",
   "sheets": [
     {
       "key": "portrait-lumi",
@@ -274,6 +274,418 @@
       ]
     },
     {
+      "key": "tori-8dir",
+      "category": "characters",
+      "label": "토리 8방향 (임시 그림: 앞·뒤·옆)",
+      "file": "characters/tori-8dir.png",
+      "frameWidth": 64,
+      "frameHeight": 64,
+      "frames": 72,
+      "res": 2,
+      "source": "art",
+      "load": true,
+      "anims": [
+        {
+          "key": "tori-idle-e",
+          "frames": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "frameRate": 4,
+          "repeat": -1
+        },
+        {
+          "key": "tori-walk-e",
+          "frames": [
+            4,
+            5,
+            6,
+            7
+          ],
+          "frameRate": 9,
+          "repeat": -1
+        },
+        {
+          "key": "tori-idle-se",
+          "frames": [
+            8,
+            9,
+            10,
+            11
+          ],
+          "frameRate": 4,
+          "repeat": -1
+        },
+        {
+          "key": "tori-walk-se",
+          "frames": [
+            12,
+            13,
+            14,
+            15
+          ],
+          "frameRate": 9,
+          "repeat": -1
+        },
+        {
+          "key": "tori-idle-s",
+          "frames": [
+            16,
+            17,
+            18,
+            19
+          ],
+          "frameRate": 4,
+          "repeat": -1
+        },
+        {
+          "key": "tori-walk-s",
+          "frames": [
+            20,
+            21,
+            22,
+            23
+          ],
+          "frameRate": 9,
+          "repeat": -1
+        },
+        {
+          "key": "tori-idle-sw",
+          "frames": [
+            24,
+            25,
+            26,
+            27
+          ],
+          "frameRate": 4,
+          "repeat": -1
+        },
+        {
+          "key": "tori-walk-sw",
+          "frames": [
+            28,
+            29,
+            30,
+            31
+          ],
+          "frameRate": 9,
+          "repeat": -1
+        },
+        {
+          "key": "tori-idle-w",
+          "frames": [
+            32,
+            33,
+            34,
+            35
+          ],
+          "frameRate": 4,
+          "repeat": -1
+        },
+        {
+          "key": "tori-walk-w",
+          "frames": [
+            36,
+            37,
+            38,
+            39
+          ],
+          "frameRate": 9,
+          "repeat": -1
+        },
+        {
+          "key": "tori-idle-nw",
+          "frames": [
+            40,
+            41,
+            42,
+            43
+          ],
+          "frameRate": 4,
+          "repeat": -1
+        },
+        {
+          "key": "tori-walk-nw",
+          "frames": [
+            44,
+            45,
+            46,
+            47
+          ],
+          "frameRate": 9,
+          "repeat": -1
+        },
+        {
+          "key": "tori-idle-n",
+          "frames": [
+            48,
+            49,
+            50,
+            51
+          ],
+          "frameRate": 4,
+          "repeat": -1
+        },
+        {
+          "key": "tori-walk-n",
+          "frames": [
+            52,
+            53,
+            54,
+            55
+          ],
+          "frameRate": 9,
+          "repeat": -1
+        },
+        {
+          "key": "tori-idle-ne",
+          "frames": [
+            56,
+            57,
+            58,
+            59
+          ],
+          "frameRate": 4,
+          "repeat": -1
+        },
+        {
+          "key": "tori-walk-ne",
+          "frames": [
+            60,
+            61,
+            62,
+            63
+          ],
+          "frameRate": 9,
+          "repeat": -1
+        },
+        {
+          "key": "tori-ko",
+          "frames": [
+            64
+          ],
+          "frameRate": 1,
+          "repeat": 0
+        },
+        {
+          "key": "tori-stun",
+          "frames": [
+            65
+          ],
+          "frameRate": 1,
+          "repeat": 0
+        }
+      ]
+    },
+    {
+      "key": "doto-8dir",
+      "category": "characters",
+      "label": "도토 8방향 (임시 그림: 앞·뒤·옆)",
+      "file": "characters/doto-8dir.png",
+      "frameWidth": 64,
+      "frameHeight": 64,
+      "frames": 72,
+      "res": 2,
+      "source": "art",
+      "load": true,
+      "anims": [
+        {
+          "key": "doto-idle-e",
+          "frames": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "frameRate": 4,
+          "repeat": -1
+        },
+        {
+          "key": "doto-walk-e",
+          "frames": [
+            4,
+            5,
+            6,
+            7
+          ],
+          "frameRate": 9,
+          "repeat": -1
+        },
+        {
+          "key": "doto-idle-se",
+          "frames": [
+            8,
+            9,
+            10,
+            11
+          ],
+          "frameRate": 4,
+          "repeat": -1
+        },
+        {
+          "key": "doto-walk-se",
+          "frames": [
+            12,
+            13,
+            14,
+            15
+          ],
+          "frameRate": 9,
+          "repeat": -1
+        },
+        {
+          "key": "doto-idle-s",
+          "frames": [
+            16,
+            17,
+            18,
+            19
+          ],
+          "frameRate": 4,
+          "repeat": -1
+        },
+        {
+          "key": "doto-walk-s",
+          "frames": [
+            20,
+            21,
+            22,
+            23
+          ],
+          "frameRate": 9,
+          "repeat": -1
+        },
+        {
+          "key": "doto-idle-sw",
+          "frames": [
+            24,
+            25,
+            26,
+            27
+          ],
+          "frameRate": 4,
+          "repeat": -1
+        },
+        {
+          "key": "doto-walk-sw",
+          "frames": [
+            28,
+            29,
+            30,
+            31
+          ],
+          "frameRate": 9,
+          "repeat": -1
+        },
+        {
+          "key": "doto-idle-w",
+          "frames": [
+            32,
+            33,
+            34,
+            35
+          ],
+          "frameRate": 4,
+          "repeat": -1
+        },
+        {
+          "key": "doto-walk-w",
+          "frames": [
+            36,
+            37,
+            38,
+            39
+          ],
+          "frameRate": 9,
+          "repeat": -1
+        },
+        {
+          "key": "doto-idle-nw",
+          "frames": [
+            40,
+            41,
+            42,
+            43
+          ],
+          "frameRate": 4,
+          "repeat": -1
+        },
+        {
+          "key": "doto-walk-nw",
+          "frames": [
+            44,
+            45,
+            46,
+            47
+          ],
+          "frameRate": 9,
+          "repeat": -1
+        },
+        {
+          "key": "doto-idle-n",
+          "frames": [
+            48,
+            49,
+            50,
+            51
+          ],
+          "frameRate": 4,
+          "repeat": -1
+        },
+        {
+          "key": "doto-walk-n",
+          "frames": [
+            52,
+            53,
+            54,
+            55
+          ],
+          "frameRate": 9,
+          "repeat": -1
+        },
+        {
+          "key": "doto-idle-ne",
+          "frames": [
+            56,
+            57,
+            58,
+            59
+          ],
+          "frameRate": 4,
+          "repeat": -1
+        },
+        {
+          "key": "doto-walk-ne",
+          "frames": [
+            60,
+            61,
+            62,
+            63
+          ],
+          "frameRate": 9,
+          "repeat": -1
+        },
+        {
+          "key": "doto-ko",
+          "frames": [
+            64
+          ],
+          "frameRate": 1,
+          "repeat": 0
+        },
+        {
+          "key": "doto-stun",
+          "frames": [
+            65
+          ],
+          "frameRate": 1,
+          "repeat": 0
+        }
+      ]
+    },
+    {
       "key": "bat-dark",
       "category": "enemies",
       "label": "파닥 — 어둠에 변한 모습 (날갯짓)",
@@ -391,6 +803,278 @@
           "repeat": -1
         }
       ]
+    },
+    {
+      "key": "werewolf-dark",
+      "category": "enemies",
+      "label": "werewolf — 빛을 잃은 모습",
+      "file": "enemies/werewolf-dark.png",
+      "frameWidth": 96,
+      "frameHeight": 96,
+      "frames": 2,
+      "res": 1,
+      "source": "code",
+      "load": true,
+      "anims": [
+        {
+          "key": "werewolf-dark-move",
+          "frames": [
+            0,
+            1
+          ],
+          "frameRate": 4,
+          "repeat": -1
+        }
+      ]
+    },
+    {
+      "key": "vampire-dark",
+      "category": "enemies",
+      "label": "vampire — 빛을 잃은 모습",
+      "file": "enemies/vampire-dark.png",
+      "frameWidth": 80,
+      "frameHeight": 80,
+      "frames": 2,
+      "res": 1,
+      "source": "code",
+      "load": true,
+      "anims": [
+        {
+          "key": "vampire-dark-move",
+          "frames": [
+            0,
+            1
+          ],
+          "frameRate": 8,
+          "repeat": -1
+        }
+      ]
+    },
+    {
+      "key": "hedgehog-dark",
+      "category": "enemies",
+      "label": "hedgehog — 빛을 잃은 모습",
+      "file": "enemies/hedgehog-dark.png",
+      "frameWidth": 64,
+      "frameHeight": 64,
+      "frames": 2,
+      "res": 1,
+      "source": "code",
+      "load": true,
+      "anims": [
+        {
+          "key": "hedgehog-dark-move",
+          "frames": [
+            0,
+            1
+          ],
+          "frameRate": 4,
+          "repeat": -1
+        }
+      ]
+    },
+    {
+      "key": "hedgehog-true",
+      "category": "enemies",
+      "label": "hedgehog — 제 모습",
+      "file": "enemies/hedgehog-true.png",
+      "frameWidth": 64,
+      "frameHeight": 64,
+      "frames": 2,
+      "res": 1,
+      "source": "code",
+      "load": true,
+      "anims": [
+        {
+          "key": "hedgehog-true-move",
+          "frames": [
+            0,
+            1
+          ],
+          "frameRate": 4,
+          "repeat": -1
+        }
+      ]
+    },
+    {
+      "key": "redpanda-dark",
+      "category": "enemies",
+      "label": "redpanda — 빛을 잃은 모습",
+      "file": "enemies/redpanda-dark.png",
+      "frameWidth": 72,
+      "frameHeight": 72,
+      "frames": 2,
+      "res": 1,
+      "source": "code",
+      "load": true,
+      "anims": [
+        {
+          "key": "redpanda-dark-move",
+          "frames": [
+            0,
+            1
+          ],
+          "frameRate": 4,
+          "repeat": -1
+        }
+      ]
+    },
+    {
+      "key": "redpanda-true",
+      "category": "enemies",
+      "label": "redpanda — 제 모습",
+      "file": "enemies/redpanda-true.png",
+      "frameWidth": 72,
+      "frameHeight": 72,
+      "frames": 2,
+      "res": 1,
+      "source": "code",
+      "load": true,
+      "anims": [
+        {
+          "key": "redpanda-true-move",
+          "frames": [
+            0,
+            1
+          ],
+          "frameRate": 4,
+          "repeat": -1
+        }
+      ]
+    },
+    {
+      "key": "owl",
+      "category": "enemies",
+      "label": "owl — 패시브",
+      "file": "enemies/owl.png",
+      "frameWidth": 72,
+      "frameHeight": 72,
+      "frames": 2,
+      "res": 1,
+      "source": "code",
+      "load": true,
+      "anims": [
+        {
+          "key": "owl-move",
+          "frames": [
+            0,
+            1
+          ],
+          "frameRate": 4,
+          "repeat": -1
+        }
+      ]
+    },
+    {
+      "key": "moth",
+      "category": "enemies",
+      "label": "moth — 패시브",
+      "file": "enemies/moth.png",
+      "frameWidth": 64,
+      "frameHeight": 64,
+      "frames": 2,
+      "res": 1,
+      "source": "code",
+      "load": true,
+      "anims": [
+        {
+          "key": "moth-move",
+          "frames": [
+            0,
+            1
+          ],
+          "frameRate": 8,
+          "repeat": -1
+        }
+      ]
+    },
+    {
+      "key": "firefly",
+      "category": "enemies",
+      "label": "firefly — 패시브",
+      "file": "enemies/firefly.png",
+      "frameWidth": 48,
+      "frameHeight": 48,
+      "frames": 2,
+      "res": 1,
+      "source": "code",
+      "load": true,
+      "anims": [
+        {
+          "key": "firefly-move",
+          "frames": [
+            0,
+            1
+          ],
+          "frameRate": 8,
+          "repeat": -1
+        }
+      ]
+    },
+    {
+      "key": "item-wind_feather",
+      "category": "items",
+      "label": "바람 깃털",
+      "file": "items/item-wind_feather.png",
+      "frameWidth": 64,
+      "frameHeight": 64,
+      "frames": 1,
+      "res": 1,
+      "source": "code",
+      "load": true,
+      "anims": []
+    },
+    {
+      "key": "item-star_necklace",
+      "category": "items",
+      "label": "별 목걸이",
+      "file": "items/item-star_necklace.png",
+      "frameWidth": 64,
+      "frameHeight": 64,
+      "frames": 1,
+      "res": 1,
+      "source": "code",
+      "load": true,
+      "anims": []
+    },
+    {
+      "key": "item-firefly_jar",
+      "category": "items",
+      "label": "반딧불 병",
+      "file": "items/item-firefly_jar.png",
+      "frameWidth": 64,
+      "frameHeight": 64,
+      "frames": 1,
+      "res": 1,
+      "source": "code",
+      "load": true,
+      "anims": []
+    },
+    {
+      "key": "item-golden_acorn",
+      "category": "items",
+      "label": "황금 도토리",
+      "file": "items/item-golden_acorn.png",
+      "frameWidth": 64,
+      "frameHeight": 64,
+      "frames": 1,
+      "res": 1,
+      "source": "code",
+      "load": true,
+      "anims": []
+    },
+    {
+      "key": "item-light_charm",
+      "category": "items",
+      "label": "빛의 부적",
+      "file": "items/item-light_charm.png",
+      "frameWidth": 64,
+      "frameHeight": 64,
+      "frames": 1,
+      "res": 1,
+      "source": "code",
+      "load": true,
+      "anims": []
     },
     {
       "key": "central-source",
@@ -742,6 +1426,19 @@
           "repeat": 0
         }
       ]
+    },
+    {
+      "key": "fx-dark-orb",
+      "category": "effects",
+      "label": "어둠 구슬 (노월 투사체)",
+      "file": "effects/fx-dark-orb.png",
+      "frameWidth": 48,
+      "frameHeight": 48,
+      "frames": 1,
+      "res": 1,
+      "source": "code",
+      "load": true,
+      "anims": []
     },
     {
       "key": "village-dark",

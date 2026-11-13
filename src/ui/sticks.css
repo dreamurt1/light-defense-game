@@ -176,3 +176,15 @@
     border-color: var(--amber);
   }
 }
+
+/* ---------- 스틱 좌우 바꾸기 (설정, 2026-11-13): 이동 스틱 오른쪽, 빛 스틱 왼쪽 ---------- */
+
+.sticks--swapped .stick--move {
+  left: auto;
+  right: calc(var(--u) * 22);
+}
+
+.sticks--swapped .stick--light {
+  right: auto;
+  left: calc(var(--u) * 34);
+}

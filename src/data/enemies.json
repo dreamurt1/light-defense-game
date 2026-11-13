@@ -38,7 +38,10 @@
     "score": 150,
     "radius": 22,
     "knockbackMultiplier": 0.5,
-    "behavior": "straight"
+    "behavior": "straight",
+    "behaviorParams": {
+      "role": "central"
+    }
   },
   {
     "id": "vampire",
@@ -57,7 +60,8 @@
     "flies": true,
     "behaviorParams": {
       "amplitude": 26,
-      "periodSec": 0.9
+      "periodSec": 0.9,
+      "role": "station"
     }
   },
   {
@@ -188,7 +192,8 @@
     "damageTickSec": 1,
     "score": 500,
     "radius": 30,
-    "behavior": "idle"
+    "behavior": "idle",
+    "knockbackMultiplier": 0
   },
   {
     "id": "doto-lost",
@@ -204,6 +209,7 @@
     "damageTickSec": 1,
     "score": 500,
     "radius": 30,
-    "behavior": "idle"
+    "behavior": "idle",
+    "knockbackMultiplier": 0
   }
 ]

@@ -6,6 +6,18 @@
 import Phaser from 'phaser';
 import type { EnemyDef } from '../../data';
 import type { Vec } from '../../systems/fan';
+import { pushOut, type Rect } from '../../systems/obstacles';
+
+/**
+ * 호스틸 역할 (2026-11-13 Phase 3: 추적 / 중앙 광원 공격 / 등불 공격). enemies.json behaviorParams.role.
+ * chase = 보이면 주인공(기본), central = 중앙 광원으로 곧장(아주 가까울 때만 주인공), station = 켜진 등불 먼저
+ */
+type Role = 'chase' | 'central' | 'station';
+/** 역할이 chase가 아닌 적도 이 거리 안의 주인공은 공격한다 (제안) */
+const CLOSE_AGGRO = 150;
+/** 걷는 적이 벽에 이만큼 막혀 있으면 옆으로 돌아간다 (제안) */
+const STUCK_SEC = 0.35;
+const DETOUR = { dist: 220, sec: 0.9 };
 
 export type EnemyState = 'approach' | 'attached' | 'stunned' | 'returning';
 
@@ -66,6 +78,13 @@ export abstract class Enemy extends Phaser.GameObjects.Container {
   /** 숨은 주인공을 놓친 뒤 맴도는 남은 시간 */
   private lostLeft = 0;
   private roamTo: Vec | null = null;
+  /** 화난 패시브: 주인공만 쫓는다 */
+  protected playerOnly = false;
+  private readonly role: Role;
+  private blocked = 0;
+  private detourLeft = 0;
+  private detour: Vec = { x: 0, y: 0 };
+  private lastDir = { x: 0, y: 1 };
 
   constructor(
     scene: Phaser.Scene,
@@ -76,6 +95,8 @@ export abstract class Enemy extends Phaser.GameObjects.Container {
     super(scene, x, y);
     this.hp = def.hp;
     this.base = new Phaser.Math.Vector2(x, y);
+    const role = def.behaviorParams?.role;
+    this.role = role === 'central' || role === 'station' ? role : 'chase';
     scene.add.existing(this);
   }
 
@@ -90,6 +111,37 @@ export abstract class Enemy extends Phaser.GameObjects.Container {
   /** 지금 노리는 대상 (확인용) */
   get targetId(): TargetId | null {
     return this.target;
+  }
+
+  /** 주기마다 주는 주인공 피해 (화난 패시브는 재정의) */
+  protected get attackDamage(): number {
+    return this.def.damage;
+  }
+
+  /**
+   * 걷는 적은 벽·장애물에 막힌다(2026-11-13 미로 요소). 막힌 채로 STUCK_SEC가 지나면 옆으로 돌아갈 지점을 잡는다.
+   * 날거나 붙어 있거나 퇴장 중이면 무시
+   */
+  collide(rects: readonly Rect[], dt: number): void {
+    if (this.def.flies || this.mode === 'returning' || this.mode === 'attached') return;
+    const p = pushOut({ x: this.x, y: this.y }, this.radius * 0.8, rects);
+    const dx = p.x - this.x;
+    const dy = p.y - this.y;
+    if (dx === 0 && dy === 0) {
+      this.blocked = Math.max(0, this.blocked - dt);
+      return;
+    }
+    this.base.x += dx;
+    this.base.y += dy;
+    this.setPosition(p.x, p.y);
+    this.blocked += dt;
+    if (this.blocked >= STUCK_SEC && this.detourLeft <= 0) {
+      const side = this.uid % 2 === 0 ? 1 : -1;
+      const g = this.lastDir;
+      this.detour = { x: this.x - g.y * side * DETOUR.dist - g.x * 40, y: this.y + g.x * side * DETOUR.dist - g.y * 40 };
+      this.detourLeft = DETOUR.sec;
+      this.blocked = 0;
+    }
   }
 
   /** 옆 흔들림(접근 방향에 수직) */
@@ -147,7 +199,7 @@ export abstract class Enemy extends Phaser.GameObjects.Container {
       }
       if (this.tickLeft <= 0) {
         this.tickLeft = this.def.damageTickSec;
-        out.hit = { target: goal.id, damage: this.def.damage, sourceDamage: this.def.sourceDamage };
+        out.hit = { target: goal.id, damage: this.attackDamage, sourceDamage: this.def.sourceDamage };
       }
       return out;
     }
@@ -162,9 +214,14 @@ export abstract class Enemy extends Phaser.GameObjects.Container {
     } else {
       this.roamTo = null;
     }
+    if (this.detourLeft > 0) {
+      this.detourLeft -= dt;
+      dest = this.detour;
+    }
     if (!dest) return out;
     const toward = new Phaser.Math.Vector2(dest.x - this.base.x, dest.y - this.base.y);
     const dir = toward.clone().normalize();
+    this.lastDir = { x: dir.x, y: dir.y };
     const move = this.def.speed * ctx.speedMultiplier * pace * dt;
     this.base.x += dir.x * move;
     this.base.y += dir.y * move;
@@ -181,7 +238,7 @@ export abstract class Enemy extends Phaser.GameObjects.Container {
       // 닿는 순간 첫 피해를 주고 이후 주기마다 (제안: 기획서에 없음 — 첫 피해 시점). 주기가 안 됐으면 기다린다
       if (this.tickLeft <= 0) {
         this.tickLeft = this.def.damageTickSec;
-        out.hit = { target: goal.id, damage: this.def.damage, sourceDamage: this.def.sourceDamage };
+        out.hit = { target: goal.id, damage: this.attackDamage, sourceDamage: this.def.sourceDamage };
       }
     }
     return out;
@@ -212,10 +269,18 @@ export abstract class Enemy extends Phaser.GameObjects.Container {
     if (current && (this.retargetLeft > 0 || this.mode === 'attached')) return current;
     this.retargetLeft = ctx.retargetSec;
 
-    let next: EnemyTarget | null = sees && this.dist(p) <= ctx.aggroRadius ? p : null;
-    if (!next) {
+    const reach = this.playerOnly ? ctx.aggroRadius * 1.5 : this.role === 'chase' ? ctx.aggroRadius : CLOSE_AGGRO;
+    let next: EnemyTarget | null = sees && this.dist(p) <= reach ? p : null;
+    if (!next && !this.playerOnly) {
+      // 역할: 등불 공격은 켜진 등불 먼저, 중앙 광원 공격은 중앙 광원으로, 그 밖에는 가장 가까운 광원
+      const pool =
+        this.role === 'station' && ctx.sources.some((s) => s.id !== 'central')
+          ? ctx.sources.filter((s) => s.id !== 'central')
+          : this.role === 'central'
+            ? ctx.sources.filter((s) => s.id === 'central')
+            : ctx.sources;
       let best = Infinity;
-      for (const s of ctx.sources) {
+      for (const s of pool) {
         const d = this.dist(s);
         if (d < best) {
           best = d;

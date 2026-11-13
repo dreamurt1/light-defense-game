@@ -50,7 +50,12 @@ export interface GameConfig {
     roamMin: number;
     roamMax: number;
     lostSightSec: number;
+    /** 2026-11-13: 풀숲에 이만큼 넘게 있으면 들킴, 그동안 적이 알아채는 거리 배율 */
+    maxHiddenSec: number;
+    exposedAggroMultiplier: number;
   };
+  /** 자비: 패시브 주민 곁 radius 안에 dwellSec 동안 공격하지 않으면 */
+  mercy: { radius: number; dwellSec: number };
   controls: { deadzone: number; mouseCancelRadius: number };
   /** 스테이지 공통: 클라이맥스 시작 비율, 하트 수, 하늘빛 시간대(비율) */
   stage: { climaxAt: number; hearts: number; phases: Record<PhaseId, [number, number]> };
@@ -182,7 +187,7 @@ export interface EnemyDef {
   flies?: boolean;
   knockbackMultiplier?: number;
   behavior: string;
-  behaviorParams?: Record<string, number | boolean>;
+  behaviorParams?: Record<string, number | boolean | string>;
   group?: EnemyGroup;
   /** 빛을 잃은 친구: 되찾으면 이 캐릭터가 해금 */
   friend?: CharacterId;

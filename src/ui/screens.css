@@ -242,10 +242,10 @@
   position: relative;
   display: grid;
   place-items: end center;
-  width: calc(var(--u) * 270);
-  height: calc(var(--u) * 270);
+  width: calc(var(--u) * 250);
+  height: calc(var(--u) * 250);
   overflow: hidden;
-  border-radius: calc(var(--u) * 135) calc(var(--u) * 135) calc(var(--u) * 22) calc(var(--u) * 22);
+  border-radius: calc(var(--u) * 125) calc(var(--u) * 125) calc(var(--u) * 22) calc(var(--u) * 22);
   background:
     radial-gradient(circle at 50% 72%, color-mix(in srgb, var(--amber) 32%, transparent), transparent 60%),
     linear-gradient(to bottom, #2c2f60, #1d1f3d);
@@ -253,8 +253,8 @@
 }
 
 .select__portrait {
-  width: calc(var(--u) * 252);
-  height: calc(var(--u) * 252);
+  width: calc(var(--u) * 236);
+  height: calc(var(--u) * 236);
 }
 
 /* 잠긴 친구는 빛을 잃은 모습 그림(검은 털 + 보랏빛 눈)에 라벤더 기운만 (2026-11-12) */
@@ -359,6 +359,213 @@
   margin-top: auto;
   align-self: center;
   width: calc(var(--u) * 330);
+}
+
+/* 열린 친구 칸에는 자물쇠를 숨긴다 (잠금은 진행 저장으로 바뀐다, 2026-11-13) */
+.roster-card:not(.is-locked) .roster-card__lock {
+  display: none;
+}
+
+/* ---------- 선택: 밤 고르기 (2026-11-13 컨셉 시연판) — 4칸, 테마별 바탕, 잠김·지나 온 밤 표시 ---------- */
+
+.select__label {
+  margin: calc(var(--u) * 20) 0 0;
+  text-align: center;
+  font-size: calc(var(--u) * 15);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--dawn);
+}
+
+.select__nights {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: calc(var(--u) * 8);
+  margin-top: calc(var(--u) * 8);
+}
+
+.stage-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: calc(var(--u) * 3);
+  min-width: 0;
+  min-height: max(44px, calc(var(--u) * 96));
+  padding: calc(var(--u) * 8) calc(var(--u) * 8) calc(var(--u) * 9) calc(var(--u) * 10);
+  border: calc(var(--u) * 1.5) solid var(--hairline);
+  border-radius: calc(var(--u) * 14);
+  color: var(--paper);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  box-shadow:
+    inset 0 calc(var(--u) * 1) 0 rgba(246, 241, 231, 0.1),
+    0 calc(var(--u) * 4) calc(var(--u) * 10) rgba(5, 4, 12, 0.32);
+  transition:
+    transform 0.12s ease-out,
+    box-shadow 0.2s ease-out;
+}
+
+/* 맵 3종 = 스테이지 테마: 빛의 마을(따뜻) · 경계(라벤더) · 어둠의 마을(보랏빛) */
+.stage-card[data-theme='light-village'] {
+  background:
+    radial-gradient(120% 70% at 50% 110%, rgba(255, 200, 87, 0.28), rgba(255, 200, 87, 0) 70%),
+    linear-gradient(to bottom, #2c2f60, #1d1f3d);
+}
+
+.stage-card[data-theme='border'] {
+  background:
+    radial-gradient(120% 70% at 50% 110%, rgba(168, 156, 217, 0.3), rgba(168, 156, 217, 0) 70%),
+    linear-gradient(to bottom, #2a2b5c, #1a1b3a);
+}
+
+.stage-card[data-theme='dark-village'] {
+  background:
+    radial-gradient(120% 70% at 50% 110%, rgba(140, 96, 200, 0.3), rgba(140, 96, 200, 0) 70%),
+    linear-gradient(to bottom, #231a40, #120f24);
+}
+
+.stage-card:active:not(.is-locked) {
+  transform: scale(0.97);
+}
+
+.stage-card.is-current {
+  border: calc(var(--u) * 3) solid var(--amber);
+  box-shadow:
+    inset 0 calc(var(--u) * 1.5) 0 rgba(255, 236, 190, 0.22),
+    0 0 calc(var(--u) * 14) color-mix(in srgb, var(--amber) 40%, transparent);
+}
+
+.stage-card.is-locked {
+  color: var(--paper-soft);
+}
+
+.stage-card.is-locked > :not(.stage-card__badge) {
+  opacity: 0.45;
+}
+
+.stage-card.is-locked.is-current {
+  border-color: color-mix(in srgb, var(--lavender) 70%, transparent);
+  box-shadow: 0 0 calc(var(--u) * 12) color-mix(in srgb, var(--lavender) 30%, transparent);
+}
+
+.stage-card__num {
+  font-size: calc(var(--u) * 13);
+  font-weight: 800;
+  line-height: 1;
+  color: var(--amber);
+  font-variant-numeric: tabular-nums;
+}
+
+.stage-card__name {
+  font-size: calc(var(--u) * 15);
+  font-weight: 800;
+  line-height: 1.2;
+  word-break: keep-all;
+}
+
+.stage-card__meta,
+.stage-card__tag {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--u) * 3);
+  font-size: calc(var(--u) * 12.5);
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.stage-card__meta {
+  color: var(--dawn);
+}
+
+.stage-card__meta svg,
+.stage-card__tag svg {
+  flex: none;
+  width: calc(var(--u) * 14);
+  height: calc(var(--u) * 14);
+}
+
+.stage-card__tag {
+  margin-top: auto;
+  padding: calc(var(--u) * 2) calc(var(--u) * 7) calc(var(--u) * 2) calc(var(--u) * 5);
+  border-radius: 999px;
+}
+
+.stage-card__tag--friend {
+  color: var(--mint);
+  background: color-mix(in srgb, var(--mint) 16%, transparent);
+}
+
+.stage-card__tag--boss {
+  color: #ecdcff;
+  background: color-mix(in srgb, var(--lavender) 26%, transparent);
+}
+
+.stage-card__tag--none {
+  display: none;
+}
+
+.stage-card__badge {
+  position: absolute;
+  top: calc(var(--u) * 6);
+  right: calc(var(--u) * 6);
+  display: none;
+  width: calc(var(--u) * 18);
+  height: calc(var(--u) * 18);
+}
+
+.stage-card__badge svg {
+  width: 100%;
+  height: 100%;
+}
+
+.stage-card.is-cleared .stage-card__badge--clear {
+  display: block;
+  color: var(--amber);
+  filter: drop-shadow(0 0 calc(var(--u) * 4) color-mix(in srgb, var(--amber) 60%, transparent));
+}
+
+.stage-card.is-locked .stage-card__badge--lock {
+  display: block;
+  color: var(--paper-soft);
+}
+
+.select__stage-line {
+  min-height: 1.4em;
+  margin: calc(var(--u) * 10) 0 0;
+  text-align: center;
+  font-size: calc(var(--u) * 16);
+  font-weight: 600;
+  color: var(--paper);
+  text-wrap: balance;
+}
+
+.select__stage-line.is-locked {
+  color: var(--lavender);
+}
+
+/* 팀 시연용 '모두 열기': 오른쪽 위 구석, 눈에 덜 띄게 */
+.select__demo {
+  position: absolute;
+  top: calc(max(calc(var(--u) * 18), env(safe-area-inset-top, 0px)) + var(--u) * 12);
+  right: calc(var(--u) * 22);
+  min-height: 32px;
+  padding: calc(var(--u) * 4) calc(var(--u) * 12);
+  border: 1px dashed color-mix(in srgb, var(--ash) 60%, transparent);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ash);
+  font: inherit;
+  font-size: max(11px, calc(var(--u) * 12));
+  opacity: 0.75;
+  cursor: pointer;
+}
+
+.select__demo:disabled {
+  opacity: 0.45;
+  cursor: default;
 }
 
 /* ---------- 탭 (상점 · 지난 밤들) ---------- */
@@ -815,6 +1022,19 @@
   grid-column: 1 / -1;
 }
 
+/* 2026-11-13: 다음 밤이 있으면 '다음 밤으로'가 맨 위 한 줄 (튜토리얼은 '첫 번째 밤으로' + '홈으로' 한 줄) */
+.sheet--result[data-next='yes'] .result__next {
+  grid-column: 1 / -1;
+}
+
+/* 되찾은 친구 한 줄 */
+.result__friend {
+  margin: calc(var(--u) * 12) 0 0;
+  font-size: calc(var(--u) * 18);
+  font-weight: 800;
+  color: var(--mint);
+}
+
 /* ---------- 일시정지: 버튼 넷 ---------- */
 
 .sheet--pause .sheet__actions {
@@ -872,7 +1092,7 @@
 
 :root[data-layout='landscape'] .select__stage {
   grid-column: 1;
-  grid-row: 2 / span 9;
+  grid-row: 2 / span 10;
   align-self: center;
   margin-top: 0;
 }
@@ -893,13 +1113,37 @@
 }
 
 :root[data-layout='landscape'] .select__roster {
-  grid-template-columns: repeat(3, minmax(0, calc(var(--u) * 92)));
+  grid-template-columns: repeat(3, minmax(0, calc(var(--u) * 76)));
   justify-content: center;
+  margin-top: calc(var(--u) * 12);
+}
+
+/* 가로는 높이가 540u뿐: 아이템 안내 줄은 접고, 밤 칸을 낮춘다 */
+:root[data-layout='landscape'] .select__note {
+  display: none;
+}
+
+:root[data-layout='landscape'] .select__label {
+  margin-top: calc(var(--u) * 14);
+}
+
+:root[data-layout='landscape'] .stage-card {
+  min-height: max(44px, calc(var(--u) * 84));
+  padding: calc(var(--u) * 7) calc(var(--u) * 8) calc(var(--u) * 8);
+}
+
+:root[data-layout='landscape'] .select__stage-line {
+  margin-top: calc(var(--u) * 8);
+  font-size: calc(var(--u) * 15);
 }
 
 :root[data-layout='landscape'] .select__go {
-  margin-top: calc(var(--u) * 12);
+  margin-top: calc(var(--u) * 10);
   justify-self: center;
+}
+
+:root[data-layout='landscape'] .select__demo {
+  right: max(calc(var(--u) * 36), env(safe-area-inset-right, 0px));
 }
 
 /* 상점: 머리 장식을 낮추고 카드는 한 줄 6칸 */
@@ -948,9 +1192,45 @@
 }
 
 :root[data-layout='landscape'] .sheet--result .sheet__panel {
-  width: calc(var(--u) * 470);
+  width: calc(var(--u) * 560);
   max-height: 100%;
   overflow-y: auto;
+  padding-top: calc(var(--u) * 24);
+  padding-bottom: calc(var(--u) * 14);
+}
+
+:root[data-layout='landscape'] .sheet--result .result__seed {
+  margin-top: calc(var(--u) * 6);
+}
+
+/* 가로는 높이가 540u뿐: 제목을 줄이고, 통계는 점수 아래 두 열, 버튼은 두 줄(다음·다시 / 홈·남기기) */
+:root[data-layout='landscape'] .sheet--result .sheet__title {
+  font-size: calc(var(--u) * 32);
+}
+
+:root[data-layout='landscape'] .result__stats {
+  grid-template-columns: 1fr 1fr;
+  column-gap: calc(var(--u) * 24);
+  margin-top: calc(var(--u) * 14);
+}
+
+:root[data-layout='landscape'] .result__stats .result__row {
+  min-height: calc(var(--u) * 34);
+  border-bottom: 1px solid var(--hairline);
+}
+
+:root[data-layout='landscape'] .result__stats .result__row--score {
+  grid-column: 1 / -1;
+  min-height: calc(var(--u) * 44);
+}
+
+:root[data-layout='landscape'] .sheet--result .sheet__actions {
+  margin-top: calc(var(--u) * 16);
+}
+
+:root[data-layout='landscape'] .sheet--result[data-next='yes'] .result__next,
+:root[data-layout='landscape'] .sheet--result[data-next='yes'] .sheet__actions .pill--ghost {
+  grid-column: auto;
 }
 
 /* 설정: 가운데 판, 왼쪽(소리·닉네임) / 오른쪽(조작·화면) 두 열 */
@@ -973,4 +1253,40 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   column-gap: calc(var(--u) * 36);
+}
+
+/* 좁은 가로(4:3 태블릿 등, 폭 720u 근처): 아치·칸을 줄여 선택 화면이 넘치지 않게 (2026-11-13) */
+@media (max-aspect-ratio: 3/2) {
+  :root[data-layout='landscape'] .stage__ui[data-screen='select'] .screen--select {
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+    column-gap: calc(var(--u) * 20);
+  }
+
+  /* 좌우 화살표는 접고(아래 명단 칸으로 고른다) 아치를 왼쪽 열에 맞춘다 */
+  :root[data-layout='landscape'] .select__arrow {
+    display: none;
+  }
+
+  :root[data-layout='landscape'] .select__arch {
+    width: calc(var(--u) * 220);
+    height: calc(var(--u) * 250);
+    border-radius: calc(var(--u) * 110) calc(var(--u) * 110) calc(var(--u) * 22) calc(var(--u) * 22);
+  }
+
+  :root[data-layout='landscape'] .select__portrait {
+    width: calc(var(--u) * 210);
+    height: calc(var(--u) * 210);
+  }
+
+  :root[data-layout='landscape'] .select__stats {
+    font-size: calc(var(--u) * 14);
+  }
+
+  :root[data-layout='landscape'] .select__roster {
+    grid-template-columns: repeat(3, minmax(0, calc(var(--u) * 64)));
+  }
+
+  :root[data-layout='landscape'] .stage-card__name {
+    font-size: calc(var(--u) * 13.5);
+  }
 }

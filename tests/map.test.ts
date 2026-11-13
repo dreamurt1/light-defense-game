@@ -33,6 +33,8 @@ describe('마을 배치', () => {
       for (let j = i + 1; j < items.length; j++) {
         const a = items[i];
         const b = items[j];
+        // 돌담 두 토막은 일부러 붙여 L자를 만든다 (2026-11-13 미로 요소)
+        if (a.id.startsWith('wall') && b.id.startsWith('wall')) continue;
         const overlap = a.x < b.x + b.w + pad && b.x < a.x + a.w + pad && a.y < b.y + b.h + pad && b.y < a.y + a.h + pad;
         expect(overlap, `${a.id} · ${b.id}`).toBe(false);
       }

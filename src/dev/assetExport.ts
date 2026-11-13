@@ -13,6 +13,7 @@ const CATEGORY_LABEL: Record<AssetCategory, string> = {
   objects: '오브젝트',
   effects: '이펙트',
   backgrounds: '배경',
+  items: '아이템',
 };
 
 interface ExportedSheet {

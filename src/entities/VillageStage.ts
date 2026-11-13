@@ -7,7 +7,7 @@
 import Phaser from 'phaser';
 import { Rng } from '../core/rng';
 import { TextureKeys } from '../core/TextureKeys';
-import { GameData, type NightPhase } from '../data';
+import { GameData, type NightPhase, type StageDef } from '../data';
 import { follow } from '../systems/facing';
 import { FAN_TEXTURE_RADIUS } from '../art/effects';
 import { texScale } from '../core/textureRes';
@@ -47,6 +47,29 @@ const GLOOM_COLOR = 0x0a0818;
 const GLOOM_DARKEN_TAU = 0.35;
 const GLOOM_LIFT_TAU = 0.15;
 const SPARKLE_POOL = 64;
+/** 빛 고임 글로우의 기본 색 (테마가 바꾼다) */
+const POOL_GLOW = 0xffc857;
+
+/** 맵 3종 = 스테이지 테마 (2026-11-13 컨셉 시연판, 색은 전부 제안).
+ *  어두운 마을·켜진 마을 그림에 곱하는 색(tint), 어두운 마을만 덮는 테마 막(veil), 피격 어둠 색, 빛 고임·반딧불 색.
+ *  새 객체를 만들지 않고 기존 객체의 색·알파만 바꾼다 (setTheme 한 번, 매 프레임 비용 없음) */
+interface ThemeLook {
+  dark: number;
+  lit: number;
+  veil: number;
+  veilAlpha: number;
+  gloom: number;
+  glow: number;
+  firefly: number;
+}
+const THEMES: Record<StageDef['theme'], ThemeLook> = {
+  // 빛의 마을: 지금 그대로
+  'light-village': { dark: 0xffffff, lit: 0xffffff, veil: 0x2a2f5a, veilAlpha: 0, gloom: GLOOM_COLOR, glow: POOL_GLOW, firefly: 0xffd27a },
+  // 경계: 차가운 라벤더 톤, 켜진 마을은 살짝 식힘
+  border: { dark: 0xbcb4f0, lit: 0xe6dcff, veil: 0x3a3570, veilAlpha: 0.14, gloom: 0x0e0b24, glow: 0xffd28c, firefly: 0xd2c8ff },
+  // 어둠의 마을: 더 어둡고 보랏빛, 켜진 마을도 덜 따뜻하게
+  'dark-village': { dark: 0x8c78c0, lit: 0xcab4ec, veil: 0x0f0a22, veilAlpha: 0.34, gloom: 0x150a2a, glow: 0xf2c49a, firefly: 0xb9a2ff },
+};
 
 /** 빛 고임 하나: 마을 좌표, 반지름, 세기(0~1) */
 export interface LightPool {
@@ -104,6 +127,12 @@ export class VillageStage {
   private gloomTarget = 0;
   private readonly gloomLayer: Phaser.GameObjects.Rectangle;
   private time = 0;
+  /** 테마가 색을 바꾸는 두 겹의 마을 그림과 어두운 마을만 덮는 막 */
+  private readonly darkLayer: Phaser.GameObjects.Image;
+  private readonly litLayer: Phaser.GameObjects.Image;
+  private readonly themeVeil: Phaser.GameObjects.Rectangle;
+  private glowTint = POOL_GLOW;
+  private theme: StageDef['theme'] = 'light-village';
 
   constructor(
     private readonly scene: Phaser.Scene,
@@ -113,10 +142,13 @@ export class VillageStage {
     // 화면에 붙은 층(밤 색조·빛 마스크·번쩍임)은 지금 화면 크기로 만들고, 화면 방식이 바뀌면 resize()로 맞춘다 (2026-11-06 가로 화면)
     const W = scene.scale.width;
     const H = scene.scale.height;
-    scene.add.image(0, 0, TextureKeys.villageDark).setOrigin(0).setScale(texScale(TextureKeys.villageDark)).setDepth(-1000);
+    this.darkLayer = scene.add.image(0, 0, TextureKeys.villageDark).setOrigin(0).setScale(texScale(TextureKeys.villageDark)).setDepth(-1000);
     this.shade = scene.add.rectangle(0, 0, W, H, PHASE_SHADE.dusk.color, 0).setOrigin(0).setScrollFactor(0).setDepth(-950);
+    // 테마 막: 어두운 마을 위·켜진 마을 아래 (빛이 닿은 곳은 막 위로 드러난다). 빛의 마을에선 숨김
+    this.themeVeil = scene.add.rectangle(0, 0, W, H, 0x000000, 1).setOrigin(0).setScrollFactor(0).setDepth(-945).setVisible(false);
 
-    this.lit = scene.add.container(0, 0, [scene.add.image(0, 0, TextureKeys.villageLit).setOrigin(0).setScale(texScale(TextureKeys.villageLit))]);
+    this.litLayer = scene.add.image(0, 0, TextureKeys.villageLit).setOrigin(0).setScale(texScale(TextureKeys.villageLit));
+    this.lit = scene.add.container(0, 0, [this.litLayer]);
     this.lit.setDepth(-900);
     if (scene.renderer.type === Phaser.WEBGL) {
       this.maskTexture = scene.make.renderTexture({ x: 0, y: 0, width: W, height: H }, false).setOrigin(0).setScrollFactor(0);
@@ -155,7 +187,27 @@ export class VillageStage {
     this.shade.setSize(width, height);
     this.flash.setSize(width, height);
     this.gloomLayer.setSize(width, height);
+    this.themeVeil.setSize(width, height);
     this.maskTexture?.resize(width, height);
+  }
+
+  /** 맵 3종 = 스테이지 테마. 'light-village'는 지금 그대로, 'border'는 차가운 라벤더, 'dark-village'는 더 어둡고 보랏빛.
+   *  판을 만든 뒤 한 번 부른다 (여러 번 불러도 같다) */
+  setTheme(theme: StageDef['theme']): void {
+    const look = THEMES[theme] ?? THEMES['light-village'];
+    this.theme = theme;
+    this.darkLayer.setTint(look.dark);
+    this.litLayer.setTint(look.lit);
+    this.themeVeil.setFillStyle(look.veil, 1).setAlpha(look.veilAlpha).setVisible(look.veilAlpha > 0);
+    this.gloomLayer.setFillStyle(look.gloom, 1);
+    this.glowTint = look.glow;
+    for (const g of this.glows) g.setTint(look.glow);
+    for (const f of this.fireflies) f.dot.setTint(look.firefly);
+  }
+
+  /** 지금 테마 */
+  get currentTheme(): StageDef['theme'] {
+    return this.theme;
   }
 
   // --- 마을 불빛 ---
@@ -366,7 +418,7 @@ export class VillageStage {
     this.gloom += (this.gloomTarget - this.gloom) * follow(dt, tau);
     this.gloomLayer.setAlpha(this.gloom);
     while (this.glows.length < pools.length) {
-      this.glows.push(this.scene.add.image(0, 0, TextureKeys.glow).setTint(0xffc857).setBlendMode(Phaser.BlendModes.ADD).setDepth(-860));
+      this.glows.push(this.scene.add.image(0, 0, TextureKeys.glow).setTint(this.glowTint).setBlendMode(Phaser.BlendModes.ADD).setDepth(-860));
     }
     this.glows.forEach((g, i) => {
       const p = pools[i];

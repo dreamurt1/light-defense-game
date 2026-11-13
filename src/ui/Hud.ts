@@ -35,6 +35,8 @@ export class Hud {
   private readonly edge: HTMLElement;
   private readonly burst: HTMLElement;
   private readonly burstText: HTMLElement;
+  /** 아이템 칸 2개 (2026-11-13 컨셉 시연판: 누르면 씀, PC Q·E) */
+  private readonly slots: HTMLButtonElement[];
   /** 홈의 `테스트` 판이면 시계 자리에 '테스트' */
   private test = false;
 
@@ -78,6 +80,11 @@ export class Hud {
     this.source = meter('meter--source', '중앙 광원', crystalIcon);
     this.stationsCount = h('span', { class: 'stations__count' }, '0/0');
     this.stations = h('div', { class: 'stations', role: 'img', 'aria-label': '켠 등불' }, svg(lampIcon), this.stationsCount);
+    this.slots = [0, 1].map((i) => {
+      const b = h('button', { class: 'item-slot', type: 'button', 'aria-label': `아이템 칸 ${i + 1}`, 'data-key': i === 0 ? 'Q' : 'E' }) as HTMLButtonElement;
+      b.addEventListener('click', () => bus.emit('ui:use-item', { slot: i }));
+      return b;
+    });
     const pause = h('button', { class: 'round-button', type: 'button', 'aria-label': '일시정지' }, svg(pauseIcon));
     pause.addEventListener('click', () => bus.emit('ui:pause-toggle'));
 
@@ -91,6 +98,7 @@ export class Hud {
         h('span', { class: 'hud-bottom__rule', 'aria-hidden': 'true' }),
         h('div', { class: 'meters' }, this.lp.el, this.source.el),
         this.stations,
+        h('div', { class: 'item-slots' }, ...this.slots),
         pause,
       ),
     );
@@ -110,6 +118,18 @@ export class Hud {
     this.listen();
   }
 
+  private setSlots(slots: (string | null)[]): void {
+    this.slots.forEach((b, i) => {
+      const id = slots[i] ?? null;
+      b.replaceChildren();
+      b.classList.toggle('is-empty', !id);
+      b.disabled = !id;
+      const def = id ? GameData.items.find((d) => d.id === id) : null;
+      b.title = def ? def.name : '빈 칸';
+      if (def) b.append(h('img', { src: `assets/items/item-${def.id}.png`, alt: def.name, width: 40, height: 40 }));
+    });
+  }
+
   private listen(): void {
     bus.on('run:start', (e) => {
       this.el.classList.remove('is-low', 'is-ended', 'is-down', 'is-source-low');
@@ -120,6 +140,7 @@ export class Hud {
       this.score.textContent = '0';
     });
     bus.on('night:tick', (e) => this.setNight(e.t, e.durationSec));
+    bus.on('item:slots', (e) => this.setSlots(e.slots));
     bus.on('night:phase', (e) => (this.el.dataset.phase = e.phase));
     bus.on('score:change', (e) => (this.score.textContent = formatScore(e.score)));
     bus.on('combo:change', (e) => this.setCombo(e.combo, e.reason, e.windowSec));

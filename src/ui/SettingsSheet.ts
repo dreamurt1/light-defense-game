@@ -1,10 +1,14 @@
 // 설정 (기획서 SettingsOverlay): 배경음악·효과음·진동, 닉네임, 조작 설명 1장. 홈의 ⚙와 일시정지에서 연다.
 // 2026-11-06 가로 화면: '가로 화면'(PC만 — 휴대폰은 기기 방향), '전체 화면'(브라우저가 허락할 때만, 아이폰 사파리는 없음).
 // 가로에서는 왼쪽(소리·닉네임) / 오른쪽(조작·화면) 두 열.
+// 2026-11-13 컨셉 시연판: 소리·진동 토글이 실제로 연결됨(audio/Sound.ts가 onSettingsChange로 받음), '스틱 좌우 바꾸기',
+// '이야기 다시 보기'(ui/Story.ts), '처음부터 다시'(진행 저장 지우기, 한 번 더 눌러 확인).
 import { bus } from '../core/events';
+import { Progress } from '../core/Progress';
 import { RunState } from '../core/RunState';
 import { NICKNAME_MAX, cleanNickname, loadSettings, saveSettings, type SettingsData } from '../core/Settings';
 import { h } from './dom';
+import { openStory } from './Story';
 import { isTouchDevice, refreshLayout } from './layout';
 
 type Toggle = 'bgm' | 'sfx' | 'vibration';
@@ -32,6 +36,11 @@ export class SettingsSheet {
   /** PC 화면 방향: 켜짐 = 가로(창을 꽉 채움) */
   private readonly landscape: HTMLButtonElement;
   private readonly fullscreen: HTMLButtonElement;
+  private readonly swapSticks: HTMLButtonElement;
+  private readonly resetButton: HTMLButtonElement;
+  private resetTimer: number | null = null;
+  /** 조작 설명 첫 줄 (스틱 좌우에 따라 바뀜) */
+  private readonly helpLine = h('span', {}, '왼쪽으로 걷고, 오른쪽으로 겨눠요');
   private readonly nickname: HTMLInputElement;
   private readonly panel: HTMLElement;
 
@@ -75,8 +84,34 @@ export class SettingsSheet {
       else void document.documentElement.requestFullscreen().catch(() => undefined);
     });
     document.addEventListener('fullscreenchange', () => this.render());
+    this.swapSticks = sw('스틱 좌우 바꾸기');
+    this.swapSticks.addEventListener('click', () => {
+      this.data.sticksSwapped = !this.data.sticksSwapped;
+      this.persist();
+    });
+
+    const storyButton = h('button', { class: 'pill pill--secondary', type: 'button' }, '이야기 다시 보기');
+    storyButton.addEventListener('click', () => {
+      this.toggle(false);
+      openStory();
+    });
+    // 처음부터 다시: 실수로 지우지 않게 3초 안에 한 번 더 눌러야 지운다
+    this.resetButton = h('button', { class: 'pill pill--secondary', type: 'button' }, '처음부터 다시');
+    this.resetButton.addEventListener('click', () => {
+      if (this.resetTimer === null) {
+        this.resetButton.textContent = '한 번 더 누르면 지워져요';
+        this.resetButton.classList.add('is-confirm');
+        this.resetTimer = window.setTimeout(() => this.disarmReset(), 3000);
+        return;
+      }
+      this.disarmReset();
+      Progress.reset();
+      this.resetButton.textContent = '처음부터 다시 시작해요';
+      window.setTimeout(() => this.disarmReset(), 1600);
+    });
     const screenRows = [
       // 휴대폰은 기기를 돌리면 바뀌므로 PC에서만
+      h('div', { class: 'settings__row' }, h('span', {}, '스틱 좌우 바꾸기'), this.swapSticks),
       isTouchDevice() ? null : h('div', { class: 'settings__row' }, h('span', {}, '가로 화면'), this.landscape),
       document.fullscreenEnabled ? h('div', { class: 'settings__row' }, h('span', {}, '전체 화면'), this.fullscreen) : null,
     ].filter((r): r is HTMLDivElement => r !== null);
@@ -95,11 +130,17 @@ export class SettingsSheet {
       h(
         'div',
         { class: 'settings__cols' },
-        h('div', { class: 'settings__col' }, ...rows, h('label', { class: 'settings__label' }, '닉네임', this.nickname)),
         h(
           'div',
           { class: 'settings__col' },
-          h('div', { class: 'settings__label' }, '조작', h('div', { class: 'settings__help' }, art, h('span', { class: 'settings__help-text' }, h('span', {}, '왼쪽으로 걷고, 오른쪽으로 겨눠요'), h('small', {}, 'PC는 WASD로 걷고, 마우스를 끌었다 놓아 빛을 보내요')))),
+          ...rows,
+          h('label', { class: 'settings__label' }, '닉네임', this.nickname),
+          h('div', { class: 'settings__buttons' }, storyButton, this.resetButton),
+        ),
+        h(
+          'div',
+          { class: 'settings__col' },
+          h('div', { class: 'settings__label' }, '조작', h('div', { class: 'settings__help' }, art, h('span', { class: 'settings__help-text' }, this.helpLine, h('small', {}, 'PC는 WASD로 걷고, 마우스를 끌었다 놓아 빛을 보내요')))),
           ...screenRows,
         ),
       ),
@@ -131,14 +172,24 @@ export class SettingsSheet {
   private render(): void {
     for (const { id } of TOGGLES) this.switches[id].setAttribute('aria-checked', String(this.data[id]));
     this.landscape.setAttribute('aria-checked', String(this.data.orientation === 'landscape'));
+    this.swapSticks.setAttribute('aria-checked', String(this.data.sticksSwapped));
+    this.helpLine.textContent = this.data.sticksSwapped ? '오른쪽으로 걷고, 왼쪽으로 겨눠요' : '왼쪽으로 걷고, 오른쪽으로 겨눠요';
     this.fullscreen.setAttribute('aria-checked', String(document.fullscreenElement !== null));
     this.nickname.value = this.data.nickname;
+  }
+
+  private disarmReset(): void {
+    if (this.resetTimer !== null) window.clearTimeout(this.resetTimer);
+    this.resetTimer = null;
+    this.resetButton.textContent = '처음부터 다시';
+    this.resetButton.classList.remove('is-confirm');
   }
 
   private toggle(open: boolean): void {
     const was = !this.el.hidden;
     this.el.hidden = !open;
     if (was !== open) bus.emit('ui:settings', { open });
+    if (!open) this.disarmReset();
     if (open) {
       this.render();
       this.panel.focus({ preventScroll: true });

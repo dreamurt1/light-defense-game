@@ -25,8 +25,11 @@ import { CENTRAL, HANGING_LANTERN, LANTERN, drawCentralSource, drawHangingLanter
 import { DARK, LIT, VILLAGE_OBJECTS, drawVillage, drawWorld } from './village';
 import { LUMI_COLUMNS, LUMI_ROWS, composeLumi, lumiAnims } from './lumiCompose';
 import { DIRS } from '../systems/facing';
+import { CREATURES, creatureAnim, creatureKey, drawCreature, type CreatureId } from './creatures';
+import { DARK_ORB, ITEM_ICON, ITEM_IDS, ITEM_LABEL, drawDarkOrb, drawItemIcon, itemKey } from './items';
+import { buildKeeperSheet, drawKeeperSpriteFrame, keeperAnims } from './keeperSprites';
 
-export type AssetCategory = 'characters' | 'enemies' | 'objects' | 'effects' | 'backgrounds';
+export type AssetCategory = 'characters' | 'enemies' | 'objects' | 'effects' | 'backgrounds' | 'items';
 
 export interface AnimDef {
   key: string;
@@ -156,6 +159,21 @@ const characters: SheetDef[] = [
     build: composeLumi,
     buildRes: 2,
   },
+  // 2026-11-13 컨셉 시연판: 토리·도토 플레이용 8방향 시트 (임시 코드 그림, lumi-8dir과 같은 줄·칸·애니메이션 이름 규칙)
+  ...(['tori', 'doto'] as const).map(
+    (id): SheetDef => ({
+      key: `${id}-8dir`,
+      category: 'characters',
+      label: `${GameData.characters.find((c) => c.id === id)?.name ?? id} 8방향 (임시 그림: 앞·뒤·옆)`,
+      frameWidth: 64,
+      frameHeight: 64,
+      frames: LUMI_COLUMNS * LUMI_ROWS,
+      draw: (ctx, f) => drawKeeperSpriteFrame(ctx, id, f),
+      anims: keeperAnims(id),
+      build: () => buildKeeperSheet(id),
+      buildRes: 2,
+    }),
+  ),
 ];
 
 const enemies: SheetDef[] = [
@@ -230,7 +248,35 @@ const enemies: SheetDef[] = [
     anims: [{ key: 'witch-idle', frames: [0, 1], frameRate: 2, repeat: -1 }],
     art: { poses: ['idle'], frames: [{ pose: 0 }, { pose: 0, dy: -2 }], fit: 'contain', box: { x: 8, y: 6, w: 176, h: 182 }, align: 'feet', res: 2 },
   },
+  // 2026-11-13 컨셉 시연판: 새 종 (호스틸 2·잃어버린 주민 2·패시브 3, 임시 코드 그림 src/art/creatures.ts)
+  ...(Object.keys(CREATURES) as CreatureId[]).flatMap((id) =>
+    CREATURES[id].looks.map(
+      (look): SheetDef => ({
+        key: creatureKey(id, look),
+        category: 'enemies',
+        label: `${id} — ${look === 'dark' ? '빛을 잃은 모습' : look === 'true' ? '제 모습' : '패시브'}`,
+        frameWidth: CREATURES[id].size,
+        frameHeight: CREATURES[id].size,
+        frames: CREATURES[id].frames,
+        draw: (ctx, f) => drawCreature(ctx, id, look, f),
+        anims: [{ key: creatureAnim(id, look), frames: [0, 1], frameRate: CREATURES[id].flies ? 8 : 4, repeat: -1 }],
+      }),
+    ),
+  ),
 ];
+
+// 2026-11-13 컨셉 시연판: 아이템 아이콘 (HUD DOM이 assets/items/item-<id>.png로도 쓴다)
+const items: SheetDef[] = ITEM_IDS.map(
+  (id): SheetDef => ({
+    key: itemKey(id),
+    category: 'items',
+    label: ITEM_LABEL[id],
+    frameWidth: ITEM_ICON.size,
+    frameHeight: ITEM_ICON.size,
+    frames: 1,
+    draw: (ctx) => drawItemIcon(ctx, id),
+  }),
+);
 
 /**
  * 마을 안 풀숲·장애물로 세우는 소품의 생성 그림 규격 (entities/MapProps.ts). 0 = 밤, 1 = 빛 받음(밤 그림을 밝고 따뜻하게).
@@ -378,6 +424,8 @@ const effects: SheetDef[] = [
     draw: drawReturnBurst,
     anims: [{ key: 'fx-return', frames: [0, 1, 2, 3, 4], frameRate: 14, repeat: 0 }],
   },
+  // 2026-11-13 컨셉 시연판: 노월이 던지는 어둠 구슬
+  { key: 'fx-dark-orb', category: 'effects', label: '어둠 구슬 (노월 투사체)', frameWidth: DARK_ORB.size, frameHeight: DARK_ORB.size, frames: 1, draw: drawDarkOrb },
 ];
 
 const cover = (res: number): ArtSpec => ({ poses: ['main'], frames: still(1), fit: 'cover', res });
@@ -421,7 +469,7 @@ const backgrounds: SheetDef[] = [
   },
 ];
 
-export const SHEETS: readonly SheetDef[] = [...characters, ...enemies, ...objects, ...effects, ...backgrounds];
+export const SHEETS: readonly SheetDef[] = [...characters, ...enemies, ...items, ...objects, ...effects, ...backgrounds];
 
 export function sheetFile(s: Pick<SheetDef, 'category' | 'key' | 'format'>): string {
   return `${s.category}/${s.key}.${s.format ?? 'png'}`;

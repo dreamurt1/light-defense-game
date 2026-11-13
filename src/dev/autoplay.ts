@@ -9,11 +9,14 @@
 //   ?autoplay=5&burst   5초 이후 처음 터지는 콤보 단계 연출(콤보 ×N) 한가운데서 멈춘다
 import Phaser from 'phaser';
 import { bus } from '../core/events';
+import { RunState } from '../core/RunState';
+import type { CharacterId } from '../data';
 import { COMBO_MILESTONES } from '../systems/ComboSystem';
 
 interface PlayHandle {
   clock?: { t: number };
-  field: { enemies: { x: number; y: number; targetable: boolean }[] };
+  field: { enemies: { x: number; y: number; targetable: boolean; def: { kind: string } }[] };
+  boss: { pos: { x: number; y: number } | null; active: boolean } | null;
   sources: { stations: { pos: { x: number; y: number }; state: { mode: string } }[]; central: { pos: { x: number; y: number } } };
   stage: { fans: { age: number }[] };
   keeper: { pos: { x: number; y: number } };
@@ -27,6 +30,14 @@ const REACH = 300;
 export function installAutoplay(game: Phaser.Game): void {
   const params = new URLSearchParams(location.search);
   if (!params.has('autoplay')) return;
+  // 2026-11-13: &stage=stage-2 (스테이지), &char=tori (캐릭터), stage=practice면 연습장
+  const stage = params.get('stage');
+  if (stage) {
+    RunState.stageId = stage;
+    RunState.test = stage === 'practice';
+  }
+  const ch = params.get('char');
+  if (ch) RunState.characterId = ch as CharacterId;
   const stopAt = Number(params.get('autoplay') || 20);
   const idle = params.has('idle');
   const pause = params.has('pause');
@@ -91,8 +102,9 @@ export function installAutoplay(game: Phaser.Game): void {
     }
     if (!idle && sinceTap >= TAP_EVERY_SEC) {
       const target = s.field.enemies
-        .filter((e) => e.targetable)
-        .map((e) => ({ e, d: Math.hypot(e.x - me.x, e.y - me.y) }))
+        .filter((e) => e.targetable && e.def.kind !== 'passive')
+        .map((e) => ({ e: e as { x: number; y: number }, d: Math.hypot(e.x - me.x, e.y - me.y) }))
+        .concat(s.boss?.active && s.boss.pos ? [{ e: { x: s.boss.pos.x, y: s.boss.pos.y - 30 }, d: Math.hypot(s.boss.pos.x - me.x, s.boss.pos.y - me.y) }] : [])
         .sort((a, b) => a.d - b.d)[0];
       if (offLamp && offLamp.d < s.light.range * 0.9) {
         bus.emit('input:fire', { angle: Math.atan2(offLamp.st.pos.y - me.y, offLamp.st.pos.x - me.x) });
