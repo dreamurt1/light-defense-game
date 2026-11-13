@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-13T00:40:46.982Z",
+  "generatedAt": "2026-11-13T04:55:43.648Z",
   "sheets": [
     {
       "key": "portrait-lumi",
@@ -703,7 +703,7 @@
             0,
             1,
             2,
-            1
+            3
           ],
           "frameRate": 12,
           "repeat": -1
@@ -728,7 +728,7 @@
             0,
             1,
             2,
-            1
+            3
           ],
           "frameRate": 10,
           "repeat": -1
@@ -742,7 +742,7 @@
       "file": "enemies/frog-dark.png",
       "frameWidth": 64,
       "frameHeight": 64,
-      "frames": 2,
+      "frames": 12,
       "res": 1,
       "source": "code",
       "load": true,
@@ -751,9 +751,33 @@
           "key": "frog-dark-hop",
           "frames": [
             0,
-            1
+            1,
+            2,
+            3
           ],
-          "frameRate": 3,
+          "frameRate": 6,
+          "repeat": -1
+        },
+        {
+          "key": "frog-dark-hop-front",
+          "frames": [
+            4,
+            5,
+            6,
+            7
+          ],
+          "frameRate": 6,
+          "repeat": -1
+        },
+        {
+          "key": "frog-dark-hop-back",
+          "frames": [
+            8,
+            9,
+            10,
+            11
+          ],
+          "frameRate": 6,
           "repeat": -1
         }
       ]
@@ -765,7 +789,7 @@
       "file": "enemies/frog-true.png",
       "frameWidth": 64,
       "frameHeight": 64,
-      "frames": 2,
+      "frames": 12,
       "res": 1,
       "source": "code",
       "load": true,
@@ -774,9 +798,33 @@
           "key": "frog-true-hop",
           "frames": [
             0,
-            1
+            1,
+            2,
+            3
           ],
-          "frameRate": 5,
+          "frameRate": 10,
+          "repeat": -1
+        },
+        {
+          "key": "frog-true-hop-front",
+          "frames": [
+            4,
+            5,
+            6,
+            7
+          ],
+          "frameRate": 10,
+          "repeat": -1
+        },
+        {
+          "key": "frog-true-hop-back",
+          "frames": [
+            8,
+            9,
+            10,
+            11
+          ],
+          "frameRate": 10,
           "repeat": -1
         }
       ]
@@ -784,11 +832,11 @@
     {
       "key": "witch",
       "category": "enemies",
-      "label": "노월 (보스, 대기)",
+      "label": "노월 (보스: 대기 4 · 시전 2 · 진정 1)",
       "file": "enemies/witch.png",
       "frameWidth": 192,
       "frameHeight": 192,
-      "frames": 2,
+      "frames": 7,
       "res": 1,
       "source": "code",
       "load": true,
@@ -797,10 +845,21 @@
           "key": "witch-idle",
           "frames": [
             0,
-            1
+            1,
+            2,
+            3
           ],
-          "frameRate": 2,
+          "frameRate": 6,
           "repeat": -1
+        },
+        {
+          "key": "witch-cast",
+          "frames": [
+            4,
+            5
+          ],
+          "frameRate": 6,
+          "repeat": 0
         }
       ]
     },
@@ -811,7 +870,7 @@
       "file": "enemies/werewolf-dark.png",
       "frameWidth": 96,
       "frameHeight": 96,
-      "frames": 2,
+      "frames": 12,
       "res": 1,
       "source": "code",
       "load": true,
@@ -820,9 +879,33 @@
           "key": "werewolf-dark-move",
           "frames": [
             0,
-            1
+            1,
+            2,
+            3
           ],
-          "frameRate": 4,
+          "frameRate": 8,
+          "repeat": -1
+        },
+        {
+          "key": "werewolf-dark-move-front",
+          "frames": [
+            4,
+            5,
+            6,
+            7
+          ],
+          "frameRate": 8,
+          "repeat": -1
+        },
+        {
+          "key": "werewolf-dark-move-back",
+          "frames": [
+            8,
+            9,
+            10,
+            11
+          ],
+          "frameRate": 8,
           "repeat": -1
         }
       ]
@@ -834,7 +917,7 @@
       "file": "enemies/vampire-dark.png",
       "frameWidth": 80,
       "frameHeight": 80,
-      "frames": 2,
+      "frames": 4,
       "res": 1,
       "source": "code",
       "load": true,
@@ -843,9 +926,11 @@
           "key": "vampire-dark-move",
           "frames": [
             0,
-            1
+            1,
+            2,
+            3
           ],
-          "frameRate": 8,
+          "frameRate": 9,
           "repeat": -1
         }
       ]
@@ -857,7 +942,7 @@
       "file": "enemies/hedgehog-dark.png",
       "frameWidth": 64,
       "frameHeight": 64,
-      "frames": 2,
+      "frames": 12,
       "res": 1,
       "source": "code",
       "load": true,
@@ -866,9 +951,33 @@
           "key": "hedgehog-dark-move",
           "frames": [
             0,
-            1
+            1,
+            2,
+            3
           ],
-          "frameRate": 4,
+          "frameRate": 9,
+          "repeat": -1
+        },
+        {
+          "key": "hedgehog-dark-move-front",
+          "frames": [
+            4,
+            5,
+            6,
+            7
+          ],
+          "frameRate": 9,
+          "repeat": -1
+        },
+        {
+          "key": "hedgehog-dark-move-back",
+          "frames": [
+            8,
+            9,
+            10,
+            11
+          ],
+          "frameRate": 9,
           "repeat": -1
         }
       ]
@@ -880,7 +989,7 @@
       "file": "enemies/hedgehog-true.png",
       "frameWidth": 64,
       "frameHeight": 64,
-      "frames": 2,
+      "frames": 12,
       "res": 1,
       "source": "code",
       "load": true,
@@ -889,9 +998,33 @@
           "key": "hedgehog-true-move",
           "frames": [
             0,
-            1
+            1,
+            2,
+            3
           ],
-          "frameRate": 4,
+          "frameRate": 9,
+          "repeat": -1
+        },
+        {
+          "key": "hedgehog-true-move-front",
+          "frames": [
+            4,
+            5,
+            6,
+            7
+          ],
+          "frameRate": 9,
+          "repeat": -1
+        },
+        {
+          "key": "hedgehog-true-move-back",
+          "frames": [
+            8,
+            9,
+            10,
+            11
+          ],
+          "frameRate": 9,
           "repeat": -1
         }
       ]
@@ -903,7 +1036,7 @@
       "file": "enemies/redpanda-dark.png",
       "frameWidth": 72,
       "frameHeight": 72,
-      "frames": 2,
+      "frames": 12,
       "res": 1,
       "source": "code",
       "load": true,
@@ -912,9 +1045,33 @@
           "key": "redpanda-dark-move",
           "frames": [
             0,
-            1
+            1,
+            2,
+            3
           ],
-          "frameRate": 4,
+          "frameRate": 9,
+          "repeat": -1
+        },
+        {
+          "key": "redpanda-dark-move-front",
+          "frames": [
+            4,
+            5,
+            6,
+            7
+          ],
+          "frameRate": 9,
+          "repeat": -1
+        },
+        {
+          "key": "redpanda-dark-move-back",
+          "frames": [
+            8,
+            9,
+            10,
+            11
+          ],
+          "frameRate": 9,
           "repeat": -1
         }
       ]
@@ -926,7 +1083,7 @@
       "file": "enemies/redpanda-true.png",
       "frameWidth": 72,
       "frameHeight": 72,
-      "frames": 2,
+      "frames": 12,
       "res": 1,
       "source": "code",
       "load": true,
@@ -935,9 +1092,33 @@
           "key": "redpanda-true-move",
           "frames": [
             0,
-            1
+            1,
+            2,
+            3
           ],
-          "frameRate": 4,
+          "frameRate": 9,
+          "repeat": -1
+        },
+        {
+          "key": "redpanda-true-move-front",
+          "frames": [
+            4,
+            5,
+            6,
+            7
+          ],
+          "frameRate": 9,
+          "repeat": -1
+        },
+        {
+          "key": "redpanda-true-move-back",
+          "frames": [
+            8,
+            9,
+            10,
+            11
+          ],
+          "frameRate": 9,
           "repeat": -1
         }
       ]
@@ -949,7 +1130,7 @@
       "file": "enemies/owl.png",
       "frameWidth": 72,
       "frameHeight": 72,
-      "frames": 2,
+      "frames": 12,
       "res": 1,
       "source": "code",
       "load": true,
@@ -958,9 +1139,33 @@
           "key": "owl-move",
           "frames": [
             0,
-            1
+            1,
+            2,
+            3
           ],
-          "frameRate": 4,
+          "frameRate": 6,
+          "repeat": -1
+        },
+        {
+          "key": "owl-move-front",
+          "frames": [
+            4,
+            5,
+            6,
+            7
+          ],
+          "frameRate": 6,
+          "repeat": -1
+        },
+        {
+          "key": "owl-move-back",
+          "frames": [
+            8,
+            9,
+            10,
+            11
+          ],
+          "frameRate": 6,
           "repeat": -1
         }
       ]
@@ -972,7 +1177,7 @@
       "file": "enemies/moth.png",
       "frameWidth": 64,
       "frameHeight": 64,
-      "frames": 2,
+      "frames": 4,
       "res": 1,
       "source": "code",
       "load": true,
@@ -981,9 +1186,11 @@
           "key": "moth-move",
           "frames": [
             0,
-            1
+            1,
+            2,
+            3
           ],
-          "frameRate": 8,
+          "frameRate": 10,
           "repeat": -1
         }
       ]
@@ -995,7 +1202,7 @@
       "file": "enemies/firefly.png",
       "frameWidth": 48,
       "frameHeight": 48,
-      "frames": 2,
+      "frames": 4,
       "res": 1,
       "source": "code",
       "load": true,
@@ -1004,9 +1211,11 @@
           "key": "firefly-move",
           "frames": [
             0,
-            1
+            1,
+            2,
+            3
           ],
-          "frameRate": 8,
+          "frameRate": 12,
           "repeat": -1
         }
       ]

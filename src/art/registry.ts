@@ -19,13 +19,13 @@ import {
   drawStar,
   fanTextureHeight,
 } from './effects';
-import { BAT, FROG, WITCH, drawBatDark, drawBatTrue, drawFrogDark, drawFrogTrue, drawWitch } from './enemies';
+import { BAT, FROG, WITCH, WITCH_FRAME, drawBatDark, drawBatTrue, drawFrogDark, drawFrogTrue, drawWitch, frogAnims } from './enemies';
 import type { Ctx } from './kit';
 import { CENTRAL, HANGING_LANTERN, LANTERN, drawCentralSource, drawHangingLantern, drawLantern } from './objects';
 import { DARK, LIT, VILLAGE_OBJECTS, drawVillage, drawWorld } from './village';
 import { LUMI_COLUMNS, LUMI_ROWS, composeLumi, lumiAnims } from './lumiCompose';
 import { DIRS } from '../systems/facing';
-import { CREATURES, creatureAnim, creatureKey, drawCreature, type CreatureId } from './creatures';
+import { CREATURES, creatureAnims, creatureKey, drawCreature, type CreatureId } from './creatures';
 import { DARK_ORB, ITEM_ICON, ITEM_IDS, ITEM_LABEL, drawDarkOrb, drawItemIcon, itemKey } from './items';
 import { buildKeeperSheet, drawKeeperSpriteFrame, keeperAnims } from './keeperSprites';
 
@@ -93,6 +93,12 @@ export interface SheetDef {
 
 /** 한 포즈를 frames칸 모두에 그대로 */
 const still = (frames: number, pose = 0): ArtFrame[] => Array.from({ length: frames }, () => ({ pose }));
+
+/** 개구리 생성 그림(앉음·폴짝 두 포즈)을 12칸(옆·앞·뒤 × 웅크림·박차기·공중·착지)에 나눠 쓴다 */
+const FROG_ART_FRAMES: ArtFrame[] = Array.from({ length: 12 }, (_, i) => {
+  const p = i % 4;
+  return p === 0 ? { pose: 0, sy: 0.94 } : p === 3 ? { pose: 0 } : { pose: 1, dy: p === 2 ? -3 : -1 };
+});
 
 const W = GameData.game.viewport.width;
 const H = GameData.game.viewport.height;
@@ -185,7 +191,8 @@ const enemies: SheetDef[] = [
     frameHeight: BAT.size,
     frames: BAT.frames,
     draw: drawBatDark,
-    anims: [{ key: 'bat-dark-fly', frames: [0, 1, 2, 1], frameRate: 12, repeat: -1 }],
+    // 2026-11-13: 4칸 모두 다른 날갯짓 (위 → 내려침 → 아래 → 접어 올림), 3/4 옆모습 — 왼쪽은 flipX
+    anims: [{ key: 'bat-dark-fly', frames: [0, 1, 2, 3], frameRate: 12, repeat: -1 }],
     // 날개 올림·내림 두 포즈로 날갯짓
     art: {
       poses: ['up', 'down'],
@@ -204,7 +211,7 @@ const enemies: SheetDef[] = [
     frameHeight: BAT.size,
     frames: BAT.frames,
     draw: drawBatTrue,
-    anims: [{ key: 'bat-true-fly', frames: [0, 1, 2, 1], frameRate: 10, repeat: -1 }],
+    anims: [{ key: 'bat-true-fly', frames: [0, 1, 2, 3], frameRate: 10, repeat: -1 }],
     art: {
       poses: ['up', 'down'],
       frames: [{ pose: 0 }, { pose: 1 }, { pose: 0, sy: 0.96, dy: -2 }, { pose: 1, sy: 1.03 }],
@@ -223,8 +230,9 @@ const enemies: SheetDef[] = [
     frameHeight: FROG.size,
     frames: FROG.frames,
     draw: drawFrogDark,
-    anims: [{ key: 'frog-dark-hop', frames: [0, 1], frameRate: 3, repeat: -1 }],
-    art: { poses: ['sit', 'hop'], frames: [{ pose: 0 }, { pose: 1 }], fit: 'contain', box: { x: 4, y: 6, w: 56, h: 54 }, align: 'feet', res: 2 },
+    // 2026-11-13: 옆·앞·뒤 × 폴짝 4칸 (웅크림·박차기·공중·착지). 폴짝 주기 0.7초 ≈ 4칸 ÷ 6fps
+    anims: frogAnims('frog-dark-hop', 6),
+    art: { poses: ['sit', 'hop'], frames: FROG_ART_FRAMES, fit: 'contain', box: { x: 4, y: 6, w: 56, h: 54 }, align: 'feet', res: 2 },
   },
   {
     key: 'frog-true',
@@ -234,19 +242,31 @@ const enemies: SheetDef[] = [
     frameHeight: FROG.size,
     frames: FROG.frames,
     draw: drawFrogTrue,
-    anims: [{ key: 'frog-true-hop', frames: [0, 1], frameRate: 5, repeat: -1 }],
-    art: { poses: ['sit', 'hop'], frames: [{ pose: 0 }, { pose: 1 }], fit: 'contain', box: { x: 4, y: 6, w: 56, h: 54 }, align: 'feet', res: 2 },
+    // 구출 뒤 뛰어가는 폴짝(0.36초)에 맞춰 빠르게
+    anims: frogAnims('frog-true-hop', 10),
+    art: { poses: ['sit', 'hop'], frames: FROG_ART_FRAMES, fit: 'contain', box: { x: 4, y: 6, w: 56, h: 54 }, align: 'feet', res: 2 },
   },
   {
     key: 'witch',
     category: 'enemies',
-    label: '노월 (보스, 대기)',
+    label: '노월 (보스: 대기 4 · 시전 2 · 진정 1)',
     frameWidth: WITCH.size,
     frameHeight: WITCH.size,
     frames: WITCH.frames,
     draw: drawWitch,
-    anims: [{ key: 'witch-idle', frames: [0, 1], frameRate: 2, repeat: -1 }],
-    art: { poses: ['idle'], frames: [{ pose: 0 }, { pose: 0, dy: -2 }], fit: 'contain', box: { x: 8, y: 6, w: 176, h: 182 }, align: 'feet', res: 2 },
+    // 2026-11-13: 대기 0~3 반복, 시전 4~5 한 번(구슬·박쥐 부를 때), 진정 = WITCH_FRAME.calm(6) 한 칸
+    anims: [
+      { key: 'witch-idle', frames: [...WITCH_FRAME.idle], frameRate: 6, repeat: -1 },
+      { key: 'witch-cast', frames: [...WITCH_FRAME.cast], frameRate: 6, repeat: 0 },
+    ],
+    art: {
+      poses: ['idle'],
+      frames: [{ pose: 0 }, { pose: 0, dy: -1 }, { pose: 0, dy: -2 }, { pose: 0, dy: -1 }, { pose: 0, dy: -3 }, { pose: 0, dy: -4 }, { pose: 0 }],
+      fit: 'contain',
+      box: { x: 8, y: 6, w: 176, h: 182 },
+      align: 'feet',
+      res: 2,
+    },
   },
   // 2026-11-13 컨셉 시연판: 새 종 (호스틸 2·잃어버린 주민 2·패시브 3, 임시 코드 그림 src/art/creatures.ts)
   ...(Object.keys(CREATURES) as CreatureId[]).flatMap((id) =>
@@ -259,7 +279,8 @@ const enemies: SheetDef[] = [
         frameHeight: CREATURES[id].size,
         frames: CREATURES[id].frames,
         draw: (ctx, f) => drawCreature(ctx, id, look, f),
-        anims: [{ key: creatureAnim(id, look), frames: [0, 1], frameRate: CREATURES[id].flies ? 8 : 4, repeat: -1 }],
+        // 걷는 종 = 옆·앞·뒤 × 4칸 (`-move` · `-move-front` · `-move-back`), 나는 종 = 옆 4칸 (`-move`)
+        anims: creatureAnims(id, look),
       }),
     ),
   ),
