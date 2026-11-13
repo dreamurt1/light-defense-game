@@ -26,7 +26,11 @@ export class MercyTracker {
     if (!player) return out;
     for (const s of subjects) {
       if (s.upset || this.done.has(s.uid)) continue;
-      if (Math.hypot(s.x - player.x, s.y - player.y) > this.cfg.radius) continue;
+      if (Math.hypot(s.x - player.x, s.y - player.y) > this.cfg.radius) {
+        // 곁을 벗어나면 처음부터 (잠깐씩 스친 시간이 쌓여 자비가 되지 않게, 코드 리뷰 2026-11-13)
+        this.dwell.delete(s.uid);
+        continue;
+      }
       const t = (this.dwell.get(s.uid) ?? 0) + dt;
       this.dwell.set(s.uid, t);
       if (t >= this.cfg.dwellSec) {

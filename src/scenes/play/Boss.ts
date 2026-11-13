@@ -12,9 +12,12 @@ import type { EnemyTarget } from '../../entities/enemies/Enemy';
 import type { Vec } from '../../systems/fan';
 import type { LightTarget } from '../../systems/LightSystem';
 import type { EnemyField } from './EnemyField';
+import type { Rng } from '../../core/rng';
 
 const ORBIT = { rx: 470, ry: 330, speed: 0.22 };
 const SUMMON_SEC = 7;
+/** 마을에 박쥐가 이만큼 있으면 소환을 쉰다 (방치하면 끝없이 쌓이지 않게, 제안) */
+const SUMMON_CAP = 6;
 const ORB = { everySec: 4.5, speed: 170, damage: 3, radius: 22, popScore: 20 };
 const ENTER_MS = 1600;
 const HIT_RADIUS = 46;
@@ -45,6 +48,7 @@ export class Boss {
     private readonly stage: StageDef,
     private readonly field: EnemyField,
     private readonly center: Vec,
+    private readonly rng: Rng,
   ) {
     const def = enemyById(stage.boss?.enemyId ?? 'witch');
     this.hp = this.maxHp = def.hp;
@@ -62,24 +66,27 @@ export class Boss {
   update(dt: number, t: number, targets: readonly EnemyTarget[]): { target: string; damage: number }[] {
     const hits: { target: string; damage: number }[] = [];
     if (!this.appeared && t >= (this.stage.boss?.atSec ?? 0)) this.appear();
-    if (!this.sprite || this.calmed) return this.moveOrbs(dt, hits);
+    if (!this.sprite || this.calmed) return this.moveOrbs(dt, hits, targets);
     if (!this.entering) {
       this.angle += ORBIT.speed * dt;
       this.sprite.setPosition(this.center.x + Math.cos(this.angle) * ORBIT.rx, this.center.y + Math.sin(this.angle) * ORBIT.ry).setDepth(this.sprite.y);
       this.summonLeft -= dt;
       if (this.summonLeft <= 0) {
         this.summonLeft = SUMMON_SEC;
-        for (const dx of [-50, 50]) this.field.spawnAt('bat', this.sprite.x + dx, this.sprite.y + 20);
-        bus.emit('boss:attack', { kind: 'summon' });
+        const bats = this.field.enemies.filter((e) => e.def.id === 'bat' && e.targetable).length;
+        if (bats < SUMMON_CAP) {
+          for (const dx of [-50, 50]) this.field.spawnAt('bat', this.sprite.x + dx, this.sprite.y + 20, true);
+          bus.emit('boss:attack', { kind: 'summon' });
+        }
       }
       this.orbLeft -= dt;
       if (this.orbLeft <= 0 && targets.length > 0) {
         this.orbLeft = ORB.everySec;
-        const target = targets[Math.floor(Math.random() * targets.length)];
+        const target = this.rng.pick(targets);
         this.throwOrb(target);
       }
     }
-    return this.moveOrbs(dt, hits);
+    return this.moveOrbs(dt, hits, targets);
   }
 
   lightTargets(): LightTarget[] {
@@ -149,9 +156,14 @@ export class Boss {
     bus.emit('boss:attack', { kind: 'orb' });
   }
 
-  private moveOrbs(dt: number, hits: { target: string; damage: number }[]): { target: string; damage: number }[] {
+  private moveOrbs(dt: number, hits: { target: string; damage: number }[], alive: readonly EnemyTarget[]): { target: string; damage: number }[] {
     for (let i = this.orbs.length - 1; i >= 0; i--) {
       const o = this.orbs[i];
+      // 날아가는 사이 목표 등불이 꺼졌으면 구슬도 흩어진다 (코드 리뷰 2026-11-13)
+      if (!alive.some((t) => t.id === o.target.id)) {
+        this.popOrb(i);
+        continue;
+      }
       const dx = o.target.x - o.img.x;
       const dy = o.target.y - o.img.y;
       const d = Math.hypot(dx, dy);

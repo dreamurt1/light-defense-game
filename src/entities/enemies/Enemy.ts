@@ -7,6 +7,7 @@ import Phaser from 'phaser';
 import type { EnemyDef } from '../../data';
 import type { Vec } from '../../systems/fan';
 import { pushOut, type Rect } from '../../systems/obstacles';
+import { GameData } from '../../data';
 
 /**
  * 호스틸 역할 (2026-11-13 Phase 3: 추적 / 중앙 광원 공격 / 등불 공격). enemies.json behaviorParams.role.
@@ -138,7 +139,10 @@ export abstract class Enemy extends Phaser.GameObjects.Container {
     if (this.blocked >= STUCK_SEC && this.detourLeft <= 0) {
       const side = this.uid % 2 === 0 ? 1 : -1;
       const g = this.lastDir;
-      this.detour = { x: this.x - g.y * side * DETOUR.dist - g.x * 40, y: this.y + g.x * side * DETOUR.dist - g.y * 40 };
+      // 마을 밖으로 나가지 않게 자른다 (코드 리뷰 2026-11-13)
+      const W = GameData.game.world;
+      const clamp = (v: number, max: number) => Math.min(max - 60, Math.max(60, v));
+      this.detour = { x: clamp(this.x - g.y * side * DETOUR.dist - g.x * 40, W.width), y: clamp(this.y + g.x * side * DETOUR.dist - g.y * 40, W.height) };
       this.detourLeft = DETOUR.sec;
       this.blocked = 0;
     }

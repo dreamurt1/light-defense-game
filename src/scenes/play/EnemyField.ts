@@ -32,6 +32,8 @@ export class EnemyField {
   /** 나타난 빛을 잃은 친구 (구출 전) */
   friend: Creature | null = null;
   private friendSpawned = false;
+  /** 노월이 부른 박쥐 (동시 최대에 넣지 않음) */
+  private readonly summoned = new WeakSet<Enemy>();
 
   constructor(
     private readonly scene: Phaser.Scene,
@@ -47,7 +49,8 @@ export class EnemyField {
 
   /** 스테이지 시각 t에 새 적을 낸다 */
   spawn(dt: number, t: number): void {
-    const alive = this.active.length + this.pending.length;
+    // 동시 최대는 스포너가 낸 적만 센다: 패시브 주민(별도 줄)·기다리는 친구·노월이 부른 박쥐는 빼고 (코드 리뷰 2026-11-13)
+    const alive = this.active.filter((e) => e.def.kind !== 'passive' && !e.def.friend && !this.summoned.has(e)).length + this.pending.length;
     this.pending.push(...this.spawner.update(dt, t, alive));
     for (let i = this.pending.length - 1; i >= 0; i--) {
       const req = this.pending[i];
@@ -100,10 +103,11 @@ export class EnemyField {
     return this.friend;
   }
 
-  /** 정해진 자리에 바로 (튜토리얼·보스 소환·패시브) */
-  spawnAt(id: EnemyId, x: number, y: number): Enemy | null {
+  /** 정해진 자리에 바로 (튜토리얼·보스 소환·패시브). summoned = 노월이 부름 */
+  spawnAt(id: EnemyId, x: number, y: number, summoned = false): Enemy | null {
     const e = this.create(id, x, y);
     if (e) this.enemies.push(e);
+    if (e && summoned) this.summoned.add(e);
     return e;
   }
 

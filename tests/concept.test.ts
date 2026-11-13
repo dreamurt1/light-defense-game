@@ -13,6 +13,15 @@ describe('자비 (패시브 주민)', () => {
     expect(m.update(0.6, s, { x: 0, y: 0 })).toEqual([1]);
     expect(m.update(5, s, { x: 0, y: 0 })).toEqual([]);
   });
+  it('곁을 벗어나면 머문 시간이 처음부터', () => {
+    const m = new MercyTracker({ radius: 200, dwellSec: 1.5 });
+    const near = [{ uid: 1, x: 100, y: 0, upset: false }];
+    const far = [{ uid: 1, x: 900, y: 0, upset: false }];
+    m.update(1, near, { x: 0, y: 0 });
+    m.update(1, far, { x: 0, y: 0 });
+    expect(m.update(1, near, { x: 0, y: 0 })).toEqual([]);
+    expect(m.update(0.6, near, { x: 0, y: 0 })).toEqual([1]);
+  });
   it('멀거나 화났으면 없음', () => {
     const m = new MercyTracker({ radius: 200, dwellSec: 1 });
     expect(m.update(3, [{ uid: 1, x: 500, y: 0, upset: false }], { x: 0, y: 0 })).toEqual([]);

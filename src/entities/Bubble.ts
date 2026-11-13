@@ -19,6 +19,9 @@ export function sayAbove(scene: Phaser.Scene, target: Phaser.GameObjects.Contain
     if (target.active) box.setPosition(target.x, target.y + offsetY);
   };
   scene.events.on(Phaser.Scenes.Events.UPDATE, follow);
+  const stop = () => scene.events.off(Phaser.Scenes.Events.UPDATE, follow);
+  // 다시 시작해도 scene.events 구독은 남으므로 씬이 끝날 때 꼭 뗀다 (코드 리뷰 2026-11-13)
+  scene.events.once(Phaser.Scenes.Events.SHUTDOWN, stop);
   scene.tweens.add({ targets: box, alpha: 1, y: '-=6', duration: 180 });
   scene.time.delayedCall(ms, () => {
     scene.tweens.add({
@@ -26,7 +29,8 @@ export function sayAbove(scene: Phaser.Scene, target: Phaser.GameObjects.Contain
       alpha: 0,
       duration: 240,
       onComplete: () => {
-        scene.events.off(Phaser.Scenes.Events.UPDATE, follow);
+        stop();
+        scene.events.off(Phaser.Scenes.Events.SHUTDOWN, stop);
         box.destroy();
       },
     });

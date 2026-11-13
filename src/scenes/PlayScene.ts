@@ -159,10 +159,10 @@ export class PlayScene extends Phaser.Scene {
     const sd = this.stageDef;
     this.safe = !!(sd.practice || sd.tutorial);
     this.items = new Items(this, sd, new Rng(RunState.seed + 31), keeperDef.trait === 'cheekPouch' ? (keeperDef.traitParams.itemEffectMultiplier ?? 1) : 1);
-    this.boss = sd.boss ? new Boss(this, sd, this.field, { x: CFG.central.x, y: CFG.central.y }) : null;
+    this.boss = sd.boss ? new Boss(this, sd, this.field, { x: CFG.central.x, y: CFG.central.y }, new Rng(RunState.seed + 59)) : null;
     const host = { field: this.field, items: this.items, score: this.score, combo: this.combo, keeper: () => this.keeper.pos, litCount: () => this.sources.litCount };
     this.rules = new StageRules(host, sd, new Rng(RunState.seed + 47), WALK_AREA);
-    (this.stage as unknown as { setTheme?: (t: StageDef['theme']) => void }).setTheme?.(sd.theme);
+    this.stage.setTheme(sd.theme);
     this.input.keyboard?.on('keydown-Q', () => this.useItem(0));
     this.input.keyboard?.on('keydown-E', () => this.useItem(1));
 
@@ -546,9 +546,9 @@ export class PlayScene extends Phaser.Scene {
     if (outcome === 'complete') gained += this.score.applyComplete();
     bus.emit('score:change', { score: this.score.total, gained });
     this.stage.dawn(DAWN_SEC);
-    // 아침이 오면 남은 적은 모두 스스로 물러난다(점수 없음)
+    // 아침이 오면 남은 적은 모두 스스로 물러난다(점수 없음). 구출하지 못한 친구는 그대로 (달려가면 구출한 것처럼 보임)
     const home = this.sources.central.pos;
-    for (const e of this.field.active) if (e.def.kind !== 'passive') e.hitByLight(e.hp, 0, CFG.light.stunSec, { from: home, home });
+    for (const e of this.field.active) if (e.def.kind !== 'passive' && !e.def.friend) e.hitByLight(e.hp, 0, CFG.light.stunSec, { from: home, home });
     const result = this.result(outcome, reason);
     this.time.delayedCall(DAWN_SEC * 1000, () => {
       panForResult(this.cameras.main, this.keeper.pos);
