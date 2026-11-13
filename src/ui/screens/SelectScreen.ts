@@ -10,6 +10,7 @@ import { GameData, STAGE_ORDER, characterById, enemyById, stageById, type Charac
 import { h, svg } from '../dom';
 import { badgeStarIcon, chevronLeftIcon, chevronRightIcon, lampIcon, lockIcon, moonIcon, pawIcon, playIcon } from '../icons';
 import { lostPortraitUrl, portraitUrl, screenBar, screenShell } from './common';
+import { startTutorial } from '../Story';
 
 /** 특성 이름과 짧은 설명 (제안: 새 기획에 특성이 없어 기존 이름을 이어 씀) */
 const TRAIT: Record<CharacterDef['trait'], string> = {
@@ -207,10 +208,12 @@ export class SelectScreen {
   private start(): void {
     const def = GameData.characters[this.index];
     if (isLocked(def)) return;
-    if (Progress.isStageOpen(this.stageId)) RunState.stageId = this.stageId;
-    else if (!Progress.tutorialDone) RunState.stageId = 'tutorial';
-    else return;
+    const open = Progress.isStageOpen(this.stageId);
+    if (!open && Progress.tutorialDone) return;
     RunState.characterId = def.id;
+    // 아직 처음 밤(튜토리얼)을 안 했으면 튜토리얼로 — 간추린 이야기부터 (2026-11-13 라이언)
+    if (!open) return startTutorial();
+    RunState.stageId = this.stageId;
     bus.emit('ui:start-run');
   }
 }

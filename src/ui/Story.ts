@@ -1,7 +1,10 @@
 // 이야기 소개 (2026-11-13 컨셉 시연판, 1·2절 세계관): 카드 4장, 한 장에 1~2문장, '다음'·'건너뛰기'.
+// 2026-11-13 라이언: 튜토리얼은 언제 시작하든(처음·다시) 이 간추린 이야기부터. '건너뛰기'는 남은 카드를 모두 건너뛰고 바로 튜토리얼 판으로.
 // 처음 '게임하기'를 누르면 이야기 → 튜토리얼 판으로 이어지고(HomeScreen), 설정의 '이야기 다시 보기'로 다시 볼 수 있다.
 // 그림은 기존 에셋: 홈 배경, 중앙 광원 토템(3칸 시트의 첫 칸 = 밝음), 루미 초상, 빛을 잃은 토리 초상.
 // 길게 설명하지 않는다(1절 4축): 짧게, 언제든 건너뛸 수 있게.
+import { bus } from '../core/events';
+import { RunState } from '../core/RunState';
 import { h } from './dom';
 
 interface Card {
@@ -135,6 +138,17 @@ export function closeStory(): boolean {
   if (!view?.isOpen) return false;
   view.cancel();
   return true;
+}
+
+/** 튜토리얼 판 시작: 언제나 간추린 이야기 카드부터(건너뛰기·끝까지 보기 → 바로 판), 뒤로가기로 닫으면 시작하지 않음 */
+export function startTutorial(): void {
+  openStory({
+    finalLabel: '시작해요',
+    onDone: () => {
+      RunState.stageId = 'tutorial';
+      bus.emit('ui:start-run');
+    },
+  });
 }
 
 /** 이야기를 연다. #ui 레이어 맨 위에 붙는다 */
