@@ -337,7 +337,7 @@ export class PlayScene extends Phaser.Scene {
     if (!r) return;
     if (p && r !== 'orb') this.fx.impact(p.x, p.y - 40);
     if (r === 'hit') return;
-    const points = r === 'orb' ? Boss.popScore : enemyById('witch').score;
+    const points = r === 'orb' ? CFG.score.orbPop : enemyById('witch').score;
     const gained = this.score.addReturn(points, r === 'calmed' ? this.combo.registerReturn() : this.combo.combo);
     bus.emit('score:change', { score: this.score.total, gained });
   }

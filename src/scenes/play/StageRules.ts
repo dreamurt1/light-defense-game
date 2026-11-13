@@ -16,8 +16,8 @@ import type { EnemyField } from './EnemyField';
 import type { Items } from './Items';
 
 const CFG = GameData.game;
-/** 튜토리얼 '걷기'를 마치는 거리 (제안) */
-const WALK_GOAL = 260;
+/** 튜토리얼 '걷기'를 마치는 거리 (game.json tutorial.walkGoal, 제안) */
+const WALK_GOAL = CFG.tutorial.walkGoal;
 
 export interface RulesHost {
   field: EnemyField;

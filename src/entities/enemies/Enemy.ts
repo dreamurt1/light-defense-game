@@ -14,11 +14,11 @@ import { GameData } from '../../data';
  * chase = 보이면 주인공(기본), central = 중앙 광원으로 곧장(아주 가까울 때만 주인공), station = 켜진 등불 먼저
  */
 type Role = 'chase' | 'central' | 'station';
-/** 역할이 chase가 아닌 적도 이 거리 안의 주인공은 공격한다 (제안) */
-const CLOSE_AGGRO = 150;
-/** 걷는 적이 벽에 이만큼 막혀 있으면 옆으로 돌아간다 (제안) */
-const STUCK_SEC = 0.35;
-const DETOUR = { dist: 220, sec: 0.9 };
+/** 역할 공격 거리·벽 우회 (원본 game.json enemyAi.closeAggro·stuckSec·detourDist·detourSec, 제안) */
+const AI = GameData.game.enemyAi;
+const CLOSE_AGGRO = AI.closeAggro;
+const STUCK_SEC = AI.stuckSec;
+const DETOUR = { dist: AI.detourDist, sec: AI.detourSec };
 
 export type EnemyState = 'approach' | 'attached' | 'stunned' | 'returning';
 

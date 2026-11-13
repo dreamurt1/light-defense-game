@@ -2,6 +2,6 @@
   { "id": "wind_feather", "name": "바람 깃털", "effect": "moveSpeed", "multiplier": 1.35, "durationSec": 8, "color": "#9ED9B5" },
   { "id": "star_necklace", "name": "별 목걸이", "effect": "enemySlow", "multiplier": 0.7, "durationSec": 8, "color": "#A89CD9" },
   { "id": "firefly_jar", "name": "반딧불 병", "effect": "restoreLp", "amount": 35, "color": "#FFC857" },
-  { "id": "golden_acorn", "name": "황금 도토리", "effect": "summonRescued", "count": 2, "durationSec": 10, "color": "#E0A84A" },
+  { "id": "golden_acorn", "name": "황금 도토리", "effect": "summonRescued", "count": 2, "durationSec": 10, "helperEverySec": 1, "helperRange": 280, "helperPower": 6, "color": "#E0A84A" },
   { "id": "light_charm", "name": "빛의 부적", "effect": "restoreHpLp", "hp": 25, "lp": 25, "perStage": 1, "color": "#F6F1E7" }
 ]

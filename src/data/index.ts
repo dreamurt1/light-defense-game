@@ -110,7 +110,8 @@ export interface GameConfig {
   };
   /** 루미 주변 빛(LP에 비례, 스테이지가 흐를수록 넓어짐) */
   aura: { glowMin: number; glowMax: number; growWithProgress: number };
-  enemyAi: { aggroRadius: number; retargetSec: number; detachRatio: number };
+  /** closeAggro·stuckSec·detour* = 2026-11-13 역할별 호스틸·미로 벽 우회 */
+  enemyAi: { aggroRadius: number; retargetSec: number; detachRatio: number; closeAggro: number; stuckSec: number; detourDist: number; detourSec: number };
   light: {
     mode: 'aimStick';
     fanDeg: number;
@@ -126,9 +127,29 @@ export interface GameConfig {
     multiplierPerStep: number;
     maxMultiplier: number;
   };
-  score: { station: number; mercy: number; itemPickup: number; clearBase: number; completeMultiplier: number };
+  score: { station: number; mercy: number; itemPickup: number; clearBase: number; completeMultiplier: number; orbPop: number };
   playfield: { margin: number };
-  items: { lifetimeSec: number; blinkLastSec: number; maxGround: number };
+  items: { lifetimeSec: number; blinkLastSec: number; maxGround: number; slots: number; pickRadius: number; spawnRingMin: number; spawnRingMax: number };
+  /** 패시브 주민 (2026-11-13): 나타나는 거리·피하기·분노 */
+  passive: { spawnMinDist: number; shyDist: number; shySpeedMultiplier: number; angryDamage: number; angrySpeedMultiplier: number };
+  /** 노월 (2026-11-13, scenes/play/Boss.ts) */
+  boss: {
+    orbitRx: number;
+    orbitRy: number;
+    orbitSpeed: number;
+    enterSec: number;
+    hitRadius: number;
+    summonEverySec: number;
+    summonCount: number;
+    summonCap: number;
+    orbEverySec: number;
+    orbSpeed: number;
+    orbDamage: number;
+    orbRadius: number;
+  };
+  tutorial: { walkGoal: number };
+  /** 연습장·튜토리얼(끝나지 않는 판) */
+  practice: { centralFloor: number };
   /** 맵 전체 광도 — systems/villageMood.ts */
   village: {
     brightenMax: number;
@@ -257,6 +278,8 @@ export interface MapDef {
   obstacles: (MapRect & { kind: 'rocks' | 'barrels' | 'lamp' | 'wall' | 'fence' })[];
   rings: { x: number; y: number }[];
   stations: { x: number; y: number }[];
+  /** 빛을 잃은 친구(토리·도토)가 기다리는 자리 후보 (2026-11-13) */
+  friendSpots: { x: number; y: number }[];
 }
 
 export function characterById(id: CharacterId): CharacterDef {

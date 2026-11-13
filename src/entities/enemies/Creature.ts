@@ -8,18 +8,17 @@
 import Phaser from 'phaser';
 import { TextureKeys } from '../../core/TextureKeys';
 import { texScale } from '../../core/textureRes';
-import type { EnemyDef } from '../../data';
+import { GameData, type EnemyDef } from '../../data';
 import { CREATURES, creatureAnim, creatureKey, isCreature, type CreatureArt } from '../../art/creatures';
 import { Enemy, type EnemyContext, type EnemyStep, type ReturnContext } from './Enemy';
 import { sayAbove } from '../Bubble';
 
-// 연출·수치는 제안
+// 수치 원본은 game.json passive(피하기·분노), 아래는 연출 값
+const P = GameData.game.passive;
 const RUN_AWAY = 320;
 const RUN_MS = 1400;
-/** 패시브가 루미를 피하는 거리와 속도 배율 */
-const SHY = { dist: 150, speed: 1.5 };
-/** 화난 패시브의 피해와 빠르기 */
-const ANGRY = { damage: 3, speed: 1.35, tint: 0xc8b8ff };
+/** 화난 패시브의 눈빛 */
+const ANGRY_TINT = 0xc8b8ff;
 /** 패시브 대사 (CLAUDE.md 2절) */
 export const PASSIVE_LINES = ['너무 밝아..', '싸우기 싫어..', '저 빛이 무서워', '우리도 여기서 살고 있어'];
 const TALK_EVERY = 6.5;
@@ -74,7 +73,7 @@ export class Creature extends Enemy {
   }
 
   protected override get attackDamage(): number {
-    return this.upset ? ANGRY.damage : this.def.damage;
+    return this.upset ? P.angryDamage : this.def.damage;
   }
 
   protected lateralOffset(t: number): number {
@@ -93,7 +92,7 @@ export class Creature extends Enemy {
 
   protected playHit(): void {
     this.sprite.setTint(0xffe0a8);
-    this.scene.time.delayedCall(120, () => (this.upset ? this.sprite.setTint(ANGRY.tint) : this.sprite.clearTint()));
+    this.scene.time.delayedCall(120, () => (this.upset ? this.sprite.setTint(ANGRY_TINT) : this.sprite.clearTint()));
   }
 
   override hitByLight(power: number, knockback: number, stunSec: number, ctx: ReturnContext): boolean {
@@ -101,7 +100,7 @@ export class Creature extends Enemy {
     if (this.calm && power > 0) {
       this.upset = true;
       this.playerOnly = true;
-      this.sprite.setTint(ANGRY.tint);
+      this.sprite.setTint(ANGRY_TINT);
       this.underGlow.setTint(0xa89cd9);
       sayAbove(this.scene, this, '아야.. 왜 그래');
       return super.hitByLight(0, knockback, stunSec, ctx);
@@ -117,7 +116,7 @@ export class Creature extends Enemy {
       return { hit: null };
     }
     if (!this.calm || this.mode === 'stunned') {
-      if (this.upset) return super.step(dt, { ...ctx, speedMultiplier: ctx.speedMultiplier * ANGRY.speed });
+      if (this.upset) return super.step(dt, { ...ctx, speedMultiplier: ctx.speedMultiplier * P.angrySpeedMultiplier });
       if (!this.leaving) return super.step(dt, ctx);
       return { hit: null };
     }
@@ -129,10 +128,10 @@ export class Creature extends Enemy {
     let vx = 0;
     let vy = 0;
     let speed = this.def.speed * ctx.speedMultiplier;
-    if (p && Math.hypot(p.x - this.x, p.y - this.y) < SHY.dist) {
+    if (p && Math.hypot(p.x - this.x, p.y - this.y) < P.shyDist) {
       vx = this.x - p.x;
       vy = this.y - p.y;
-      speed *= SHY.speed;
+      speed *= P.shySpeedMultiplier;
     } else {
       if (!this.wanderTo || Math.hypot(this.wanderTo.x - this.base.x, this.wanderTo.y - this.base.y) < 24) this.wanderTo = ctx.roam(this.base);
       vx = this.wanderTo.x - this.base.x;

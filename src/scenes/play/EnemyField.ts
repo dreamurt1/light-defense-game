@@ -1,7 +1,7 @@
 // 판 위의 적들: 스폰(Spawner가 고른 화면 가장자리 점 → 지금 보이는 영역 바깥의 마을 좌표), 종류별 생성, 매 프레임 이동·공격.
 // PlayScene을 600줄 아래로 유지하려고 떼어 낸 조립 조각이다(판정은 Enemy·systems가 한다).
 import type Phaser from 'phaser';
-import { enemyById, type EnemyId, type StageDef } from '../../data';
+import { enemyById, GameData, type EnemyId, type StageDef } from '../../data';
 import type { Rng } from '../../core/rng';
 import { Creature } from '../../entities/enemies/Creature';
 import type { Rect } from '../../systems/obstacles';
@@ -13,15 +13,10 @@ import type { Vec } from '../../systems/fan';
 
 /** 화면 밖에서 적이 나타나는 거리: 보이는 영역 가장자리에서 이만큼 바깥 (제안) */
 const SPAWN_OUTSIDE = 56;
-/** 패시브 주민·빛을 잃은 친구는 루미에게서 이만큼 떨어진 마을 안에 나타난다 (제안) */
-const FAR_FROM_PLAYER = 620;
-/** 빛을 잃은 친구가 기다리는 자리 후보: 마을 네 귀퉁이 쪽 (제안) */
-const FRIEND_SPOTS = [
-  { x: 560, y: 520 },
-  { x: 2660, y: 520 },
-  { x: 600, y: 1380 },
-  { x: 2620, y: 1360 },
-];
+/** 패시브 주민은 루미에게서 이만큼 떨어진 마을 안에 나타난다 (game.json passive.spawnMinDist, 제안) */
+const FAR_FROM_PLAYER = GameData.game.passive.spawnMinDist;
+/** 빛을 잃은 친구가 기다리는 자리 후보: 마을 네 귀퉁이 쪽 (map.json friendSpots, 제안) */
+const FRIEND_SPOTS = GameData.map.friendSpots;
 
 export class EnemyField {
   enemies: Enemy[] = [];

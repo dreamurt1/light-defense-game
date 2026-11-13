@@ -54,6 +54,14 @@ describe('마을 배치', () => {
     }
   });
 
+  it('빛을 잃은 친구 자리는 걷기 영역 안, 벽·장애물 밖 (2026-11-13)', () => {
+    expect(GameData.map.friendSpots.length).toBeGreaterThan(0);
+    for (const [i, p] of GameData.map.friendSpots.entries()) {
+      expect(p.x >= area.x && p.x <= area.x + area.w && p.y >= area.y && p.y <= area.y + area.h, `friend${i}`).toBe(true);
+      for (const r of GameData.map.obstacles) expect(p.x > r.x && p.x < r.x + r.w && p.y > r.y && p.y < r.y + r.h, `friend${i} · ${r.kind}`).toBe(false);
+    }
+  });
+
   it('등불 자리는 중앙 광원 가까이 (2026-11-12 라이언: 멀다 → 약 340~370)', () => {
     for (const p of GameData.map.stations) {
       const d = Math.hypot(p.x - central.x, p.y - central.y);

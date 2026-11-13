@@ -1,12 +1,12 @@
 // 노월 보스 (2026-11-13 컨셉 시연판, Phase 5). 4스테이지 시작 몇 초 뒤 나타나 중앙 광원 둘레를 천천히 돈다.
 //  - 7초마다 박쥐 둘을 부르고, 4.5초마다 어둠 구슬을 중앙 광원이나 켜진 등불로 던진다(빛을 맞히면 구슬이 사라짐)
 //  - 빛을 맞아 마음(HP)이 다 풀리면 "…이 빛, 생각보다 따뜻하네" 하고 물러난다 = 진정 → 바로 아침(승리)
-//  - 수치는 모두 제안
+//  - 수치는 모두 제안, 원본은 game.json boss
 import Phaser from 'phaser';
 import { bus } from '../../core/events';
 import { TextureKeys } from '../../core/TextureKeys';
 import { texScale } from '../../core/textureRes';
-import { enemyById, type StageDef } from '../../data';
+import { enemyById, GameData, type StageDef } from '../../data';
 import { sayAbove } from '../../entities/Bubble';
 import type { EnemyTarget } from '../../entities/enemies/Enemy';
 import type { Vec } from '../../systems/fan';
@@ -14,13 +14,10 @@ import type { LightTarget } from '../../systems/LightSystem';
 import type { EnemyField } from './EnemyField';
 import type { Rng } from '../../core/rng';
 
-const ORBIT = { rx: 470, ry: 330, speed: 0.22 };
-const SUMMON_SEC = 7;
-/** 마을에 박쥐가 이만큼 있으면 소환을 쉰다 (방치하면 끝없이 쌓이지 않게, 제안) */
-const SUMMON_CAP = 6;
-const ORB = { everySec: 4.5, speed: 170, damage: 3, radius: 22, popScore: 20 };
-const ENTER_MS = 1600;
-const HIT_RADIUS = 46;
+const B = GameData.game.boss;
+const ENTER_MS = B.enterSec * 1000;
+/** 함께 부르는 박쥐 사이 간격 (연출) */
+const SUMMON_GAP = 100;
 /** 노월·구슬의 빛 판정 uid (적·등불과 겹치지 않게) */
 const WITCH_UID = 900_000;
 let orbUid = 900_001;
@@ -37,8 +34,8 @@ export class Boss {
   calmed = false;
   private sprite: Phaser.GameObjects.Container | null = null;
   private angle = -Math.PI / 2;
-  private summonLeft = SUMMON_SEC;
-  private orbLeft = ORB.everySec;
+  private summonLeft = B.summonEverySec;
+  private orbLeft = B.orbEverySec;
   private orbs: Orb[] = [];
   private entering = true;
   private appeared = false;
@@ -68,20 +65,24 @@ export class Boss {
     if (!this.appeared && t >= (this.stage.boss?.atSec ?? 0)) this.appear();
     if (!this.sprite || this.calmed) return this.moveOrbs(dt, hits, targets);
     if (!this.entering) {
-      this.angle += ORBIT.speed * dt;
-      this.sprite.setPosition(this.center.x + Math.cos(this.angle) * ORBIT.rx, this.center.y + Math.sin(this.angle) * ORBIT.ry).setDepth(this.sprite.y);
+      this.angle += B.orbitSpeed * dt;
+      this.sprite.setPosition(this.center.x + Math.cos(this.angle) * B.orbitRx, this.center.y + Math.sin(this.angle) * B.orbitRy).setDepth(this.sprite.y);
       this.summonLeft -= dt;
       if (this.summonLeft <= 0) {
-        this.summonLeft = SUMMON_SEC;
+        this.summonLeft = B.summonEverySec;
+        // 마을에 박쥐가 summonCap 이상이면 쉰다 (방치하면 끝없이 쌓이지 않게)
         const bats = this.field.enemies.filter((e) => e.def.id === 'bat' && e.targetable).length;
-        if (bats < SUMMON_CAP) {
-          for (const dx of [-50, 50]) this.field.spawnAt('bat', this.sprite.x + dx, this.sprite.y + 20, true);
+        if (bats < B.summonCap) {
+          for (let i = 0; i < B.summonCount; i++) {
+            const dx = (i - (B.summonCount - 1) / 2) * SUMMON_GAP;
+            this.field.spawnAt('bat', this.sprite.x + dx, this.sprite.y + 20, true);
+          }
           bus.emit('boss:attack', { kind: 'summon' });
         }
       }
       this.orbLeft -= dt;
       if (this.orbLeft <= 0 && targets.length > 0) {
-        this.orbLeft = ORB.everySec;
+        this.orbLeft = B.orbEverySec;
         const target = this.rng.pick(targets);
         this.throwOrb(target);
       }
@@ -90,8 +91,8 @@ export class Boss {
   }
 
   lightTargets(): LightTarget[] {
-    const out: LightTarget[] = this.orbs.map((o) => ({ uid: o.uid, x: o.img.x, y: o.img.y, radius: ORB.radius }));
-    if (this.sprite && this.active && !this.entering) out.push({ uid: WITCH_UID, x: this.sprite.x, y: this.sprite.y - 30, radius: HIT_RADIUS });
+    const out: LightTarget[] = this.orbs.map((o) => ({ uid: o.uid, x: o.img.x, y: o.img.y, radius: B.orbRadius }));
+    if (this.sprite && this.active && !this.entering) out.push({ uid: WITCH_UID, x: this.sprite.x, y: this.sprite.y - 30, radius: B.hitRadius });
     return out;
   }
 
@@ -124,10 +125,10 @@ export class Boss {
     const glow = s.add.image(0, -40, TextureKeys.glow).setTint(0xa89cd9).setBlendMode(Phaser.BlendModes.ADD).setAlpha(0.5).setScale(220 / 256);
     const img = s.add.image(0, 0, TextureKeys.witch, 0).setOrigin(0.5, 0.95).setScale(texScale(TextureKeys.witch) * 0.75);
     const startX = this.center.x;
-    const startY = this.center.y - ORBIT.ry - 260;
+    const startY = this.center.y - B.orbitRy - 260;
     this.sprite = s.add.container(startX, startY, [glow, img]).setDepth(startY);
-    const tx = this.center.x + Math.cos(this.angle) * ORBIT.rx;
-    const ty = this.center.y + Math.sin(this.angle) * ORBIT.ry;
+    const tx = this.center.x + Math.cos(this.angle) * B.orbitRx;
+    const ty = this.center.y + Math.sin(this.angle) * B.orbitRy;
     s.tweens.add({ targets: this.sprite, x: tx, y: ty, duration: ENTER_MS, ease: 'Sine.easeOut', onComplete: () => (this.entering = false) });
     s.tweens.add({ targets: img, y: -8, duration: 900, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
     bus.emit('witch:spawn');
@@ -168,11 +169,11 @@ export class Boss {
       const dy = o.target.y - o.img.y;
       const d = Math.hypot(dx, dy);
       if (d <= o.target.radius) {
-        hits.push({ target: o.target.id, damage: ORB.damage });
+        hits.push({ target: o.target.id, damage: B.orbDamage });
         this.popOrb(i);
         continue;
       }
-      const step = Math.min(d, ORB.speed * dt);
+      const step = Math.min(d, B.orbSpeed * dt);
       o.img.setPosition(o.img.x + (dx / d) * step, o.img.y + (dy / d) * step);
       o.img.rotation += dt * 3;
     }
@@ -185,7 +186,4 @@ export class Boss {
     this.orbs.splice(i, 1);
   }
 
-  static get popScore(): number {
-    return ORB.popScore;
-  }
 }

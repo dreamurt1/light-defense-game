@@ -131,7 +131,11 @@
   "enemyAi": {
     "aggroRadius": 480,
     "retargetSec": 0.5,
-    "detachRatio": 1.25
+    "detachRatio": 1.25,
+    "closeAggro": 150,
+    "stuckSec": 0.35,
+    "detourDist": 220,
+    "detourSec": 0.9
   },
   "light": {
     "mode": "aimStick",
@@ -153,7 +157,8 @@
     "mercy": 300,
     "itemPickup": 10,
     "clearBase": 500,
-    "completeMultiplier": 2.5
+    "completeMultiplier": 2.5,
+    "orbPop": 20
   },
   "playfield": {
     "margin": 16
@@ -161,7 +166,11 @@
   "items": {
     "lifetimeSec": 12,
     "blinkLastSec": 3,
-    "maxGround": 3
+    "maxGround": 3,
+    "slots": 2,
+    "pickRadius": 46,
+    "spawnRingMin": 140,
+    "spawnRingMax": 300
   },
   "village": {
     "brightenMax": 0.55,
@@ -178,6 +187,33 @@
     "radius": 200,
     "dwellSec": 1.5
   },
+  "passive": {
+    "spawnMinDist": 620,
+    "shyDist": 150,
+    "shySpeedMultiplier": 1.5,
+    "angryDamage": 3,
+    "angrySpeedMultiplier": 1.35
+  },
+  "boss": {
+    "orbitRx": 470,
+    "orbitRy": 330,
+    "orbitSpeed": 0.22,
+    "enterSec": 1.6,
+    "hitRadius": 46,
+    "summonEverySec": 7,
+    "summonCount": 2,
+    "summonCap": 6,
+    "orbEverySec": 4.5,
+    "orbSpeed": 170,
+    "orbDamage": 3,
+    "orbRadius": 22
+  },
+  "tutorial": {
+    "walkGoal": 260
+  },
+  "practice": {
+    "centralFloor": 40
+  },
   "_notes": {
     "changed": "2026-11-12 새 기획(XMind 1112) 전환: 한 판 = 스테이지(길이는 stages.json, 약 100초, 끝 = 아침), 70%부터 클라이맥스. 지킬 것 = 맵 가운데 중앙 광원 + 등불 스테이션. 루미는 HP·하트·LP를 갖고 스스로 빛을 쏜다(손 등불 없음). 시너지·대광원·장착물 없음. 수치는 모두 제안(라이언: 알아서, 첫 스테이지는 쉽게)",
     "lightLevels": "광도는 0~100 연속값을 4단계로: 25 미만 낮음, 50 미만 중간, 75 미만 밝음, 그 이상 크게 밝음. 중앙 광원은 outAt(10)에 닿으면 꺼진다(게임 오버). 등불은 off(10)에서 시작해 빛을 맞으면 igniteSec 뒤 on(100)",
@@ -186,6 +222,7 @@
     "village": "맵 전체 광도: 진행² × brightenMax(모든 등불이 켜지면 × buffMultiplier)에서 피격 dip을 뺀다. 광원 피격은 크게, 주인공 피격은 조금, 클라이맥스에는 × climaxDipMultiplier. dip은 초당 dipRecoverPerSec씩 회복",
     "controls": "2026-11-04 라이언 지시: 브롤스타즈식 두 스틱, 넓은 마을 + 카메라 따라감. 2026-11-06: 빛 스틱·마우스 모두 끈 거리에 비례해 원뿔 반지름. 2026-11-12: 반자동(짧은 탭)은 사거리 안에 적이 없으면 쏘지 않음",
     "map": "2026-11-06부터 16:9 3200x1800. 등불 자리 후보는 map.json stations(스테이지가 seed로 고름)",
-    "concept": "2026-11-13 컨셉 시연판(제안): 풀숲에 maxHiddenSec 넘게 있으면 들킴(라이언: 오래 있으면 적이 알고 공격) — 그동안 적이 알아채는 거리 ×exposedAggroMultiplier. 자비 = 패시브 주민 곁 radius 안에 dwellSec 머무는 동안 공격하지 않으면"
+    "concept": "2026-11-13 컨셉 시연판(제안): 풀숲에 maxHiddenSec 넘게 있으면 들킴(라이언: 오래 있으면 적이 알고 공격) — 그동안 적이 알아채는 거리 ×exposedAggroMultiplier. 자비 = 패시브 주민 곁 radius 안에 dwellSec 머무는 동안 공격하지 않으면",
+    "concept2": "2026-11-13 코드에서 옮김(모두 제안): enemyAi.closeAggro = 역할이 chase가 아닌 적(웨어울프·뱀파이어)도 이 거리 안의 주인공은 공격, stuckSec 동안 벽에 막히면 detourDist 옆으로 detourSec 돌아감. items.slots 칸, pickRadius 안에서 줍기, 중앙 광원·켜진 등불에서 spawnRingMin~Max 둘레에 생김. passive = 패시브 주민·빛을 잃은 친구는 루미에게서 spawnMinDist 밖에 나타남, 루미가 shyDist 안이면 ×shySpeedMultiplier로 피함, 화나면 피해 angryDamage·빠르기 ×angrySpeedMultiplier. boss = 노월: 중앙 광원 둘레 orbitRx×orbitRy 타원을 orbitSpeed(rad/s)로, 등장 enterSec(그동안 빛이 안 닿음), 판정 반지름 hitRadius, summonEverySec마다 박쥐 summonCount(마을의 박쥐가 summonCap 이상이면 쉼), orbEverySec마다 어둠 구슬(빠르기 orbSpeed, 광원 피해 orbDamage, 빛 판정 orbRadius, 빛으로 없애면 score.orbPop). tutorial.walkGoal = 튜토리얼 걷기 거리. practice.centralFloor = 연습장·튜토리얼에서 중앙 광원이 이 아래로 내려가지 않음"
   }
 }

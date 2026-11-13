@@ -15,13 +15,13 @@ import type { LightPoints } from '../../systems/lightPoints';
 import { pushOut, type Rect } from '../../systems/obstacles';
 import type { Vitals } from '../../systems/vitals';
 
+// 수치 원본: game.json items(칸·줍기·생기는 둘레), items.json golden_acorn(helper*)
 const CFG = GameData.game.items;
-/** 칸 수 (제안) */
-const SLOTS = 2;
-const PICK_RADIUS = 46;
-const SPOT = { min: 140, max: 300 };
-/** 황금 도토리: 친구가 빛을 보내는 간격·거리·위력 (제안) */
-const HELPER = { everySec: 1, range: 280, power: 6, orbit: 72 };
+const ACORN = GameData.items.find((i) => i.id === 'golden_acorn');
+/** 황금 도토리: 친구가 빛을 보내는 간격·거리·위력 */
+const HELPER = { everySec: Number(ACORN?.helperEverySec ?? 1), range: Number(ACORN?.helperRange ?? 280), power: Number(ACORN?.helperPower ?? 6) };
+/** 친구가 루미 곁을 도는 반지름 (연출) */
+const HELPER_ORBIT = 72;
 
 interface Ground {
   def: ItemDef;
@@ -36,7 +36,7 @@ export interface ItemHost {
 }
 
 export class Items {
-  readonly inventory = new Inventory(SLOTS);
+  readonly inventory = new Inventory(CFG.slots);
   readonly effects = new Effects();
   used = 0;
   private ground: Ground[] = [];
@@ -74,7 +74,7 @@ export class Items {
       if (this.ground.length < CFG.maxGround) {
         const base = this.rng.pick(spots);
         const a = this.rng.range(0, Math.PI * 2);
-        const d = this.rng.range(SPOT.min, SPOT.max);
+        const d = this.rng.range(CFG.spawnRingMin, CFG.spawnRingMax);
         const p = pushOut({ x: base.x + Math.cos(a) * d, y: base.y + Math.sin(a) * d }, 30, obstacles);
         const def = this.rng.pick(GameData.items.filter((i) => i.id !== 'light_charm'));
         this.drop(def.id, Math.min(area.x + area.w, Math.max(area.x, p.x)), Math.min(area.y + area.h, Math.max(area.y, p.y)));
@@ -84,7 +84,7 @@ export class Items {
       const g = this.ground[i];
       g.left -= dt;
       g.img.setAlpha(g.left < CFG.blinkLastSec ? 0.45 + 0.55 * Math.abs(Math.cos(g.left * Math.PI * 2)) : 1);
-      const near = Math.hypot(g.img.x - keeper.x, g.img.y + 10 - keeper.y) <= PICK_RADIUS;
+      const near = Math.hypot(g.img.x - keeper.x, g.img.y + 10 - keeper.y) <= CFG.pickRadius;
       if (near && this.inventory.add(g.def.id)) {
         picked.push(g.def);
         bus.emit('item:pickup', { itemId: g.def.id, x: g.img.x, y: g.img.y });
@@ -149,7 +149,7 @@ export class Items {
     this.spin += dt * 2.2;
     this.helpers.forEach((h, i) => {
       const a = this.spin + i * Math.PI;
-      h.setPosition(keeper.x + Math.cos(a) * HELPER.orbit, keeper.y + Math.sin(a) * HELPER.orbit * 0.6).setDepth(h.y);
+      h.setPosition(keeper.x + Math.cos(a) * HELPER_ORBIT, keeper.y + Math.sin(a) * HELPER_ORBIT * 0.6).setDepth(h.y);
     });
     this.helperTick -= dt;
     if (this.helperTick > 0) return [];

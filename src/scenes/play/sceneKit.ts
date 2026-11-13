@@ -74,5 +74,5 @@ export class HudFeed {
 /** 연습장·튜토리얼은 끝나지 않는다: 하트가 다시 차고 중앙 광원이 꺼지지 않는다 */
 export function keepSafe(vitals: Vitals, central: CentralSourceState): void {
   if (!vitals.down) vitals.hearts = CFG.stage.hearts;
-  central.value = Math.max(central.value, 40);
+  central.value = Math.max(central.value, CFG.practice.centralFloor);
 }
