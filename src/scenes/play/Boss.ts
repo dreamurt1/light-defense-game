@@ -8,6 +8,7 @@ import { TextureKeys } from '../../core/TextureKeys';
 import { texScale } from '../../core/textureRes';
 import { enemyById, GameData, type StageDef } from '../../data';
 import { sayAbove } from '../../entities/Bubble';
+import { WITCH_FRAME } from '../../art/enemies';
 import type { EnemyTarget } from '../../entities/enemies/Enemy';
 import type { Vec } from '../../systems/fan';
 import type { LightTarget } from '../../systems/LightSystem';
@@ -67,6 +68,8 @@ export class Boss {
     if (!this.entering) {
       this.angle += B.orbitSpeed * dt;
       this.sprite.setPosition(this.center.x + Math.cos(this.angle) * B.orbitRx, this.center.y + Math.sin(this.angle) * B.orbitRy).setDepth(this.sprite.y);
+      // 도는 방향(왼쪽·오른쪽)을 바라본다
+      this.witch?.setFlipX(-Math.sin(this.angle) < 0);
       this.summonLeft -= dt;
       if (this.summonLeft <= 0) {
         this.summonLeft = B.summonEverySec;
@@ -78,6 +81,7 @@ export class Boss {
             this.field.spawnAt('bat', this.sprite.x + dx, this.sprite.y + 20, true);
           }
           bus.emit('boss:attack', { kind: 'summon' });
+          this.cast();
         }
       }
       this.orbLeft -= dt;
@@ -111,9 +115,9 @@ export class Boss {
     if (!this.sprite || !this.active) return null;
     this.hp = Math.max(0, this.hp - power);
     bus.emit('boss:hp', { hp: this.hp, maxHp: this.maxHp });
-    const img = this.sprite.list[1] as Phaser.GameObjects.Image;
-    img.setTint(0xffe0a8);
-    this.scene.time.delayedCall(120, () => img.clearTint());
+    const img = this.witch;
+    img?.setTint(0xffe0a8);
+    this.scene.time.delayedCall(120, () => img?.clearTint());
     if (this.hp > 0) return 'hit';
     this.calm();
     return 'calmed';
@@ -123,7 +127,8 @@ export class Boss {
     this.appeared = true;
     const s = this.scene;
     const glow = s.add.image(0, -40, TextureKeys.glow).setTint(0xa89cd9).setBlendMode(Phaser.BlendModes.ADD).setAlpha(0.5).setScale(220 / 256);
-    const img = s.add.image(0, 0, TextureKeys.witch, 0).setOrigin(0.5, 0.95).setScale(texScale(TextureKeys.witch) * 0.75);
+    const img = s.add.sprite(0, 0, TextureKeys.witch, 0).setOrigin(0.5, 0.95).setScale(texScale(TextureKeys.witch) * 0.75);
+    if (s.anims.exists('witch-idle')) img.play('witch-idle');
     const startX = this.center.x;
     const startY = this.center.y - B.orbitRy - 260;
     this.sprite = s.add.container(startX, startY, [glow, img]).setDepth(startY);
@@ -142,6 +147,8 @@ export class Boss {
     const box = this.sprite;
     if (!box) return;
     sayAbove(s, box, '…이 빛, 생각보다 따뜻하네', -150, 2400);
+    // 눈을 감고 미소 짓는 진정 칸에서 멈춘다
+    this.witch?.stop().setFrame(WITCH_FRAME.calm);
     for (let i = this.orbs.length - 1; i >= 0; i--) this.popOrb(i);
     s.tweens.add({ targets: box, y: box.y - 160, alpha: 0, delay: 1400, duration: 1400, onComplete: () => box.destroy() });
     bus.emit('witch:returned');
@@ -155,6 +162,22 @@ export class Boss {
     else img.setScale(texScale(key));
     this.orbs.push({ uid: orbUid++, img, target });
     bus.emit('boss:attack', { kind: 'orb' });
+    this.cast();
+  }
+
+  /** 노월 그림 (대기·시전·진정 칸) */
+  private get witch(): Phaser.GameObjects.Sprite | null {
+    return (this.sprite?.list[1] as Phaser.GameObjects.Sprite | undefined) ?? null;
+  }
+
+  /** 지팡이를 들어 시전한 뒤 대기로 돌아간다 */
+  private cast(): void {
+    const w = this.witch;
+    if (!w || this.calmed || !this.scene.anims.exists('witch-cast')) return;
+    w.play('witch-cast');
+    w.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
+      if (!this.calmed && w.active) w.play('witch-idle');
+    });
   }
 
   private moveOrbs(dt: number, hits: { target: string; damage: number }[], alive: readonly EnemyTarget[]): { target: string; damage: number }[] {

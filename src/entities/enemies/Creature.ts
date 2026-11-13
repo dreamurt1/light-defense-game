@@ -10,7 +10,8 @@ import { TextureKeys } from '../../core/TextureKeys';
 import { texScale } from '../../core/textureRes';
 import { GameData, type EnemyDef } from '../../data';
 import type { Rng } from '../../core/rng';
-import { CREATURES, creatureAnim, creatureKey, isCreature, type CreatureArt } from '../../art/creatures';
+import { CREATURES, creatureAnim, creatureKey, isCreature, type CreatureArt, type CreatureLook } from '../../art/creatures';
+import { critterView, type CritterView } from '../../systems/critterView';
 import { Enemy, type EnemyContext, type EnemyStep, type ReturnContext } from './Enemy';
 import { sayAbove } from '../Bubble';
 
@@ -39,6 +40,9 @@ export class Creature extends Enemy {
   /** 첫 대사까지: 생성 때 seed 난수로 정한다 */
   private talkLeft: number;
   private wanderTo: { x: number; y: number } | null = null;
+  /** 지금 모습 (걷는 종은 옆·앞·뒤, 2026-11-13) */
+  private view: CritterView = 'side';
+  private look: CreatureLook = 'dark';
 
   /** @param rng 대사 타이밍·대사 고르기·첫 동작 칸 (판 seed에서, 같은 seed면 같은 밤) */
   constructor(scene: Phaser.Scene, def: EnemyDef, x: number, y: number, private readonly rng: Rng) {
@@ -51,7 +55,8 @@ export class Creature extends Enemy {
     const glowTint = def.kind === 'passive' ? 0x9ed9b5 : def.friend ? 0xffc857 : 0xa89cd9;
     this.underGlow = scene.add.image(0, -10, TextureKeys.glow).setTint(glowTint).setBlendMode(Phaser.BlendModes.ADD).setAlpha(0.3).setScale(70 / 256);
     if (this.art && isCreature(def.id)) {
-      const look = def.kind === 'passive' ? 'plain' : 'dark';
+      const look: CreatureLook = def.kind === 'passive' ? 'plain' : 'dark';
+      this.look = look;
       const key = creatureKey(def.id, look);
       this.sprite = scene.add.sprite(0, 0, key, 0).setOrigin(0.5, this.art.cy / this.art.size).setScale(texScale(key));
       const anim = creatureAnim(def.id, look);
@@ -86,11 +91,25 @@ export class Creature extends Enemy {
 
   protected animate(): void {
     const flies = this.art?.flies ?? false;
-    const bob = flies ? Math.sin(this.age * 5) * 4 : -Math.abs(Math.sin(this.age * 6)) * 2;
-    this.sprite.y = bob;
+    // 걷는 종은 그림 안에 걸음 들썩임이 있으므로 코드로는 들썩이지 않는다 (2026-11-13 새 걸음 그림)
+    this.sprite.y = flies ? Math.sin(this.age * 5) * 4 : 0;
   }
 
-  protected override face(dir: Phaser.Math.Vector2): void {
+  /** 걷는 종: 이동 방향에 따라 옆·앞·뒤 걸음, 옆이면 좌우 뒤집기 / 나는 종: 좌우만 */
+  protected override face(dir: { x: number; y: number }): void {
+    const walker = this.art && !this.art.flies && isCreature(this.def.id);
+    if (walker && isCreature(this.def.id)) {
+      const view = critterView(dir, this.view);
+      if (view !== this.view) {
+        this.view = view;
+        const anim = creatureAnim(this.def.id, this.look, view);
+        if (this.scene.anims.exists(anim)) this.sprite.play(anim, true);
+      }
+      if (view !== 'side') {
+        this.sprite.setFlipX(false);
+        return;
+      }
+    }
     if (Math.abs(dir.x) > 0.15) this.sprite.setFlipX(dir.x < 0);
   }
 
@@ -145,7 +164,7 @@ export class Creature extends Enemy {
     this.base.x += (vx / len) * speed * dt;
     this.base.y += (vy / len) * speed * dt;
     this.setPosition(this.base.x, this.base.y);
-    if (Math.abs(vx) > 1) this.sprite.setFlipX(vx < 0);
+    this.face({ x: vx / len, y: vy / len });
     this.setDepth(this.y);
     return { hit: null };
   }
@@ -188,7 +207,8 @@ export class Creature extends Enemy {
         const key = creatureKey(this.def.id, 'true');
         if (scene.textures.exists(key)) {
           this.sprite.setTexture(key, 0).setScale(texScale(key));
-          const anim = creatureAnim(this.def.id, 'true');
+          this.look = 'true';
+          const anim = creatureAnim(this.def.id, 'true', this.view);
           if (scene.anims.exists(anim)) this.sprite.play(anim);
         }
       }
@@ -202,7 +222,7 @@ export class Creature extends Enemy {
     }
     const len = Math.hypot(tx, ty) || 1;
     const run = Math.min(RUN_AWAY, kind === 'lost' ? len : RUN_AWAY);
-    if (Math.abs(tx) > 1) this.sprite.setFlipX(tx < 0);
+    this.face({ x: tx / (Math.hypot(tx, ty) || 1), y: ty / (Math.hypot(tx, ty) || 1) });
     scene.tweens.add({ targets: this, x: this.x + (tx / len) * run, y: this.y + (ty / len) * run, duration: RUN_MS, delay: 200, ease: 'Sine.easeIn' });
     scene.tweens.add({ targets: this.sprite, y: -8, duration: 160, yoyo: true, repeat: 5, delay: 200 });
     scene.tweens.add({ targets: this, alpha: 0, delay: RUN_MS * 0.7, duration: RUN_MS * 0.45, onComplete: () => this.destroy() });

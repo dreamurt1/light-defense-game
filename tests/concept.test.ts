@@ -85,3 +85,16 @@ describe('스테이지 진행 (컨셉 시연판)', () => {
     for (const e of GameData.enemies.filter((d) => d.kind === 'passive')) expect(e.damage).toBe(0);
   });
 });
+
+describe('생명체 모습 방향 (2026-11-13)', () => {
+  it('옆·앞·뒤를 고르고 경계에서는 지금 모습을 유지한다', async () => {
+    const { critterView } = await import('../src/systems/critterView');
+    expect(critterView({ x: 1, y: 0.1 }, 'side')).toBe('side');
+    expect(critterView({ x: 0.2, y: 1 }, 'side')).toBe('front');
+    expect(critterView({ x: 0.2, y: -1 }, 'side')).toBe('back');
+    // 대각선 근처: 옆이던 것은 옆으로, 앞이던 것은 앞으로
+    expect(critterView({ x: 0.7, y: 0.75 }, 'side')).toBe('side');
+    expect(critterView({ x: 0.7, y: 0.75 }, 'front')).toBe('front');
+    expect(critterView({ x: 0, y: 0 }, 'back')).toBe('back');
+  });
+});

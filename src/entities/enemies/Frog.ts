@@ -7,6 +7,7 @@ import type { EnemyDef } from '../../data';
 import { FROG } from '../../art/enemies';
 import { texScale } from '../../core/textureRes';
 import { Enemy, type ReturnContext } from './Enemy';
+import { critterView, type CritterView } from '../../systems/critterView';
 
 // 연출 수치는 제안: 기획서에 없음
 const VISUAL_SCALE = 1.1;
@@ -19,6 +20,9 @@ export class Frog extends Enemy {
   private readonly underGlow: Phaser.GameObjects.Image;
   private readonly sprite: Phaser.GameObjects.Sprite;
   private readonly period: number;
+  /** 지금 모습 (옆·앞·뒤 폴짝, 2026-11-13) */
+  private view: CritterView = 'side';
+  private hopKey: string = AnimKeys.frogDarkHop;
 
   constructor(scene: Phaser.Scene, def: EnemyDef, x: number, y: number) {
     super(scene, def, x, y);
@@ -44,9 +48,20 @@ export class Frog extends Enemy {
     this.sprite.y = -Math.abs(Math.sin(p * Math.PI)) * HOP_HEIGHT;
   }
 
-  /** 걷는 적은 몸을 돌리지 않고 좌우만 본다 */
-  protected override face(dir: Phaser.Math.Vector2): void {
-    if (Math.abs(dir.x) > 0.15) this.sprite.setFlipX(dir.x < 0);
+  /** 이동 방향에 따라 옆·앞·뒤 폴짝, 옆이면 좌우 뒤집기 (2026-11-13) */
+  protected override face(dir: { x: number; y: number }): void {
+    const view = critterView(dir, this.view);
+    if (view !== this.view) {
+      this.view = view;
+      this.playHop();
+    }
+    if (view !== 'side') this.sprite.setFlipX(false);
+    else if (Math.abs(dir.x) > 0.15) this.sprite.setFlipX(dir.x < 0);
+  }
+
+  private playHop(): void {
+    const key = this.view === 'side' ? this.hopKey : `${this.hopKey}-${this.view}`;
+    if (this.scene.anims.exists(key)) this.sprite.play(key, true);
   }
 
   protected playHit(): void {
@@ -56,7 +71,10 @@ export class Frog extends Enemy {
 
   protected playReturn(ctx: ReturnContext): void {
     const scene = this.scene;
-    this.sprite.play(AnimKeys.frogTrueHop).setScale(texScale(TextureKeys.frogTrue));
+    this.hopKey = AnimKeys.frogTrueHop;
+    this.sprite.setTexture(TextureKeys.frogTrue).setScale(texScale(TextureKeys.frogTrue));
+    this.face({ x: ctx.home.x - this.x, y: ctx.home.y - this.y });
+    this.playHop();
     this.underGlow.setTint(0xffd27a).setAlpha(0.45);
 
     const fx = scene.add.sprite(this.x, this.y, TextureKeys.fxReturn, 0).setDepth(this.depth + 0.1).setBlendMode(Phaser.BlendModes.ADD);
@@ -68,7 +86,6 @@ export class Frog extends Enemy {
     const dy = ctx.home.y - this.y;
     const len = Math.hypot(dx, dy) || 1;
     const run = Math.min(RESCUE_RUN, len);
-    if (Math.abs(dx) > 1) this.sprite.setFlipX(dx < 0);
     scene.tweens.add({ targets: this, scale: { from: VISUAL_SCALE * 1.25, to: VISUAL_SCALE }, duration: 260, ease: 'Back.easeOut' });
     scene.tweens.add({ targets: this, x: this.x + (dx / len) * run, y: this.y + (dy / len) * run, duration: RESCUE_MS, delay: 250, ease: 'Sine.easeIn' });
     scene.tweens.add({ targets: this, alpha: 0, delay: RESCUE_MS * 0.7, duration: RESCUE_MS * 0.45, onComplete: () => this.destroy() });
