@@ -205,7 +205,7 @@ UI는 한국어, 코드 식별자는 영어 id.
 ## 11. 개발 환경
 
 - Node v24, npm 11, firebase-tools 15 (라이언 계정 로그인), Windows 11.
-- **git**(2026-11-12 시작, 라이언 허락): 이 폴더만의 저장소, 작성자 설정은 저장소 로컬, `core.autocrlf false`. 첫 커밋 = 구 기획 스냅샷. 커밋은 단계가 끝날 때.
+- **git**(2026-11-12 시작, 라이언 허락): 이 폴더만의 저장소, 작성자 설정은 저장소 로컬, `core.autocrlf false`. 첫 커밋 = 구 기획 스냅샷. 커밋은 단계가 끝날 때. **2026-11-13부터 커밋할 때마다 GitHub에도 올린다**(`git push`, 원격 origin = https://github.com/dreamurt1/light-defense-game, **공개** 저장소, 브랜치 main). 작성자 메일은 GitHub 비공개 주소(`dreamurt1@users.noreply.github.com`) — 공개 저장소라 개인 메일·비밀값을 커밋하지 않는다.
 - 프로젝트 플러그인(`.claude/settings.json`): typescript-lsp, playwright, context7, feature-dev, firebase. 사용자 플러그인: impeccable.
 - **화면 확인은 창을 띄우지 않고 한다.** playwright MCP는 창을 띄우므로 쓰지 않는다. dev 서버를 켠 상태에서 `npm run shot -- "<url>" <out.png> <대기ms> [폭] [높이] [배율] [phone]`(헤드리스 크롬, 상태 줄에 hp·하트·lp·광원·등불·구출·돌려보냄 출력). 개발 모드 URL 옵션: `?autoplay=초`(가장 가까운 적에게 쏘다가 그 시각 빛이 퍼지는 순간 멈춤, 사거리 안의 꺼진 등불은 먼저 켬), `&lamp`(꺼진 등불로 걸어가 켜고 다 켜면 광원 곁으로 돌아와 지킴), `&idle`(쏘지 않고 결과까지), `&walk`, `&burst`, `&pause`, `&aim`, `?screen=select|shop|ranking|play`, `?autoplay=20&preview=boss`, `?autoplay=200&preview=dawn`(끝 3초 전으로). 휴대폰 가로 `… 844 390 2 phone`, PC 가로 `… 1280 720 1`. 한 판을 끝까지 돌려 기록하려면 CDP 스크립트로 `__game.scene.getScene('Play')`의 `vitals·lp·sources·field·score`를 몇 초마다 읽는다. 보여 줄 이미지는 프로젝트 폴더(`sketches/new-plan/` 등)에 저장한다.
 - **루미 시트 자르기**: `npm run art:lumi`가 `reference/LUMI-sprites` 시트와 8방향 대기·걷기 팩을 `art-src/lumi/`로 맞추고(`src/art/lumiSheet.ts`), `npm run art:import`가 `lumi-8dir` 시트로 묶는다.
@@ -271,5 +271,6 @@ UI는 한국어, 코드 식별자는 영어 id.
 - 2026-11-13 · 추가: 디자인보다 기능 우선 / 브롤스타즈처럼 미로 요소 / 풀숲에 오래 있으면 들켜 공격받음 / 처음은 쉽게 / **처음 유저는 튜토리얼 필수** / 홈 `테스트` = 적이 적은 같은 스테이지(스타파크식 연습장) / 치명적 오류는 즉시 알림(1·3·5절).
 - 2026-11-13 · 유저가 납득할 게임 방법·구성·설정·플롯인지도 판단해 반영(이야기 카드, 스테이지마다 목적 한 줄, 결과에서 다음 밤).
 - 2026-11-13 · 작업이 끝나거나 중단해야 하면 폰과 윈도우 둘 다 알림.
+- 2026-11-13 · GitHub 공개 저장소 dreamurt1/light-defense-game에 프로젝트 전체를 올림(공유 편의). **커밋할 때마다 GitHub에도 올린다**(11절).
 - 2026-11-13 · `hand-offs/light-defense-xmind-1112.pdf`가 12일 최신 XMind(= `reference/` 사본과 같은 파일). 참고하되 그 뒤의 지시가 우선(0절).
 - 2026-11-12 · 첫 번째 스테이지는 등불이 한 개여야 한다(3절, 지금도 1개 — 지도의 네 곳은 그 1개가 놓일 수 있는 후보 자리).
