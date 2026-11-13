@@ -96,6 +96,16 @@ class StoryView {
     this.render();
   }
 
+  get isOpen(): boolean {
+    return !this.el.hidden;
+  }
+
+  /** 뒤로가기: 이어지는 일(튜토리얼 시작 등) 없이 닫기 */
+  cancel(): void {
+    this.el.hidden = true;
+    this.opts = {};
+  }
+
   private close(): void {
     if (this.el.hidden) return;
     this.el.hidden = true;
@@ -119,6 +129,13 @@ class StoryView {
 }
 
 let view: StoryView | null = null;
+
+/** 열려 있으면 이어지는 일 없이 닫고 true (뒤로가기, 2026-11-13) */
+export function closeStory(): boolean {
+  if (!view?.isOpen) return false;
+  view.cancel();
+  return true;
+}
 
 /** 이야기를 연다. #ui 레이어 맨 위에 붙는다 */
 export function openStory(opts: StoryOptions = {}): void {

@@ -1,6 +1,7 @@
 // 캔버스 위 DOM UI 레이어를 조립한다: 메뉴 화면들 + 플레이 HUD(두 스틱 포함) + 시트(일시정지·결과·설정).
 import type Phaser from 'phaser';
 import { LocalRanking } from '../services/LocalRanking';
+import { installBackNav } from './BackNav';
 import { BossBar } from './BossBar';
 import { Hud } from './Hud';
 import { PauseSheet } from './PauseSheet';
@@ -37,5 +38,8 @@ export function mountUi(root: HTMLElement, game: Phaser.Game): Router {
     new ResultSheet(ranking).el,
     settings.el,
   );
-  return new Router(game, root, { home, select, ranking: rankingScreen });
+  const router = new Router(game, root, { home, select, ranking: rankingScreen });
+  // 휴대폰 뒤로가기 → 앱 안의 앞 단계 (2026-11-13 라이언, 게임 중 제외)
+  installBackNav(router, root);
+  return router;
 }

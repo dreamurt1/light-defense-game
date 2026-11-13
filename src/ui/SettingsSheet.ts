@@ -153,6 +153,7 @@ export class SettingsSheet {
     });
 
     bus.on('ui:open-settings', () => this.toggle(true));
+    bus.on('ui:close-settings', () => this.toggle(false));
     // ESC: 열려 있으면 설정만 닫는다
     window.addEventListener('keydown', (e) => {
       if (e.key !== 'Escape' || this.el.hidden) return;

@@ -4,7 +4,7 @@
 // 2026-11-13 컨셉 시연판: 홈 '테스트' = 연습장(stageId 'practice', test=true). 처음 하는 유저의 '게임하기'는
 // 이야기 → 튜토리얼(stageId 'tutorial')로 바로 들어온다(HomeScreen). 선택 화면으로 갈 때 튜토리얼·연습장 스테이지가
 // 남아 있으면 아직 안 깬 가장 앞 스테이지로 되돌린다.
-// 2026-11-13 라이언: 게임 중이 아니면 휴대폰 브라우저의 '당겨서 새로고침'이 되게 — <html data-screen>으로 CSS가 판 밖에서만 풀어 준다(style.css).
+// <html data-screen>도 함께 바꾼다: 당겨서 새로고침(ui/PullRefresh.ts)이 판 밖에서만 움직이게 (2026-11-13).
 import type Phaser from 'phaser';
 import { bus, type ScreenId } from '../core/events';
 import { Progress } from '../core/Progress';
@@ -16,6 +16,8 @@ interface ScreenView {
 
 export class Router {
   private current: ScreenId | null = null;
+  /** 판에 들어오기 전 화면 (결과 화면에서 뒤로가기 → 여기로, 2026-11-13) */
+  private from: ScreenId = 'home';
 
   constructor(
     private readonly game: Phaser.Game,
@@ -40,6 +42,7 @@ export class Router {
 
   go(to: ScreenId): void {
     const scenes = this.game.scene;
+    if (to === 'play' && this.current !== 'play') this.from = this.current ?? 'home';
     if (to === 'play') {
       RunState.newRun();
       if (scenes.isActive('Play')) scenes.stop('Play');
@@ -55,6 +58,10 @@ export class Router {
 
   get screen(): ScreenId | null {
     return this.current;
+  }
+
+  get cameFrom(): ScreenId {
+    return this.from;
   }
 }
 

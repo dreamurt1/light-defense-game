@@ -75,24 +75,6 @@ body {
   box-shadow: 0 30px 90px rgba(0, 0, 0, 0.55);
 }
 
-/* 당겨서 새로고침 (2026-11-13 라이언: 폰 웹에서 게임 중이 아니면 위에서 아래로 끌어 새로고침).
-   판(일시정지·결과 포함)에서는 스틱·빛 조작이 새로고침·스크롤로 새지 않게 위처럼 막고,
-   그 밖의 화면(스플래시·홈·선택·지난 밤들·상점·이야기·설정)에서는 브라우저의 세로 끌기를 돌려준다. <html data-screen> = ui/Router.ts */
-:root:not([data-screen='play']),
-:root:not([data-screen='play']) body {
-  overscroll-behavior-y: auto;
-}
-
-/* 아이패드·아이폰 사파리는 문서(뷰포트)가 overflow: hidden이면 끌기 자체를 막아 새로고침도 안 된다:
-   판 밖에서는 html만 auto로(body가 100% 높이로 잘라 내므로 실제로 스크롤될 내용은 없다) */
-:root:not([data-screen='play']) {
-  overflow-y: auto;
-}
-
-:root:not([data-screen='play']) .stage {
-  touch-action: pan-y;
-}
-
 /* 가로 화면 (2026-11-06 라이언 지시: PC 꽉 찬 화면·휴대폰 가로, <html data-layout> = ui/layout.ts).
    창을 꽉 채우되 비율은 4:3 ~ 21:9로 묶는다(게임 논리 폭 720~1280과 같은 범위라 캔버스가 상자를 꼭 채움, 그 밖은 띠). */
 :root[data-layout='landscape'] .stage {
@@ -1178,4 +1160,78 @@ body {
   .item-slot::after {
     content: none;
   }
+}
+
+/* ---------- 당겨서 새로고침 (2026-11-13 라이언, ui/PullRefresh.ts): 위에서 내려오는 빛 동그라미 ---------- */
+.pull-refresh {
+  position: fixed;
+  top: calc(env(safe-area-inset-top, 0px) - 52px);
+  left: 50%;
+  z-index: 300;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin-left: -22px;
+  border: 1.5px solid color-mix(in srgb, var(--paper) 30%, transparent);
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 35%, #34396c, #14152e);
+  box-shadow: 0 6px 16px rgba(5, 4, 12, 0.5);
+  color: var(--paper-soft);
+  opacity: var(--show, 0);
+  transform: translateY(var(--drop, 0px));
+  pointer-events: none;
+  transition:
+    transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.2s,
+    background 0.15s,
+    color 0.15s;
+}
+
+.pull-refresh svg {
+  width: 24px;
+  height: 24px;
+  transform: rotate(var(--turn, 0deg));
+}
+
+/* 끄는 동안은 손가락을 바로 따라오게 */
+.pull-refresh.is-pulling {
+  transition: background 0.15s, color 0.15s;
+}
+
+/* 놓으면 새로고침: 호박빛으로 켜짐 */
+.pull-refresh.is-ready,
+.pull-refresh.is-loading {
+  border-color: #d08a2c;
+  background: radial-gradient(circle at 50% 35%, #ffdc85, var(--amber) 60%, #f0a43a);
+  color: var(--night);
+}
+
+.pull-refresh.is-loading svg {
+  animation: pull-spin 0.6s linear infinite;
+}
+
+@keyframes pull-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ---------- 홈에서 뒤로가기: "한 번 더 누르면 나가요" (2026-11-13, ui/BackNav.ts) ---------- */
+.back-hint {
+  position: absolute;
+  /* 화면 가운데: 홈의 메뉴(오른쪽 아래)·닉네임(왼쪽 아래)·로고(왼쪽 위)와 겹치지 않게 */
+  left: 50%;
+  top: 50%;
+  z-index: 60;
+  transform: translate(-50%, -50%);
+  padding: calc(var(--u) * 10) calc(var(--u) * 22);
+  border: 1px solid color-mix(in srgb, var(--paper) 18%, transparent);
+  border-radius: 999px;
+  background: rgba(20, 21, 46, 0.92);
+  color: var(--paper);
+  font-size: calc(var(--u) * 16);
+  font-weight: 700;
+  white-space: nowrap;
+  pointer-events: none;
 }

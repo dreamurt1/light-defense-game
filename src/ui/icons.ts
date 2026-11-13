@@ -105,6 +105,13 @@ export const tutorialIcon = `
   <path d="M12 12c0-4.4 3-6.7 8.5-6.4 0 4.1-3 6.6-8.5 6.4Z" fill="currentColor" opacity=".8"/>
 </svg>`;
 
+/** 둥근 화살표 (당겨서 새로고침, 2026-11-13) */
+export const refreshIcon = `
+<svg viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M19 12a7 7 0 1 1-2.05-4.95" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
+  <path d="M19.6 3.6v5.2h-5.2Z" fill="currentColor" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
+</svg>`;
+
 /** 발바닥 (홈의 `테스트`: 루미가 걸어 보는 판) */
 export const pawIcon = `
 <svg class="pill__icon" viewBox="0 0 24 24" aria-hidden="true">

@@ -101,6 +101,8 @@ export interface GameEvents {
   /** 화면 방식이 바뀜 (세로 ↔ 가로, 2026-11-06) */
   'ui:layout': { layout: 'portrait' | 'landscape' };
   'ui:open-settings': undefined;
+  /** 설정 시트 닫기 (뒤로가기, 2026-11-13) */
+  'ui:close-settings': undefined;
   /** 설정 시트가 열리고 닫힘 (열려 있는 동안 ESC가 일시정지를 풀지 않게) */
   'ui:settings': { open: boolean };
   /** 보스 체력 (제안: 이벤트 표에 없음 — 보스 체력바용, 노월 동작은 M2) */

@@ -11,6 +11,7 @@ import { runSplash } from './ui/Splash';
 import { applyLayout, watchLayout } from './ui/layout';
 import { watchProgress } from './core/Progress';
 import { installAudio } from './audio/Sound';
+import { installPullRefresh } from './ui/PullRefresh';
 
 // 스플래시는 index.html에 이미 보이고 있다: 불러오기 진행을 받을 준비를 게임보다 먼저
 runSplash();
@@ -20,6 +21,7 @@ const game = new Phaser.Game(gameConfig);
 watchLayout(game);
 watchProgress();
 installAudio();
+installPullRefresh();
 const uiRoot = document.getElementById('ui');
 if (uiRoot) mountUi(uiRoot, game);
 
