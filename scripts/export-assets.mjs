@@ -9,7 +9,8 @@ import { openPage, sleep } from './lib/chrome.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const outDir = join(root, 'public', 'assets');
-const port = 5179;
+// 여러 작업 폴더에서 동시에 내보낼 때 겹치지 않게 ASSET_PORT로 바꿀 수 있다 (2026-11-13)
+const port = Number(process.env.ASSET_PORT || 5179);
 
 const vite = spawn(`npx vite --port ${port} --strictPort`, { cwd: root, shell: true, stdio: 'ignore' });
 const stopVite = () => {

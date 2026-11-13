@@ -7,8 +7,10 @@
 //   ?autoplay=20&idle   탭하지 않고 버티다가(게임 오버 화면 확인용) 결과 시트가 뜨면 멈춘다
 //   ?autoplay=20&pause  20초에 일시정지 시트를 열고 멈춘다
 //   ?autoplay=5&burst   5초 이후 처음 터지는 콤보 단계 연출(콤보 ×N) 한가운데서 멈춘다
+//   &skill=0.3          밸런스 측정용 사람 실력 흉내(2026-11-13): 1 = 지금처럼 0.45초마다 정확히, 낮을수록 드물게·빗나가게 쏜다
 import Phaser from 'phaser';
 import { bus } from '../core/events';
+import { Rng } from '../core/rng';
 import { RunState } from '../core/RunState';
 import type { CharacterId } from '../data';
 import { COMBO_MILESTONES } from '../systems/ComboSystem';
@@ -45,6 +47,12 @@ export function installAutoplay(game: Phaser.Game): void {
   const walk = params.has('walk');
   const aim = params.has('aim');
   const lamp = params.has('lamp');
+  // 실력: 쏘는 간격 0.45 + (1 − skill) × 1.6초, 조준 오차 ±(1 − skill) × 0.5 라디안
+  const skill = Math.min(1, Math.max(0, Number(params.get('skill') ?? 1)));
+  const tapEvery = TAP_EVERY_SEC + (1 - skill) * 1.6;
+  const jitter = (1 - skill) * 0.5;
+  const aimRng = new Rng(4242);
+  const fire = (angle: number) => bus.emit('input:fire', { angle: angle + (jitter > 0 ? aimRng.range(-jitter, jitter) : 0) });
   let walkT = 0;
   let sinceTap = 0;
   let frozen = false;
@@ -100,17 +108,17 @@ export function installAutoplay(game: Phaser.Game): void {
           : { x: 0, y: 0 };
       bus.emit('input:move', go);
     }
-    if (!idle && sinceTap >= TAP_EVERY_SEC) {
+    if (!idle && sinceTap >= tapEvery) {
       const target = s.field.enemies
         .filter((e) => e.targetable && e.def.kind !== 'passive')
         .map((e) => ({ e: e as { x: number; y: number }, d: Math.hypot(e.x - me.x, e.y - me.y) }))
         .concat(s.boss?.active && s.boss.pos ? [{ e: { x: s.boss.pos.x, y: s.boss.pos.y - 30 }, d: Math.hypot(s.boss.pos.x - me.x, s.boss.pos.y - me.y) }] : [])
         .sort((a, b) => a.d - b.d)[0];
       if (offLamp && offLamp.d < s.light.range * 0.9) {
-        bus.emit('input:fire', { angle: Math.atan2(offLamp.st.pos.y - me.y, offLamp.st.pos.x - me.x) });
+        fire(Math.atan2(offLamp.st.pos.y - me.y, offLamp.st.pos.x - me.x));
         sinceTap = 0;
       } else if (target && target.d < REACH) {
-        bus.emit('input:fire', { angle: Math.atan2(target.e.y - me.y, target.e.x - me.x) });
+        fire(Math.atan2(target.e.y - me.y, target.e.x - me.x));
         sinceTap = 0;
       }
     }
