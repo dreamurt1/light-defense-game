@@ -152,6 +152,25 @@ export class Lightkeeper {
     this.start('respawn', this.faceAngle);
   }
 
+  /**
+   * 판이 끝남(아침·튜토리얼 끝·오늘은 여기까지): 걸음을 멈추고 정면 정지 모습으로 선다.
+   * 끝나면 moveTo가 더는 불리지 않아 마지막 걷기 애니메이션이 계속 돌았다(2026-11-13 라이언). 잠들어 있으면 그대로
+   */
+  rest(): void {
+    if (this.sleeping) return;
+    this.moving = false;
+    this.action = null;
+    this.pose = { ...REST };
+    this.faceAngle = Math.PI / 2;
+    this.dir = 's';
+    this.veil = 1;
+    this.shadow.setAlpha(1);
+    this.sprite.setPosition(this.pos.x, this.pos.y + FOOT_Y).setScale(this.scale).setRotation(0).setAlpha(1);
+    this.sprite.anims.timeScale = 1;
+    this.refresh(true);
+    for (const d of this.dust) d.setVisible(false);
+  }
+
   /** 하트를 잃음·오늘은 여기까지: 그 자리에 잠든다 */
   ko(): void {
     this.sleeping = true;

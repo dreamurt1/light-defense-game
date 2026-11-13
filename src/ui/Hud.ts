@@ -12,9 +12,14 @@ import { crystalIcon, heartIcon, lampIcon, moonIcon, pauseIcon, starIcon, swoosh
 const G = GameData.game;
 const BAND_NAMES = G.lightLevels.names;
 
-function meter(cls: string, label: string, icon: string): { el: HTMLElement; fill: HTMLElement } {
+/**
+ * @param short 아이콘 자리에 보이는 짧은 이름 (2026-11-13 라이언: 하단 게이지에 HP·LP를 알기 쉽게).
+ * 아이콘 옆에 덧붙이면 가로 화면의 짧은 막대가 거의 사라져서 아이콘 자리를 쓴다
+ */
+function meter(cls: string, label: string, icon: string, short?: string): { el: HTMLElement; fill: HTMLElement } {
   const fill = h('span', { class: 'meter__fill' });
-  const el = h('div', { class: `meter ${cls}`, role: 'progressbar', 'aria-label': label, 'aria-valuemin': 0, 'aria-valuemax': 100 }, svg(icon), h('span', { class: 'meter__track' }, fill));
+  const head = short ? h('span', { class: 'gauge-label', 'aria-hidden': 'true' }, short) : svg(icon);
+  const el = h('div', { class: `meter ${cls}`, role: 'progressbar', 'aria-label': label, 'aria-valuemin': 0, 'aria-valuemax': 100 }, head, h('span', { class: 'meter__track' }, fill));
   return { el, fill };
 }
 
@@ -75,14 +80,24 @@ export class Hud {
     this.hearts = Array.from({ length: G.stage.hearts }, () => svg(heartIcon));
     this.hp = h('span', { class: 'vitals__hp-fill' });
     this.heartsBox = h('div', { class: 'vitals__hearts' }, ...this.hearts);
-    const vitals = h('div', { class: 'vitals', role: 'group', 'aria-label': '루미' }, this.heartsBox, h('span', { class: 'vitals__hp' }, this.hp));
-    this.lp = meter('meter--lp', '빛 (LP)', starIcon);
+    const hpRow = h('div', { class: 'vitals__hp-row' }, h('span', { class: 'gauge-label', 'aria-hidden': 'true' }, 'HP'), h('span', { class: 'vitals__hp', role: 'img', 'aria-label': 'HP' }, this.hp));
+    const vitals = h('div', { class: 'vitals', role: 'group', 'aria-label': '루미' }, this.heartsBox, hpRow);
+    this.lp = meter('meter--lp', '빛 (LP)', starIcon, 'LP');
     this.source = meter('meter--source', '중앙 광원', crystalIcon);
     this.stationsCount = h('span', { class: 'stations__count' }, '0/0');
     this.stations = h('div', { class: 'stations', role: 'img', 'aria-label': '켠 등불' }, svg(lampIcon), this.stationsCount);
     this.slots = [0, 1].map((i) => {
       const b = h('button', { class: 'item-slot', type: 'button', 'aria-label': `아이템 칸 ${i + 1}`, 'data-key': i === 0 ? 'Q' : 'E' }) as HTMLButtonElement;
-      b.addEventListener('click', () => bus.emit('ui:use-item', { slot: i }));
+      // 2026-11-13 라이언: 이동 중엔 아이템이 안 눌림. 휴대폰은 이동 스틱을 누른 손가락이 있으면 두 번째 손가락에 click을 보내지 않으므로
+      // 누르는 순간(pointerdown)에 쓴다. 키보드(Enter·Space)로 누른 click(detail 0)만 따로 받는다
+      b.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        bus.emit('ui:use-item', { slot: i });
+      });
+      b.addEventListener('click', (e) => {
+        if (e.detail === 0) bus.emit('ui:use-item', { slot: i });
+      });
       return b;
     });
     const pause = h('button', { class: 'round-button', type: 'button', 'aria-label': '일시정지' }, svg(pauseIcon));

@@ -11,7 +11,7 @@ import { Creature } from '../entities/enemies/Creature';
 import { Items } from './play/Items';
 import { Boss } from './play/Boss';
 import { StageRules } from './play/StageRules';
-import { followCamera, HudFeed, keepSafe, makeRoam, panForResult } from './play/sceneKit';
+import { followCamera, freeze, HudFeed, keepSafe, makeRoam, panForResult } from './play/sceneKit';
 import { VillageStage } from '../entities/VillageStage';
 import { KEEPER_FOOT_Y, Lightkeeper } from '../entities/Lightkeeper';
 import { AimGuide } from '../entities/AimGuide';
@@ -57,6 +57,7 @@ const HURT_SHAKE = { ms: 120, intensity: 0.004 };
 const INVULN_PULSE_HZ = 2.5;
 /** 모든 등불이 켜졌을 때 환해지는 시간 */
 const CELEBRATE_SEC = 0.9;
+const FRIEND_MARK = { lift: 98, drop: 22 }; // 빛을 잃은 친구를 가리키는 노란 화살표 끝 (초상 꼭대기 위·발밑 아래, 연출 값)
 
 export class PlayScene extends Phaser.Scene {
   private stage!: VillageStage;
@@ -289,7 +290,7 @@ export class PlayScene extends Phaser.Scene {
     this.combo.update(dt);
     this.field.prune();
     const friend = this.rules.friend;
-    this.edgeArrows.update(this.cameras.main, this.field.active, friend ? [...this.sources.beacons(), friend] : this.sources.beacons());
+    this.edgeArrows.update(this.cameras.main, this.field.active, friend ? [...this.sources.beacons(), { x: friend.x, y: friend.y, ...FRIEND_MARK }] : this.sources.beacons());
   }
 
   private enemyContext(): EnemyContext {
@@ -514,9 +515,7 @@ export class PlayScene extends Phaser.Scene {
     this.paused = !this.paused;
     // 끌던 마우스는 버린다: 다시 시작한 뒤 놓는 순간 빛이 나가지 않게
     this.desktop.cancel();
-    if (this.paused) this.tweens.pauseAll();
-    else this.tweens.resumeAll();
-    this.time.paused = this.paused;
+    freeze(this, this.paused);
     bus.emit('run:pause', { paused: this.paused });
   }
 
@@ -529,6 +528,7 @@ export class PlayScene extends Phaser.Scene {
     this.ended = true;
     this.aimGuide.hide();
     this.edgeArrows.hide();
+    this.keeper.rest(); // 걸음을 멈추고 정면 정지 모습으로 (2026-11-13 라이언), 잠든 경우는 그대로
     if (outcome === 'over') {
       if (reason === 'central') {
         this.keeper.ko();
@@ -588,10 +588,7 @@ export class PlayScene extends Phaser.Scene {
   }
 
   private restart(): void {
-    if (this.paused) {
-      this.tweens.resumeAll();
-      this.time.paused = false;
-    }
+    if (this.paused) freeze(this, false);
     RunState.newRun();
     this.scene.restart();
   }

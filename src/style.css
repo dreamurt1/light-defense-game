@@ -393,6 +393,33 @@ body {
   }
 }
 
+/* 게이지 이름 HP·LP (2026-11-13 라이언: 하단 게이지를 알기 쉽게). 작은 휴대폰에서도 읽히게 최소 10px */
+.gauge-label {
+  flex: none;
+  font-size: max(10px, calc(var(--u) * 12));
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  color: var(--paper);
+  text-shadow: 0 1px 2px rgba(10, 8, 24, 0.7);
+}
+
+/* 막대 앞 아이콘과 같은 폭: 아래 중앙 광원 막대와 길이가 맞게 */
+.meter > .gauge-label {
+  min-width: calc(var(--u) * 20);
+  text-align: center;
+}
+
+.vitals__hp-row {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--u) * 4);
+}
+
+.vitals__hp-row .vitals__hp {
+  flex: 1;
+}
+
 .vitals__hp {
   position: relative;
   height: calc(var(--u) * 9);
@@ -1042,8 +1069,9 @@ body {
   pointer-events: none;
 }
 
+/* 2026-11-13: 아이템 칸 2개가 들어와 LP·광원 막대가 너무 짧아짐 → 스틱(양쪽 약 200)과 겹치지 않는 데까지 넓힘 */
 :root[data-layout='landscape'] .hud-bottom__row {
-  width: min(calc(var(--u) * 500), calc(100% - var(--u) * 470));
+  width: min(calc(var(--u) * 600), calc(100% - var(--u) * 440));
   min-width: calc(var(--u) * 400);
   margin: 0 auto;
   padding: calc(var(--u) * 8) calc(var(--u) * 12) calc(var(--u) * 8) calc(var(--u) * 18);
@@ -1078,6 +1106,11 @@ body {
 }
 .item-slot {
   position: relative;
+  /* 누르는 순간 쓰므로 길게 누름·확대·선택이 끼어들지 않게 (2026-11-13) */
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
   width: calc(var(--u, 1px) * 50);
   height: calc(var(--u, 1px) * 50);
   min-width: 44px;

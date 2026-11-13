@@ -51,8 +51,8 @@ export class Toast {
       // 스테이지 소개 (2026-11-13, 제안): 이 판의 목적을 먼저 보여 준다
       this.showGuide({ text: stage.name, sub: stage.blurb ?? '', stage: true });
       this.guideTimer = window.setTimeout(() => this.hideGuide(), STAGE_INTRO_MS);
-      // 판 시작 안내 (2026-11-12, 제안): 등불 자리는 판마다 바뀌므로 화면 가장자리 호박빛 마름모를 따라가게 한다
-      if (stage.stations >= 1) this.hintTimer = window.setTimeout(() => this.show('호박빛 표시를 따라 꺼진 등불을 켜요'), STAGE_INTRO_MS + 200);
+      // 판 시작 안내 (2026-11-12, 제안): 등불 자리는 판마다 바뀌므로 노란 화살표를 따라가게 한다 (2026-11-13 '호박빛 표시' → '노란 화살표')
+      if (stage.stations >= 1) this.hintTimer = window.setTimeout(() => this.show('노란 화살표를 따라 꺼진 등불을 켜요'), STAGE_INTRO_MS + 200);
     });
     const end = () => {
       // 튜토리얼을 마친 '잘했어요!'는 제 시간(2초)만큼 남긴다

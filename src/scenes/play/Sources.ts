@@ -6,15 +6,18 @@ import { bus } from '../../core/events';
 import type { Rng } from '../../core/rng';
 import { GameData, type EnemyId } from '../../data';
 import { CentralSource } from '../../entities/CentralSource';
+import type { Beacon } from '../../entities/EdgeArrows';
 import { LightStation } from '../../entities/LightStation';
 import type { LightPool } from '../../entities/VillageStage';
 import type { EnemyTarget } from '../../entities/enemies/Enemy';
 import type { LightTarget } from '../../systems/LightSystem';
-import type { Vec } from '../../systems/fan';
 import type { Rect } from '../../systems/obstacles';
 import { MapLight } from '../../systems/villageMood';
 
 const CFG = GameData.game;
+/** 노란 화살표 끝: 빛 고임 중심(등불 유리·광원 결정)에서 그림 꼭대기 조금 위 / 받침·게이지 조금 아래까지 (연출 값) */
+const STATION = { lift: 60, drop: 64 };
+const CENTRAL = { lift: 118, drop: 70 };
 
 export class Sources {
   readonly central: CentralSource;
@@ -64,10 +67,10 @@ export class Sources {
     ];
   }
 
-  /** 화면 밖에서 알릴 곳: 꺼진 등불, 위험한(광도 '낮음') 중앙 광원 */
-  beacons(): Vec[] {
-    const out: Vec[] = this.stations.filter((s) => !s.state.lit).map((s) => s.pos);
-    if (this.central.state.value < CFG.lightLevels.bands[0]) out.push(this.central.pos);
+  /** 노란 화살표로 가리킬 곳: 꺼진 등불, 위험한(광도 '낮음') 중앙 광원. lift = 그림 꼭대기 조금 위(연출 값) */
+  beacons(): Beacon[] {
+    const out: Beacon[] = this.stations.filter((s) => !s.state.lit).map((s) => ({ x: s.pos.x, y: s.pos.y, ...STATION }));
+    if (this.central.state.value < CFG.lightLevels.bands[0]) out.push({ x: this.central.pos.x, y: this.central.pos.y, ...CENTRAL });
     return out;
   }
 

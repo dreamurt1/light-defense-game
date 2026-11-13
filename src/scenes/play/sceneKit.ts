@@ -71,6 +71,18 @@ export class HudFeed {
   }
 }
 
+/** 일시정지: 트윈·애니메이션·타이머를 함께 멈춘다 (애니메이션을 안 멈추면 걷던 루미가 제자리 걸음, 2026-11-13) */
+export function freeze(scene: Phaser.Scene, paused: boolean): void {
+  if (paused) {
+    scene.tweens.pauseAll();
+    scene.anims.pauseAll();
+  } else {
+    scene.tweens.resumeAll();
+    scene.anims.resumeAll();
+  }
+  scene.time.paused = paused;
+}
+
 /** 연습장·튜토리얼은 끝나지 않는다: 하트가 다시 차고 중앙 광원이 꺼지지 않는다 */
 export function keepSafe(vitals: Vitals, central: CentralSourceState): void {
   if (!vitals.down) vitals.hearts = CFG.stage.hearts;
