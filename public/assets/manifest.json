@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-13T00:40:46.982Z",
+  "generatedAt": "2026-11-13T04:54:21.338Z",
   "sheets": [
     {
       "key": "portrait-lumi",
@@ -276,7 +276,7 @@
     {
       "key": "tori-8dir",
       "category": "characters",
-      "label": "토리 8방향 (임시 그림: 앞·뒤·옆)",
+      "label": "토리 8방향 (임시 그림: 정지·걷기 + 넉아웃·기절)",
       "file": "characters/tori-8dir.png",
       "frameWidth": 64,
       "frameHeight": 64,
@@ -482,7 +482,7 @@
     {
       "key": "doto-8dir",
       "category": "characters",
-      "label": "도토 8방향 (임시 그림: 앞·뒤·옆)",
+      "label": "도토 8방향 (임시 그림: 정지·걷기 + 넉아웃·기절)",
       "file": "characters/doto-8dir.png",
       "frameWidth": 64,
       "frameHeight": 64,

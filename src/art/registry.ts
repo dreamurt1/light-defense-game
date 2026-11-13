@@ -164,7 +164,7 @@ const characters: SheetDef[] = [
     (id): SheetDef => ({
       key: `${id}-8dir`,
       category: 'characters',
-      label: `${GameData.characters.find((c) => c.id === id)?.name ?? id} 8방향 (임시 그림: 앞·뒤·옆)`,
+      label: `${GameData.characters.find((c) => c.id === id)?.name ?? id} 8방향 (임시 그림: 정지·걷기 + 넉아웃·기절)`,
       frameWidth: 64,
       frameHeight: 64,
       frames: LUMI_COLUMNS * LUMI_ROWS,
