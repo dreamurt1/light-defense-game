@@ -82,7 +82,7 @@
     "stations": 1,
     "stationSpots": [0],
     "endless": true,
-    "blurb": "가까운 구석에 적들이 가만히 서 있어요. 마음껏 빛을 연습해요.",
+    "blurb": "마을 곳곳에 적들이 제자리에 서 있어요. 너무 가까이 가면 공격해요.",
     "spawn": {
       "normal": { "maxAlive": 0, "intervalStart": 99, "intervalEnd": 99, "weights": { "bat": 1 } },
       "climax": { "maxAlive": 0, "intervalStart": 99, "intervalEnd": 99, "weights": { "bat": 1 } }
@@ -90,13 +90,14 @@
     "dummies": {
       "respawnSec": 2.5,
       "list": [
-        { "enemyId": "bat", "x": 1720, "y": 1090 },
-        { "enemyId": "vampire", "x": 1800, "y": 1090 },
-        { "enemyId": "werewolf", "x": 1880, "y": 1090 },
-        { "enemyId": "owl", "x": 1960, "y": 1090 },
-        { "enemyId": "frog", "x": 1760, "y": 1170 },
-        { "enemyId": "hedgehog", "x": 1840, "y": 1170 },
-        { "enemyId": "redpanda", "x": 1920, "y": 1170 }
+        { "enemyId": "bat", "x": 1980, "y": 1030 },
+        { "enemyId": "frog", "x": 1600, "y": 1270 },
+        { "enemyId": "hedgehog", "x": 1400, "y": 1050 },
+        { "enemyId": "vampire", "x": 1600, "y": 610 },
+        { "enemyId": "werewolf", "x": 2180, "y": 1610 },
+        { "enemyId": "redpanda", "x": 860, "y": 1390 },
+        { "enemyId": "owl", "x": 1060, "y": 410 },
+        { "enemyId": "moth", "x": 2140, "y": 410 }
       ]
     },
     "items": { "intervalSec": 8, "firstSec": 3 }

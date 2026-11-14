@@ -100,8 +100,12 @@ export abstract class Enemy extends Phaser.GameObjects.Container {
   private detourLeft = 0;
   private detour: Vec = { x: 0, y: 0 };
   private lastDir = { x: 0, y: 1 };
-  /** 트라이얼의 고정된 적: 이 자리에서 움직이지도 공격하지도 않고, 빛에 밀리지 않는다 (2026-11-14) */
+  /** 트라이얼의 고정된 적: 이 자리에서 움직이지 않고 빛에 밀리지 않는다. 공격할 수 있는 몹은 루미가 아주 가까우면 제자리에서 들이받는다 (2026-11-14) */
   private anchor: Vec | null = null;
+  /** 고정된 적의 숨 고르기(뒤로 젖힘)·들이받기(내밂) 남은 시간과 방향 */
+  private windLeft = 0;
+  private lungeLeft = 0;
+  private readonly lungeDir = new Phaser.Math.Vector2(1, 0);
   /** 들이받은 뒤 튕겨 물러나는 남은 시간과 방향 */
   private recoilLeft = 0;
   private recoilTotal = 0;
@@ -128,6 +132,30 @@ export abstract class Enemy extends Phaser.GameObjects.Container {
   /** 등불의 결계를 무시하는 적: 등불을 노리는 뱀파이어, 기다리는 친구, 퇴장 중, 트라이얼의 고정된 적 */
   private get wardFree(): boolean {
     return this.role === 'station' || !!this.def.friend || this.mode === 'returning' || this.anchor !== null;
+  }
+
+  /** 트라이얼: 루미가 몸이 닿는 거리 + pinnedReach 안이면 chargeLead 동안 숨을 고른 뒤 들이받는다(그 적의 피해·주기 그대로). 멀어지면 취소 */
+  private pinnedAttack(dt: number, ctx: EnemyContext, at: Vec): EnemyStep['hit'] {
+    this.lungeLeft = Math.max(0, this.lungeLeft - dt);
+    const p = ctx.player;
+    const near = !!p && this.mode !== 'stunned' && this.attackDamage > 0 && Math.hypot(p.x - at.x, p.y - at.y) <= p.radius + this.radius + AI.pinnedReach;
+    if (!p || !near) {
+      this.windLeft = 0;
+      return null;
+    }
+    this.lungeDir.set(p.x - at.x, p.y - at.y).normalize();
+    this.face(this.lungeDir);
+    if (this.windLeft > 0) {
+      this.windLeft -= dt;
+      if (this.windLeft > 0) return null;
+      this.windLeft = 0;
+      this.tickLeft = this.def.damageTickSec;
+      this.lungeLeft = AI.pinnedLungeSec;
+      this.playSlam();
+      return { target: 'player', damage: this.attackDamage, sourceDamage: 0 };
+    }
+    if (this.tickLeft <= 0 && this.lungeLeft <= 0) this.windLeft = AI.chargeLead;
+    return null;
   }
 
   /** 트라이얼: 이 자리에 고정한다 */
@@ -250,13 +278,17 @@ export abstract class Enemy extends Phaser.GameObjects.Container {
     this.tickLeft = Math.max(0, this.tickLeft - dt);
     this.animate(dt);
 
-    // 트라이얼의 고정된 적: 제자리에서 숨만 쉰다 (맞으면 번쩍임·스턴 시간만 흐름)
+    // 트라이얼의 고정된 적: 자리는 그대로, 공격할 수 있는 몹은 루미가 아주 가까우면 제자리에서 들이받는다
     if (this.anchor) {
       if (this.mode === 'stunned') {
         this.stunLeft -= dt;
         if (this.stunLeft <= 0) this.mode = 'approach';
       }
-      this.setPosition(this.anchor.x, this.anchor.y);
+      out.hit = this.pinnedAttack(dt, ctx, this.anchor);
+      // 연출만: 숨 고르기 동안 뒤로 젖혔다가, 들이받을 때 앞으로 내민다
+      const back = this.windLeft > 0 ? -Math.sin((Math.PI / 2) * (1 - this.windLeft / AI.chargeLead)) * AI.pinnedBackPx : 0;
+      const lunge = this.lungeLeft > 0 ? Math.sin(Math.PI * (1 - this.lungeLeft / AI.pinnedLungeSec)) * AI.pinnedLungePx : 0;
+      this.setPosition(this.anchor.x + this.lungeDir.x * (back + lunge), this.anchor.y + this.lungeDir.y * (back + lunge));
       this.setDepth(this.y);
       return out;
     }

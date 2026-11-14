@@ -1,7 +1,7 @@
 // 테스트 판 고르기 (2026-11-14 라이언: 홈 '테스트' → 모든 스테이지 선택지 중 하나를 골라 바로 플레이).
 //  최종 구성(2026-11-14 라이언 정정):
-//  - 트라이얼('trial'): 루미 시작 자리 가까운 구석에 적들이 제자리에 고정된 연습장(브롤스타즈 스타파크 훈련장 참고).
-//    움직이지도 공격하지도 않고, 쓰러지면 잠시 뒤 같은 자리에 다시. 끝나지 않는다.
+//  - 트라이얼('trial'): 마을 곳곳에 적들이 제자리에 고정된 연습장(브롤스타즈 스타파크 훈련장 참고). 빛에 밀리지 않고,
+//    공격할 수 있는 몹은 루미가 아주 가까우면 제자리에서 들이받는다(맞는 상황도 확인). 쓰러지면 잠시 뒤 같은 자리에 다시. 끝나지 않는다.
 //  - 각 스테이지(처음 밤·1~4스테이지): 실제 체험판 — 정식 판과 똑같이 끝이 있다(아침·하트·광원). 잠금과 상관없이 바로 시작
 //    (튜토리얼도 이야기 카드 없이 바로 판 — 테스트이므로).
 //  - 테스트 판은 진행(깬 스테이지·튜토리얼·구출한 친구)과 지난 밤들에 남지 않는다(core/Progress, ResultSheet, 제안).
@@ -62,10 +62,10 @@ export class TestSheet {
     const trialDef = stageById('trial');
     const trial = h(
       'button',
-      { class: 'stage-card test-trial', type: 'button', 'data-theme': trialDef.theme, 'aria-label': `${trialDef.name}: 고정된 적으로 연습, 끝없음` },
+      { class: 'stage-card test-trial', type: 'button', 'data-theme': trialDef.theme, 'aria-label': `${trialDef.name}: 마을 곳곳에 고정된 적으로 연습, 끝없음` },
       h('span', { class: 'stage-card__num' }, '연습'),
       h('span', { class: 'stage-card__name' }, trialDef.name),
-      h('span', { class: 'stage-card__meta' }, svg(pawIcon), '구석에 고정된 적 · 끝없음'),
+      h('span', { class: 'stage-card__meta' }, svg(pawIcon), '곳곳에 고정된 적 · 끝없음'),
     );
     trial.addEventListener('click', () => this.start('trial'));
 

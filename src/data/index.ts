@@ -129,6 +129,11 @@ export interface GameConfig {
     chargeDist: number;
     chargeLead: number;
     chargeSpeed: number;
+    /** 트라이얼의 고정된 적이 공격하는 거리(몸이 닿는 거리 + 이만큼)·뒤로 젖힘·내밂 (2026-11-14) */
+    pinnedReach: number;
+    pinnedBackPx: number;
+    pinnedLungePx: number;
+    pinnedLungeSec: number;
   };
   light: {
     mode: 'aimStick';

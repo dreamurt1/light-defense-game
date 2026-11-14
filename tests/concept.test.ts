@@ -149,7 +149,7 @@ describe('테스트 판 (2026-11-14 라이언: 홈 테스트 → 모든 스테�
     expect(trial.boss).toBeUndefined();
   });
 
-  it('트라이얼: 고정된 적은 루미 시작 자리에서 멀지 않은 구석, 장애물·고정된 등불과 떨어져 있다', () => {
+  it('트라이얼: 고정된 적은 마을 곳곳(가까운 곳·먼 곳, 여러 방향)에, 장애물·고정된 등불과 떨어져 있다 (2026-11-14 라이언)', () => {
     const G = GameData.game;
     const start = { x: G.central.x, y: G.central.y + G.keeper.startOffsetY };
     const trial = stageById('trial');
@@ -159,8 +159,13 @@ describe('테스트 판 (2026-11-14 라이언: 홈 테스트 → 모든 스테�
     const lamp = GameData.map.stations[trial.stationSpots?.[0] ?? -1];
     expect(lamp).toBeDefined();
     const rects = [...GameData.map.obstacles, ...GameData.map.bushes];
-    for (const d of list) {
-      expect(Math.hypot(d.x - start.x, d.y - start.y), d.enemyId).toBeLessThan(460);
+    const dist = list.map((d) => Math.hypot(d.x - start.x, d.y - start.y));
+    expect(dist.filter((d) => d < 450).length).toBeGreaterThanOrEqual(3); // 가까운 곳에도
+    expect(dist.filter((d) => d > 700).length).toBeGreaterThanOrEqual(3); // 먼 곳에도
+    const dirs = new Set(list.map((d) => Math.round(Math.atan2(d.y - start.y, d.x - start.x) / (Math.PI / 4))));
+    expect(dirs.size).toBeGreaterThanOrEqual(6); // 여러 방향
+    for (const [i, d] of list.entries()) {
+      for (const o of list.slice(i + 1)) expect(Math.hypot(d.x - o.x, d.y - o.y), d.enemyId + '·' + o.enemyId).toBeGreaterThan(180); // 한 군데 몰리지 않게
       expect(Math.hypot(d.x - lamp.x, d.y - lamp.y), d.enemyId).toBeGreaterThan(G.station.ward.maxRadius + 60);
       for (const r of rects) {
         const gap = Math.hypot(Math.max(r.x - d.x, 0, d.x - (r.x + r.w)), Math.max(r.y - d.y, 0, d.y - (r.y + r.h)));
