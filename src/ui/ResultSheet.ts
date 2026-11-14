@@ -55,6 +55,8 @@ export class ResultSheet {
   private readonly title: HTMLElement;
   private readonly subtitle: HTMLElement;
   private readonly friendLine: HTMLElement;
+  /** 테스트 판 안내 (2026-11-14) */
+  private readonly testNote: HTMLElement;
   private readonly statList: HTMLElement;
   private readonly score = h('strong', { class: 'result__score' });
   private readonly combo = h('span');
@@ -81,13 +83,18 @@ export class ResultSheet {
     this.title = h('h2', { class: 'sheet__title', id: 'result-title' });
     this.subtitle = h('p', { class: 'sheet__subtitle' });
     this.friendLine = h('p', { class: 'result__friend' });
+    this.testNote = h('p', { class: 'result__test' }, '테스트 판이라 진행과 지난 밤들에는 남지 않아요');
     this.seed = h('small', { class: 'result__seed' });
 
     this.nextLabel = h('span', {}, '다음 밤으로');
     this.next = h('button', { class: 'pill pill--primary result__next', type: 'button' }, svg(playIcon), this.nextLabel);
     this.next.addEventListener('click', () => this.startNext());
     this.again = h('button', { class: 'pill pill--primary result__again', type: 'button' }, svg(playIcon), '다시 한 번');
-    this.again.addEventListener('click', () => bus.emit('ui:navigate', { to: 'select' }));
+    // 테스트 판이면 같은 스테이지를 다시 테스트로 (2026-11-14), 아니면 선택 화면으로
+    this.again.addEventListener('click', () => {
+      if (RunState.test && this.result) bus.emit('ui:start-test', { stageId: this.result.stageId });
+      else bus.emit('ui:navigate', { to: 'select' });
+    });
     const village = h('button', { class: 'pill pill--secondary', type: 'button' }, svg(homeIcon), '홈으로');
     village.addEventListener('click', () => bus.emit('ui:navigate', { to: 'home' }));
     this.saveLabel = h('span', {}, '지난 밤들에 남기기');
@@ -114,6 +121,7 @@ export class ResultSheet {
       this.title,
       this.subtitle,
       this.friendLine,
+      this.testNote,
       this.statList,
       h('div', { class: 'sheet__actions' }, this.next, this.again, village, this.save),
       this.seed,
@@ -144,7 +152,9 @@ export class ResultSheet {
     // 되찾은 친구: "토리가 함께하게 됐어요" (토리·도토 모두 받침 없음 → '가')
     const names = this.friends.map((id) => characterById(id).name);
     this.friendLine.textContent = names.length ? `${names.join('와 ')}가 함께하게 됐어요` : '';
-    this.friendLine.hidden = names.length === 0;
+    // 테스트 판은 친구 해금이 남지 않으므로 알리지 않는다
+    this.friendLine.hidden = names.length === 0 || RunState.test;
+    this.testNote.hidden = !RunState.test;
 
     this.statList.hidden = tutorial;
     this.combo.textContent = `×${result.maxCombo}`;
@@ -165,7 +175,7 @@ export class ResultSheet {
     // 다음 밤이 있으면 '다시 한 번'은 보조 버튼으로 내린다
     this.again.classList.toggle('pill--primary', this.next.hidden);
     this.again.classList.toggle('pill--secondary', !this.next.hidden);
-    this.save.hidden = tutorial;
+    this.save.hidden = tutorial || RunState.test;
     this.save.disabled = false;
     this.saveLabel.textContent = '지난 밤들에 남기기';
     this.el.dataset.next = this.next.hidden ? 'no' : tutorial ? 'tutorial' : 'yes';
@@ -184,6 +194,11 @@ export class ResultSheet {
   /** 다음 밤(또는 튜토리얼 뒤 첫 번째 밤)을 바로 시작 */
   private startNext(): void {
     if (!this.nextStage) return;
+    // 테스트 판이면 다음 밤도 테스트로 (2026-11-14)
+    if (RunState.test) {
+      bus.emit('ui:start-test', { stageId: this.nextStage });
+      return;
+    }
     RunState.stageId = this.nextStage;
     RunState.test = false;
     bus.emit('ui:start-run');

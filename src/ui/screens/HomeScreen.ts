@@ -8,6 +8,7 @@ import { bus } from '../../core/events';
 import { Progress } from '../../core/Progress';
 import { RunState } from '../../core/RunState';
 import { startTutorial } from '../Story';
+import { openTestSheet } from '../TestSheet';
 import { h, svg } from '../dom';
 import { gearIcon, pawIcon, playIcon, podiumIcon, shopIcon, tutorialIcon } from '../icons';
 import { portraitUrl, screenShell } from './common';
@@ -31,9 +32,9 @@ export class HomeScreen {
     ranking.addEventListener('click', () => bus.emit('ui:navigate', { to: 'ranking' }));
     const shop = h('button', { class: 'pill pill--secondary', type: 'button' }, svg(shopIcon), '상점');
     shop.addEventListener('click', () => bus.emit('ui:navigate', { to: 'shop' }));
-    // 2026-11-13 라이언: 테스트 = 스타파크식 연습장(같은 마을, 적 조금, 끝나지 않음). 개발 모드 제한 없이 항상 보인다
-    const test = h('button', { class: 'pill pill--secondary home__test', type: 'button', 'aria-label': '연습장: 적이 조금만 나오는 같은 마을' }, svg(pawIcon), '테스트');
-    test.addEventListener('click', () => bus.emit('ui:start-test'));
+    // 2026-11-13 라이언: 테스트 = 스타파크식 연습장. 2026-11-14 라이언: 연습장·튜토리얼·모든 스테이지 중 골라 바로 플레이(TestSheet). 항상 보인다
+    const test = h('button', { class: 'pill pill--secondary home__test', type: 'button', 'aria-label': '테스트: 연습장이나 스테이지를 골라 바로 해 봐요' }, svg(pawIcon), '테스트');
+    test.addEventListener('click', () => openTestSheet());
 
     this.name = h('span', { class: 'profile__name' }, RunState.nickname);
     this.el = screenShell(

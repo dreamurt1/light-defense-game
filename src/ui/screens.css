@@ -1035,6 +1035,46 @@
   color: var(--mint);
 }
 
+/* 테스트 판 안내 한 줄 (2026-11-14) */
+.result__test {
+  margin: calc(var(--u) * 10) 0 0;
+  font-size: calc(var(--u) * 15);
+  font-weight: 700;
+  color: var(--mint);
+}
+
+/* ---------- 테스트 판 고르기 (2026-11-14 라이언): 아래에서 올라오는 판에 스테이지 카드 여섯 칸 ---------- */
+
+.sheet--test {
+  z-index: 5;
+}
+
+.sheet--test .sheet__panel {
+  padding: calc(var(--u) * 30) calc(var(--u) * 28) max(calc(var(--u) * 26), env(safe-area-inset-bottom, 0px));
+  animation: sheet-rise 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.sheet--test .sheet__title {
+  font-size: calc(var(--u) * 30);
+}
+
+.test-sheet__note {
+  margin: calc(var(--u) * 8) 0 0;
+  font-size: calc(var(--u) * 15);
+  color: var(--paper-soft);
+}
+
+.test-sheet__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: calc(var(--u) * 10);
+  margin-top: calc(var(--u) * 18);
+}
+
+.sheet--test .sheet__actions {
+  margin-top: calc(var(--u) * 20);
+}
+
 /* ---------- 일시정지: 버튼 넷 ---------- */
 
 .sheet--pause .sheet__actions {
@@ -1231,6 +1271,31 @@
 :root[data-layout='landscape'] .sheet--result[data-next='yes'] .result__next,
 :root[data-layout='landscape'] .sheet--result[data-next='yes'] .sheet__actions .pill--ghost {
   grid-column: auto;
+}
+
+/* 테스트 판 고르기: 가운데 판, 카드 세 칸씩 두 줄 */
+:root[data-layout='landscape'] .sheet--test {
+  justify-content: center;
+  padding: calc(var(--u) * 16);
+}
+
+:root[data-layout='landscape'] .sheet--test .sheet__panel {
+  width: min(100%, calc(var(--u) * 860));
+  max-height: 100%;
+  margin: 0 auto;
+  overflow-y: auto;
+  border-bottom: 1px solid color-mix(in srgb, var(--paper) 16%, transparent);
+  border-radius: calc(var(--u) * 28);
+  padding: calc(var(--u) * 22) calc(var(--u) * 28) calc(var(--u) * 18);
+}
+
+:root[data-layout='landscape'] .test-sheet__grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: calc(var(--u) * 14);
+}
+
+:root[data-layout='landscape'] .sheet--test .stage-card {
+  min-height: calc(var(--u) * 84);
 }
 
 /* 설정: 가운데 판, 왼쪽(소리·닉네임) / 오른쪽(조작·화면) 두 열 */

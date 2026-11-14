@@ -102,7 +102,8 @@ export interface GameEvents {
   /** 선택 화면의 `등불을 켜요` */
   'ui:start-run': undefined;
   /** 홈의 `테스트`: 같은 마을, 이웃 없음, 시간 제한 없음 (2026-11-06 라이언 지시) */
-  'ui:start-test': undefined;
+  /** 2026-11-14: 테스트할 스테이지를 골라 바로 (진행·지난 밤들에 남지 않음) */
+  'ui:start-test': { stageId: string };
   /** 화면 방식이 바뀜 (세로 ↔ 가로, 2026-11-06) */
   'ui:layout': { layout: 'portrait' | 'landscape' };
   'ui:open-settings': undefined;

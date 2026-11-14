@@ -48,8 +48,8 @@ export class Toast {
       this.mercySeen = false;
       this.upsetSeen = false;
       const stage = stageById(e.stageId);
-      // 튜토리얼(단계 안내가 따로 옴)과 연습장(테스트)은 소개·등불 안내를 띄우지 않는다
-      if (e.test || stage.tutorial || stage.practice) return;
+      // 튜토리얼(단계 안내가 따로 옴)과 연습장은 소개·등불 안내를 띄우지 않는다 (테스트로 고른 스테이지는 띄움, 2026-11-14)
+      if (stage.tutorial || stage.practice) return;
       // 스테이지 소개 (2026-11-13, 제안): 이 판의 목적을 먼저 보여 준다
       this.showGuide({ text: stage.name, sub: stage.blurb ?? '', stage: true });
       this.guideTimer = window.setTimeout(() => this.hideGuide(), STAGE_INTRO_MS);

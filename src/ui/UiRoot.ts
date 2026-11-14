@@ -8,6 +8,7 @@ import { PauseSheet } from './PauseSheet';
 import { ResultSheet } from './ResultSheet';
 import { Router } from './Router';
 import { SettingsSheet } from './SettingsSheet';
+import { TestSheet } from './TestSheet';
 import { Sticks } from './Sticks';
 import { Toast } from './Toast';
 import { HomeScreen } from './screens/HomeScreen';
@@ -37,6 +38,7 @@ export function mountUi(root: HTMLElement, game: Phaser.Game): Router {
     new PauseSheet().el,
     new ResultSheet(ranking).el,
     settings.el,
+    new TestSheet().el,
   );
   const router = new Router(game, root, { home, select, ranking: rankingScreen });
   // 휴대폰 뒤로가기·앞으로가기 → 앱 안의 단계 이동 (2026-11-13 라이언, 게임 중 제외·앞으로가기로 게임에 들어가지 않음)

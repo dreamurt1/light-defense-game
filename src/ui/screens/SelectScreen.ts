@@ -30,7 +30,8 @@ function objectJosa(word: string): string {
 }
 
 /** 이 스테이지에서 되찾는 친구 */
-function rescueFriend(s: StageDef): CharacterDef | null {
+/** 이 스테이지에서 구출하는 친구 (테스트 판 고르기도 씀) */
+export function rescueFriend(s: StageDef): CharacterDef | null {
   const id = s.rescue ? enemyById(s.rescue.enemyId).friend : undefined;
   return id ? characterById(id) : null;
 }

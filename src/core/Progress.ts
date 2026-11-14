@@ -3,6 +3,7 @@
 //  - 스테이지는 앞 스테이지를 깨면 열린다. 친구(토리·도토)는 구출 스테이지에서 되찾으면 열린다
 //  - 시연용 '모두 열기'는 튜토리얼·스테이지·친구를 모두 연다
 import { bus } from './events';
+import { RunState } from './RunState';
 import { STAGE_ORDER, type CharacterId } from '../data';
 
 const KEY = 'ld.progress.v1';
@@ -84,11 +85,14 @@ export const Progress = {
   },
 };
 
-/** 판 결과를 진행에 남긴다 (main.ts에서 한 번) */
+/** 판 결과를 진행에 남긴다 (main.ts에서 한 번). 홈 '테스트' 판은 남기지 않는다 (2026-11-14, 제안) */
 export function watchProgress(): void {
   bus.on('game:clear', (e) => {
+    if (RunState.test) return;
     if (e.result.reason === 'tutorial') Progress.markTutorial();
     else Progress.clearStage(e.result.stageId);
   });
-  bus.on('friend:rescued', (e) => Progress.rescue(e.characterId));
+  bus.on('friend:rescued', (e) => {
+    if (!RunState.test) Progress.rescue(e.characterId);
+  });
 }

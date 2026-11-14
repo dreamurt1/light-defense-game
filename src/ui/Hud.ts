@@ -148,8 +148,9 @@ export class Hud {
   private listen(): void {
     bus.on('run:start', (e) => {
       this.el.classList.remove('is-low', 'is-ended', 'is-down', 'is-source-low');
-      this.test = e.test;
-      this.el.classList.toggle('is-test', e.test);
+      // 시계 대신 '테스트'는 끝나지 않는 연습장만 (2026-11-14: 테스트로 고른 스테이지는 시계·진행 바 그대로)
+      this.test = e.test && e.stageId === 'practice';
+      this.el.classList.toggle('is-test', this.test);
       this.setNight(0, e.durationSec);
       this.combo.classList.add('is-empty');
       this.score.textContent = '0';

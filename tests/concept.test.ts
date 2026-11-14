@@ -138,3 +138,24 @@ describe('가리는 물체 반투명 (2026-11-13 라이언: 장애물 뒤쪽의 
     expect(obj.alpha).toBeGreaterThan(0.95);
   });
 });
+
+describe('테스트 판 (2026-11-14 라이언: 홈 테스트 → 모든 스테이지 중 골라 바로)', () => {
+  it('테스트 판의 깬 스테이지·구출한 친구는 진행에 남지 않고, 정식 판은 남는다', async () => {
+    const { Progress, watchProgress } = await import('../src/core/Progress');
+    const { RunState } = await import('../src/core/RunState');
+    const { bus } = await import('../src/core/events');
+    type Clear = Parameters<typeof bus.emit<'game:clear'>>[1];
+    const clear = (stageId: string) => ({ result: { stageId, reason: 'time', outcome: 'victory' } }) as unknown as Clear;
+    Progress.reset();
+    watchProgress();
+    RunState.test = true;
+    bus.emit('game:clear', clear('stage-2'));
+    bus.emit('friend:rescued', { characterId: 'tori' });
+    expect(Progress.data.cleared).toEqual([]);
+    expect(Progress.data.friends).toEqual([]);
+    RunState.test = false;
+    bus.emit('game:clear', clear('stage-2'));
+    expect(Progress.data.cleared).toContain('stage-2');
+    Progress.reset();
+  });
+});
