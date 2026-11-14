@@ -33,6 +33,9 @@ export class EnemyField {
   private friendSpawned = false;
   /** 노월이 부른 박쥐 (동시 최대에 넣지 않음) */
   private readonly summoned = new WeakSet<Enemy>();
+  /** 트라이얼의 고정된 적 자리 (2026-11-14): 쓰러지면 respawnSec 뒤 같은 자리에 */
+  private dummies: { id: EnemyId; x: number; y: number; enemy: Enemy | null; wait: number }[] = [];
+  private dummyRespawn = 0;
 
   constructor(
     private readonly scene: Phaser.Scene,
@@ -48,8 +51,30 @@ export class EnemyField {
     return this.enemies.filter((e) => e.targetable);
   }
 
+  /** 트라이얼: 고정된 적을 자리마다 하나씩 세운다 */
+  setDummies(d: NonNullable<StageDef['dummies']>): void {
+    this.dummyRespawn = d.respawnSec;
+    this.dummies = d.list.map((s) => ({ id: s.enemyId, x: s.x, y: s.y, enemy: this.pinAt(s.enemyId, s.x, s.y), wait: 0 }));
+  }
+
+  private pinAt(id: EnemyId, x: number, y: number): Enemy | null {
+    const e = this.create(id, x, y);
+    if (!e) return null;
+    e.pin({ x, y });
+    this.enemies.push(e);
+    return e;
+  }
+
   /** 스테이지 시각 t에 새 적을 낸다. 켜진 등불(sources 중 light가 있는 것) 쪽에서는 덜 나온다 (2026-11-14) */
   spawn(dt: number, t: number, sources: readonly EnemyTarget[] = []): void {
+    // 트라이얼: 쓰러진(구출·돌려보냄·자비) 고정된 적은 잠시 뒤 같은 자리에 다시
+    for (const d of this.dummies) {
+      if (d.enemy && d.enemy.targetable) continue;
+      d.wait += dt;
+      if (d.wait < this.dummyRespawn) continue;
+      d.wait = 0;
+      d.enemy = this.pinAt(d.id, d.x, d.y);
+    }
     // 동시 최대는 스포너가 낸 적만 센다: 패시브 주민(별도 줄)·기다리는 친구·노월이 부른 박쥐는 빼고 (코드 리뷰 2026-11-13)
     const alive = this.active.filter((e) => e.def.kind !== 'passive' && !e.def.friend && !this.summoned.has(e)).length + this.pending.length;
     const lamps = sources.filter((s) => (s.light ?? 0) > 0).map((s) => ({ x: s.x, y: s.y, light: s.light ?? 0 }));

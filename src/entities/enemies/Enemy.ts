@@ -100,6 +100,8 @@ export abstract class Enemy extends Phaser.GameObjects.Container {
   private detourLeft = 0;
   private detour: Vec = { x: 0, y: 0 };
   private lastDir = { x: 0, y: 1 };
+  /** 트라이얼의 고정된 적: 이 자리에서 움직이지도 공격하지도 않고, 빛에 밀리지 않는다 (2026-11-14) */
+  private anchor: Vec | null = null;
   /** 들이받은 뒤 튕겨 물러나는 남은 시간과 방향 */
   private recoilLeft = 0;
   private recoilTotal = 0;
@@ -123,9 +125,20 @@ export abstract class Enemy extends Phaser.GameObjects.Container {
     return this.def.radius;
   }
 
-  /** 등불의 결계를 무시하는 적: 등불을 노리는 뱀파이어, 기다리는 친구, 퇴장 중 */
+  /** 등불의 결계를 무시하는 적: 등불을 노리는 뱀파이어, 기다리는 친구, 퇴장 중, 트라이얼의 고정된 적 */
   private get wardFree(): boolean {
-    return this.role === 'station' || !!this.def.friend || this.mode === 'returning';
+    return this.role === 'station' || !!this.def.friend || this.mode === 'returning' || this.anchor !== null;
+  }
+
+  /** 트라이얼: 이 자리에 고정한다 */
+  pin(at: Vec): void {
+    this.anchor = { x: at.x, y: at.y };
+    this.base.set(at.x, at.y);
+    this.setPosition(at.x, at.y);
+  }
+
+  get pinned(): boolean {
+    return this.anchor !== null;
   }
 
   /** 켜진 등불의 결계 안이면 밖으로 밀려난다 (갑자기 켜져도 순간 이동하지 않게 초당 pushPerSec까지) */
@@ -219,7 +232,7 @@ export abstract class Enemy extends Phaser.GameObjects.Container {
       this.playReturn(ctx);
       return true;
     }
-    const dist = knockback * (this.def.knockbackMultiplier ?? 1);
+    const dist = this.anchor ? 0 : knockback * (this.def.knockbackMultiplier ?? 1);
     this.knockDir.set(this.x - ctx.from.x, this.y - ctx.from.y).normalize();
     this.base.set(this.x, this.y);
     // 스턴 동안 속도를 선형으로 줄여 정확히 dist만큼 밀린다
@@ -236,6 +249,17 @@ export abstract class Enemy extends Phaser.GameObjects.Container {
     this.age += dt;
     this.tickLeft = Math.max(0, this.tickLeft - dt);
     this.animate(dt);
+
+    // 트라이얼의 고정된 적: 제자리에서 숨만 쉰다 (맞으면 번쩍임·스턴 시간만 흐름)
+    if (this.anchor) {
+      if (this.mode === 'stunned') {
+        this.stunLeft -= dt;
+        if (this.stunLeft <= 0) this.mode = 'approach';
+      }
+      this.setPosition(this.anchor.x, this.anchor.y);
+      this.setDepth(this.y);
+      return out;
+    }
 
     if (this.mode === 'stunned') {
       const speed = this.knockSpeed * (this.stunLeft / this.stunTotal);

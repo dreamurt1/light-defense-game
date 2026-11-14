@@ -132,6 +132,8 @@ export class Creature extends Enemy {
   }
 
   override step(dt: number, ctx: EnemyContext): EnemyStep {
+    // 트라이얼의 고정된 적 (패시브도 떠돌지 않음 — 곁을 지나가면 자비, 맞히면 화남은 그대로)
+    if (this.pinned && !this.leaving) return super.step(dt, ctx);
     if (this.def.behavior === 'idle') {
       this.age += dt;
       this.underGlow.setAlpha(0.35 + 0.15 * Math.sin(this.age * 3));

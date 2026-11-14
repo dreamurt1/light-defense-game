@@ -1,7 +1,7 @@
 // 화면 이동: 홈 → 선택 → 플레이 → 결과 → (다시 한 번: 선택 / 홈으로: 홈), 홈 → 지난 밤들·상점·설정.
 // 메뉴 화면은 DOM 그림 배경(assets/backgrounds/home.webp)이라 씬을 돌리지 않고, 플레이 중에만 PlayScene이 돈다.
 // 화면 상태는 #ui[data-screen]으로 CSS가 보여 준다.
-// 2026-11-13 컨셉 시연판: 홈 '테스트' = 연습장(stageId 'practice', test=true). 2026-11-14 라이언: 테스트 = 모든 스테이지 중 골라서(ui/TestSheet). 처음 하는 유저의 '게임하기'는
+// 2026-11-14 라이언: 홈 '테스트' = 고르기 창(ui/TestSheet) — 각 스테이지 실제 체험판 · 트라이얼(stageId 'trial', 고정된 적 연습장). test=true. 처음 하는 유저의 '게임하기'는
 // 이야기 → 튜토리얼(stageId 'tutorial')로 바로 들어온다(HomeScreen). 선택 화면으로 갈 때 튜토리얼·연습장 스테이지가
 // 남아 있으면 아직 안 깬 가장 앞 스테이지로 되돌린다.
 // <html data-screen>도 함께 바꾼다: 당겨서 새로고침(ui/PullRefresh.ts)이 판 밖에서만 움직이게 (2026-11-13).
@@ -35,9 +35,9 @@ export class Router {
 
   private play(test: boolean, stageId?: string): void {
     RunState.test = test;
-    if (test) RunState.stageId = stageId ?? 'practice';
-    // 정식 판은 순수 테스트 스테이지로 들어가지 않는다 (튜토리얼은 정식 시작이므로 그대로)
-    else if (RunState.stageId === 'practice' || RunState.stageId === 'sandbox') RunState.stageId = Progress.nextStage;
+    if (test) RunState.stageId = stageId ?? 'trial';
+    // 정식 판은 트라이얼로 들어가지 않는다 (튜토리얼은 정식 시작이므로 그대로)
+    else if (RunState.stageId === 'trial') RunState.stageId = Progress.nextStage;
     this.go('play');
   }
 
@@ -68,7 +68,7 @@ export class Router {
 }
 
 function isSpecialStage(id: string): boolean {
-  return id === 'tutorial' || id === 'practice' || id === 'sandbox';
+  return id === 'tutorial' || id === 'trial';
 }
 
 /** 개발 중 `?screen=select` 같은 주소로 바로 열기 (빌드에는 영향 없음: 없으면 홈) */

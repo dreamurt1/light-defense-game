@@ -24,9 +24,10 @@ export class Sources {
   readonly stations: LightStation[];
   readonly mapLight = new MapLight(CFG.village);
 
-  constructor(scene: Phaser.Scene, rng: Rng, stationCount: number) {
+  /** @param spots 등불 자리를 고정할 map.json stations 번호 (트라이얼, 없으면 seed로) */
+  constructor(scene: Phaser.Scene, rng: Rng, stationCount: number, spots?: readonly number[]) {
     this.central = new CentralSource(scene, CFG.central, CFG.lightLevels.bands);
-    this.stations = pickStations(rng, stationCount).map((p, i) => new LightStation(scene, i, p, CFG.station));
+    this.stations = pickStations(rng, stationCount, spots).map((p, i) => new LightStation(scene, i, p, CFG.station));
   }
 
   /** 지나갈 수 없는 받침·밑동 */
@@ -153,7 +154,8 @@ export class Sources {
 }
 
 /** 이번 스테이지의 등불 자리: map.json 후보 중 seed로 n곳 (XMind: 위치는 랜덤, 외곽, 중앙 광원에서 너무 멀지 않게) */
-function pickStations(rng: Rng, n: number): { x: number; y: number }[] {
+function pickStations(rng: Rng, n: number, fixed?: readonly number[]): { x: number; y: number }[] {
+  if (fixed?.length) return fixed.slice(0, n).map((i) => GameData.map.stations[i]);
   const spots = [...GameData.map.stations];
   for (let i = spots.length - 1; i > 0; i--) {
     const j = rng.int(0, i);

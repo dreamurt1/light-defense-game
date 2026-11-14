@@ -75,32 +75,29 @@
     "items": { "intervalSec": 14, "firstSec": 6 }
   },
   {
-    "id": "practice",
-    "name": "순수 테스트",
+    "id": "trial",
+    "name": "트라이얼",
     "theme": "light-village",
     "durationSec": 100,
     "stations": 1,
-    "practice": true,
-    "blurb": "적이 조금 나오는 같은 마을. 아침이 오면 끝나요.",
-    "spawn": {
-      "normal": { "maxAlive": 2, "intervalStart": 3.0, "intervalEnd": 3.0, "weights": { "bat": 1, "frog": 1, "werewolf": 1, "vampire": 1, "hedgehog": 1, "redpanda": 1 } },
-      "climax": { "maxAlive": 2, "intervalStart": 3.0, "intervalEnd": 3.0, "weights": { "bat": 1, "frog": 1, "werewolf": 1, "vampire": 1, "hedgehog": 1, "redpanda": 1 } }
-    },
-    "passive": { "intervalSec": 8, "maxAlive": 1, "weights": { "owl": 1, "moth": 1, "firefly": 1 } },
-    "items": { "intervalSec": 8, "firstSec": 3 }
-  },
-  {
-    "id": "sandbox",
-    "name": "순수 테스트",
-    "theme": "light-village",
-    "durationSec": 100,
-    "stations": 1,
-    "practice": true,
+    "stationSpots": [0],
     "endless": true,
-    "blurb": "적이 없는 같은 마을. 끝나지 않아요.",
+    "blurb": "가까운 구석에 적들이 가만히 서 있어요. 마음껏 빛을 연습해요.",
     "spawn": {
       "normal": { "maxAlive": 0, "intervalStart": 99, "intervalEnd": 99, "weights": { "bat": 1 } },
       "climax": { "maxAlive": 0, "intervalStart": 99, "intervalEnd": 99, "weights": { "bat": 1 } }
+    },
+    "dummies": {
+      "respawnSec": 2.5,
+      "list": [
+        { "enemyId": "bat", "x": 1720, "y": 1090 },
+        { "enemyId": "vampire", "x": 1800, "y": 1090 },
+        { "enemyId": "werewolf", "x": 1880, "y": 1090 },
+        { "enemyId": "owl", "x": 1960, "y": 1090 },
+        { "enemyId": "frog", "x": 1760, "y": 1170 },
+        { "enemyId": "hedgehog", "x": 1840, "y": 1170 },
+        { "enemyId": "redpanda", "x": 1920, "y": 1170 }
+      ]
     },
     "items": { "intervalSec": 8, "firstSec": 3 }
   }

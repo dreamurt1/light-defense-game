@@ -274,10 +274,12 @@ export interface StageDef {
   items?: { intervalSec: number; firstSec: number };
   /** 튜토리얼 판 (시계가 멈추고 단계를 따라감) */
   tutorial?: boolean;
-  /** 순수 테스트 판 (홈 테스트, 같은 마을): 2026-11-14부터 적 있게 = 아침에 끝남, 적 없게(sandbox) = endless */
-  practice?: boolean;
-  /** 끝나지 않는 판: 시계가 멈추고 하트·중앙 광원이 바닥나지 않음 (적 없는 순수 테스트, 2026-11-14) */
+  /** 끝나지 않는 판: 시계가 멈추고 하트·중앙 광원이 바닥나지 않음 (트라이얼, 2026-11-14) */
   endless?: boolean;
+  /** 등불 자리를 seed로 고르지 않고 map.json stations의 이 번호로 고정 (트라이얼, 2026-11-14) */
+  stationSpots?: number[];
+  /** 트라이얼(2026-11-14 라이언, 브롤스타즈 스타파크 훈련장 참고): 제자리에 고정된 적 — 움직이지도 공격하지도 않고, 쓰러지면 respawnSec 뒤 같은 자리에 */
+  dummies?: { respawnSec: number; list: { enemyId: EnemyId; x: number; y: number }[] };
   /** 선택 화면에 보이는 짧은 소개 */
   blurb?: string;
 }

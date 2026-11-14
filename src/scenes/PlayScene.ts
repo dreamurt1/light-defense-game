@@ -122,7 +122,7 @@ export class PlayScene extends Phaser.Scene {
     this.roamPoint = makeRoam(new Rng(RunState.seed + 17), WALK_AREA);
 
     // 첫 화면은 중앙 광원과 주인공을 비춘다(XMind): 루미는 광원 바로 아래에서 시작
-    this.sources = new Sources(this, rng, this.stageDef.stations);
+    this.sources = new Sources(this, rng, this.stageDef.stations, this.stageDef.stationSpots);
     const start = this.homeSpot;
     this.keeper = new Lightkeeper(this, keeperDef, start.x, start.y);
     this.stage = new VillageStage(this, this.keeper.pos);
@@ -161,6 +161,7 @@ export class PlayScene extends Phaser.Scene {
     this.field.obstacles = this.obstacles;
     const sd = this.stageDef;
     this.safe = !!(sd.endless || sd.tutorial);
+    if (sd.dummies) this.field.setDummies(sd.dummies); // 트라이얼: 구석에 고정된 적
     this.items = new Items(this, sd, new Rng(RunState.seed + 31), keeperDef.trait === 'cheekPouch' ? (keeperDef.traitParams.itemEffectMultiplier ?? 1) : 1);
     this.boss = sd.boss ? new Boss(this, sd, this.field, { x: CFG.central.x, y: CFG.central.y }, new Rng(RunState.seed + 59)) : null;
     const host = { field: this.field, items: this.items, score: this.score, combo: this.combo, keeper: () => this.keeper.pos, litCount: () => this.sources.litCount };

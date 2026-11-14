@@ -3,7 +3,7 @@
 수치 원본은 `assets/data/game.json`·`stages.json`·`enemies.json`·`items.json`·`map.json`. 새 기획(XMind)에 없는 수치는 모두 제안이고, 라이언은 세부를 Claude 판단에 맡긴다(첫 스테이지는 쉽게). 옛 시스템(하룻밤 120초·손 등불 HP·시너지·대광원·장착물·방해 요소 안개/달그림자)은 없어졌다.
 
 > **2026-11-13 팀 컨셉 시연판 (아래 본문·11-12 요약보다 우선)** — 라이언: 13시 팀 시연, 전체 Phase를 한 번에 가볍게. 치명적이지 않으면 Claude 판단, 그림은 임시, 사운드는 Web Audio 합성만, 디자인보다 기능 우선.
-> - 스테이지(`stages.json`): tutorial(필수, 6단계) · stage-1 빛의 마을 등불 1 · stage-2 경계 등불 2 + 토리 구출 · stage-3 어둠의 마을 등불 3 + 도토 구출 · stage-4 등불 4 + 노월 · practice(순수 테스트 적 있게 — 2026-11-14부터 아침이 오면 끝) · sandbox(순수 테스트 적 없게 — 끝없음, `endless`). 진행 `src/core/Progress.ts`(앞 스테이지를 깨면 열림, 선택 화면 '시연: 모두 열기').
+> - 스테이지(`stages.json`): tutorial(필수, 6단계) · stage-1 빛의 마을 등불 1 · stage-2 경계 등불 2 + 토리 구출 · stage-3 어둠의 마을 등불 3 + 도토 구출 · stage-4 등불 4 + 노월 · trial(트라이얼 — 가까운 구석에 고정된 적 7종, 쓰러지면 2.5초 뒤 같은 자리에, 끝없음 `endless`, 2026-11-14). 진행 `src/core/Progress.ts`(앞 스테이지를 깨면 열림, 선택 화면 '시연: 모두 열기').
 > - 적 9종 구현(`entities/enemies/Creature.ts` 데이터 구동): 호스틸 역할 role(박쥐 추적·웨어울프 중앙 광원·뱀파이어 등불), 잃어버린 주민 구출(2026-11-14부터 role `source` = 빛을 찾아 가까운 광원으로, 150 안의 주인공만 공격 — 제안), 패시브 떠돌기·빛 피하기·대사, **자비**(곁 200 안 1.5초, 300점) · **분노**(맞으면 주인공을 쫓음). 빛을 잃은 친구 `tori-lost`·`doto-lost` → `friend:rescued` → 해금.
 > - 아이템(`scenes/play/Items.ts`, `systems/inventory.ts`): 칸 2개, 빛의 부적 기본 1개, 대부분 켜진 등불 빛 안·나머지는 중앙 광원 둘레, 패배 위험이면 루미 곁(2026-11-14), PC Q·E. 칸은 누르는 순간(pointerdown) 쓴다 — 휴대폰은 이동 스틱을 누른 손가락이 있으면 두 번째 손가락에 click을 보내지 않음(2026-11-13). 노월(`scenes/play/Boss.ts`): 둘레를 돌며 박쥐 소환·어둠 구슬, HP 200, 진정 = 바로 아침(이유 boss).
 > - 맵: `map.json` wall·fence 미로 요소(걷는 적은 막히고 우회, 나는 적은 넘음). 풀숲에 4초 넘게 있으면 들킴(`systems/stealth.ts`). 테마 = `VillageStage.setTheme` 색조.

@@ -32,11 +32,11 @@ const REACH = 300;
 export function installAutoplay(game: Phaser.Game): void {
   const params = new URLSearchParams(location.search);
   if (!params.has('autoplay')) return;
-  // 2026-11-13: &stage=stage-2 (스테이지), &char=tori (캐릭터), stage=practice면 연습장
+  // 2026-11-13: &stage=stage-2 (스테이지), &char=tori (캐릭터), stage=trial이면 트라이얼(고정된 적 연습장, 2026-11-14)
   const stage = params.get('stage');
   if (stage) {
     RunState.stageId = stage;
-    RunState.test = stage === 'practice' || stage === 'sandbox';
+    RunState.test = stage === 'trial';
   }
   const ch = params.get('char');
   if (ch) RunState.characterId = ch as CharacterId;

@@ -85,7 +85,7 @@ export function freeze(scene: Phaser.Scene, paused: boolean): void {
   scene.time.paused = paused;
 }
 
-/** 적 없는 순수 테스트·튜토리얼은 끝나지 않는다: 하트가 다시 차고 중앙 광원이 꺼지지 않는다 */
+/** 트라이얼·튜토리얼은 끝나지 않는다: 하트가 다시 차고 중앙 광원이 꺼지지 않는다 */
 export function keepSafe(vitals: Vitals, central: CentralSourceState): void {
   if (!vitals.down) vitals.hearts = CFG.stage.hearts;
   central.hp = Math.max(central.hp, CFG.practice.centralFloor);

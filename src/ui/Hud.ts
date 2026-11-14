@@ -44,6 +44,8 @@ export class Hud {
   private readonly slots: HTMLButtonElement[];
   /** 홈의 `테스트` 판이면 시계 자리에 '테스트' */
   private test = false;
+  /** 끝나지 않는 판에서 시계 자리에 보일 이름 */
+  private endlessLabel = '';
 
   constructor() {
     this.clock = h('span', { class: 'night-clock__time' }, '00:00');
@@ -148,8 +150,10 @@ export class Hud {
   private listen(): void {
     bus.on('run:start', (e) => {
       this.el.classList.remove('is-low', 'is-ended', 'is-down', 'is-source-low');
-      // 시계 대신 '테스트'는 끝나지 않는 판(적 없는 순수 테스트)만 (2026-11-14: 나머지 테스트 판은 시계·진행 바 그대로)
-      this.test = e.test && !!GameData.stages.find((s) => s.id === e.stageId)?.endless;
+      // 시계 대신 판 이름('트라이얼')은 끝나지 않는 판만 (2026-11-14: 스테이지 체험판은 시계·진행 바 그대로)
+      const endless = GameData.stages.find((s) => s.id === e.stageId && s.endless);
+      this.test = !!endless;
+      this.endlessLabel = endless?.name ?? '';
       this.el.classList.toggle('is-test', this.test);
       this.setNight(0, e.durationSec);
       this.combo.classList.add('is-empty');
@@ -195,7 +199,7 @@ export class Hud {
     const p = Math.min(1, t / duration);
     this.bar.style.setProperty('--p', String(p));
     this.bar.setAttribute('aria-valuenow', String(Math.round(p * 100)));
-    this.clock.textContent = this.test ? '테스트' : formatTime(t);
+    this.clock.textContent = this.test ? this.endlessLabel : formatTime(t);
     this.bar.querySelectorAll<HTMLElement>('.night-bar__notch').forEach((n) => {
       n.classList.toggle('is-passed', p >= Number(n.style.getPropertyValue('--at')));
     });

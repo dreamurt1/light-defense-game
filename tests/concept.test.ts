@@ -140,15 +140,33 @@ describe('가리는 물체 반투명 (2026-11-13 라이언: 장애물 뒤쪽의 
 });
 
 describe('테스트 판 (2026-11-14 라이언: 홈 테스트 → 모든 스테이지 중 골라 바로)', () => {
-  it('끝없는 판은 적 없는 순수 테스트(sandbox)뿐 — 적 있는 순수 테스트와 모든 스테이지는 끝이 있다', () => {
-    const endless = GameData.stages.filter((s) => s.endless).map((s) => s.id);
-    expect(endless).toEqual(['sandbox']);
-    const sandbox = stageById('sandbox');
-    expect(sandbox.spawn.normal.maxAlive).toBe(0);
-    expect(sandbox.spawn.climax.maxAlive).toBe(0);
-    expect(sandbox.passive).toBeUndefined();
-    expect(sandbox.boss).toBeUndefined();
-    expect(stageById('practice').spawn.normal.maxAlive).toBeGreaterThan(0);
+  it('끝없는 판은 트라이얼뿐 — 각 스테이지 체험판은 모두 끝이 있다', () => {
+    expect(GameData.stages.filter((s) => s.endless).map((s) => s.id)).toEqual(['trial']);
+    const trial = stageById('trial');
+    expect(trial.spawn.normal.maxAlive).toBe(0);
+    expect(trial.spawn.climax.maxAlive).toBe(0);
+    expect(trial.passive).toBeUndefined();
+    expect(trial.boss).toBeUndefined();
+  });
+
+  it('트라이얼: 고정된 적은 루미 시작 자리에서 멀지 않은 구석, 장애물·고정된 등불과 떨어져 있다', () => {
+    const G = GameData.game;
+    const start = { x: G.central.x, y: G.central.y + G.keeper.startOffsetY };
+    const trial = stageById('trial');
+    const list = trial.dummies?.list ?? [];
+    expect(list.length).toBeGreaterThanOrEqual(6);
+    expect(new Set(list.map((d) => d.enemyId)).size).toBe(list.length); // 종류마다 하나
+    const lamp = GameData.map.stations[trial.stationSpots?.[0] ?? -1];
+    expect(lamp).toBeDefined();
+    const rects = [...GameData.map.obstacles, ...GameData.map.bushes];
+    for (const d of list) {
+      expect(Math.hypot(d.x - start.x, d.y - start.y), d.enemyId).toBeLessThan(460);
+      expect(Math.hypot(d.x - lamp.x, d.y - lamp.y), d.enemyId).toBeGreaterThan(G.station.ward.maxRadius + 60);
+      for (const r of rects) {
+        const gap = Math.hypot(Math.max(r.x - d.x, 0, d.x - (r.x + r.w)), Math.max(r.y - d.y, 0, d.y - (r.y + r.h)));
+        expect(gap, d.enemyId).toBeGreaterThan(40);
+      }
+    }
   });
 
   it('테스트 판의 깬 스테이지·구출한 친구는 진행에 남지 않고, 정식 판은 남는다', async () => {
