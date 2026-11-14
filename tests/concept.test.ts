@@ -149,24 +149,28 @@ describe('테스트 판 (2026-11-14 라이언: 홈 테스트 → 모든 스테�
     expect(trial.boss).toBeUndefined();
   });
 
-  it('트라이얼: 고정된 적은 마을 곳곳(가까운 곳·먼 곳, 여러 방향)에, 장애물·고정된 등불과 떨어져 있다 (2026-11-14 라이언)', () => {
+  it('트라이얼: 연습장답게 시작 자리 가까이 모아 둔다 — 네 모서리 표적·작은 무리, 장애물·고정된 등불과 떨어짐 (2026-11-14 라이언, 브롤스타즈 훈련 동굴 참고)', () => {
     const G = GameData.game;
     const start = { x: G.central.x, y: G.central.y + G.keeper.startOffsetY };
     const trial = stageById('trial');
     const list = trial.dummies?.list ?? [];
-    expect(list.length).toBeGreaterThanOrEqual(6);
-    expect(new Set(list.map((d) => d.enemyId)).size).toBe(list.length); // 종류마다 하나
+    const dist = list.map((d) => Math.hypot(d.x - start.x, d.y - start.y));
+    expect(Math.max(...dist)).toBeLessThan(450); // 너무 멀리 흩지 않는다
+    // 시작 자리 네 모서리 (약 200)
+    const corners = list.filter((d) => Math.hypot(d.x - start.x, d.y - start.y) < 250);
+    expect(new Set(corners.map((d) => Math.sign(d.x - start.x) + ',' + Math.sign(d.y - start.y))).size).toBe(4);
+    // 작은 무리: 같은 종 넷 이상이 한 줄로 가까이
+    const bats = list.filter((d) => d.enemyId === 'bat');
+    const row = bats.filter((d) => bats.filter((o) => o !== d && Math.hypot(o.x - d.x, o.y - d.y) < 80).length > 0);
+    expect(row.length).toBeGreaterThanOrEqual(4);
+    // 공격하는 적과 패시브(자비 연습)가 모두 있다
+    expect(list.some((d) => GameData.enemies.find((e) => e.id === d.enemyId)?.kind === 'passive')).toBe(true);
     const lamp = GameData.map.stations[trial.stationSpots?.[0] ?? -1];
     expect(lamp).toBeDefined();
     const rects = [...GameData.map.obstacles, ...GameData.map.bushes];
-    const dist = list.map((d) => Math.hypot(d.x - start.x, d.y - start.y));
-    expect(dist.filter((d) => d < 450).length).toBeGreaterThanOrEqual(3); // 가까운 곳에도
-    expect(dist.filter((d) => d > 700).length).toBeGreaterThanOrEqual(3); // 먼 곳에도
-    const dirs = new Set(list.map((d) => Math.round(Math.atan2(d.y - start.y, d.x - start.x) / (Math.PI / 4))));
-    expect(dirs.size).toBeGreaterThanOrEqual(6); // 여러 방향
-    for (const [i, d] of list.entries()) {
-      for (const o of list.slice(i + 1)) expect(Math.hypot(d.x - o.x, d.y - o.y), d.enemyId + '·' + o.enemyId).toBeGreaterThan(180); // 한 군데 몰리지 않게
+    for (const d of list) {
       expect(Math.hypot(d.x - lamp.x, d.y - lamp.y), d.enemyId).toBeGreaterThan(G.station.ward.maxRadius + 60);
+      expect(Math.hypot(d.x - G.central.x, d.y - G.central.y), d.enemyId).toBeGreaterThan(150);
       for (const r of rects) {
         const gap = Math.hypot(Math.max(r.x - d.x, 0, d.x - (r.x + r.w)), Math.max(r.y - d.y, 0, d.y - (r.y + r.h)));
         expect(gap, d.enemyId).toBeGreaterThan(40);
