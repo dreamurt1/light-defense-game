@@ -110,6 +110,13 @@ describe('밸런스 안전장치 (2026-11-13 라이언: 첫 스테이지는 쉽�
     }
     expect(s1.spawn.normal.maxAlive).toBeLessThanOrEqual(3);
   });
+  it('1스테이지: 평소 동시 최대의 적이 모두 중앙 광원을 쳐도 20초 넘게 버틴다 (2026-11-14 광원 피해 상향의 상한, 제안)', async () => {
+    const { enemyById } = await import('../src/data');
+    const s1 = stageById('stage-1');
+    const ids = Object.keys(s1.spawn.normal.weights) as Parameters<typeof enemyById>[0][];
+    const worstPerSec = Math.max(...ids.map((id) => enemyById(id).sourceDamage / enemyById(id).damageTickSec));
+    expect(worstPerSec * s1.spawn.normal.maxAlive * 20).toBeLessThan(GameData.game.central.maxHp);
+  });
   it('1~3스테이지는 오를수록 클라이맥스 동시 최대가 줄지 않는다 (4스테이지는 노월 소환이 따로 더해짐)', () => {
     const climax = STAGE_ORDER.map((id) => stageById(id).spawn.climax.maxAlive);
     for (let i = 1; i < climax.length - 1; i++) expect(climax[i]).toBeGreaterThanOrEqual(climax[i - 1]);

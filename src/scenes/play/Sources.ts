@@ -39,28 +39,41 @@ export class Sources {
     return this.stations.length > 0 && this.litCount === this.stations.length;
   }
 
-  /** 등불 점화 → 맵 전체 광도 → 중앙 광원. @returns 이번 프레임에 켜진 등불 */
-  update(dt: number, progress: number): LightStation[] {
-    const justLit = this.stations.filter((s) => s.update(dt, this.mapLight.level));
+  /** 등불 점화·자연 감소 → 맵 전체 광도 → 중앙 광원.
+   *  꺼진 등불이 켜지면 중앙 광원 HP가 조금 오른다(2026-11-14 라이언). @returns 이번 프레임에 켜진 등불과 그 덕에 오른 중앙 광원 HP */
+  update(dt: number, progress: number): { station: LightStation; heal: number }[] {
+    const lit: { station: LightStation; heal: number }[] = [];
+    let out = false;
+    for (const s of this.stations) {
+      const changed = s.update(dt);
+      if (changed === 'out') {
+        out = true;
+        bus.emit('station:out', { x: s.pos.x, y: s.pos.y });
+      } else if (changed === 'lit') {
+        const heal = this.central.state.heal(CFG.station.centralHeal);
+        if (heal > 0) this.central.healFrom(s.pos);
+        lit.push({ station: s, heal });
+      }
+    }
+    if (out) this.emitStations();
     this.mapLight.update(dt, progress, this.allLit);
-    this.central.state.update(dt);
     this.central.update(dt);
-    return justLit;
+    return lit;
   }
 
-  /** 각 등불이 보이는 광도 (맵 전체 광도를 따름) — 완전 승리 판정 */
-  get stationLevels(): number[] {
-    return this.stations.map((s) => s.state.level(this.mapLight.level));
+  /** 각 등불이 켜져 있는지 — 완전 승리 판정 */
+  get stationsOn(): boolean[] {
+    return this.stations.map((s) => s.state.lit);
   }
 
-  /** 마을을 드러내는 빛 고임: 루미 주변(aura) + 중앙 광원(광도 비례) + 켜진 등불 */
+  /** 마을을 드러내는 빛 고임: 루미 주변(aura) + 중앙 광원(광도 = HP 비례) + 켜진 등불(광도 = HP 비례) */
   pools(aura: LightPool): LightPool[] {
     const c = CFG.central;
     const st = this.central.state;
     return [
       aura,
       { x: this.central.pos.x, y: this.central.pos.y, radius: st.out ? 0 : c.glowMin + (c.glowMax - c.glowMin) * st.ratio, alpha: 1 },
-      ...this.stations.map((s) => ({ x: s.pos.x, y: s.pos.y, radius: s.radiusFor(this.mapLight.level), alpha: 1 })),
+      ...this.stations.map((s) => ({ x: s.pos.x, y: s.pos.y, radius: s.glowRadius, alpha: 1 })),
     ];
   }
 
@@ -74,10 +87,10 @@ export class Sources {
     return id === 'central' ? this.central.pos : (this.stationById(id)?.pos ?? null);
   }
 
-  /** 노란 화살표로 가리킬 곳: 꺼진 등불, 위험한(광도 '낮음') 중앙 광원. lift = 그림 꼭대기 조금 위(연출 값) */
+  /** 노란 화살표로 가리킬 곳: 꺼진 등불, 위험한(광도 '낮음' = HP 25% 아래) 중앙 광원. lift = 그림 꼭대기 조금 위(연출 값) */
   beacons(): Beacon[] {
     const out: Beacon[] = this.stations.filter((s) => !s.state.lit).map((s) => ({ x: s.pos.x, y: s.pos.y, lift: s.arrowLift, drop: s.arrowDrop }));
-    if (this.central.state.value < CFG.lightLevels.bands[0]) out.push({ x: this.central.pos.x, y: this.central.pos.y, lift: this.central.arrowLift, drop: this.central.arrowDrop });
+    if (this.central.state.light < CFG.lightLevels.bands[0]) out.push({ x: this.central.pos.x, y: this.central.pos.y, lift: this.central.arrowLift, drop: this.central.arrowDrop });
     return out;
   }
 
@@ -102,20 +115,23 @@ export class Sources {
     return this.stations.find((s) => s.id === id);
   }
 
-  /** 적의 공격·노월의 구슬: 중앙 광원 또는 등불 광도가 준다. @returns 중앙 광원이 맞았으면 true */
+  /** 적의 공격·노월의 구슬: 중앙 광원 또는 등불의 HP가 준다(광도도 함께). @returns 중앙 광원이 맞았으면 true */
   damage(target: string, amount: number, by: EnemyId, climax: boolean): boolean {
     if (target === 'central') {
       const c = this.central;
       c.state.damage(amount);
       c.hit();
       this.mapLight.hit('central', climax);
-      bus.emit('central:hit', { value: c.state.value, by });
+      bus.emit('central:hit', { hp: c.state.hp, by });
       return true;
     }
     const s = this.stationById(target);
     if (!s) return false;
     s.hit();
-    if (s.state.damage(amount)) this.emitStations();
+    if (s.state.damage(amount)) {
+      bus.emit('station:out', { x: s.pos.x, y: s.pos.y });
+      this.emitStations();
+    }
     return false;
   }
 

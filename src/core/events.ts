@@ -47,12 +47,15 @@ export interface GameEvents {
   'player:respawn': undefined;
   /** 빛 자원 */
   'lp:change': { value: number; min: number; max: number };
-  /** 중앙 광원 광도 (= HP) */
-  'central:change': { value: number; max: number; outAt: number };
-  'central:hit': { value: number; by: EnemyId };
+  /** 중앙 광원 HP (게이지, 2026-11-14 — 광도는 HP 비례) */
+  'central:change': { hp: number; maxHp: number };
+  'central:hit': { hp: number; by: EnemyId };
   /** 등불 스테이션: 켜진 수 / 전체 */
   'station:change': { lit: number; total: number };
-  'station:lit': { x: number; y: number; allLit: boolean };
+  /** centralHeal = 켜진 덕에 오른 중앙 광원 HP (2026-11-14) */
+  'station:lit': { x: number; y: number; allLit: boolean; centralHeal: number };
+  /** 등불이 꺼짐 (다 타거나 적에게 맞아서, 2026-11-14) */
+  'station:out': { x: number; y: number };
   'item:spawn': { itemId: string; x: number; y: number };
   'item:pickup': { itemId: string; x: number; y: number };
   /** 아이템을 씀 (효과 시간이 있으면 durationSec) */

@@ -37,7 +37,9 @@ export class Toast {
     this.el.append(this.guide);
 
     // 2026-11-12 새 기획 (새 문구)
-    bus.on('station:lit', (e) => this.show(e.allLit ? '모든 등불이 켜졌어요!' : '등불이 켜졌어요'));
+    // 2026-11-14: 켜면 중앙 광원이 조금 오르고, 꺼지면 알린다 (다시 켜러 가게)
+    bus.on('station:lit', (e) => this.show((e.allLit ? '모든 등불이 켜졌어요!' : '등불이 켜졌어요') + (e.centralHeal >= 1 ? ` · 중앙 광원 +${Math.round(e.centralHeal)}` : '')));
+    bus.on('station:out', () => this.show('등불이 꺼졌어요'));
     bus.on('player:down', (e) => this.show(`하트 ${e.hearts}개 남았어요`));
 
     bus.on('run:start', (e) => {

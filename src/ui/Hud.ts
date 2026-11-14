@@ -1,6 +1,6 @@
 // 플레이 중 HUD. 레퍼런스(reference/ChatGPT-Images)의 분위기를 따른다:
 //   위 한 줄 = 달 · "밤 mm:ss" · 민트 진행 바(클라이맥스 눈금) · 점수 · 콤보
-//   아래 = 하트 3개 + HP 바 · LP(빛) 바 · 중앙 광원 광도 · 켠 등불 수 · 일시정지  (2026-11-12 새 기획)
+//   아래 = 하트 3개 + HP 바 · LP(빛) 바 · 중앙 광원 HP(2026-11-14, 광도 = HP 비례) · 켠 등불 수 · 일시정지  (2026-11-12 새 기획)
 // 매 프레임이 아니라 이벤트가 올 때만 DOM을 고친다.
 import { bus, type RunResult } from '../core/events';
 import { GameData } from '../data';
@@ -83,7 +83,7 @@ export class Hud {
     const hpRow = h('div', { class: 'vitals__hp-row' }, h('span', { class: 'gauge-label', 'aria-hidden': 'true' }, 'HP'), h('span', { class: 'vitals__hp', role: 'img', 'aria-label': 'HP' }, this.hp));
     const vitals = h('div', { class: 'vitals', role: 'group', 'aria-label': '루미' }, this.heartsBox, hpRow);
     this.lp = meter('meter--lp', '빛 (LP)', starIcon, 'LP');
-    this.source = meter('meter--source', '중앙 광원', crystalIcon); // 글자 없이 결정 아이콘 (2026-11-13 라이언: HUD 글자는 HP·LP로 충분)
+    this.source = meter('meter--source', '중앙 광원 HP', crystalIcon); // 글자 없이 결정 아이콘 (2026-11-13 라이언: HUD 글자는 HP·LP로 충분)
     this.stationsCount = h('span', { class: 'stations__count' }, '0/0');
     this.stations = h('div', { class: 'stations', role: 'img', 'aria-label': '켠 등불' }, svg(lampIcon), this.stationsCount);
     this.slots = [0, 1].map((i) => {
@@ -168,8 +168,10 @@ export class Hud {
     bus.on('player:respawn', () => this.el.classList.remove('is-down'));
     bus.on('lp:change', (e) => this.setMeter(this.lp, (e.value - e.min) / (e.max - e.min), e.value));
     bus.on('central:change', (e) => {
-      this.setMeter(this.source, (e.value - e.outAt) / (e.max - e.outAt), e.value);
-      this.el.classList.toggle('is-source-low', bandOf(e.value, G.lightLevels.bands) === 0);
+      // 막대 = HP, 색 단계·'낮음' 잔불 맥박 = 광도(HP 비례 0~100)
+      const light = (e.hp / e.maxHp) * 100;
+      this.setMeter(this.source, e.hp / e.maxHp, light);
+      this.el.classList.toggle('is-source-low', bandOf(light, G.lightLevels.bands) === 0);
     });
     bus.on('central:hit', () => replay(this.source.el, 'is-hit'));
     bus.on('station:change', (e) => {

@@ -80,53 +80,110 @@ describe('광도 4단계', () => {
   });
 });
 
-describe('중앙 광원', () => {
-  it("'중간'에서 시작해 서서히 커지고, 맞으면 줄고, 바닥에 닿으면 꺼진다", () => {
+describe('중앙 광원 (2026-11-14 라이언: HP와 광도 분리)', () => {
+  it('HP 가득으로 시작하고 광도는 크게 밝음', () => {
     const c = new CentralSourceState(G.central);
-    expect(bandOf(c.value, bands)).toBe(1);
-    c.update(10);
-    expect(c.value).toBeCloseTo(G.central.start + G.central.growPerSec * 10);
+    expect(c.hp).toBe(G.central.maxHp);
+    expect(c.ratio).toBe(1);
+    expect(bandOf(c.light, bands)).toBe(3);
+  });
+
+  it('맞으면 HP가 줄고 광도도 HP에 비례해 준다, 저절로 회복되지 않는다', () => {
+    const c = new CentralSourceState(G.central);
+    c.damage(G.central.maxHp * 0.6);
+    expect(c.hp).toBeCloseTo(G.central.maxHp * 0.4);
+    expect(c.light).toBeCloseTo(40);
+    expect(bandOf(c.light, bands)).toBe(1);
+    expect('update' in c).toBe(false); // 시간이 지나도 HP가 오르는 길이 없다
+  });
+
+  it('꺼진 등불을 켜면 조금 오르되 최대를 넘지 않고, 꺼진 뒤에는 오르지 않는다 (2026-11-14)', () => {
+    const c = new CentralSourceState(G.central);
+    expect(c.heal(G.station.centralHeal)).toBe(0); // 가득일 때
+    c.damage(50);
+    expect(c.heal(G.station.centralHeal)).toBeCloseTo(G.station.centralHeal);
+    expect(c.hp).toBeCloseTo(G.central.maxHp - 50 + G.station.centralHeal);
     c.damage(999);
-    expect(c.out).toBe(true);
-    c.update(10);
+    expect(c.heal(G.station.centralHeal)).toBe(0);
     expect(c.out).toBe(true);
   });
 
-  it('첫 스테이지: 아무것도 안 해도 끝날 때 밝음 이상까지 자란다(쉽게)', () => {
+  it('HP 0 = 꺼짐 (그 뒤로는 더 줄지 않음)', () => {
     const c = new CentralSourceState(G.central);
-    c.update(GameData.stages[0].durationSec);
-    expect(bandOf(c.value, bands)).toBeGreaterThanOrEqual(2);
+    c.damage(999);
+    expect(c.out).toBe(true);
+    expect(c.hp).toBe(0);
+    expect(c.light).toBe(0);
+    c.damage(5);
+    expect(c.hp).toBe(0);
   });
 });
 
-describe('등불 스테이션', () => {
-  it('빛을 맞으면 점화 뒤 크게 밝음, 맞으면 천천히 약해지다 꺼진다', () => {
+describe('등불 스테이션 (2026-11-14 라이언: 켜면 HP 가득, 켜진 동안 빛으로 회복 없음)', () => {
+  it('꺼짐(HP 0) → 빛을 맞으면 점화 → 켜지는 순간 HP 가득', () => {
     const s = new StationState(G.station);
     expect(s.mode).toBe('off');
+    expect(s.hp).toBe(0);
+    expect(s.light).toBe(0);
     expect(s.ignite()).toBe(true);
     expect(s.ignite()).toBe(false);
-    expect(s.update(G.station.igniteSec / 2)).toBe(false);
-    expect(s.update(G.station.igniteSec)).toBe(true);
+    expect(s.update(G.station.igniteSec / 2)).toBeNull();
+    expect(s.light).toBeCloseTo(50);
+    expect(s.update(G.station.igniteSec)).toBe('lit');
     expect(s.lit).toBe(true);
-    expect(bandOf(s.value, bands)).toBe(3);
-    s.damage(10);
-    expect(s.value).toBeCloseTo(G.station.on - 10 * G.station.damageMultiplier);
+    expect(s.hp).toBe(G.station.maxHp);
+    expect(bandOf(s.light, bands)).toBe(3);
+  });
+
+  it('켜진 동안 빛을 맞아도 HP가 늘지 않고, 적에게 맞거나 시간이 지나면 준다 (2026-11-14 자연 감소)', () => {
+    const s = new StationState(G.station);
+    s.ignite();
+    s.update(G.station.igniteSec);
+    s.damage(20);
+    let hp = G.station.maxHp - 20 * G.station.damageMultiplier;
+    expect(s.hp).toBeCloseTo(hp);
+    expect(s.ignite()).toBe(false);
+    s.update(5);
+    hp -= 5 * G.station.decayPerSec;
+    expect(s.hp).toBeCloseTo(hp);
+    expect(s.light).toBeCloseTo((hp / G.station.maxHp) * 100);
+  });
+
+  it('아무도 건드리지 않아도 다 타면 저절로 꺼진다 — 1스테이지 한 판(100초) 안에 한 번은 다시 켜야 할 만큼', () => {
+    const s = new StationState(G.station);
+    s.ignite();
+    s.update(G.station.igniteSec);
+    let t = 0;
+    let r: string | null = null;
+    while (r !== 'out' && t < 300) {
+      r = s.update(0.1);
+      t += 0.1;
+    }
+    expect(r).toBe('out');
+    expect(s.mode).toBe('off');
+    expect(t).toBeLessThan(GameData.stages.find((x) => x.id === 'stage-1')!.durationSec);
+    expect(t).toBeGreaterThan(20); // 켜자마자 꺼지지는 않게
+  });
+
+  it('적에게 맞아 HP 0이 되면 꺼지고, 그때 다시 켜면 또 가득', () => {
+    const s = new StationState(G.station);
+    s.ignite();
+    s.update(G.station.igniteSec);
     let went = false;
     for (let i = 0; i < 500 && !went; i++) went = s.damage(10);
     expect(went).toBe(true);
     expect(s.mode).toBe('off');
+    expect(s.hp).toBe(0);
+    expect(s.light).toBe(0);
+    expect(s.damage(10)).toBe(false);
     expect(s.ignite()).toBe(true);
-  });
-
-  it('맵 전체 광도가 더 크면 그것을 따른다', () => {
-    const s = new StationState(G.station);
-    expect(s.level(60)).toBe(60);
-    expect(s.level(0)).toBe(G.station.off);
+    s.update(G.station.igniteSec);
+    expect(s.hp).toBe(G.station.maxHp);
   });
 });
 
 describe('승패', () => {
-  const base = { timeUp: false, hearts: 3, centralOut: false, centralLevel: 60, stationLevels: [100], bands };
+  const base = { timeUp: false, hearts: 3, centralOut: false, centralLevel: 60, stationsOn: [true], bands };
   it('하트 0 또는 중앙 광원 꺼짐 = 오늘은 여기까지', () => {
     expect(judgeStage({ ...base, hearts: 0 })).toEqual({ outcome: 'over', reason: 'hearts' });
     expect(judgeStage({ ...base, centralOut: true })).toEqual({ outcome: 'over', reason: 'central' });
@@ -134,9 +191,9 @@ describe('승패', () => {
   it('시간이 남았으면 계속', () => {
     expect(judgeStage(base)).toBeNull();
   });
-  it('아침: 하트 1개 이상이면 기본 승리, 광원·등불 모두 밝음 이상이면 완전 승리', () => {
+  it('아침: 하트 1개 이상이면 기본 승리, 광원이 밝음 이상이고 등불이 모두 켜져 있으면 완전 승리', () => {
     expect(judgeStage({ ...base, timeUp: true, hearts: 1 })?.outcome).toBe('complete');
-    expect(judgeStage({ ...base, timeUp: true, stationLevels: [100, 30] })?.outcome).toBe('victory');
+    expect(judgeStage({ ...base, timeUp: true, stationsOn: [true, false] })?.outcome).toBe('victory');
     expect(judgeStage({ ...base, timeUp: true, centralLevel: 40 })?.outcome).toBe('victory');
   });
 });

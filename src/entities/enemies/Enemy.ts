@@ -11,9 +11,11 @@ import { GameData } from '../../data';
 
 /**
  * 호스틸 역할 (2026-11-13 Phase 3: 추적 / 중앙 광원 공격 / 등불 공격). enemies.json behaviorParams.role.
- * chase = 보이면 주인공(기본), central = 중앙 광원으로 곧장(아주 가까울 때만 주인공), station = 켜진 등불 먼저
+ * chase = 보이면 주인공(기본), central = 중앙 광원으로 곧장(아주 가까울 때만 주인공), station = 켜진 등불 먼저,
+ * source = 가장 가까운 광원(중앙 광원·켜진 등불)으로 곧장, 아주 가까울 때만 주인공 (2026-11-14: 잃어버린 주민은 빛을 찾아감 —
+ *          루미만 쫓으면 곁을 지키는 동안 광원이 위협받지 않아 '등불을 켜러 나갈지 중앙을 지킬지'가 생기지 않았음, 제안)
  */
-type Role = 'chase' | 'central' | 'station';
+type Role = 'chase' | 'central' | 'station' | 'source';
 /** 역할 공격 거리·벽 우회 (원본 game.json enemyAi.closeAggro·stuckSec·detourDist·detourSec, 제안) */
 const AI = GameData.game.enemyAi;
 const CLOSE_AGGRO = AI.closeAggro;
@@ -103,7 +105,7 @@ export abstract class Enemy extends Phaser.GameObjects.Container {
     this.hp = def.hp;
     this.base = new Phaser.Math.Vector2(x, y);
     const role = def.behaviorParams?.role;
-    this.role = role === 'central' || role === 'station' ? role : 'chase';
+    this.role = role === 'central' || role === 'station' || role === 'source' ? role : 'chase';
     scene.add.existing(this);
   }
 

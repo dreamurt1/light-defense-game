@@ -236,7 +236,7 @@ export class PlayScene extends Phaser.Scene {
     const progress = this.clock.progress;
 
     // 광원들: 등불 점화·맵 전체 광도·중앙 광원
-    for (const s of this.sources.update(dt, progress)) this.onStationLit(s);
+    for (const { station, heal } of this.sources.update(dt, progress)) this.onStationLit(station, heal);
     this.stage.setMood(this.sources.mapLight.lit, this.sources.mapLight.gloom);
     const central = this.sources.central;
 
@@ -257,8 +257,8 @@ export class PlayScene extends Phaser.Scene {
       timeUp: this.clock.isDawn || calmed,
       hearts: this.vitals.hearts,
       centralOut: central.state.out,
-      centralLevel: central.state.value,
-      stationLevels: this.sources.stationLevels,
+      centralLevel: central.state.light,
+      stationsOn: this.sources.stationsOn,
       bands: CFG.lightLevels.bands,
     });
     const verdict = this.rules.verdict(judged, calmed, this.safe);
@@ -396,11 +396,11 @@ export class PlayScene extends Phaser.Scene {
     bus.emit('score:change', { score: this.score.total, gained });
   }
 
-  private onStationLit(s: LightStation): void {
+  private onStationLit(s: LightStation, centralHeal: number): void {
     this.stage.burstAt(s.pos.x, s.pos.y, 10, 1);
     const allLit = this.sources.allLit;
     this.rules.signal('lit');
-    bus.emit('station:lit', { x: s.pos.x, y: s.pos.y, allLit });
+    bus.emit('station:lit', { x: s.pos.x, y: s.pos.y, allLit, centralHeal });
     this.sources.emitStations();
     if (allLit) this.stage.celebrate(this.keeper.pos, CELEBRATE_SEC);
   }
@@ -511,7 +511,7 @@ export class PlayScene extends Phaser.Scene {
 
   /** HUD 갱신: 값이 바뀌었을 때만 (force = 피격 등 바로) */
   private emitVitals(force = false): void {
-    this.hud.emit(this.vitals, this.lp, this.sources.central.state.value, force);
+    this.hud.emit(this.vitals, this.lp, this.sources.central.state.hp, force);
   }
 
   private togglePause(): void {

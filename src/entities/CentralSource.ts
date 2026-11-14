@@ -1,4 +1,4 @@
-// 중앙 광원 (2026-11-12 새 기획): 맵 가운데의 수호 토템. 상태는 systems/centralSource(광도 = HP)이고,
+// 중앙 광원 (2026-11-12 새 기획): 맵 가운데의 수호 토템. 상태는 systems/centralSource(HP, 광도 = HP 비례 — 2026-11-14)이고,
 // 여기서는 그림(밝음·약함·꺼짐), 결정 둘레의 빛, 맞았을 때의 번쩍임만 맡는다. 빛 고임(마을이 드러나는 빛)은 VillageStage.
 import Phaser from 'phaser';
 import { TextureKeys } from '../core/TextureKeys';
@@ -13,7 +13,7 @@ import { SourceGauge } from './SourceGauge';
 /** 판정 점(x, y)에서 받침 바닥까지 (그림의 발 위치, 제안) */
 const FOOT_BELOW = 50;
 const FRAME = { lit: 0, low: 1, out: 2 } as const;
-/** 광도(= 체력) 게이지: 그림 꼭대기 위, 등불 게이지보다 크게 (2026-11-13 라이언: 잘 보이게) */
+/** HP 게이지: 그림 꼭대기 위, 등불 게이지보다 크게 (2026-11-13 라이언: 잘 보이게, 2026-11-14: 게이지 = HP) */
 const GAUGE = { w: 112, h: 12, gap: 14 };
 
 export class CentralSource {
@@ -25,6 +25,8 @@ export class CentralSource {
   /** 판정 점에서 그림 꼭대기까지 */
   private readonly topAbove: number;
   private t = 0;
+  /** 등불 덕에 회복한 직후 결정이 환해지는 정도 (1 → 0) */
+  private glowBoost = 0;
 
   constructor(
     private readonly scene: Phaser.Scene,
@@ -78,14 +80,37 @@ export class CentralSource {
     this.gauge.flash();
   }
 
+  /** 꺼진 등불이 켜져 회복: 등불에서 빛 방울이 날아와 결정이 잠깐 환해진다 (2026-11-14, 연출 값은 제안) */
+  healFrom(from: { x: number; y: number }): void {
+    const mote = this.scene.add
+      .image(from.x, from.y, TextureKeys.glow)
+      .setTint(0xffe7a0)
+      .setBlendMode(Phaser.BlendModes.ADD)
+      .setScale(0.32)
+      .setDepth(4400);
+    this.scene.tweens.add({
+      targets: mote,
+      x: this.halo.x,
+      y: this.halo.y,
+      scale: 0.18,
+      duration: 650,
+      ease: 'Sine.easeInOut',
+      onComplete: () => {
+        mote.destroy();
+        this.glowBoost = 1;
+      },
+    });
+  }
+
   update(dt: number): void {
     this.t += dt;
+    this.glowBoost = Math.max(0, this.glowBoost - dt * 1.4);
     const s = this.state;
-    const band = bandOf(s.value, this.bands);
+    const band = bandOf(s.light, this.bands);
     this.sprite.setFrame(s.out ? FRAME.out : band === 0 ? FRAME.low : FRAME.lit);
     // 결정 둘레의 빛: 광도에 비례, 아주 천천히 숨 쉰다
-    const r = s.out ? 0 : 60 + 70 * s.ratio;
-    this.halo.setScale((r * 2) / 256).setAlpha(s.out ? 0 : 0.26 + 0.05 * Math.sin(this.t * 1.6)); // 2026-11-13 큰 결정이 하얗게 날아가지 않게 0.35 → 0.26
-    this.gauge.update(dt, s.value / this.cfg.max, s.value, s.out ? 'off' : 'on');
+    const r = s.out ? 0 : 60 + 70 * s.ratio + 40 * this.glowBoost;
+    this.halo.setScale((r * 2) / 256).setAlpha(s.out ? 0 : 0.26 + 0.05 * Math.sin(this.t * 1.6) + 0.3 * this.glowBoost); // 2026-11-13 큰 결정이 하얗게 날아가지 않게 0.35 → 0.26
+    this.gauge.update(dt, s.ratio, s.light, s.out ? 'off' : 'on');
   }
 }

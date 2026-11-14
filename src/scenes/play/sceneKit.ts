@@ -52,7 +52,7 @@ export function makeRoam(rng: Rng, area: Rect): (from: Vec) => Vec {
 export class HudFeed {
   private shown = { hp: -1, lp: -1, central: -1 };
 
-  emit(vitals: Vitals, lp: LightPoints, centralValue: number, force = false): void {
+  emit(vitals: Vitals, lp: LightPoints, centralHp: number, force = false): void {
     const hp = Math.ceil(vitals.hp);
     if (force || hp !== this.shown.hp) {
       this.shown.hp = hp;
@@ -63,10 +63,11 @@ export class HudFeed {
       this.shown.lp = v;
       bus.emit('lp:change', { value: v, min: lp.min, max: lp.max });
     }
-    const central = Math.round(centralValue);
+    // 남아 있는 동안 0으로 보이지 않게 올림 (주인공 HP와 같게)
+    const central = Math.ceil(centralHp);
     if (force || central !== this.shown.central) {
       this.shown.central = central;
-      bus.emit('central:change', { value: central, max: CFG.central.max, outAt: CFG.central.outAt });
+      bus.emit('central:change', { hp: central, maxHp: CFG.central.maxHp });
     }
   }
 }
@@ -87,5 +88,5 @@ export function freeze(scene: Phaser.Scene, paused: boolean): void {
 /** 연습장·튜토리얼은 끝나지 않는다: 하트가 다시 차고 중앙 광원이 꺼지지 않는다 */
 export function keepSafe(vitals: Vitals, central: CentralSourceState): void {
   if (!vitals.down) vitals.hearts = CFG.stage.hearts;
-  central.value = Math.max(central.value, CFG.practice.centralFloor);
+  central.hp = Math.max(central.hp, CFG.practice.centralFloor);
 }

@@ -1106,6 +1106,39 @@ body {
   }
 }
 
+/* 폰 가로(폭 ÷ 높이 > 17:9, 2026-11-14 라이언: 두 스틱이 바깥으로 치우쳐 엄지로 다루기 불편 → 안쪽으로):
+   두 스틱을 42u씩 안으로(가운데가 가장자리에서 폭의 약 14~15%, 제안). 노치 여백이 있으면 여백 + 원래 거리와
+   새 거리 중 더 안쪽 하나만 써서 두 번 밀리지 않게. 아래 판은 그만큼 좁혀(최대 600 그대로) 스틱 상자와 겹치지 않게 */
+@media not all and (max-aspect-ratio: 17/9) {
+  :root[data-layout='landscape'] .sticks {
+    left: 0;
+    right: 0;
+  }
+
+  :root[data-layout='landscape'] .stick--move {
+    left: max(calc(var(--u) * 64), calc(env(safe-area-inset-left, 0px) + var(--u) * 22));
+  }
+
+  :root[data-layout='landscape'] .stick--light {
+    right: max(calc(var(--u) * 76), calc(env(safe-area-inset-right, 0px) + var(--u) * 34));
+  }
+
+  /* 설정 '스틱 좌우 바꾸기'도 같은 거리로 */
+  :root[data-layout='landscape'] .sticks--swapped .stick--move {
+    left: auto;
+    right: max(calc(var(--u) * 64), calc(env(safe-area-inset-right, 0px) + var(--u) * 22));
+  }
+
+  :root[data-layout='landscape'] .sticks--swapped .stick--light {
+    right: auto;
+    left: max(calc(var(--u) * 76), calc(env(safe-area-inset-left, 0px) + var(--u) * 34));
+  }
+
+  :root[data-layout='landscape'] .hud-bottom__row {
+    width: min(calc(var(--u) * 600), calc(100% - var(--u) * 524));
+  }
+}
+
 /* 재질 층(finish.css)의 아래 띠 결·윗선은 가로에서 띠가 없으므로 끈다 */
 :root[data-layout='landscape'] .hud-bottom {
   background-image: none;

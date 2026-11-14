@@ -1,5 +1,5 @@
-// 광원 게이지 (2026-11-13 라이언: 중앙 광원·등불의 광도 = 그것들의 체력이므로 플레이어에게 잘 보여야 함).
-// 그림 위에 떠 있는 굵은 막대: 광도 4단계 눈금(25·50·75), 단계마다 색(노랑 → 호박 → 새벽빛 → 잔불),
+// 광원 HP 게이지 (2026-11-13 라이언: 중앙 광원·등불의 체력이 플레이어에게 잘 보여야 함, 2026-11-14: 게이지 = HP, 광도 = HP 비례).
+// 그림 위에 떠 있는 굵은 막대: 광도 4단계 눈금(HP 25·50·75%), 단계마다 색(노랑 → 호박 → 새벽빛 → 잔불),
 // 맞으면 줄어든 만큼 흰 잔상이 남았다가 따라 줄고 테두리가 번쩍인다. 판정은 하지 않는다.
 import Phaser from 'phaser';
 import { GameData } from '../data';
@@ -54,7 +54,7 @@ export class SourceGauge {
     g.strokeRoundedRect(this.x - this.w / 2 - 3, this.y - this.h / 2 - 3, this.w + 6, this.h + 6, r);
   }
 
-  /** @param value 광도 0~100 · igniting = 점화 중(ratio는 점화 진행) · off = 꺼짐(흐리게) */
+  /** @param ratio HP 비율 0~1 · value 광도 0~100(색 단계) · igniting = 점화 중(ratio는 점화 진행) · off = 꺼짐(흐리게) */
   update(dt: number, ratio: number, value: number, mode: 'on' | 'igniting' | 'off'): void {
     this.t += dt;
     const r = Math.max(0, Math.min(1, ratio));

@@ -101,10 +101,7 @@
       "w": 132,
       "h": 46
     },
-    "start": 45,
-    "max": 100,
-    "outAt": 10,
-    "growPerSec": 0.4,
+    "maxHp": 100,
     "healRadius": 220,
     "glowMin": 150,
     "glowMax": 330
@@ -115,10 +112,11 @@
       "w": 52,
       "h": 28
     },
-    "off": 10,
-    "on": 100,
-    "igniteSec": 1.2,
-    "damageMultiplier": 0.5,
+    "maxHp": 100,
+    "decayPerSec": 1.3,
+    "centralHeal": 8,
+    "igniteSec": 0.8,
+    "damageMultiplier": 0.6,
     "healRadius": 180,
     "glowMin": 50,
     "glowMax": 220
@@ -210,7 +208,7 @@
     "summonCap": 6,
     "orbEverySec": 4.5,
     "orbSpeed": 170,
-    "orbDamage": 3,
+    "orbDamage": 6,
     "orbRadius": 22
   },
   "tutorial": {
@@ -221,7 +219,7 @@
   },
   "_notes": {
     "changed": "2026-11-12 새 기획(XMind 1112) 전환: 한 판 = 스테이지(길이는 stages.json, 약 100초, 끝 = 아침), 70%부터 클라이맥스. 지킬 것 = 맵 가운데 중앙 광원 + 등불 스테이션. 루미는 HP·하트·LP를 갖고 스스로 빛을 쏜다(손 등불 없음). 시너지·대광원·장착물 없음. 수치는 모두 제안(라이언: 알아서, 첫 스테이지는 쉽게)",
-    "lightLevels": "광도는 0~100 연속값을 4단계로: 25 미만 낮음, 50 미만 중간, 75 미만 밝음, 그 이상 크게 밝음. 중앙 광원은 outAt(10)에 닿으면 꺼진다(게임 오버). 등불은 off(10)에서 시작해 빛을 맞으면 igniteSec 뒤 on(100)",
+    "lightLevels": "광도는 0~100 연속값을 4단계로: 25 미만 낮음, 50 미만 중간, 75 미만 밝음, 그 이상 크게 밝음. 2026-11-14 라이언: 중앙 광원·등불은 HP와 광도를 나눈다 — 게이지 = HP(maxHp), 광도(밝기·4단계) = HP ÷ maxHp × 100. 중앙 광원은 HP 가득으로 시작해 줄기만 하고(빛·시간으로 회복 없음, 시간 회복을 없앤 것은 제안) HP 0 = 꺼짐(게임 오버). 등불은 꺼짐(HP 0)에서 빛을 맞으면 igniteSec 연출 뒤 HP 가득, 켜진 동안은 빛으로 회복 없음, 적에게 맞으면 광원 피해 × damageMultiplier, HP 0 = 다시 꺼짐. 2026-11-14 추가(라이언): 켜진 등불은 초당 decayPerSec씩 저절로 줄고(제안 1.3 = 약 77초), 꺼진 등불을 켜면 중앙 광원 HP +centralHeal(제안 8, 중앙 광원이 오르는 유일한 길). 점화 igniteSec 1.2 → 0.8(제안: 다시 켜는 일이 판마다 1~8번으로 잦아져 기다림을 줄이되 달아오르는 모습은 읽히게). 광원 피해 상향(enemies.json sourceDamage ×2.2, 등불 damageMultiplier 0.6, boss.orbDamage 6)",
     "player": "하트를 잃으면 respawnDelaySec 뒤 중앙 광원 옆에서 HP 100%(라이언 답변), invulnSec 무적. regenDelaySec 동안 맞지 않으면 regenPerSec, 광원 healRadius 안에서는 centralRegenPerSec. 부활할 때 빛기둥이 respawnPushRadius 안의 적을 respawnPush만큼 밀어낸다(부활하자마자 둘러싸이지 않게, 제안)",
     "lp": "발사마다 castCost, 꺼진 등불을 켜면 stationCost(쏜 뒤 깎임, 남은 양과 상관없이 켜짐 — XMind). min에 가까울수록 사거리·위력이 weakest배까지 약해짐",
     "village": "맵 전체 광도: 진행² × brightenMax(모든 등불이 켜지면 × buffMultiplier)에서 피격 dip을 뺀다. 광원 피격은 크게, 주인공 피격은 조금, 클라이맥스에는 × climaxDipMultiplier. dip은 초당 dipRecoverPerSec씩 회복",

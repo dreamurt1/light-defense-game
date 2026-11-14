@@ -89,10 +89,8 @@ export interface GameConfig {
     y: number;
     radius: number;
     footprint: Footprint;
-    start: number;
-    max: number;
-    outAt: number;
-    growPerSec: number;
+    /** HP (가득으로 시작, 회복 없음 — 2026-11-14). 광도 = HP 비례 */
+    maxHp: number;
     healRadius: number;
     glowMin: number;
     glowMax: number;
@@ -100,8 +98,12 @@ export interface GameConfig {
   station: {
     radius: number;
     footprint: Footprint;
-    off: number;
-    on: number;
+    /** HP (켜지는 순간 가득, 0이면 꺼짐 — 2026-11-14). 광도 = HP 비례 */
+    maxHp: number;
+    /** 켜진 동안 저절로 줄어드는 HP (초당) */
+    decayPerSec: number;
+    /** 꺼진 등불을 켜면 오르는 중앙 광원 HP */
+    centralHeal: number;
     igniteSec: number;
     damageMultiplier: number;
     healRadius: number;
