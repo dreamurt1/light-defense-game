@@ -56,6 +56,8 @@ export class Lightkeeper {
   private dir: Dir = 's';
   private action: Action | null = null;
   /** 이번 프레임 동작 값 (손 위치에도 더한다) */
+  /** 피격 번쩍임·붉은 물듦 타이머 (다시 맞으면 지우고 새로) */
+  private hurtTimers: Phaser.Time.TimerEvent[] = [];
   private pose: Pose = { ...REST };
   private sleeping = false;
   private moving = false;
@@ -142,9 +144,20 @@ export class Lightkeeper {
   hurt(away = this.faceAngle + Math.PI): void {
     if (this.sleeping || this.action?.kind === 'respawn') return;
     this.start('hit', away);
+    // 앞 피격의 색 타이머가 이번 번쩍임을 덮지 않게 먼저 지운다 (코드 검토 2026-11-14)
+    this.clearHurtTint();
     this.sprite.setTintFill(0xffffff);
-    this.scene.time.delayedCall(FLASH_MS, () => this.sprite.setTint(HURT_TINT));
-    this.scene.time.delayedCall(FLASH_MS + HURT_TINT_MS, () => this.sprite.clearTint());
+    this.hurtTimers = [
+      this.scene.time.delayedCall(FLASH_MS, () => this.sprite.setTint(HURT_TINT)),
+      this.scene.time.delayedCall(FLASH_MS + HURT_TINT_MS, () => this.sprite.clearTint()),
+    ];
+  }
+
+  /** 피격 색 타이머를 멈추고 색을 되돌린다 */
+  private clearHurtTint(): void {
+    for (const t of this.hurtTimers) t.remove(false);
+    this.hurtTimers = [];
+    this.sprite.clearTint();
   }
 
   /** 스테이지 시작·하트를 잃은 뒤: 정면 정지 모습으로 빛 속에 나타난다 (빛기둥은 LightFx) */
@@ -162,6 +175,7 @@ export class Lightkeeper {
    */
   rest(): void {
     if (this.sleeping) return;
+    this.clearHurtTint();
     this.moving = false;
     this.action = null;
     this.pose = { ...REST };
@@ -177,6 +191,7 @@ export class Lightkeeper {
 
   /** 하트를 잃음·오늘은 여기까지: 그 자리에 잠든다 */
   ko(): void {
+    this.clearHurtTint();
     this.sleeping = true;
     this.action = null;
     this.pose = { ...REST };

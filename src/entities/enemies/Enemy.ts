@@ -169,10 +169,15 @@ export abstract class Enemy extends Phaser.GameObjects.Container {
     return this.anchor !== null;
   }
 
+  /** 피할 결계: 켜진 등불들 중 지금 노리는(흐려진) 등불은 뺀다 — 그 결계에 막혀 닿지 못한 채 서성이지 않게 (코드 검토 2026-11-14) */
+  private wardsToAvoid(sources: readonly EnemyTarget[]): Ward[] {
+    return wardsOf(this.target ? sources.filter((s) => s.id !== this.target) : sources);
+  }
+
   /** 켜진 등불의 결계 안이면 밖으로 밀려난다 (갑자기 켜져도 순간 이동하지 않게 초당 pushPerSec까지) */
   avoidWards(sources: readonly EnemyTarget[], dt: number): void {
     if (this.wardFree) return;
-    const wards = wardsOf(sources);
+    const wards = this.wardsToAvoid(sources);
     if (wards.length === 0) return;
     // 막 들어오려는 적(돌진 포함)은 가장자리에서 바로 막고, 켜질 때 안에 있던 적은 pushPerSec로 천천히 밀어낸다
     const p = keepOut({ x: this.x, y: this.y }, this.radius, wards, Math.max(WARD.pushPerSec, this.def.speed * AI.chargeSpeed * 1.5) * dt);
@@ -360,7 +365,7 @@ export abstract class Enemy extends Phaser.GameObjects.Container {
     const dir = toward.clone().normalize();
     // 켜진 등불의 결계는 둘레로 비켜 간다 (목적지가 결계 안이면 가장자리까지만)
     if (!this.wardFree) {
-      const s = steerAround(this.base, dir, this.radius, dest, wardsOf(ctx.sources), WARD.steerBuffer);
+      const s = steerAround(this.base, dir, this.radius, dest, this.wardsToAvoid(ctx.sources), WARD.steerBuffer);
       dir.set(s.x, s.y);
     }
     this.lastDir = { x: dir.x, y: dir.y };
