@@ -267,12 +267,11 @@ export class PlayScene extends Phaser.Scene {
       return;
     }
 
-    if (!this.stageDef.tutorial) this.field.spawn(dt, this.clock.t);
+    if (!this.stageDef.tutorial) this.field.spawn(dt, this.clock.t, this.sources.enemyTargets());
     for (const { enemy, hit } of this.field.step(dt, this.enemyContext())) this.applyHit(enemy, hit);
     this.rules.update(dt, progress, !this.hidden && !this.vitals.down);
     if (this.boss) for (const h of this.boss.update(dt, this.clock.t, this.sources.enemyTargets())) this.damageSource(h.target, h.damage, 'witch');
-    const spots = [central.pos, ...this.sources.stations.filter((s) => s.state.lit).map((s) => s.pos)];
-    for (let n = this.items.update(dt, this.keeper.pos, spots, this.obstacles, WALK_AREA).length; n > 0; n--) {
+    for (let n = this.items.update(dt, this.keeper.pos, this.sources.itemPlaces(this.vitals), this.obstacles, WALK_AREA).length; n > 0; n--) {
       const gained = this.score.addItem(this.combo.combo);
       bus.emit('score:change', { score: this.score.total, gained });
     }
@@ -474,10 +473,10 @@ export class PlayScene extends Phaser.Scene {
   /** 맞음(HP만 줄어듦): 피격 동작·흰 번쩍임, 적 반대쪽으로 살짝 밀림(장애물·마을 끝 판정), 짧은 화면 흔들림 */
   private hurtKeeper(from: Vec): void {
     const k = this.keeper;
-    k.hurt();
-    this.fx.hurt(k.pos.x, k.pos.y);
     const dx = k.pos.x - from.x;
     const dy = k.pos.y - from.y;
+    k.hurt(Math.atan2(dy, dx));
+    this.fx.hurt(k.pos.x, k.pos.y);
     const len = Math.hypot(dx, dy) || 1;
     const stepped = stepMove(k.pos, { x: dx / len, y: dy / len }, CFG.player.hurtKnockback, 1, WALK_AREA);
     const feet = pushOut({ x: stepped.x, y: stepped.y + FEET_Y }, CFG.keeper.radius, this.obstacles);

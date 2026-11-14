@@ -3,11 +3,18 @@
 //  - 목표 고르기: 주인공이 보이고 aggroRadius 안이면 주인공, 아니면 가장 가까운 광원(중앙 광원·켜진 등불)
 //  - 숨은 주인공을 쫓던 적은 lostSightSec 동안 마을을 맴돌다(2026-11-06 라이언 지시) 광원으로 간다
 //  - 붙어 있다가 목표가 멀어지면(detachRatio) 떨어져 다시 쫓는다
+//  - 켜진 등불의 결계(밝기 비례 둘레)는 피해 돌아가고, 결계가 등불 몸에 닿을 만큼 줄어야 그 등불을 공격한다.
+//    등불을 노리는 뱀파이어(role station)·기다리는 친구·퇴장 중인 적은 예외 (2026-11-14 라이언, systems/lampWard)
 import Phaser from 'phaser';
 import type { EnemyDef } from '../../data';
 import type { Vec } from '../../systems/fan';
+import { keepOut, steerAround, type Ward } from '../../systems/lampWard';
 import { pushOut, type Rect } from '../../systems/obstacles';
 import { GameData } from '../../data';
+
+const WARD = GameData.game.station.ward;
+/** 켜진 등불의 결계들 */
+const wardsOf = (sources: readonly EnemyTarget[]): Ward[] => sources.filter((s) => (s.ward ?? 0) > 0).map((s) => ({ x: s.x, y: s.y, r: s.ward ?? 0 }));
 
 /**
  * 호스틸 역할 (2026-11-13 Phase 3: 추적 / 중앙 광원 공격 / 등불 공격). enemies.json behaviorParams.role.
@@ -32,6 +39,9 @@ export type TargetId = string;
 export interface EnemyTarget extends Vec {
   id: TargetId;
   radius: number;
+  /** 켜진 등불만: 광도(0~100)와 결계 반지름 (2026-11-14) */
+  light?: number;
+  ward?: number;
 }
 
 export interface EnemyContext {
@@ -111,6 +121,26 @@ export abstract class Enemy extends Phaser.GameObjects.Container {
 
   get radius(): number {
     return this.def.radius;
+  }
+
+  /** 등불의 결계를 무시하는 적: 등불을 노리는 뱀파이어, 기다리는 친구, 퇴장 중 */
+  private get wardFree(): boolean {
+    return this.role === 'station' || !!this.def.friend || this.mode === 'returning';
+  }
+
+  /** 켜진 등불의 결계 안이면 밖으로 밀려난다 (갑자기 켜져도 순간 이동하지 않게 초당 pushPerSec까지) */
+  avoidWards(sources: readonly EnemyTarget[], dt: number): void {
+    if (this.wardFree) return;
+    const wards = wardsOf(sources);
+    if (wards.length === 0) return;
+    // 막 들어오려는 적(돌진 포함)은 가장자리에서 바로 막고, 켜질 때 안에 있던 적은 pushPerSec로 천천히 밀어낸다
+    const p = keepOut({ x: this.x, y: this.y }, this.radius, wards, Math.max(WARD.pushPerSec, this.def.speed * AI.chargeSpeed * 1.5) * dt);
+    const dx = p.x - this.x;
+    const dy = p.y - this.y;
+    if (dx === 0 && dy === 0) return;
+    this.base.x += dx;
+    this.base.y += dy;
+    this.setPosition(p.x, p.y);
   }
 
   get targetable(): boolean {
@@ -257,7 +287,9 @@ export abstract class Enemy extends Phaser.GameObjects.Container {
     let dest: Vec | null = goal;
     let pace = 1;
     if (!goal) {
-      if (!this.roamTo || Phaser.Math.Distance.Between(this.base.x, this.base.y, this.roamTo.x, this.roamTo.y) < 24) this.roamTo = ctx.roam(this.base);
+      // 맴돌 지점이 켜진 등불의 결계 안이면 다시 고른다
+      const inWard = (p: Vec) => !this.wardFree && wardsOf(ctx.sources).some((w) => Math.hypot(p.x - w.x, p.y - w.y) < w.r);
+      if (!this.roamTo || Phaser.Math.Distance.Between(this.base.x, this.base.y, this.roamTo.x, this.roamTo.y) < 24 || inWard(this.roamTo)) this.roamTo = ctx.roam(this.base);
       dest = this.roamTo;
       pace = ctx.roamSpeed;
     } else {
@@ -270,6 +302,11 @@ export abstract class Enemy extends Phaser.GameObjects.Container {
     if (!dest) return out;
     const toward = new Phaser.Math.Vector2(dest.x - this.base.x, dest.y - this.base.y);
     const dir = toward.clone().normalize();
+    // 켜진 등불의 결계는 둘레로 비켜 간다 (목적지가 결계 안이면 가장자리까지만)
+    if (!this.wardFree) {
+      const s = steerAround(this.base, dir, this.radius, dest, wardsOf(ctx.sources), WARD.steerBuffer);
+      dir.set(s.x, s.y);
+    }
     this.lastDir = { x: dir.x, y: dir.y };
     // 목표 곁(chargeDist 안)에 왔는데 아직 공격 주기가 남았으면 멈춰 숨을 고르고, 곧이면 빠르게 돌진한다
     const near = goal && dest === goal && dist - reach <= AI.chargeDist;
@@ -333,12 +370,14 @@ export abstract class Enemy extends Phaser.GameObjects.Container {
     let next: EnemyTarget | null = sees && this.dist(p) <= reach ? p : null;
     if (!next && !this.playerOnly) {
       // 역할: 등불 공격은 켜진 등불 먼저, 중앙 광원 공격은 중앙 광원으로, 그 밖에는 가장 가까운 광원
+      // 결계가 아직 넓은(밝은) 등불은 뱀파이어만 노린다 — 다른 적은 결계가 등불 몸에 닿을 만큼 줄어야 다가와 공격 (2026-11-14)
+      const reachable = this.role === 'station' ? ctx.sources : ctx.sources.filter((s) => (s.ward ?? 0) <= s.radius + this.radius);
       const pool =
-        this.role === 'station' && ctx.sources.some((s) => s.id !== 'central')
-          ? ctx.sources.filter((s) => s.id !== 'central')
+        this.role === 'station' && reachable.some((s) => s.id !== 'central')
+          ? reachable.filter((s) => s.id !== 'central')
           : this.role === 'central'
-            ? ctx.sources.filter((s) => s.id === 'central')
-            : ctx.sources;
+            ? reachable.filter((s) => s.id === 'central')
+            : reachable;
       let best = Infinity;
       for (const s of pool) {
         const d = this.dist(s);

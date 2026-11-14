@@ -10,6 +10,10 @@ import { Frog } from '../../entities/enemies/Frog';
 import type { Enemy, EnemyContext, EnemyStep } from '../../entities/enemies/Enemy';
 import type { Spawner, SpawnRequest } from '../../systems/Spawner';
 import type { Vec } from '../../systems/fan';
+import { spawnWeight } from '../../systems/lampWard';
+import type { EnemyTarget } from '../../entities/enemies/Enemy';
+
+const WARD = GameData.game.station.ward;
 
 /** 화면 밖에서 적이 나타나는 거리: 보이는 영역 가장자리에서 이만큼 바깥 (제안) */
 const SPAWN_OUTSIDE = 56;
@@ -44,11 +48,13 @@ export class EnemyField {
     return this.enemies.filter((e) => e.targetable);
   }
 
-  /** 스테이지 시각 t에 새 적을 낸다 */
-  spawn(dt: number, t: number): void {
+  /** 스테이지 시각 t에 새 적을 낸다. 켜진 등불(sources 중 light가 있는 것) 쪽에서는 덜 나온다 (2026-11-14) */
+  spawn(dt: number, t: number, sources: readonly EnemyTarget[] = []): void {
     // 동시 최대는 스포너가 낸 적만 센다: 패시브 주민(별도 줄)·기다리는 친구·노월이 부른 박쥐는 빼고 (코드 리뷰 2026-11-13)
     const alive = this.active.filter((e) => e.def.kind !== 'passive' && !e.def.friend && !this.summoned.has(e)).length + this.pending.length;
-    this.pending.push(...this.spawner.update(dt, t, alive));
+    const lamps = sources.filter((s) => (s.light ?? 0) > 0).map((s) => ({ x: s.x, y: s.y, light: s.light ?? 0 }));
+    const weightAt = lamps.length > 0 ? (p: Vec) => spawnWeight(this.toWorld(p), lamps, WARD) : undefined;
+    this.pending.push(...this.spawner.update(dt, t, alive, weightAt));
     for (let i = this.pending.length - 1; i >= 0; i--) {
       const req = this.pending[i];
       req.delay -= dt;
@@ -65,6 +71,7 @@ export class EnemyField {
     for (const e of this.enemies) {
       const s = e.step(dt, ctx);
       e.collide(this.obstacles, dt);
+      e.avoidWards(ctx.sources, dt);
       if (s.hit) hits.push({ enemy: e, hit: s.hit });
     }
     return hits;
@@ -125,11 +132,16 @@ export class EnemyField {
     return new Creature(this.scene, enemyById(id), x, y, this.rng);
   }
 
+  /** 화면 기준 점 → 마을 좌표 (나올 자리 가중치용) */
+  private toWorld(p: Vec): Vec {
+    const view = this.scene.cameras.main.worldView;
+    return { x: view.x + p.x, y: view.y + p.y };
+  }
+
   /** Spawner는 화면 크기 기준 가장자리 점을 준다: 지금 보이는 영역의 같은 자리에서 조금 바깥으로 밀고 마을 안으로 자른다 */
   private spawnPoint(req: SpawnRequest): Vec {
     const view = this.scene.cameras.main.worldView;
-    const x = view.x + req.x;
-    const y = view.y + req.y;
+    const { x, y } = this.toWorld(req);
     const dx = x - view.centerX;
     const dy = y - view.centerY;
     const len = Math.hypot(dx, dy) || 1;

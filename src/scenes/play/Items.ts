@@ -1,5 +1,6 @@
 // 아이템 (2026-11-13 컨셉 시연판, Phase 4): 맵에 생기고 걸어서 주워 칸(2개)에 담고, HUD 칸·PC Q/E로 쓴다.
-//  - 생기는 곳: 중앙 광원·켜진 등불 둘레(광도 '중간' 이상인 곳 — XMind), stages.json items.intervalSec마다, 동시 maxGround개
+//  - 생기는 곳: stages.json items.intervalSec마다, 동시 maxGround개. 2026-11-14 라이언: 대부분(lampShare) 켜진 등불 빛 안에
+//    (등불을 켜 둘 이유), 나머지는 중앙 광원 둘레. 패배 위험(마지막 하트에 HP 낮음·중앙 광원 낮음)이면 루미 곁에, 곧(dangerSoonSec)
 //  - 빛의 부적은 스테이지마다 1개를 기본으로 준다(XMind). 도토의 볼주머니 = 효과 ×1.5
 //  - 효과: 바람 깃털(이동 빠르게) · 별 목걸이(적 느리게) · 반딧불 병(LP) · 황금 도토리(구출한 친구 2명이 곁에서 빛을 보냄) · 빛의 부적(HP·LP)
 import Phaser from 'phaser';
@@ -30,6 +31,15 @@ interface Ground {
   left: number;
 }
 
+/** 아이템이 생길 곳 (Sources.itemPlaces) */
+export interface ItemPlaces {
+  central: Vec;
+  /** 켜진 등불 */
+  lamps: readonly Vec[];
+  /** 패배 위험: 루미 곁에 */
+  danger: boolean;
+}
+
 export interface ItemHost {
   vitals: Vitals;
   lp: LightPoints;
@@ -44,6 +54,8 @@ export class Items {
   private helpers: Phaser.GameObjects.Sprite[] = [];
   private helperTick = 0;
   private spin = 0;
+  /** 이번 위험에 다음 아이템을 이미 당겼는지 (위험이 풀리면 다시) */
+  private dangerPulled = false;
 
   constructor(
     private readonly scene: Phaser.Scene,
@@ -66,17 +78,28 @@ export class Items {
   }
 
   /** 줍기·생기기·효과 시간. @returns 이번에 주운 아이템 */
-  update(dt: number, keeper: Vec, spots: readonly Vec[], obstacles: readonly Rect[], area: Rect): ItemDef[] {
+  update(dt: number, keeper: Vec, place: ItemPlaces, obstacles: readonly Rect[], area: Rect): ItemDef[] {
     const picked: ItemDef[] = [];
     this.spawnLeft -= dt;
+    // 위험해지면 다음 아이템을 곧 루미 곁에 (한 번의 위험에 한 번)
+    if (!place.danger) this.dangerPulled = false;
+    else if (!this.dangerPulled && this.stage.items) {
+      this.dangerPulled = true;
+      this.spawnLeft = Math.min(this.spawnLeft, CFG.dangerSoonSec);
+    }
     if (this.spawnLeft <= 0 && this.stage.items) {
       this.spawnLeft = this.stage.items.intervalSec;
       if (this.ground.length < CFG.maxGround) {
-        const base = this.rng.pick(spots);
+        const [base, min, max] = place.danger
+          ? [keeper, CFG.dangerRingMin, CFG.dangerRingMax]
+          : place.lamps.length > 0 && this.rng.chance(CFG.lampShare)
+            ? [this.rng.pick(place.lamps), CFG.lampRingMin, CFG.lampRingMax]
+            : [place.central, CFG.spawnRingMin, CFG.spawnRingMax];
         const a = this.rng.range(0, Math.PI * 2);
-        const d = this.rng.range(CFG.spawnRingMin, CFG.spawnRingMax);
+        const d = this.rng.range(min, max);
         const p = pushOut({ x: base.x + Math.cos(a) * d, y: base.y + Math.sin(a) * d }, 30, obstacles);
-        const def = this.rng.pick(GameData.items.filter((i) => i.id !== 'light_charm'));
+        // 위험할 때는 빛의 부적(HP·LP)도 나올 수 있다 (제안)
+        const def = this.rng.pick(GameData.items.filter((i) => place.danger || i.id !== 'light_charm'));
         this.drop(def.id, Math.min(area.x + area.w, Math.max(area.x, p.x)), Math.min(area.y + area.h, Math.max(area.y, p.y)));
       }
     }

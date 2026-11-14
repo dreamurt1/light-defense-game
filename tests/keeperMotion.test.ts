@@ -32,6 +32,14 @@ describe('루미 동작 효과 (공격·피격·부활)', () => {
     expect(p.sy).toBeLessThan(1);
   });
 
+  it('피격은 밀려나는 쪽으로 확 젖혀진다 (2026-11-14: 잘 보이게)', () => {
+    const right = motionPose('hit', 0.16, 0);
+    expect(right.dx).toBeGreaterThan(8);
+    expect(right.sy).toBeLessThan(0.85);
+    expect(Math.abs(right.rot)).toBeGreaterThan(0.1);
+    expect(motionPose('hit', 0.16, Math.PI).dx).toBeLessThan(-8);
+  });
+
   it('부활은 투명하게 가늘고 길게 시작해 제 모습으로 끝난다', () => {
     const first = motionPose('respawn', 0);
     expect(first.alpha).toBe(0);

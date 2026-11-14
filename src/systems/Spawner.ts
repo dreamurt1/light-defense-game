@@ -22,6 +22,8 @@ export interface SpawnArea {
 }
 
 const EDGES: readonly Edge[] = ['top', 'right', 'bottom', 'left'];
+/** 나올 자리 후보 수 (가중치가 있을 때, 제안) */
+const CANDIDATES = 4;
 
 export class Spawner {
   /** 다음 무리까지 남은 시간. 첫 무리는 첫 간격의 절반 뒤 (제안: 기획서에 없음) */
@@ -80,7 +82,11 @@ export class Spawner {
     this.area = { ...this.area, width, height };
   }
 
-  update(dt: number, t: number, alive: number): SpawnRequest[] {
+  /**
+   * @param weightAt 화면 가장자리 점의 가중치(0~1). 있으면 후보 몇 곳 중에서 가중치에 비례해 고른다
+   *   (2026-11-14: 켜진 등불 쪽에서는 덜 나옴 — systems/lampWard spawnWeight)
+   */
+  update(dt: number, t: number, alive: number, weightAt?: (p: { x: number; y: number }) => number): SpawnRequest[] {
     this.timer -= dt;
     if (this.timer > 0) return [];
 
@@ -95,8 +101,21 @@ export class Spawner {
     const def = this.enemies.find((e) => e.id === enemyId);
     if (!def) return [];
     const count = Math.min(room, def.group ? this.rng.int(def.group.min, def.group.max) : 1);
-    const edge = this.rng.pick(EDGES);
-    const anchor = this.edgePoint(edge, def.radius);
+    let edge = this.rng.pick(EDGES);
+    let anchor = this.edgePoint(edge, def.radius);
+    if (weightAt) {
+      const cands = [{ edge, anchor, w: weightAt(anchor) }];
+      for (let i = 1; i < CANDIDATES; i++) {
+        const e = this.rng.pick(EDGES);
+        const a = this.edgePoint(e, def.radius);
+        cands.push({ edge: e, anchor: a, w: weightAt(a) });
+      }
+      const total = cands.reduce((s, c) => s + c.w, 0);
+      let roll = this.rng.next() * total;
+      const chosen = total > 0 ? (cands.find((c) => (roll -= c.w) < 0) ?? cands[cands.length - 1]) : cands[0];
+      edge = chosen.edge;
+      anchor = chosen.anchor;
+    }
     const spread = def.radius * 3;
 
     const out: SpawnRequest[] = [];

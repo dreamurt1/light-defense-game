@@ -104,6 +104,8 @@ export interface GameConfig {
     decayPerSec: number;
     /** 꺼진 등불을 켜면 오르는 중앙 광원 HP */
     centralHeal: number;
+    /** 등불의 결계 (2026-11-14, systems/lampWard) */
+    ward: import('../systems/lampWard').WardConfig;
     igniteSec: number;
     damageMultiplier: number;
     healRadius: number;
@@ -145,7 +147,23 @@ export interface GameConfig {
   };
   score: { station: number; mercy: number; itemPickup: number; clearBase: number; completeMultiplier: number; orbPop: number };
   playfield: { margin: number };
-  items: { lifetimeSec: number; blinkLastSec: number; maxGround: number; slots: number; pickRadius: number; spawnRingMin: number; spawnRingMax: number };
+  items: {
+    lifetimeSec: number;
+    blinkLastSec: number;
+    maxGround: number;
+    slots: number;
+    pickRadius: number;
+    spawnRingMin: number;
+    spawnRingMax: number;
+    /** 2026-11-14: 켜진 등불 빛 안에 생길 확률과 그 둘레, 패배 위험일 때 루미 곁 둘레·판정·다음 아이템 당기기 */
+    lampShare: number;
+    lampRingMin: number;
+    lampRingMax: number;
+    dangerRingMin: number;
+    dangerRingMax: number;
+    dangerHpRatio: number;
+    dangerSoonSec: number;
+  };
   /** 패시브 주민 (2026-11-13): 나타나는 거리·피하기·분노 */
   passive: { spawnMinDist: number; shyDist: number; shySpeedMultiplier: number; angryDamage: number; angrySpeedMultiplier: number };
   /** 노월 (2026-11-13, scenes/play/Boss.ts) */

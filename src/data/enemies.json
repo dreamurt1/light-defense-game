@@ -33,7 +33,7 @@
     "hp": 30,
     "speed": 95,
     "damage": 12,
-    "sourceDamage": 4.6,
+    "sourceDamage": 3.8,
     "damageTickSec": 1.8,
     "score": 150,
     "radius": 22,

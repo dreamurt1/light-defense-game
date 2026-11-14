@@ -28,6 +28,9 @@ const DUST_EVERY = 0.16;
 const DUST_POOL = 10;
 /** 피격 흰 번쩍임 */
 const FLASH_MS = 70;
+/** 번쩍인 뒤 잠깐 물드는 색과 시간 (제안) */
+const HURT_TINT = 0xff9a9a;
+const HURT_TINT_MS = 150;
 /** 걷기 9fps가 맞춰진 이동 속도: 더 빨리 걸으면 걷기 동작도 같은 비율로 빨라져 발이 미끄러져 보이지 않는다 */
 const WALK_TUNED_SPEED = 150;
 const WALK_RATE = GameData.game.keeper.moveSpeed / WALK_TUNED_SPEED;
@@ -135,12 +138,13 @@ export class Lightkeeper {
     this.start('attack', angle);
   }
 
-  /** 등불이 맞았을 때: 움찔하며 흔들리고 짧게 하얗게 번쩍인다 (다시 맞으면 처음부터) */
-  hurt(): void {
+  /** 맞았을 때: 밀려나는 쪽(away, 라디안)으로 확 젖혀지며 움찔하고, 하얗게 번쩍인 뒤 잠깐 붉게 물든다 (다시 맞으면 처음부터, 2026-11-14 강화) */
+  hurt(away = this.faceAngle + Math.PI): void {
     if (this.sleeping || this.action?.kind === 'respawn') return;
-    this.start('hit', this.faceAngle);
+    this.start('hit', away);
     this.sprite.setTintFill(0xffffff);
-    this.scene.time.delayedCall(FLASH_MS, () => this.sprite.clearTint());
+    this.scene.time.delayedCall(FLASH_MS, () => this.sprite.setTint(HURT_TINT));
+    this.scene.time.delayedCall(FLASH_MS + HURT_TINT_MS, () => this.sprite.clearTint());
   }
 
   /** 스테이지 시작·하트를 잃은 뒤: 정면 정지 모습으로 빛 속에 나타난다 (빛기둥은 LightFx) */

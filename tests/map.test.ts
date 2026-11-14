@@ -62,11 +62,11 @@ describe('마을 배치', () => {
     }
   });
 
-  it('등불 자리는 중앙 광원 가까이 (2026-11-12 라이언: 멀다 → 약 340~370)', () => {
+  it('등불 자리는 중앙 광원에서 약 470 (2026-11-12 라이언: 멀다 → 340~370, 2026-11-14: 조금 더 멀리)', () => {
     for (const p of GameData.map.stations) {
       const d = Math.hypot(p.x - central.x, p.y - central.y);
-      expect(d).toBeGreaterThan(300);
-      expect(d).toBeLessThan(420);
+      expect(d).toBeGreaterThan(440);
+      expect(d).toBeLessThan(520);
     }
   });
 });

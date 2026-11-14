@@ -37,6 +37,20 @@ describe('Spawner (2026-11-12 새 기획: 평소·클라이맥스)', () => {
     expect(later.has('frog')).toBe(true);
   });
 
+  it('가중치가 있으면 가중치가 낮은 쪽(켜진 등불 쪽)에서는 덜 나온다 (2026-11-14)', () => {
+    const s = make(3);
+    let right = 0;
+    let total = 0;
+    for (let t = 0; t < 600; t += 0.5) {
+      for (const r of s.update(0.5, t % 60, 0, (p) => (p.x > area.width ? 0.02 : 1))) {
+        total++;
+        if (r.edge === 'right') right++;
+      }
+    }
+    expect(total).toBeGreaterThan(50);
+    expect(right / total).toBeLessThan(0.05);
+  });
+
   it('지금 나오는 적만 고른다', () => {
     const s = make(3, ['bat']);
     for (let i = 0; i < 200; i++) expect(s.pickEnemy(60)).toBe('bat');

@@ -13,6 +13,9 @@ import type { EnemyTarget } from '../../entities/enemies/Enemy';
 import type { LightTarget } from '../../systems/LightSystem';
 import type { Rect } from '../../systems/obstacles';
 import { MapLight } from '../../systems/villageMood';
+import { wardRadius } from '../../systems/lampWard';
+import type { Vitals } from '../../systems/vitals';
+import type { ItemPlaces } from './Items';
 
 const CFG = GameData.game;
 
@@ -94,12 +97,21 @@ export class Sources {
     return out;
   }
 
-  /** 적이 노릴 곳: 중앙 광원과 켜진 등불 */
+  /** 적이 노릴 곳: 중앙 광원과 켜진 등불. 등불은 결계 반지름(밝기 비례 — 대부분의 적이 피함)과 광도도 함께 (2026-11-14) */
   enemyTargets(): EnemyTarget[] {
     return [
       { id: 'central', x: this.central.pos.x, y: this.central.pos.y, radius: CFG.central.radius },
-      ...this.stations.filter((s) => s.state.lit).map((s) => ({ id: s.id, x: s.pos.x, y: s.pos.y, radius: s.radius })),
+      ...this.stations
+        .filter((s) => s.state.lit)
+        .map((s) => ({ id: s.id, x: s.pos.x, y: s.pos.y, radius: s.radius, light: s.state.light, ward: wardRadius(s.state.light, CFG.station.ward) })),
     ];
+  }
+
+  /** 아이템이 생길 곳 (2026-11-14 라이언): 대부분 켜진 등불 빛 안, 패배 위험이면 루미 곁 */
+  itemPlaces(v: Vitals): ItemPlaces {
+    const lowHp = v.hearts <= 1 && v.hp / v.maxHp <= CFG.items.dangerHpRatio;
+    const lowCentral = this.central.state.light < CFG.lightLevels.bands[0];
+    return { central: this.central.pos, lamps: this.stations.filter((s) => s.state.lit).map((s) => s.pos), danger: !v.down && (lowHp || lowCentral) };
   }
 
   /** 빛이 맞힐 꺼진 등불 (음수 uid: -1 - 번호) */
