@@ -36,7 +36,7 @@ export function installAutoplay(game: Phaser.Game): void {
   const stage = params.get('stage');
   if (stage) {
     RunState.stageId = stage;
-    RunState.test = stage === 'practice';
+    RunState.test = stage === 'practice' || stage === 'sandbox';
   }
   const ch = params.get('char');
   if (ch) RunState.characterId = ch as CharacterId;

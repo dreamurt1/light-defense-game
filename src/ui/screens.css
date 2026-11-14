@@ -1075,6 +1075,50 @@
   margin-top: calc(var(--u) * 20);
 }
 
+/* 순수 테스트: 맨 위 한 줄, 왼쪽 이름 · 오른쪽 '적 있게 / 적 없게' (2026-11-14) */
+.test-pure {
+  grid-column: 1 / -1;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: calc(var(--u) * 10);
+  cursor: default;
+}
+
+.test-pure:active {
+  transform: none;
+}
+
+.test-pure__head {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--u) * 3);
+  min-width: 0;
+}
+
+.test-pure__choices {
+  display: flex;
+  flex: 1 1 auto;
+  justify-content: flex-end;
+  gap: calc(var(--u) * 8);
+}
+
+.test-pure__pick {
+  flex-direction: column;
+  gap: calc(var(--u) * 2);
+  min-height: max(48px, calc(var(--u) * 58));
+  padding: 0 calc(var(--u) * 20);
+  font-size: calc(var(--u) * 17);
+  line-height: 1.15;
+}
+
+.test-pure__pick small {
+  font-size: calc(var(--u) * 12);
+  font-weight: 600;
+  color: var(--paper-soft);
+}
+
 /* ---------- 일시정지: 버튼 넷 ---------- */
 
 .sheet--pause .sheet__actions {
@@ -1273,7 +1317,7 @@
   grid-column: auto;
 }
 
-/* 테스트 판 고르기: 가운데 판, 카드 세 칸씩 두 줄 */
+/* 테스트 판 고르기: 가운데 판, 순수 테스트 한 줄 + 스테이지 다섯 칸 한 줄 */
 :root[data-layout='landscape'] .sheet--test {
   justify-content: center;
   padding: calc(var(--u) * 16);
@@ -1290,7 +1334,7 @@
 }
 
 :root[data-layout='landscape'] .test-sheet__grid {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   margin-top: calc(var(--u) * 14);
 }
 

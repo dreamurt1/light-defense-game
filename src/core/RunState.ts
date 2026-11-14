@@ -13,7 +13,7 @@ export const RunState = {
   nickname: DEFAULT_NICKNAME,
   seed: makeSeed(),
   lastResult: null as RunResult | null,
-  /** 홈의 `테스트` 판 = 연습장(2026-11-13 라이언: 스타파크식 — 같은 마을, 적 적게, 끝나지 않음). stageId는 'practice' */
+  /** 홈의 `테스트` 판 (2026-11-14 라이언: 모든 스테이지 중 골라 정식 판처럼, 순수 테스트는 적 있게 'practice' / 적 없게 'sandbox' = 끝없음). 진행·지난 밤들에 남지 않음 */
   test: false,
 
   newRun(): void {

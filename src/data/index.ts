@@ -274,8 +274,10 @@ export interface StageDef {
   items?: { intervalSec: number; firstSec: number };
   /** 튜토리얼 판 (시계가 멈추고 단계를 따라감) */
   tutorial?: boolean;
-  /** 연습장 (홈 테스트 = 스타파크식): 끝나지 않음, 적 적게 */
+  /** 순수 테스트 판 (홈 테스트, 같은 마을): 2026-11-14부터 적 있게 = 아침에 끝남, 적 없게(sandbox) = endless */
   practice?: boolean;
+  /** 끝나지 않는 판: 시계가 멈추고 하트·중앙 광원이 바닥나지 않음 (적 없는 순수 테스트, 2026-11-14) */
+  endless?: boolean;
   /** 선택 화면에 보이는 짧은 소개 */
   blurb?: string;
 }

@@ -140,6 +140,17 @@ describe('가리는 물체 반투명 (2026-11-13 라이언: 장애물 뒤쪽의 
 });
 
 describe('테스트 판 (2026-11-14 라이언: 홈 테스트 → 모든 스테이지 중 골라 바로)', () => {
+  it('끝없는 판은 적 없는 순수 테스트(sandbox)뿐 — 적 있는 순수 테스트와 모든 스테이지는 끝이 있다', () => {
+    const endless = GameData.stages.filter((s) => s.endless).map((s) => s.id);
+    expect(endless).toEqual(['sandbox']);
+    const sandbox = stageById('sandbox');
+    expect(sandbox.spawn.normal.maxAlive).toBe(0);
+    expect(sandbox.spawn.climax.maxAlive).toBe(0);
+    expect(sandbox.passive).toBeUndefined();
+    expect(sandbox.boss).toBeUndefined();
+    expect(stageById('practice').spawn.normal.maxAlive).toBeGreaterThan(0);
+  });
+
   it('테스트 판의 깬 스테이지·구출한 친구는 진행에 남지 않고, 정식 판은 남는다', async () => {
     const { Progress, watchProgress } = await import('../src/core/Progress');
     const { RunState } = await import('../src/core/RunState');

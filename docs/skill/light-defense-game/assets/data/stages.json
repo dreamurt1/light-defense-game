@@ -76,17 +76,32 @@
   },
   {
     "id": "practice",
-    "name": "연습장",
+    "name": "순수 테스트",
     "theme": "light-village",
     "durationSec": 100,
     "stations": 1,
     "practice": true,
-    "blurb": "적이 조금만 나오는 같은 마을. 끝나지 않아요.",
+    "blurb": "적이 조금 나오는 같은 마을. 아침이 오면 끝나요.",
     "spawn": {
       "normal": { "maxAlive": 2, "intervalStart": 3.0, "intervalEnd": 3.0, "weights": { "bat": 1, "frog": 1, "werewolf": 1, "vampire": 1, "hedgehog": 1, "redpanda": 1 } },
       "climax": { "maxAlive": 2, "intervalStart": 3.0, "intervalEnd": 3.0, "weights": { "bat": 1, "frog": 1, "werewolf": 1, "vampire": 1, "hedgehog": 1, "redpanda": 1 } }
     },
     "passive": { "intervalSec": 8, "maxAlive": 1, "weights": { "owl": 1, "moth": 1, "firefly": 1 } },
+    "items": { "intervalSec": 8, "firstSec": 3 }
+  },
+  {
+    "id": "sandbox",
+    "name": "순수 테스트",
+    "theme": "light-village",
+    "durationSec": 100,
+    "stations": 1,
+    "practice": true,
+    "endless": true,
+    "blurb": "적이 없는 같은 마을. 끝나지 않아요.",
+    "spawn": {
+      "normal": { "maxAlive": 0, "intervalStart": 99, "intervalEnd": 99, "weights": { "bat": 1 } },
+      "climax": { "maxAlive": 0, "intervalStart": 99, "intervalEnd": 99, "weights": { "bat": 1 } }
+    },
     "items": { "intervalSec": 8, "firstSec": 3 }
   }
 ]

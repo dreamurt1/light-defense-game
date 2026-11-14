@@ -160,7 +160,7 @@ export class PlayScene extends Phaser.Scene {
     this.field = new EnemyField(this, spawner, CFG.world, CFG.playfield.margin, new Rng(RunState.seed + 71));
     this.field.obstacles = this.obstacles;
     const sd = this.stageDef;
-    this.safe = !!(sd.practice || sd.tutorial);
+    this.safe = !!(sd.endless || sd.tutorial);
     this.items = new Items(this, sd, new Rng(RunState.seed + 31), keeperDef.trait === 'cheekPouch' ? (keeperDef.traitParams.itemEffectMultiplier ?? 1) : 1);
     this.boss = sd.boss ? new Boss(this, sd, this.field, { x: CFG.central.x, y: CFG.central.y }, new Rng(RunState.seed + 59)) : null;
     const host = { field: this.field, items: this.items, score: this.score, combo: this.combo, keeper: () => this.keeper.pos, litCount: () => this.sources.litCount };

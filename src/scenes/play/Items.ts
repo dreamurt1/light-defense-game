@@ -131,7 +131,7 @@ export class Items {
       ? this.scene.add.image(x, y, key).setScale(texScale(key) * 0.75).setDepth(y)
       : this.scene.add.image(x, y, TextureKeys.star).setTint(color).setScale(1.4).setDepth(y);
     this.scene.tweens.add({ targets: img, y: y - 8, duration: 700, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
-    this.ground.push({ def, img, glow, left: this.stage.tutorial || this.stage.practice ? 9999 : CFG.lifetimeSec });
+    this.ground.push({ def, img, glow, left: this.stage.tutorial || this.stage.endless ? 9999 : CFG.lifetimeSec });
     bus.emit('item:spawn', { itemId: id, x, y });
   }
 

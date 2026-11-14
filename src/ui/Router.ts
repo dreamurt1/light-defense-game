@@ -36,7 +36,8 @@ export class Router {
   private play(test: boolean, stageId?: string): void {
     RunState.test = test;
     if (test) RunState.stageId = stageId ?? 'practice';
-    else if (RunState.stageId === 'practice') RunState.stageId = Progress.nextStage;
+    // 정식 판은 순수 테스트 스테이지로 들어가지 않는다 (튜토리얼은 정식 시작이므로 그대로)
+    else if (RunState.stageId === 'practice' || RunState.stageId === 'sandbox') RunState.stageId = Progress.nextStage;
     this.go('play');
   }
 
@@ -67,7 +68,7 @@ export class Router {
 }
 
 function isSpecialStage(id: string): boolean {
-  return id === 'tutorial' || id === 'practice';
+  return id === 'tutorial' || id === 'practice' || id === 'sandbox';
 }
 
 /** 개발 중 `?screen=select` 같은 주소로 바로 열기 (빌드에는 영향 없음: 없으면 홈) */
