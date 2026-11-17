@@ -15,7 +15,7 @@ import { startTutorial } from '../Story';
 /** 특성 이름과 짧은 설명 (제안: 새 기획에 특성이 없어 기존 이름을 이어 씀) */
 const TRAIT: Record<CharacterDef['trait'], string> = {
   nightEyes: '밤눈 · 주변을 조금 더 넓게 밝혀요',
-  quickPaw: '빠른 손 · 빛을 더 빨리 다시 보내요',
+  quickFeet: '빠른 발 · 더 빨리 달리고 등불을 금세 켜요',
   cheekPouch: '볼주머니 · 아이템 효과 1.5배',
 };
 
@@ -39,6 +39,8 @@ export function rescueFriend(s: StageDef): CharacterDef | null {
 interface StageCard {
   def: StageDef;
   el: HTMLButtonElement;
+  /** 구출할 친구 표시 (그 친구로 플레이하면 숨김, 2026-11-17) */
+  friendTag?: { el: HTMLElement; id: string };
 }
 
 export class SelectScreen {
@@ -99,7 +101,7 @@ export class SelectScreen {
         h('span', { class: 'stage-card__badge stage-card__badge--lock' }, svg(lockIcon)),
       );
       el.addEventListener('click', () => this.pickStage(id));
-      return { def, el };
+      return { def, el, friendTag: friend && !def.boss ? { el: tag, id: friend.id } : undefined };
     });
     this.stageLine = h('p', { class: 'select__stage-line' });
 
@@ -170,6 +172,8 @@ export class SelectScreen {
       b.classList.toggle('is-current', k === this.index);
       b.setAttribute('aria-label', `${def.name}${off ? ' (잠김)' : ''}`);
     });
+    // 고른 주인공이 그 밤의 구출 친구 자신이면 그 친구는 나오지 않는다 (2026-11-17)
+    for (const st of this.stages) if (st.friendTag) st.friendTag.el.style.visibility = st.friendTag.id === c.id ? 'hidden' : '';
     this.updateGo();
   }
 

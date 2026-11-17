@@ -212,7 +212,8 @@ export interface CharacterDef {
   lightRange: number;
   lightPower: number;
   lightCooldownMultiplier: number;
-  trait: 'nightEyes' | 'quickPaw' | 'cheekPouch';
+  /** 특성: 루미 밤눈 · 토리 빠른 발(2026-11-17 라이언, 옛 빠른 손 quickPaw) · 도토 볼주머니 */
+  trait: 'nightEyes' | 'quickFeet' | 'cheekPouch';
   traitParams: Record<string, number>;
   /** null = 처음부터, rescue = 구출 스테이지에서 구하면 해금(Phase 5) */
   unlock: 'rescue' | null;
@@ -346,6 +347,41 @@ export function enemyById(id: EnemyId): EnemyDef {
 
 export function stageById(id: string): StageDef {
   return GameData.stages.find((s) => s.id === id) ?? GameData.stages[0];
+}
+
+/** 주인공 특성을 판에 쓰는 배율로 (해당 없는 배율은 1) */
+export interface TraitEffects {
+  /** 주변 빛 (루미 밤눈) */
+  aura: number;
+  /** 아이템 효과 (도토 볼주머니) */
+  itemEffect: number;
+  /** 이동 속도 (토리 빠른 발) */
+  move: number;
+  /** 꺼진 등불 점화 시간 (토리 빠른 발, 작을수록 빨리 켜짐) */
+  ignite: number;
+}
+
+const traitCache = new Map<CharacterId, TraitEffects>();
+
+export function traitOf(def: CharacterDef): TraitEffects {
+  const hit = traitCache.get(def.id);
+  if (hit) return hit;
+  const p = def.traitParams;
+  const fx: TraitEffects = {
+    aura: def.trait === 'nightEyes' ? (p.auraMultiplier ?? 1) : 1,
+    itemEffect: def.trait === 'cheekPouch' ? (p.itemEffectMultiplier ?? 1) : 1,
+    move: def.trait === 'quickFeet' ? (p.moveMultiplier ?? 1) : 1,
+    ignite: def.trait === 'quickFeet' ? (p.igniteMultiplier ?? 1) : 1,
+  };
+  traitCache.set(def.id, fx);
+  return fx;
+}
+
+/** 이 판에서 구출할 친구. 고른 주인공이 그 친구 자신이면 없음 (2026-11-17: 토리로 2스테이지를 하면 토리가 토리를 구하던 모순) */
+export function rescueFor(stage: StageDef, characterId: CharacterId): StageDef['rescue'] | null {
+  const r = stage.rescue;
+  if (!r) return null;
+  return enemyById(r.enemyId).friend === characterId ? null : r;
 }
 
 /** 지금 게임에 나오는 적 */

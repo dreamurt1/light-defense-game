@@ -89,9 +89,9 @@ export class LightStation {
     return this.footBelow + 14;
   }
 
-  /** 빛을 맞음: 꺼져 있으면 점화가 시작된다(유리가 점점 달아오름) */
-  ignite(): boolean {
-    if (!this.state.ignite()) return false;
+  /** 빛을 맞음: 꺼져 있으면 점화가 시작된다(유리가 점점 달아오름). timeMultiplier = 주인공 점화 배율(토리 빠른 발) */
+  ignite(timeMultiplier = 1): boolean {
+    if (!this.state.ignite(timeMultiplier)) return false;
     this.scene.tweens.add({ targets: this.sprite, scaleX: this.sprite.scaleX * 1.08, scaleY: this.sprite.scaleY * 1.08, duration: 160, yoyo: true });
     return true;
   }

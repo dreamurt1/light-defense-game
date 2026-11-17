@@ -1,7 +1,8 @@
 // 판 위의 적들: 스폰(Spawner가 고른 화면 가장자리 점 → 지금 보이는 영역 바깥의 마을 좌표), 종류별 생성, 매 프레임 이동·공격.
 // PlayScene을 600줄 아래로 유지하려고 떼어 낸 조립 조각이다(판정은 Enemy·systems가 한다).
 import type Phaser from 'phaser';
-import { enemyById, GameData, type EnemyId, type StageDef } from '../../data';
+import { enemyById, GameData, rescueFor, type EnemyId, type StageDef } from '../../data';
+import { RunState } from '../../core/RunState';
 import type { Rng } from '../../core/rng';
 import { Creature } from '../../entities/enemies/Creature';
 import type { Rect } from '../../systems/obstacles';
@@ -121,9 +122,9 @@ export class EnemyField {
     }
   }
 
-  /** 구출 스테이지: 진행 atProgress에 빛을 잃은 친구가 루미에게서 가장 먼 귀퉁이에 한 번 나타난다 */
+  /** 구출 스테이지: 진행 atProgress에 빛을 잃은 친구가 루미에게서 가장 먼 귀퉁이에 한 번 나타난다. 고른 주인공이 그 친구면 나타나지 않음(2026-11-17) */
   spawnFriend(progress: number, stage: StageDef, player: Vec): Creature | null {
-    const r = stage.rescue;
+    const r = rescueFor(stage, RunState.characterId);
     if (!r || this.friendSpawned || progress < r.atProgress) return null;
     this.friendSpawned = true;
     const spot = [...FRIEND_SPOTS].sort((a, b) => Math.hypot(b.x - player.x, b.y - player.y) - Math.hypot(a.x - player.x, a.y - player.y))[0];

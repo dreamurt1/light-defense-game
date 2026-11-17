@@ -2,6 +2,12 @@
 
 > 이 파일과 첨부 그림 2장(`ref-lumi-sheet.png` = 루미 캐릭터 시트, `ref-lumi-portrait.png` = 루미 초상)을 함께 읽고, **5절 순서대로 한 장씩** 만들어 주세요.
 > 같은 대화 안에서 이어 가야 그림체가 맞습니다. 7절에 그대로 쓸 수 있는 영문 프롬프트가 있습니다.
+>
+> **2026-11-17 갱신**
+> - 확정: 토리 이름, 토리 능력 '빠른 발', 별·달·씨앗 상징, 공통 별 조각.
+> - 고른 컨셉 그림: 4-6절.
+> - 스프라이트 팩: 루미 팩과 같은 폴더 구성으로 만든다(5절 단계 4).
+> - 게임 전체 사실은 같이 넘기는 **기준 사실서**(`light-defense-canon.md`)를 따른다.
 
 ## 1. 게임 한 줄
 
@@ -36,7 +42,7 @@
 - **게임 능력**: 밤눈. 주변을 더 넓게 밝힌다(균형형).
 - **실루엣 표식**: 세모 귀, 스카프 끝, 가는 꼬리.
 
-### 4-2. 토리 Tori (이름은 가칭) — 토끼, 루미의 단짝
+### 4-2. 토리 Tori (이름 확정 2026-11-17) — 토끼, 루미의 단짝
 
 - **모습**: 아기 흰 토끼.
   - 종이색에 가까운 흰 털, 그늘은 연한 라벤더 회색
@@ -46,7 +52,7 @@
   - 동그란 솜꼬리
 - **성격**: 겁은 많지만 날쌔고 다정하다. 놀람과 안도가 얼굴에 크게 드러날 만큼 표정이 풍부하다.
 - **의미**: **달**(한국 설화의 달토끼). "비추는 빛"으로, 밤길을 잃지 않게 하는 두 번째 빛이다.
-- **게임 능력**(제안): 빠른 발. 이동이 빠르고 꺼진 등불을 빨리 켠다. 외곽을 달리는 역할이다.
+- **게임 능력**(확정 2026-11-17): 빠른 발. 이동이 빠르고 꺼진 등불을 빨리 켠다. 외곽을 달리는 역할이다.
 - **실루엣 표식**: 긴 귀(한쪽 접힘)와 솜꼬리. 셋 중 귀 끝까지 가장 크다.
 - **크기**: 몸과 머리는 루미와 같고, 귀 끝까지는 루미의 약 1.2배다.
 
@@ -58,14 +64,14 @@
   - **몸만 한 S자 큰 꼬리**(가운데에 밝은 결)
   - 통통한 볼(볼주머니)
   - 두 손에 꼭 쥔 **황금 도토리**
-  - 등의 연한 줄무늬 한 줄은 넣어도 빼도 된다. 한국의 줄무늬 다람쥐 느낌이니 시안에서 비교한다.
+  - 줄무늬: 고른 컨셉 그림(4-6절)대로 **이마의 짧은 줄무늬**만 둔다.
 - **성격**: 느긋하고 꼼꼼한 마을 살림꾼. 모아 두기를 좋아한다.
 - **의미**: **씨앗**. 다람쥐가 묻어 두고 잊은 도토리가 숲이 되듯, "심는 빛"이다. 오늘의 작은 빛이 내일의 마을을 키운다.
 - **게임 능력**: 볼주머니. 아이템 효과가 1.5배다(버티는 역할).
 - **실루엣 표식**: 큰 꼬리, 귀 끝 털, 손의 도토리.
 - **크기**: 몸은 셋 중 가장 작지만, 꼬리 끝이 루미의 귀 높이쯤까지 온다.
 
-### 4-4. 공통 표식 (제안)
+### 4-4. 공통 표식 (확정 2026-11-17)
 
 셋 모두 **작은 호박빛 별 조각**을 하나씩 단다. "루미가 빛을 나눠 준 흔적"이다.
 
@@ -73,7 +79,7 @@
 |---|---|
 | 루미 | 스카프의 별(이미 있음) |
 | 토리 | 리본 매듭 |
-| 도토 | 도토리 틈에서 새어 나오는 빛 |
+| 도토 | 황금 도토리에 박힌 별 |
 
 ### 4-5. 빛을 잃은 모습 (토리·도토만)
 
@@ -83,6 +89,18 @@
 - 리본과 도토리는 빛이 꺼진 잿빛이 된다.
 - 무섭지 않게, 쓸쓸하고 길을 잃은 느낌으로 그린다.
 - 쓰이는 곳: 게임의 잠긴 친구 초상, 맵에서 구출을 기다리는 모습.
+
+### 4-6. 고른 컨셉 그림 (2026-11-17) — 이후 모든 그림의 기준
+
+- 토리: `reference/Tori_8_Direction_Pack/Tori_Concept_Introduce/tori_concept.png`
+  - 앉은 흰 토끼, 오른쪽 귀 끝이 접힘(그림을 보는 쪽 기준)
+  - 왼쪽 귀 밑동에 민트 리본, 매듭에 노란 별
+  - 짙은 남색 눈
+- 도토: `reference/Doto_8_Direction_Pack/Doto_Concept_Introduce/doto_concept.png`
+  - 붉은 갈색 다람쥐, 귀 끝 털, 이마의 짧은 줄무늬
+  - 크림색 배와 꼬리 안쪽
+  - 두 손에 별이 박힌 황금 도토리
+- 단계 1(시안)은 끝났다. 다음 그림을 만들 때 이 두 장을 다시 첨부하면 모습이 흔들리지 않는다.
 
 ## 5. 만들 것 (순서대로, 한 장씩)
 
@@ -130,6 +148,55 @@
 - 파이썬으로 잘라 위 이름의 파일로 나눈다.
 - `manifest.json`(방향·각도·프레임 순서)을 함께 넣는다.
 - zip으로 묶어 준다. 루미 팩도 이렇게 만들었다.
+
+#### 루미 팩은 이렇게 만들었다 — 친구 팩도 똑같이 (2026-11-17)
+
+루미 팩(`reference/Lumi_8_Direction_Pack/`)의 그림, `manifest.json`, `README.md`는 모두 **ChatGPT가 만들었다**(2026-11-06). 그림을 그린 뒤 ChatGPT가 파이썬으로 다음을 했다.
+- 잘라서 이름 붙이기
+- 왼쪽 3방향을 좌우로 뒤집기
+- 발끝 높이 맞추기
+- manifest·README를 쓰고 zip으로 묶기
+
+**걷기는 여러 번에 나눠 만들었다.**
+1. 라이언이 대기 8장과 오른쪽(90°) 걷기 4장을 zip으로 올렸다.
+2. 앞(0°)·뒤(180°) 걷기 4장씩.
+3. 대각선(45°·135°)은 대기 그림에 몸 들썩임과 아랫몸 움직임을 줘서 만들었다.
+4. 왼쪽 3방향(225°·270°·315°)은 오른쪽 그림을 좌우로 뒤집었다.
+5. 마지막에 전체 manifest·README를 썼다.
+
+친구 팩도 같은 순서로 한 단계씩 만들면 된다.
+
+```
+Tori_8_Direction_Pack/                         (도토는 Doto_…, 파일 이름은 doto_…)
+├─ Tori_Concept_Introduce/tori_concept.png      ← 고른 컨셉 그림 (이미 있음)
+├─ Tori_Idle_8D_Pack/
+│  ├─ PNG_256/tori_idle_000_front.png … tori_idle_315_front_left.png   (8장)
+│  ├─ manifest.json
+│  └─ README.md
+└─ Tori_Walk_8D_4Frames_Pack/
+   ├─ Tori_Walk_8D_4Frames/PNG_256/000_front/tori_walk_000_front_f01.png … f04.png
+   │                     (000_front · 045_front_right · 090_right · 135_back_right ·
+   │                      180_back · 225_back_left · 270_left · 315_front_left — 8폴더 × 4장)
+   ├─ manifest.json
+   └─ README.md
+```
+
+**manifest.json — 루미 팩과 같은 모양**
+- **대기**
+  - `pack`, `version`, `canvas`({ width, height, format })를 둔다.
+  - `directions` 배열에 `{ "angle": 0, "name": "front", "file": "tori_idle_000_front" }`를 8개 넣는다.
+  - 225°·270°·315°에는 `"derived_by": "horizontal mirror of 135°"`처럼 어디서 뒤집었는지 적는다.
+- **걷기**
+  - `pack`, `canvas`를 둔다.
+  - `directions` 배열에 `{ "degrees": 0, "name": "front", "frames": 4 }`를 8개 넣는다.
+  - `frame_order`: `["contact/stance", "passing", "opposite stride", "return"]`
+  - `generation_notes`: 어느 방향을 새로 그렸고 어느 방향을 뒤집거나 만들어 냈는지 적는다.
+
+**빼도 되는 것**: 루미 팩에 있던 `SVG_Vector`, `Parts_Reference_Crops`, `SpriteSheets`는 게임이 쓰지 않는다.
+
+**지금 받은 것**
+- 토리 대기 8장은 512×512로 `Tori_Idle_8D_Pack/`에 바로 들어 있다. Claude가 가져올 때 크기를 맞추니 다시 만들 필요는 없다. 다만 한 팩 안에서는 같은 크기로 맞춘다.
+- 도토 대기 폴더는 아직 비어 있다.
 
 ## 6. 공통 규칙
 
@@ -182,7 +249,17 @@ Make the same trio as pure solid black silhouettes on a white background, in two
 Create a character sheet for TORI in the same layout as the attached Lumi sheet: 8-direction idle turnaround (0° front, 45° front-right, 90° right, 135° back-right, 180° back, 225° back-left, 270° left, 315° front-left), 12 facial expressions (neutral, happy, wink, surprised, focused, determined, hurt, dazed, sad, flustered, angry, relieved), color palette chips, and the "lost light" version: same silhouette, but the fur becomes a dark indigo-black furball (#1F1B2E) with glowing lavender eyes (#D6CCFF, rim #A89CD9), no mouth or blush, ribbon dimmed to gray — lonely and lost, not scary. Korean labels are fine on this sheet.
 ```
 
-**7·8. 스프라이트** (토리를 만든 뒤 DOTO로 한 번 더)
+**7·8. 스프라이트** (토리를 만든 뒤 DOTO로 한 번 더 — 아래는 단계별로 나눈 버전, 루미 팩과 같은 순서)
+
+```
+Step A (idle). Using the attached chosen concept art as the exact design, make TORI's idle sprites for the game in the same format as the Lumi 8-direction idle pack: draw 0° front, 45° front-right, 90° right, 135° back-right and 180° back, each a separate transparent 256x256 PNG with the same feet baseline and horizontal center. Then with Python: mirror 135°/90°/45° horizontally to make 225° back-left, 270° left and 315° front-left; name the files tori_idle_000_front.png … tori_idle_315_front_left.png; put them in Tori_Idle_8D_Pack/PNG_256/; write Tori_Idle_8D_Pack/manifest.json (pack, version, canvas, directions[{angle, name, file, derived_by for mirrored ones}]) and a short README.md; give me a zip.
+```
+
+```
+Step B (walk). Now make TORI's walk cycle: 4 frames per direction in the order contact/stance → passing → opposite stride → return, each a transparent 256x256 PNG with the same feet baseline as the idle pack. Draw 90° right, 0° front and 180° back as real walk frames; for 45° front-right and 135° back-right, draw them too if you can, otherwise derive them from the matching idle pose with a subtle body bob and lower-body stride. Mirror 135°/90°/45° to make 225°/270°/315°. With Python, save them as Tori_Walk_8D_4Frames_Pack/Tori_Walk_8D_4Frames/PNG_256/<deg>_<dir>/tori_walk_<deg>_<dir>_f01.png … f04.png, write manifest.json (pack, canvas, directions[{degrees, name, frames}], frame_order, generation_notes saying which directions were drawn vs mirrored/derived) and README.md, and give me a zip.
+```
+
+(한 번에 다 만들어 달라고 할 때 쓰던 예전 프롬프트)
 
 ```
 Make game sprites for TORI in the same format as the Lumi 8-direction pack: (a) idle, 8 directions, each a separate transparent 256x256 PNG; (b) walk cycle, 8 directions x 4 frames (contact, passing, opposite stride, return), each a transparent 256x256 PNG. Keep the same feet baseline and horizontal center in every frame. Slight top-down 3/4 view. 225°, 270° and 315° are horizontal mirrors of 135°, 90° and 45°. No text, no ground shadow, no props. If you draw a combined sheet, slice it with Python into files named like tori_idle_000_front.png and tori_walk_090_right_f01.png, add a manifest.json, and give me a zip. If transparency is impossible, use a solid #FF00FF background — never white or black.

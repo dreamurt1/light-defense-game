@@ -6,7 +6,7 @@ import Phaser from 'phaser';
 import { bus, type RunResult } from '../core/events';
 import { Rng } from '../core/rng';
 import { RunState } from '../core/RunState';
-import { characterById, enemyById, GameData, IMPLEMENTED_ENEMIES, nightConfig, stageById, type EnemyId, type StageDef } from '../data';
+import { characterById, enemyById, GameData, IMPLEMENTED_ENEMIES, nightConfig, stageById, traitOf, type EnemyId, type StageDef } from '../data';
 import { Creature } from '../entities/enemies/Creature';
 import { Items } from './play/Items';
 import { Boss } from './play/Boss';
@@ -162,7 +162,7 @@ export class PlayScene extends Phaser.Scene {
     const sd = this.stageDef;
     this.safe = !!(sd.endless || sd.tutorial);
     if (sd.dummies) this.field.setDummies(sd.dummies); // 트라이얼: 구석에 고정된 적
-    this.items = new Items(this, sd, new Rng(RunState.seed + 31), keeperDef.trait === 'cheekPouch' ? (keeperDef.traitParams.itemEffectMultiplier ?? 1) : 1);
+    this.items = new Items(this, sd, new Rng(RunState.seed + 31), traitOf(keeperDef).itemEffect);
     this.boss = sd.boss ? new Boss(this, sd, this.field, { x: CFG.central.x, y: CFG.central.y }, new Rng(RunState.seed + 59)) : null;
     const host = { field: this.field, items: this.items, score: this.score, combo: this.combo, keeper: () => this.keeper.pos, litCount: () => this.sources.litCount };
     this.rules = new StageRules(host, sd, new Rng(RunState.seed + 47), WALK_AREA);
@@ -227,7 +227,7 @@ export class PlayScene extends Phaser.Scene {
     }
     // 루미 주변 빛: LP에 비례, 스테이지가 흐를수록 넓어짐, 쓰러지면 '낮음'으로 사그라듦
     const a = CFG.aura;
-    const trait = this.keeper.def.trait === 'nightEyes' ? (this.keeper.def.traitParams.auraMultiplier ?? 1) : 1;
+    const trait = traitOf(this.keeper.def).aura;
     const aura = this.vitals.down ? a.glowMin * 0.5 : (a.glowMin + (a.glowMax - a.glowMin) * this.lp.ratio) * (1 + a.growWithProgress * this.clock.progress) * trait;
     this.stage.update(dt, this.sources.pools({ x: this.keeper.pos.x, y: this.keeper.pos.y, radius: aura, alpha: this.hidden ? 0.5 : 1 }));
   }
@@ -388,7 +388,7 @@ export class PlayScene extends Phaser.Scene {
   }
 
   private igniteStation(s: LightStation | undefined): void {
-    if (!s || !s.ignite()) return;
+    if (!s || !s.ignite(traitOf(this.keeper.def).ignite)) return;
     // 남은 LP와 상관없이 켜지고, 쏜 뒤 LP가 준다 (XMind)
     this.lp.spend(CFG.lp.stationCost);
     this.fx.impact(s.pos.x, s.pos.y);
@@ -417,7 +417,7 @@ export class PlayScene extends Phaser.Scene {
     const k = follow(dt, MOVE_TAU);
     this.moveVec = { x: this.moveVec.x + (raw.x - this.moveVec.x) * k, y: this.moveVec.y + (raw.y - this.moveVec.y) * k };
     const input = this.moveVec;
-    const stepped = stepMove(this.keeper.pos, input, CFG.keeper.moveSpeed * this.items.speedMultiplier, dt, WALK_AREA);
+    const stepped = stepMove(this.keeper.pos, input, CFG.keeper.moveSpeed * this.items.speedMultiplier * traitOf(this.keeper.def).move, dt, WALK_AREA);
     const feet = pushOut({ x: stepped.x, y: stepped.y + FEET_Y }, CFG.keeper.radius, this.obstacles);
     const next = { x: feet.x, y: feet.y - FEET_Y };
     this.revealLeft = Math.max(0, this.revealLeft - dt);

@@ -14,6 +14,8 @@ export class StationState {
   mode: StationMode = 'off';
   hp = 0;
   igniteLeft = 0;
+  /** 이번 점화에 걸리는 시간 (igniteSec × 주인공 배율, 토리 빠른 발 2026-11-17) */
+  igniteTotal = 0;
 
   constructor(private readonly cfg: StationCfg) {}
 
@@ -32,7 +34,7 @@ export class StationState {
 
   /** 점화 진행 0~1 (점화 중이 아니면 0) */
   get igniteProgress(): number {
-    return this.mode === 'igniting' ? 1 - this.igniteLeft / this.cfg.igniteSec : 0;
+    return this.mode === 'igniting' && this.igniteTotal > 0 ? 1 - this.igniteLeft / this.igniteTotal : 0;
   }
 
   /** 광도 0~100: HP에 비례 (점화 중에는 달아오르는 만큼, 꺼짐 = 0) */
@@ -41,11 +43,12 @@ export class StationState {
     return this.mode === 'on' ? this.ratio * 100 : 0;
   }
 
-  /** 빛을 맞음. 꺼져 있었으면 점화를 시작하고 true (켜진 동안은 아무 일도 없음) */
-  ignite(): boolean {
+  /** 빛을 맞음. 꺼져 있었으면 점화를 시작하고 true (켜진 동안은 아무 일도 없음). timeMultiplier = 주인공 점화 배율 */
+  ignite(timeMultiplier = 1): boolean {
     if (this.mode !== 'off') return false;
     this.mode = 'igniting';
-    this.igniteLeft = this.cfg.igniteSec;
+    this.igniteTotal = this.cfg.igniteSec * timeMultiplier;
+    this.igniteLeft = this.igniteTotal;
     return true;
   }
 

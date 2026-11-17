@@ -23,15 +23,16 @@
     "nameEn": "Tori",
     "animal": "토끼",
     "lightRange": 270,
-    "lightPower": 8,
-    "lightCooldownMultiplier": 0.8,
-    "trait": "quickPaw",
+    "lightPower": 10,
+    "lightCooldownMultiplier": 1.0,
+    "trait": "quickFeet",
     "traitParams": {
-      "cooldownMultiplier": 0.8
+      "moveMultiplier": 1.15,
+      "igniteMultiplier": 0.5
     },
     "unlock": "rescue",
     "color": "#F6F1E7",
-    "blurb": "루미의 단짝 토끼. 빛은 작아도 손이 빨라요.",
+    "blurb": "루미의 단짝 토끼. 발이 빨라 꺼진 등불을 금세 켜요.",
     "voicePitchHz": 660
   },
   {

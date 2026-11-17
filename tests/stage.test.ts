@@ -1,6 +1,6 @@
 // 2026-11-12 새 기획(XMind 1112)의 판 규칙: HP·하트, LP, 광도 4단계, 중앙 광원, 등불 스테이션, 승패
 import { describe, expect, it } from 'vitest';
-import { GameData } from '../src/data';
+import { characterById, GameData, rescueFor, stageById, traitOf } from '../src/data';
 import { Vitals } from '../src/systems/vitals';
 import { LightPoints } from '../src/systems/lightPoints';
 import { bandOf } from '../src/systems/lightLevel';
@@ -195,5 +195,37 @@ describe('승패', () => {
     expect(judgeStage({ ...base, timeUp: true, hearts: 1 })?.outcome).toBe('complete');
     expect(judgeStage({ ...base, timeUp: true, stationsOn: [true, false] })?.outcome).toBe('victory');
     expect(judgeStage({ ...base, timeUp: true, centralLevel: 40 })?.outcome).toBe('victory');
+  });
+});
+
+describe('주인공 특성 (2026-11-17 라이언: 토리 = 빠른 발)', () => {
+  it('토리는 더 빨리 걷고 꺼진 등불을 더 빨리 켠다, 다른 주인공은 배율 1', () => {
+    const tori = traitOf(characterById('tori'));
+    expect(tori.move).toBeGreaterThan(1);
+    expect(tori.ignite).toBeLessThan(1);
+    expect(traitOf(characterById('lumi')).move).toBe(1);
+    expect(traitOf(characterById('lumi')).ignite).toBe(1);
+    expect(traitOf(characterById('doto')).itemEffect).toBeGreaterThan(1);
+    expect(traitOf(characterById('lumi')).aura).toBeGreaterThan(1);
+  });
+
+  it('점화 배율 0.5면 절반 시간에 켜지고, 진행률도 그 시간 기준', () => {
+    const s = new StationState(G.station);
+    expect(s.ignite(0.5)).toBe(true);
+    expect(s.update(G.station.igniteSec / 4)).toBeNull();
+    expect(s.igniteProgress).toBeCloseTo(0.5);
+    expect(s.update(G.station.igniteSec / 4 + 1e-6)).toBe('lit');
+    expect(s.hp).toBe(G.station.maxHp);
+  });
+
+  it('고른 주인공이 구출할 친구 자신이면 구출 친구가 나오지 않는다', () => {
+    const s2 = stageById('stage-2');
+    const s3 = stageById('stage-3');
+    expect(rescueFor(s2, 'lumi')?.enemyId).toBe('tori-lost');
+    expect(rescueFor(s2, 'tori')).toBeNull();
+    expect(rescueFor(s2, 'doto')?.enemyId).toBe('tori-lost');
+    expect(rescueFor(s3, 'doto')).toBeNull();
+    expect(rescueFor(s3, 'tori')?.enemyId).toBe('doto-lost');
+    expect(rescueFor(stageById('stage-1'), 'lumi')).toBeNull();
   });
 });

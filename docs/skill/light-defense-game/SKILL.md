@@ -36,6 +36,7 @@ description: 라이언의 모바일 웹 액션 디펜스 게임 "라이트 디�
 - 수치는 `src/data/*.json`에서만 읽는다(이 스킬의 `assets/data/`는 복사본). 새 기획에 없는 값은 합리적으로 정해 "제안"으로 표시한다(라이언은 세부를 Claude 판단에 맡김).
 - 메뉴와 HUD는 캔버스 위 HTML/CSS 오버레이, Phaser는 Boot → Preload → Play. 씬 ↔ DOM은 `src/core/events.ts` 이벤트로만.
 - 판 조립: `PlayScene`(600줄 아래) + `scenes/play/EnemyField`(스폰·적) + `scenes/play/Sources`(중앙 광원·등불·맵 광도).
+- **역할 분담(2026-11-17 라이언)**: Claude Code = 기획·개발(규칙·스토리·세계관 정본은 프로젝트 `CLAUDE.md`·`docs/design/`·이 스킬), ChatGPT = 비주얼·스타일. ChatGPT 쪽 기획 문서는 대조할 입력일 뿐(`docs/design/DESIGN_RECONCILIATION.md`), ChatGPT에는 날짜를 박은 기준 사실서(`hand-offs/chatgpt-canon-*/`)를 넘긴다.
 - 그림: 아트 디렉션 `reference/ChatGPT-Images/`(1순위 「달빛 숲의 등불지기 고양이.png」). 실제 그림은 라이언이 ChatGPT로(`docs/art-order.md` → `art-src/` → `npm run art:import`), 없으면 `src/art/*` 코드 그림.
 - 서버는 Firebase(Hosting + Auth + Firestore 서울). 인증·랭킹·상점·광고는 핵심 플레이 뒤. 지금 랭킹은 `LocalRanking`.
 
