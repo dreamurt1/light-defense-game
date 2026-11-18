@@ -68,14 +68,15 @@ export const FRIEND_PACKS: Partial<Record<KeeperSpriteId, FriendPack>> = {
   // 팩은 '꼬리까지 포함한 실루엣'을 가로 가운데에 맞춰 와서(README), 몸 기준점을 방향마다 정했다(그림 위에 선을 그어 확인,
   // 좌우 짝 45/315·90/270·135/225는 512 대칭). 그림 파일은 받은 그대로 — 옮기면 큰 꼬리가 캔버스 밖으로 잘린다.
   // 크기 95px(제안): 브리프 '몸은 셋 중 가장 작다'(루미 약 101px, 머리 폭 루미의 약 83%). 더 크면 128 칸에서 꼬리 끝이 잘린다.
-  // 걷기 팩이 오기 전까지 걷기는 대기 그림으로 만든 임시 깡충, 박자는 토리와 같다
+  // 걷기(2026-11-18): ChatGPT 시트 두 장(0·45·90·135·180°)을 Claude가 잘라 대기 범위에 맞추고 225·270·315°는 좌우 뒤집기
+  // (팩 notes/README_claude.md). 박자는 토리(6.5)보다 조금 느긋하게 6칸/초(제안 — 도토 성격 '느긋하고 꼼꼼')
   doto: {
     idle: (deg, name) => `${DOTO_DIR}/Doto_Idle_8D_Pack/doto_idle_${deg}_${name}.png`,
     walk: (deg, name, n) => `${DOTO_DIR}/Doto_Walk_8D_4Frames_Pack/${deg}_${name}/doto_walk_${deg}_${name}_f0${n}.png`,
     feetY: 496,
     bodyH: 442,
     heightPx: 95,
-    walkCycle: { order: [0, 0, 1, 2, 3, 3], frameRate: 5.5 },
+    walkCycle: { order: [0, 0, 1, 2, 3, 3], frameRate: 6 },
     // 90·135(270·225)는 몸 아래보다 10px 몸 쪽: 꼬리 끝이 128 칸 밖으로 나가지 않게(게임에서 2px)
     anchorX: { 0: 256, 45: 300, 90: 320, 135: 340, 180: 256, 225: 172, 270: 192, 315: 212 },
   },
