@@ -193,6 +193,7 @@ export function installAudio(): void {
   bus.on('item:use', on(() => Sfx.use()));
   bus.on('mercy:gain', on(() => Sfx.mercy()));
   bus.on('passive:upset', on(() => Sfx.upset()));
+  bus.on('passive:anger', on(() => Sfx.upset()));
   bus.on('player:hurt', on(() => Sfx.hurt()));
   bus.on('player:down', on(() => Sfx.down()));
   bus.on('player:respawn', on(() => Sfx.respawn()));

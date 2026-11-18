@@ -172,7 +172,18 @@ export interface GameConfig {
     dangerSoonSec: number;
   };
   /** 패시브 주민 (2026-11-13): 나타나는 거리·피하기·분노 */
-  passive: { spawnMinDist: number; shyDist: number; shySpeedMultiplier: number; angryDamage: number; angrySpeedMultiplier: number };
+  passive: {
+    spawnMinDist: number;
+    shyDist: number;
+    shySpeedMultiplier: number;
+    angryDamage: number;
+    angrySpeedMultiplier: number;
+    /** 분노 → 호스틸 증가 (2026-11-18 라이언): 패시브가 맞은 횟수 angerHitsPerWave마다 호스틸 angerWaveSize마리가 그 주민 너머 angerSpawnDist에서 몰려옴, angerMaxWaves번까지 (제안) */
+    angerHitsPerWave: number;
+    angerWaveSize: number;
+    angerMaxWaves: number;
+    angerSpawnDist: number;
+  };
   /** 노월 (2026-11-13, scenes/play/Boss.ts) */
   boss: {
     orbitRx: number;

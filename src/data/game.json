@@ -216,7 +216,11 @@
     "shyDist": 150,
     "shySpeedMultiplier": 1.5,
     "angryDamage": 4,
-    "angrySpeedMultiplier": 1.35
+    "angrySpeedMultiplier": 1.35,
+    "angerHitsPerWave": 2,
+    "angerWaveSize": 2,
+    "angerMaxWaves": 3,
+    "angerSpawnDist": 380
   },
   "boss": {
     "orbitRx": 470,

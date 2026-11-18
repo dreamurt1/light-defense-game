@@ -11,7 +11,7 @@ export interface TutorialStep {
 
 export const TUTORIAL_STEPS: readonly TutorialStep[] = [
   { text: '왼쪽 스틱으로 걸어 봐요 (PC: WASD)', spawn: null, until: ['walked'] },
-  { text: '오른쪽 스틱을 끌었다 놓으면 빛이 나가요 (PC: 마우스를 끌었다 놓기). 박쥐를 돌려보내요', spawn: 'bat', until: ['retreated'] },
+  { text: '오른쪽 스틱을 끌었다 놓거나, 누르고만 있어도 빛이 나가요 (PC: 마우스 끌기 · 스페이스). 박쥐를 돌려보내요', spawn: 'bat', until: ['retreated'] },
   { text: '노란 화살표를 따라가 꺼진 등불에 빛을 보내 켜요', spawn: null, until: ['lit'] },
   { text: '빛을 잃은 친구에게 빛을 보내면 제 모습을 되찾아요', spawn: 'frog', until: ['rescued'] },
   { text: '졸린 눈의 주민은 공격하지 않아요. 곁을 그냥 지나가 주면 자비 점수!', spawn: 'owl', until: ['mercy', 'upset'] },

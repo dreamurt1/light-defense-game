@@ -492,12 +492,9 @@ export class PlayScene extends Phaser.Scene {
     const calmPassive = e instanceof Creature && e.calm;
     const returned = e.hitByLight(power, CFG.light.knockback, CFG.light.stunSec, { from: this.keeper.pos, home: this.sources.central.pos });
     bus.emit('enemy:hit', { uid: e.uid, enemyId: e.def.id, remainingHp: Math.max(0, e.hp) });
-    if (calmPassive) {
-      // 공격하지 않아야 할 주민을 맞힘: 화가 난다 (점수 없음)
-      bus.emit('passive:upset', { enemyId: e.def.id, x: e.x, y: e.y });
-      this.rules.signal('upset');
-      return;
-    }
+    // 공격하지 않아야 할 주민을 맞힘: 화가 나고(점수 없음), 여러 번이면 호스틸이 몰려온다 (StageRules.passiveHit, 2026-11-18)
+    if (e.def.kind === 'passive') this.rules.passiveHit(e, calmPassive);
+    if (calmPassive) return;
     if (!returned || e.def.kind === 'passive') return;
     if (e.def.friend) bus.emit('friend:rescued', { characterId: e.def.friend });
     if (e.def.kind === 'lost') this.rescued += 1;

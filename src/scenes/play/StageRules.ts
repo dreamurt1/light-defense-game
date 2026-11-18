@@ -7,6 +7,9 @@ import { Creature } from '../../entities/enemies/Creature';
 import type { ComboSystem } from '../../systems/ComboSystem';
 import type { Vec } from '../../systems/fan';
 import { MercyTracker } from '../../systems/mercy';
+import { AngerMeter } from '../../systems/anger';
+import type { Enemy } from '../../entities/enemies/Enemy';
+import { enemyById, type EnemyId } from '../../data';
 import type { Rect } from '../../systems/obstacles';
 import type { ScoreCalculator } from '../../systems/ScoreCalculator';
 import { Stealth } from '../../systems/stealth';
@@ -35,6 +38,7 @@ export class StageRules {
   /** 빛을 잃은 친구 (나타난 뒤 구출 전) */
   friend: Creature | null = null;
   private readonly mercy = new MercyTracker(CFG.mercy);
+  private readonly anger = new AngerMeter({ hitsPerWave: CFG.passive.angerHitsPerWave, maxWaves: CFG.passive.angerMaxWaves });
   private walked = 0;
 
   constructor(
@@ -70,6 +74,31 @@ export class StageRules {
       bus.emit('score:change', { score: h.score.total, gained });
       this.signal('mercy');
     }
+  }
+
+  /**
+   * 패시브가 빛에 맞음 (2026-11-18): 차분하던 주민이면 화남을 알리고(튜토리얼 '지나치기' 단계도 끝남),
+   * 판 전체에서 여러 번 맞히면 그 주민 너머(루미 반대쪽) 어둠에서 호스틸 무리가 몰려온다 — 기획서 8절 '여러 번 공격하면 호스틸이 늘어남'
+   */
+  passiveHit(e: Enemy, wasCalm: boolean): void {
+    if (wasCalm) {
+      bus.emit('passive:upset', { enemyId: e.def.id, x: e.x, y: e.y });
+      this.signal('upset');
+    }
+    const wave = this.tutorial ? 0 : this.anger.hit();
+    if (!wave) return;
+    const p = this.host.keeper();
+    const P = CFG.passive;
+    const len = Math.hypot(e.x - p.x, e.y - p.y) || 1;
+    const a = this.area;
+    const hostiles = Object.keys(this.stage.spawn.normal.weights).filter((id) => enemyById(id as EnemyId).kind === 'hostile') as EnemyId[];
+    for (let i = 0; i < P.angerWaveSize; i++) {
+      const spread = (i - (P.angerWaveSize - 1) / 2) * 90;
+      const x = Math.min(a.x + a.w, Math.max(a.x, e.x + ((e.x - p.x) / len) * P.angerSpawnDist - ((e.y - p.y) / len) * spread));
+      const y = Math.min(a.y + a.h, Math.max(a.y, e.y + ((e.y - p.y) / len) * P.angerSpawnDist + ((e.x - p.x) / len) * spread));
+      this.host.field.spawnAt(hostiles.length ? hostiles[Math.floor(this.rng.range(0, hostiles.length)) % hostiles.length] : 'bat', x, y);
+    }
+    bus.emit('passive:anger', { wave, x: e.x, y: e.y });
   }
 
   /** 튜토리얼 '걷기' 거리 */

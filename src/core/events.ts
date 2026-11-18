@@ -66,6 +66,8 @@ export interface GameEvents {
   'mercy:gain': { enemyId: EnemyId; x: number; y: number; score: number };
   /** 패시브 주민이 빛에 맞아 화남 */
   'passive:upset': { enemyId: EnemyId; x: number; y: number };
+  /** 패시브를 여러 번 맞혀 호스틸 무리가 몰려옴 (2026-11-18, systems/anger.ts) */
+  'passive:anger': { wave: number; x: number; y: number };
   /** 빛을 잃은 친구(토리·도토)를 되찾음 → 해금 */
   'friend:rescued': { characterId: CharacterId };
   /** 노월이 어둠 구슬을 던지거나 박쥐를 부름 */

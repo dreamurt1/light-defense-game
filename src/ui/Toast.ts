@@ -98,6 +98,8 @@ export class Toast {
       this.show('어둠의 주민이 화가 났어요');
     });
     bus.on('stealth:exposed', () => this.show('풀숲에 너무 오래 있었어요! 들켰어요'));
+    // 2026-11-18: 패시브를 여러 번 맞히면 어둠의 호스틸이 몰려온다
+    bus.on('passive:anger', () => this.show('화난 주민 너머로 어둠이 몰려와요'));
     bus.on('witch:spawn', () => this.show('노월이 나타났어요'));
     bus.on('item:pickup', (e) => {
       const name = GameData.items.find((i) => i.id === e.itemId)?.name;
