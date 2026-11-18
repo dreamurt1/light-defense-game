@@ -5,7 +5,7 @@ description: 라이언의 모바일 웹 액션 디펜스 게임 "라이트 디�
 
 # 라이트 디펜스 (Light Defense) 개발 스킬
 
-> **2026-11-12 새 기획(라이언의 XMind 1112)으로 전면 개편.** 옛 기획(하룻밤 120초·등불을 들고 다님·등불지기 5종·장착물·시너지)은 대체되었다. 프로젝트 안에서는 `docs/DECISION_LOG.md`(라이언 지시·결정 기록, 지금 규칙은 CLAUDE.md) > `docs/design/*`(새 기획 정리) > 이 스킬 > 코드 순이고, **충돌하면 가장 최근에 수정된 것**을 따른다. 기존 코드와의 차이는 `docs/CODEBASE_AUDIT.md`.
+> 새 기획(라이언의 XMind 1112) 기준. 프로젝트 안에서는 `docs/DECISION_LOG.md`(라이언 지시·결정 기록, 지금 규칙은 CLAUDE.md) > `docs/design/*` > 이 스킬 > 코드 순이고, **충돌하면 가장 최근에 수정된 것**을 따른다. 옛 기획 원문은 프로젝트의 `docs/archive/`에만 있다.
 
 ## 한 줄 정의
 
@@ -15,8 +15,8 @@ description: 라이언의 모바일 웹 액션 디펜스 게임 "라이트 디�
 
 1. **조작은 두 스틱(브롤스타즈식).** 왼쪽 아래 이동 스틱(자유 로밍, 카메라가 따라감). 오른쪽 아래 빛 스틱: 끌면 **루미의 중심**에서 60° 원뿔 범위(반지름 = 끈 거리 비례, 끝까지 끌면 캐릭터 최대 사거리), 놓으면 발사(이동 중에도). **짧게 탭 = 반자동: 사거리 안의 가장 가까운 적, 없으면 쏘지 않는다.** **누른 채 끌지 않고 있으면 반자동 연사**(0.12초 뒤부터 빛이 준비될 때마다, PC 스페이스, 2026-11-18). 가운데로 되돌려 놓으면 취소. PC는 WASD + 마우스 누른 채 끌었다 놓기. 스틱 좌우 바꾸기는 설정.
 2. **빛은 되돌림·구출.** 잃어버린 주민은 제 모습을 되찾아 마을로, 호스틸은 맵 밖으로 물러난다. 패시브는 공격하지 않아도 된다. 피·폭발·비명 금지.
-3. **한 스테이지 약 100초, 끝 = 아침, 70%부터 클라이맥스.** 하트 0 또는 중앙 광원 꺼짐 = "오늘은 여기까지". 아침에 하트 ≥1 + 광원 켜짐 = 기본 승리, 광원·모든 등불이 '밝음' 이상 = 완전 승리(점수 2~3배).
-4. **차분하고 은은하되, 플레이는 캐주얼하고 박진감 있게.** 첫 플레이는 튜토리얼 스테이지(짧은 스토리 소개, 이후 건너뛰기), 패시브는 짧은 대사. 길게 설명하지 않는다.
+3. **한 스테이지 약 100초, 끝 = 아침, 70%부터 클라이맥스.** 하트 0 또는 중앙 광원 꺼짐 = "오늘은 여기까지". 아침에 하트 ≥1 + 광원 켜짐 = 기본 승리, 중앙 광원 HP 50% 이상 + 모든 등불 켜짐 = 완전 승리(점수 ×2.5). 노월을 진정시키면 바로 아침.
+4. **차분하고 은은하되, 플레이는 캐주얼하고 박진감 있게.** 처음 유저는 이야기 카드 4장(건너뛸 수 있음) → 튜토리얼 판(6단계, 필수). 패시브는 짧은 대사. 길게 설명하지 않는다.
 
 ## 참조 문서
 
@@ -25,9 +25,10 @@ description: 라이언의 모바일 웹 액션 디펜스 게임 "라이트 디�
 | 세계관, 플롯, 톤, 화면에 뜨는 문장 | `references/world-and-story.md` |
 | 플레이어블 3명·적 세 무리·보스의 이름(한/영)·id·수치·행동 | `references/characters.md` |
 | 스테이지·HP/하트·LP·광도·중앙 광원·등불·적 AI·자비·콤보·점수·아이템·승패·이벤트 표 | `references/gameplay-systems.md` |
-| 색상, 아트 디렉션, 2.5D, 루미 그림, HUD·두 스틱, 소리·진동 | `references/visual-audio.md` (맨 앞 개정 요약 먼저) |
-| 화면 흐름, Firebase, 수익 모델 | `references/screens-and-services.md` (맨 앞 개정 요약 먼저) |
-| 프로젝트 구조, 개발 단계(Phase 0~6), 결정·남은 결정 | `references/tech-and-roadmap.md` (맨 앞 개정 요약 먼저) |
+| 색상, 아트 디렉션, 2.5D, 캐릭터 그림, HUD·두 스틱, 소리·진동 | `references/visual-audio.md` |
+| 화면 흐름, 뒤로가기·새로고침, Firebase, 수익 모델 | `references/screens-and-services.md` |
+| 프로젝트 구조, 개발 단계(Phase 0~6), 결정·남은 결정 | `references/tech-and-roadmap.md` |
+| 이 스킬의 평가 과제(작성만, 실행은 따로) | `evals/` |
 | 밸런스 수치 원본(JSON) — 코드에서 그대로 로드 | `assets/data/*.json` (`game`·`stages`·`characters`·`enemies`·`items`·`map`) |
 
 ## 기술 스택 (고정)
@@ -35,9 +36,9 @@ description: 라이언의 모바일 웹 액션 디펜스 게임 "라이트 디�
 - **Phaser 3.90 + TypeScript + Vite**, 브라우저 전용. 세로 540×960 / 가로 높이 540·폭 720~1280(짧은 변 540 고정). 마을(월드) 16:9 3200×1800, 카메라가 루미를 따라감.
 - 수치는 `src/data/*.json`에서만 읽는다(이 스킬의 `assets/data/`는 복사본). 새 기획에 없는 값은 합리적으로 정해 "제안"으로 표시한다(라이언은 세부를 Claude 판단에 맡김).
 - 메뉴와 HUD는 캔버스 위 HTML/CSS 오버레이, Phaser는 Boot → Preload → Play. 씬 ↔ DOM은 `src/core/events.ts` 이벤트로만.
-- 판 조립: `PlayScene`(600줄 아래) + `scenes/play/EnemyField`(스폰·적) + `scenes/play/Sources`(중앙 광원·등불·맵 광도).
-- **역할 분담(2026-11-17 라이언)**: Claude Code = 기획·개발(규칙·스토리·세계관 정본은 프로젝트 `CLAUDE.md`·`docs/design/`·이 스킬), ChatGPT = 비주얼·스타일. ChatGPT 쪽 기획 문서는 대조할 입력일 뿐(`docs/design/DESIGN_RECONCILIATION.md`), ChatGPT에는 날짜를 박은 기준 사실서(`hand-offs/chatgpt-canon-*/`)를 넘긴다.
-- 그림: 아트 디렉션 `reference/ChatGPT-Images/`(1순위 「달빛 숲의 등불지기 고양이.png」). 실제 그림은 라이언이 ChatGPT로(`docs/art-order.md` → `art-src/` → `npm run art:import`), 없으면 `src/art/*` 코드 그림.
+- 판 조립: `PlayScene`(600줄 아래) + `scenes/play/EnemyField`(스폰·적) · `Sources`(중앙 광원·등불·맵 광도) · `Boss` · `Items` · `StageRules` · `Aiming`.
+- **역할 분담**: Claude Code(터미널) = 개발과 기획 정본 관리(`CLAUDE.md`·`docs/design/`·이 스킬). claude.ai 기획 세션 = 전체 기획 조정·스토리 개연성 판단(2026-11-18 — 이 스킬을 올려 쓰고, 대조 결과를 지시서로 Claude Code에 넘김). ChatGPT = 비주얼·스타일(2026-11-17). ChatGPT 쪽 기획 문서는 대조할 입력일 뿐이고(`docs/design/DESIGN_RECONCILIATION.md`), ChatGPT에는 날짜를 박은 기준 사실서(`hand-offs/chatgpt-canon-*/`)를 넘긴다.
+- 그림: 아트 디렉션 `reference/ChatGPT-Images/`(1순위 「달빛 숲의 등불지기 고양이.png」). 실제 그림은 ChatGPT가 만든다: 의뢰서 `hand-offs/chatgpt-*` → 받은 팩 `reference/…`(규격 대조) → `art-src/`·`npm run assets`. 아직 없는 것은 `src/art/*` 코드 그림.
 - 서버는 Firebase(Hosting + Auth + Firestore 서울). 인증·랭킹·상점·광고는 핵심 플레이 뒤. 지금 랭킹은 `LocalRanking`.
 
 ## 개발 단계
@@ -46,19 +47,19 @@ description: 라이언의 모바일 웹 액션 디펜스 게임 "라이트 디�
 |---|---|
 | Phase 0 | 기존 코드 감사 (`docs/CODEBASE_AUDIT.md`) — 완료 |
 | Phase 1 | 핵심 판: 중앙 광원·등불 1·HP/하트/LP·박쥐(호스틸)·개구리(잃어버린 주민)·100초 승패·HUD·결과 — 완료 2026-11-12 |
-| Phase 2 | 광도 모델·등불 여러 개·전체 버프·지역 구획·강·다리·울타리·건물·풀숲 은신 시간 |
-| Phase 3 | 적 무리 차별화(호스틸 3·잃어버린 주민 3·패시브 3)·빛 반응·필살기·자비·분노·대사·클라이맥스 |
-| Phase 4 | 아이템 5종·점수·완전 승리 보상·결과 요약 |
-| Phase 5 | 맵 3종(스테이지 테마)·스테이지 진행(등불 1→4)·토리·도토 구출 해금·노월 보스 |
-| Phase 6 | 튜토리얼·설정(음량·스틱 좌우·방향)·사운드·모바일 마무리·배포 |
+| Phase 2 | 광도·등불 여러 개·전체 버프·장애물·강·다리·풀숲 은신 — 시연판 2026-11-13. 남음: 구획 시야 |
+| Phase 3 | 적 무리 차별화(3·3·3)·자비·분노·대사·클라이맥스 — 시연판. 남음: 적의 필살기, 종류별 빛 반응 |
+| Phase 4 | 아이템 5종·점수·완전 승리·결과 요약 — 시연판. 남음: 시작 전 아이템 고르기(상점과 함께) |
+| Phase 5 | 테마 3종·스테이지 1~4(등불 1→4)·토리·도토 구출 해금·노월 — 시연판(테마 = 색조). 남음: 테마별 맵 모양, 랜덤 이벤트 |
+| Phase 6 | 튜토리얼·설정·사운드·모바일 마무리·배포 — 시연판. 남음: 음량 슬라이더, 휴대폰 방향 고정, 녹음 음원, 상점 |
 
-한 Phase를 끝내고 검증·보고한 뒤 다음으로 간다.
+2026-11-13 팀 시연 때 전체를 한 번에 돌렸다. 평소에는 한 Phase를 끝내고 검증·보고한 뒤 다음으로 간다.
 
 ## 코드를 쓸 때 지킬 규칙
 
 - **이름을 바꾸지 않는다.** 한국어 이름·영문 이름·코드 id는 `characters.md`·`assets/data/` 그대로. UI는 한국어, 식별자는 영어 id.
 - **수치는 JSON, 로직은 TS.** 순수 로직(HP·LP·광도·승패·점수·스폰·부채꼴)은 Phaser 없이 쓰고 Vitest를 붙인다. 이동·대기·타이머는 delta time으로.
-- **이벤트로 연결.** 로직은 발행만(`player:vitals`·`lp:change`·`central:change`·`station:lit`·`enemy:returned` 등), HUD·소리·진동은 구독만. 두 스틱(DOM)은 `input:move / input:aim / input:fire`로만 입력을 보낸다.
+- **이벤트로 연결.** 로직은 발행만(`player:vitals`·`lp:change`·`central:change`·`station:lit`·`enemy:returned` 등), HUD·소리·진동은 구독만. 두 스틱(DOM)은 `input:move / input:aim / input:auto / input:fire`로만 입력을 보낸다.
 - **결정적 재현.** 난수는 seed를 받는 `src/core/rng.ts` 한 곳(스폰·등불 자리).
 - **접근성·안전.** 깜빡임 초당 3회 이하, 진동은 끌 수 있게, 소리는 첫 입력 이후, safe area 안, 터치 표적 44px 이상.
 - **톤.** 문장은 `world-and-story.md`에서. 금지어: 죽, 처치, 킬, 실패(게임 오버도 "오늘은 여기까지").
@@ -69,7 +70,7 @@ description: 라이언의 모바일 웹 액션 디펜스 게임 "라이트 디�
 - **"적·캐릭터 추가·수정"** → `characters.md`와 `assets/data/enemies.json`(`kind`·`implemented`)·`characters.json`을 고치고, 행동은 `src/entities/enemies/<Name>.ts`(Enemy 상속), 생성은 `scenes/play/EnemyField.ts`.
 - **"밸런스가 이상하다"** → JSON만. 첫 스테이지는 쉬워야 한다. 헤드리스 autoplay(`?autoplay=300&lamp` / `&idle`)로 한 판을 끝까지 돌려 확인한다.
 - **"기획 보강"** → `references/`와 `docs/design/`을 확장한다. 큰 방향만 라이언에게 묻는다.
-- **"그림 바꿔줘"** → `docs/art-order.md`를 고치고 받은 PNG를 `art-src/`에 넣어 `npm run art:import`.
+- **"그림 바꿔줘"** → ChatGPT 의뢰서(`hand-offs/chatgpt-*`, 프로젝트 스킬 `ld-chatgpt-order`)를 만들고, 받은 그림은 규격과 대조한 뒤(`ld-art-intake`) 넣고 `npm run assets`.
 
 ## 이 스킬이 다루지 않는 것
 
