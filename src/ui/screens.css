@@ -134,6 +134,9 @@
   background: var(--predawn);
   --art: url('/assets/backgrounds/home.webp');
   --art-r: 0.4547;
+  /* 장면 상자 크기(그림 비율로 화면을 덮음) — 버튼을 그림 속 자리(그림 %)에 붙일 때 쓴다 */
+  --scene-w: max(100cqw, calc(100cqh * var(--art-r)));
+  --scene-h: max(100cqh, calc(100cqw / var(--art-r)));
 }
 
 .home__scene {
@@ -300,6 +303,28 @@
       inset 0 calc(var(--u) * 1.5) 0 rgba(246, 241, 231, 0.16),
       0 0 calc(var(--u) * 12) color-mix(in srgb, var(--amber) 40%, transparent);
   }
+}
+
+/* 세로 (2026-11-18 라이언: 등불 왼쪽 공간 활용): 둥근 버튼 넷은 그림 속 등불(x 70~84%, 손잡이~받침 y 58.5~70.5%) 왼쪽 빈터에
+   등불과 같은 높이로 한 줄(그림 x 6~66%, 위 y 60.5%), '게임하기'는 등불 받침 바로 아래(그림 y 76%).
+   자리는 그림 % → 화면: 50cqw + (그림x − 0.5) × 장면 폭, 50cqh + (그림y − 0.5) × 장면 높이 */
+:root:not([data-layout='landscape']) .home__menu {
+  display: contents;
+}
+
+:root:not([data-layout='landscape']) .home__badges {
+  position: absolute;
+  left: calc(50cqw + (0.06 - 0.5) * var(--scene-w));
+  top: calc(50cqh + (0.605 - 0.5) * var(--scene-h));
+  width: calc(0.6 * var(--scene-w));
+}
+
+:root:not([data-layout='landscape']) .home__start {
+  position: absolute;
+  left: 50%;
+  top: calc(50cqh + (0.76 - 0.5) * var(--scene-h));
+  transform: translateX(-50%);
+  width: min(calc(100% - calc(var(--u) * 44)), calc(var(--u) * 340));
 }
 
 /* 프로필: 세로는 왼쪽 위, 가로는 왼쪽 아래(가로 규칙) */
@@ -1396,10 +1421,6 @@
 }
 
 @container (max-height: 700px) {
-  :root:not([data-layout='landscape']) .home__menu {
-    bottom: max(4.5%, calc(env(safe-area-inset-bottom, 0px) + calc(var(--u) * 12)));
-  }
-
   :root:not([data-layout='landscape']) .home-badge__icon {
     width: max(44px, calc(var(--u) * 56));
   }
