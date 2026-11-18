@@ -173,7 +173,7 @@
     "kind": "boss",
     "name": "노월",
     "nameEn": "Nowol",
-    "implemented": false,
+    "implemented": true,
     "hp": 200,
     "speed": 50,
     "damage": 0,
