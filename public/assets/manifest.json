@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-18T07:23:33.043Z",
+  "generatedAt": "2026-11-18T07:41:20.386Z",
   "sheets": [
     {
       "key": "portrait-lumi",
@@ -306,7 +306,7 @@
             7,
             7
           ],
-          "frameRate": 5.5,
+          "frameRate": 6.5,
           "repeat": -1
         },
         {
@@ -330,7 +330,7 @@
             15,
             15
           ],
-          "frameRate": 5.5,
+          "frameRate": 6.5,
           "repeat": -1
         },
         {
@@ -354,7 +354,7 @@
             23,
             23
           ],
-          "frameRate": 5.5,
+          "frameRate": 6.5,
           "repeat": -1
         },
         {
@@ -378,7 +378,7 @@
             31,
             31
           ],
-          "frameRate": 5.5,
+          "frameRate": 6.5,
           "repeat": -1
         },
         {
@@ -402,7 +402,7 @@
             39,
             39
           ],
-          "frameRate": 5.5,
+          "frameRate": 6.5,
           "repeat": -1
         },
         {
@@ -426,7 +426,7 @@
             47,
             47
           ],
-          "frameRate": 5.5,
+          "frameRate": 6.5,
           "repeat": -1
         },
         {
@@ -450,7 +450,7 @@
             55,
             55
           ],
-          "frameRate": 5.5,
+          "frameRate": 6.5,
           "repeat": -1
         },
         {
@@ -474,7 +474,7 @@
             63,
             63
           ],
-          "frameRate": 5.5,
+          "frameRate": 6.5,
           "repeat": -1
         },
         {
