@@ -124,27 +124,105 @@
   font-weight: 600;
 }
 
-/* ---------- 홈 (2026-11-18 라이언: ChatGPT 키 아트 'Moonlit Forest'를 홈 화면으로) ----------
-   그림 안에 영문 제목·달·언덕 위 마을·세 친구의 뒷모습(가운데 아래)·등불이 있다.
-   세로: 그림을 화면 가득(9:16). 그림 속 제목 아래에 한글 이름·슬로건, 메뉴는 아래 냇물 자리에 모아 세 친구를 가리지 않게,
-         프로필은 왼쪽 위.
-   가로: 같은 그림을 흐리게 크게 깔고 왼쪽 판 가운데에 그림을 온전히(제목까지), 오른쪽 열에 한글 이름·슬로건과 메뉴(아래 가로 규칙). */
+/* ---------- 홈 (2026-11-18 새 기획, docs/design/HOME_SCREEN.md) ----------
+   배경(ChatGPT)에는 캐릭터·제목·버튼이 없다. 장면 상자(.home__scene)는 그림 비율 그대로 화면을 덮고 가운데에 —
+   등불지기는 그 안에서 그림 %로(그림 속 등불 왼쪽 빈터). 제목·버튼·프로필은 화면 기준.
+   세로 그림 home.webp 1064×2340: 등불 x 77%·받침 아래 y 70.5% → 등불지기 발 x 53%·y 72%, 키 = 그림 높이의 16.5%(등불의 약 1.35배).
+   가로 그림 home-wide.webp 2332×1080: 등불 x 51.7%·받침 아래 y 98.5% → 발 x 40%·y 97.5%, 키 34.5%(아래 가로 규칙). */
 .screen--home {
   isolation: isolate;
-  background:
-    linear-gradient(to top, rgba(17, 18, 40, 0.86), rgba(17, 18, 40, 0) 22%),
-    var(--predawn) url('/assets/backgrounds/home.webp') 50% 0% / cover no-repeat;
+  overflow: hidden;
+  background: var(--predawn);
+  --art: url('/assets/backgrounds/home.webp');
+  --art-r: 0.4547;
+  --hero-x: 53%;
+  --hero-y: 72%;
+  --hero-h: 16.5%;
 }
 
-/* 영문 제목은 그림 안에 있으니 글자 로고는 화면 읽기용으로만 남긴다 */
-.screen--home .logo__en {
+.home__scene {
   position: absolute;
-  width: 1px;
-  height: 1px;
-  margin: -1px;
-  overflow: hidden;
-  clip-path: inset(50%);
-  white-space: nowrap;
+  left: 50%;
+  top: 50%;
+  z-index: -2;
+  width: max(100cqw, calc(100cqh * var(--art-r)));
+  aspect-ratio: var(--art-r);
+  transform: translate(-50%, -50%);
+  background: var(--art) center / 100% 100% no-repeat;
+}
+
+/* 버튼 자리(아래)를 얕게 어둡게 — 그림이 이미 어두워 조금만 */
+.screen--home::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(to top, rgba(17, 18, 40, 0.6), rgba(17, 18, 40, 0) 24%);
+}
+
+/* 무대의 등불지기: 초상 그림(발 = 높이의 97.9%, 캐릭터 = 높이의 94%) */
+.home__hero {
+  position: absolute;
+  left: var(--hero-x);
+  top: var(--hero-y);
+  height: calc(var(--hero-h) / 0.94);
+  aspect-ratio: 1;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  transform: translate(-50%, -97.9%);
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 발밑에 등불 빛이 고인 듯 */
+.home__hero::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 2.1%;
+  width: 78%;
+  height: 14%;
+  transform: translate(-50%, 50%);
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(255, 200, 87, 0.36), rgba(255, 200, 87, 0));
+}
+
+.home__hero-img {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  transform-origin: 50% 97.9%;
+  filter: drop-shadow(0 0 calc(var(--u) * 10) rgba(255, 200, 87, 0.16));
+  animation: home-hero-breathe 3.2s ease-in-out infinite;
+}
+
+@keyframes home-hero-breathe {
+  0%,
+  100% {
+    transform: scale(1, 1);
+  }
+  50% {
+    transform: scale(0.995, 1.02);
+  }
+}
+
+.home__hero:active .home__hero-img {
+  scale: 0.97;
+}
+
+.home__hero:focus-visible {
+  outline: calc(var(--u) * 2) solid var(--amber);
+  outline-offset: calc(var(--u) * 4);
+  border-radius: calc(var(--u) * 16);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home__hero-img {
+    animation: none;
+  }
 }
 
 .home__settings {
@@ -153,55 +231,37 @@
   right: calc(var(--u) * 22);
 }
 
-/* 그림 속 제목 장식선(그림 높이의 약 30%) 바로 아래, 가운데 */
+/* 제목 PNG + 한글 이름·슬로건: 위 가운데 (프로필 아래에서 시작) */
 .home__title {
   position: absolute;
-  top: 31%;
+  top: max(7%, calc(env(safe-area-inset-top, 0px) + calc(var(--u) * 84)), calc(var(--u) * 84));
   left: 0;
   right: 0;
   margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   text-align: center;
   pointer-events: none;
-}
-
-.screen--home .logo {
-  align-items: center;
-  gap: 0;
-}
-
-.screen--home .logo__ko,
-.screen--home .home__slogan {
-  text-shadow:
-    0 0 calc(var(--u) * 10) rgba(17, 18, 40, 0.95),
-    0 calc(var(--u) * 2) calc(var(--u) * 4) rgba(17, 18, 40, 0.85);
-}
-
-.screen--home .logo__ko {
-  font-size: calc(var(--u) * 18);
 }
 
 .logo {
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: calc(var(--u) * 10);
+  align-items: center;
+  gap: calc(var(--u) * 4);
 }
 
-.logo__en {
-  font-size: calc(var(--u) * 66);
-  font-weight: 900;
-  font-style: italic;
-  line-height: 0.92;
-  letter-spacing: -0.01em;
-  color: #ffd76e;
-  text-shadow:
-    0 calc(var(--u) * 3) calc(var(--u) * 4) rgba(110, 56, 18, 0.85),
-    0 calc(var(--u) * 6) calc(var(--u) * 12) rgba(20, 10, 4, 0.6),
-    0 0 calc(var(--u) * 28) color-mix(in srgb, var(--amber) 55%, transparent);
+.home__logo {
+  display: block;
+  width: calc(var(--u) * 240);
+  height: auto;
+  filter: drop-shadow(0 0 calc(var(--u) * 14) rgba(255, 200, 87, 0.22));
 }
 
 .logo__ko {
-  font-size: calc(var(--u) * 20);
+  font-size: calc(var(--u) * 18);
   font-weight: 700;
   letter-spacing: 0.32em;
   color: var(--paper);
@@ -213,48 +273,103 @@
   color: var(--paper-soft);
 }
 
-/* 세로: 아래 가운데에 모은 메뉴 — 게임하기 한 줄 + 보조 넷 (세 친구 발밑 아래 냇물 자리).
-   세로로 긴 폰(가로÷세로 0.5 이하)은 두 줄 두 칸, 9:16에 가까운 화면은 등불에 닿지 않게 한 줄 네 칸(아래 @container) */
+.screen--home .logo__ko,
+.screen--home .home__slogan {
+  text-shadow:
+    0 0 calc(var(--u) * 10) rgba(17, 18, 40, 0.95),
+    0 calc(var(--u) * 2) calc(var(--u) * 4) rgba(17, 18, 40, 0.85);
+}
+
+/* 메뉴: 아래 가운데 — 둥근 버튼 넷 한 줄 + 맨 아래 '게임하기'(엄지 자리) */
 .home__menu {
   position: absolute;
   left: 50%;
   bottom: max(calc(var(--u) * 26), calc(env(safe-area-inset-bottom, 0px) + calc(var(--u) * 12)));
   transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(var(--u) * 14);
+  width: min(calc(100% - calc(var(--u) * 44)), calc(var(--u) * 460));
+}
+
+.home__badges {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: calc(var(--u) * 10);
-  width: min(calc(100% - calc(var(--u) * 52)), calc(var(--u) * 440));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  width: 100%;
 }
 
-.home__menu .pill--primary {
-  grid-column: 1 / -1;
+.home__start {
+  width: min(100%, calc(var(--u) * 340));
 }
 
-.home__menu .pill {
-  justify-content: center;
-}
-
-.home__menu .pill--secondary {
+.home-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   gap: calc(var(--u) * 6);
-  padding: 0 calc(var(--u) * 10);
-  font-size: calc(var(--u) * 18);
+  min-width: 48px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--paper);
+  font: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.home-badge__icon {
+  display: grid;
+  place-items: center;
+  width: max(48px, calc(var(--u) * 60));
+  aspect-ratio: 1;
+  border: calc(var(--u) * 1.5) solid color-mix(in srgb, var(--paper) 30%, transparent);
+  border-radius: 50%;
+  color: var(--paper);
+  background:
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0) 55%),
+    radial-gradient(circle at 50% 35%, #34396c, #14152e);
+  box-shadow:
+    inset 0 calc(var(--u) * 1.5) 0 rgba(246, 241, 231, 0.16),
+    0 calc(var(--u) * 4) calc(var(--u) * 10) rgba(5, 4, 12, 0.45);
+  transition:
+    transform 0.12s ease-out,
+    border-color 0.15s ease-out,
+    box-shadow 0.2s ease-out;
+}
+
+.home-badge__icon svg {
+  width: 46%;
+  height: 46%;
+}
+
+.home-badge__label {
+  font-size: calc(var(--u) * 15);
+  font-weight: 700;
+  line-height: 1.1;
   white-space: nowrap;
+  text-shadow: 0 calc(var(--u) * 1) calc(var(--u) * 4) rgba(5, 4, 12, 0.95);
 }
 
-@container (min-aspect-ratio: 1 / 2) {
-  .home__menu {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: calc(var(--u) * 10) calc(var(--u) * 8);
-    width: min(calc(100% - calc(var(--u) * 40)), calc(var(--u) * 500));
-  }
+.home-badge:active .home-badge__icon {
+  transform: scale(0.94);
+}
 
-  .home__menu .pill--secondary {
-    gap: calc(var(--u) * 4);
-    padding: 0 calc(var(--u) * 6);
-    font-size: calc(var(--u) * 16);
+.home-badge:focus-visible .home-badge__icon {
+  border-color: var(--amber);
+  box-shadow: 0 0 calc(var(--u) * 12) color-mix(in srgb, var(--amber) 45%, transparent);
+}
+
+@media (hover: hover) {
+  .home-badge:hover .home-badge__icon {
+    border-color: var(--amber);
+    box-shadow:
+      inset 0 calc(var(--u) * 1.5) 0 rgba(246, 241, 231, 0.16),
+      0 0 calc(var(--u) * 12) color-mix(in srgb, var(--amber) 40%, transparent);
   }
 }
 
+/* 프로필: 세로는 왼쪽 위, 가로는 왼쪽 아래(가로 규칙) */
 .profile {
   position: absolute;
   left: calc(var(--u) * 22);
@@ -1278,73 +1393,73 @@
     max(calc(var(--u) * 18), env(safe-area-inset-bottom, 0px)) max(calc(var(--u) * 36), env(safe-area-inset-left, 0px));
 }
 
-/* 홈 (2026-11-18): 뒤에 같은 그림을 흐리고 어둡게 크게, 그 위 왼쪽 판(오른쪽 열을 뺀 자리)의 가운데에 그림을 온전히.
-   오른쪽 열 = 한글 이름·슬로건(설정 단추 아래) + 메뉴, 프로필은 왼쪽 아래 */
+/* 홈 (2026-11-18 새 기획): 가로 그림. 제목은 위 가운데(맑은 하늘), 등불지기는 가운데 왼쪽 빈터,
+   메뉴는 오른쪽 아래(언덕 위 마을 밑) — 둥근 버튼 넷 한 줄 + '게임하기', 프로필은 왼쪽 아래 */
 :root[data-layout='landscape'] .screen--home {
-  background: var(--predawn);
+  --art: url('/assets/backgrounds/home-wide.webp');
+  --art-r: 2.1593;
+  --hero-x: 40%;
+  --hero-y: 97.5%;
+  --hero-h: 34.5%;
 }
 
 :root[data-layout='landscape'] .screen--home::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: -2;
-  background: url('/assets/backgrounds/home.webp') 50% 58% / cover no-repeat;
-  filter: blur(16px) brightness(0.5) saturate(0.9);
-  transform: scale(1.1);
-}
-
-:root[data-layout='landscape'] .screen--home::after {
-  content: '';
-  position: absolute;
-  z-index: -1;
-  top: 0;
-  bottom: 0;
-  left: calc((100% - calc(var(--u) * 300)) / 2);
-  aspect-ratio: 941 / 1672;
-  transform: translateX(-50%);
-  background: url('/assets/backgrounds/home.webp') center / cover no-repeat;
-  -webkit-mask-image: linear-gradient(to right, transparent, #000 7%, #000 93%, transparent);
-  mask-image: linear-gradient(to right, transparent, #000 7%, #000 93%, transparent);
+  background: linear-gradient(to left, rgba(17, 18, 40, 0.5), rgba(17, 18, 40, 0) 34%);
 }
 
 :root[data-layout='landscape'] .home__title {
-  top: max(calc(var(--u) * 84), calc(env(safe-area-inset-top, 0px) + calc(var(--u) * 66)));
-  left: auto;
-  right: max(calc(var(--u) * 40), env(safe-area-inset-right, 0px));
-  width: calc(var(--u) * 250);
-  text-align: left;
+  top: max(11%, calc(env(safe-area-inset-top, 0px) + calc(var(--u) * 20)));
 }
 
-:root[data-layout='landscape'] .screen--home .logo {
-  align-items: flex-start;
+:root[data-layout='landscape'] .home__logo {
+  width: calc(var(--u) * 190);
 }
 
 :root[data-layout='landscape'] .home__menu {
   left: auto;
   right: max(calc(var(--u) * 40), env(safe-area-inset-right, 0px));
-  bottom: max(calc(var(--u) * 36), env(safe-area-inset-bottom, 0px));
+  bottom: max(calc(var(--u) * 30), env(safe-area-inset-bottom, 0px));
   transform: none;
-  grid-template-columns: 1fr;
-  width: calc(var(--u) * 250);
+  width: calc(var(--u) * 360);
 }
 
-:root[data-layout='landscape'] .home__menu .pill {
-  justify-content: flex-start;
-  padding-left: calc(var(--u) * 24);
-}
-
-/* 세로의 한 줄 네 칸용 작은 보조 단추를 가로에서는 원래 크기로 */
-:root[data-layout='landscape'] .home__menu .pill--secondary {
-  gap: calc(var(--u) * 10);
-  padding: 0 calc(var(--u) * 20) 0 calc(var(--u) * 24);
-  font-size: calc(var(--u) * 19);
+:root[data-layout='landscape'] .home__start {
+  width: 100%;
 }
 
 :root[data-layout='landscape'] .profile {
   top: auto;
   bottom: max(calc(var(--u) * 24), env(safe-area-inset-bottom, 0px));
   left: max(calc(var(--u) * 26), env(safe-area-inset-left, 0px));
+}
+
+/* 16:10보다 좁은 가로(16:10 노트북·3:2·태블릿): 양옆이 더 잘려 등불이 오른쪽으로 밀린다 → 메뉴를 좁게 */
+@container (max-aspect-ratio: 17 / 10) {
+  :root[data-layout='landscape'] .home__menu {
+    right: max(calc(var(--u) * 28), env(safe-area-inset-right, 0px));
+    width: calc(var(--u) * 290);
+    gap: calc(var(--u) * 12);
+  }
+
+  :root[data-layout='landscape'] .home-badge__icon {
+    width: max(44px, calc(var(--u) * 52));
+  }
+
+  :root[data-layout='landscape'] .home-badge__label {
+    font-size: calc(var(--u) * 14);
+  }
+}
+
+/* 3:2보다 좁은 가로(4:3 태블릿): 장면을 왼쪽으로 조금 옮겨 등불이 메뉴에서 떨어지게, 프로필은 등불지기를 피해 왼쪽 위 */
+@container (max-aspect-ratio: 3 / 2) {
+  :root[data-layout='landscape'] .home__scene {
+    transform: translate(calc(-50% - calc(var(--u) * 50)), -50%);
+  }
+
+  :root[data-layout='landscape'] .profile {
+    top: max(calc(var(--u) * 18), env(safe-area-inset-top, 0px));
+    bottom: auto;
+  }
 }
 
 /* 등불지기: 왼쪽 아치 초상 / 오른쪽 이름·능력·5칸·장착물·시작 */

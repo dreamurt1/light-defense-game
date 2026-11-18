@@ -101,8 +101,6 @@ const FROG_ART_FRAMES: ArtFrame[] = Array.from({ length: 12 }, (_, i) => {
   return p === 0 ? { pose: 0, sy: 0.94 } : p === 3 ? { pose: 0 } : { pose: 1, dy: p === 2 ? -3 : -1 };
 });
 
-const W = GameData.game.viewport.width;
-const H = GameData.game.viewport.height;
 /** 플레이 마을(월드) 크기: 카메라가 등불지기를 따라간다 */
 const WORLD = GameData.game.world;
 const FAN_DEG = GameData.game.light.fanDeg;
@@ -479,18 +477,49 @@ const backgrounds: SheetDef[] = [
     art: { ...cover(2), derive: { from: 'village-dark', filter: 'brightness(1.55) saturate(1.25) sepia(0.32)', warm: 'rgba(255, 168, 80, 0.22)' } },
   },
   // 홈·메뉴 화면의 DOM 배경 (Phaser는 불러오지 않음)
+  // 2026-11-18 새 홈(docs/design/HOME_SCREEN.md): ChatGPT 배경 두 장 + 제목. 받은 원본은 reference/Home_Art_Pack/,
+  // art-src에는 가장자리 흰 줄을 자르고(세로 1064×2340·가로 2332×1080) 제목의 떨어진 조각을 지운 판. 메뉴 화면 흐린 배경·스플래시도 'home'을 쓴다
   {
     key: 'home',
     category: 'backgrounds',
-    // 2026-11-18 라이언: ChatGPT 키 아트 'Light Defense: Moonlit Forest'(941×1672, art-src/backgrounds/home.png) — 원본 해상도에 가깝게(1.74배)
-    label: '홈 그림 (Moonlit Forest)',
-    frameWidth: W,
-    frameHeight: H,
+    label: '홈 배경 — 세로 (캐릭터·제목 없음, 등불 빈터)',
+    frameWidth: 532,
+    frameHeight: 1170,
     frames: 1,
     format: 'webp',
     load: false,
     draw: (ctx) => drawVillage(ctx, DARK),
-    art: cover(1.74),
+    art: cover(2),
+  },
+  {
+    key: 'home-wide',
+    category: 'backgrounds',
+    label: '홈 배경 — 가로',
+    frameWidth: 1166,
+    frameHeight: 540,
+    frames: 1,
+    format: 'webp',
+    load: false,
+    draw: (ctx) => drawVillage(ctx, DARK),
+    art: cover(2),
+  },
+  {
+    key: 'home-title',
+    category: 'backgrounds',
+    label: '홈 제목 (투명)',
+    frameWidth: 600,
+    frameHeight: 464,
+    frames: 1,
+    format: 'webp',
+    load: false,
+    draw: (ctx) => {
+      ctx.fillStyle = '#F6E7C8';
+      ctx.font = '700 96px serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('LIGHT', 300, 250);
+      ctx.fillText('DEFENSE', 300, 360);
+    },
+    art: { poses: ['main'], frames: still(1), fit: 'contain', align: 'center', res: 2 },
   },
 ];
 

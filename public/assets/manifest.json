@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-18T05:48:34.821Z",
+  "generatedAt": "2026-11-18T06:02:55.236Z",
   "sheets": [
     {
       "key": "portrait-lumi",
@@ -1749,12 +1749,38 @@
     {
       "key": "home",
       "category": "backgrounds",
-      "label": "홈 그림 (Moonlit Forest)",
+      "label": "홈 배경 — 세로 (캐릭터·제목 없음, 등불 빈터)",
       "file": "backgrounds/home.webp",
-      "frameWidth": 540,
-      "frameHeight": 960,
+      "frameWidth": 532,
+      "frameHeight": 1170,
       "frames": 1,
-      "res": 1.74,
+      "res": 2,
+      "source": "art",
+      "load": false,
+      "anims": []
+    },
+    {
+      "key": "home-wide",
+      "category": "backgrounds",
+      "label": "홈 배경 — 가로",
+      "file": "backgrounds/home-wide.webp",
+      "frameWidth": 1166,
+      "frameHeight": 540,
+      "frames": 1,
+      "res": 2,
+      "source": "art",
+      "load": false,
+      "anims": []
+    },
+    {
+      "key": "home-title",
+      "category": "backgrounds",
+      "label": "홈 제목 (투명)",
+      "file": "backgrounds/home-title.webp",
+      "frameWidth": 600,
+      "frameHeight": 464,
+      "frames": 1,
+      "res": 2,
       "source": "art",
       "load": false,
       "anims": []

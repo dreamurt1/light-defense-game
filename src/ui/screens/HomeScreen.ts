@@ -1,63 +1,97 @@
-// 홈(엔트리): UI Screen Sheet의 배치(위 로고, 오른쪽 메뉴, 왼쪽 아래 프로필, 뒤에 등불 곁의 루미) + 기획서의 메뉴 이름.
-// 메뉴 (2026-11-12 새 기획): `게임하기` · `지난 밤들`(→ 랭킹) · 상점 · ⚙(설정) · 테스트(연습장).
-// 시트의 재화·레벨은 기획에 없어 넣지 않는다.
-// 2026-11-13 컨셉 시연판(라이언): 처음 하는 유저는 튜토리얼을 꼭 거친다 — '게임하기' → 이야기(건너뛰기 가능) → 튜토리얼 판.
-// 튜토리얼을 마치면(Progress.tutorialDone) '게임하기'는 선택 화면으로. '테스트' = 연습장(스타파크식)은 항상 보인다.
-// 2026-11-13 라이언: '튜토리얼' 버튼을 따로 — 이미 해 본 유저도 언제든 다시. 튜토리얼은 언제나 간추린 이야기부터(건너뛰기 가능).
+// 홈(엔트리) — 2026-11-18 새 기획(docs/design/HOME_SCREEN.md, 라이언: 그림의 캐릭터·등불과 버튼이 엇갈리고 리본이 틀림 → 여기서 처음부터).
+// 배경 그림(ChatGPT)에는 캐릭터·제목·버튼이 없다. 별 등불이 놓인 빈터만 있다. 게임이 그 위에 얹는다:
+//  - 제목 PNG(최신 제목 그대로) + 한글 이름·슬로건
+//  - 지금 고른 등불지기(검증된 초상 = 대기 팩 45°)를 그림 속 등불 왼쪽 빈터에 — 누르면 선택 화면
+//  - 둥근 버튼 넷(지난 밤들·상점·튜토리얼·테스트, 둥근 배지 규칙) + '게임하기' 알약
+//  - 프로필(아바타 = 고른 등불지기)·설정
+// 배경과 등불지기는 그림 비율 그대로 화면을 덮는 장면 상자(.home__scene) 안에 그림 %로 놓아 빈터에 정확히 선다.
+// 제목·버튼·프로필은 화면 기준으로 놓아 비율이 달라도 잘리지 않는다. 세로·가로 배치는 screens.css 홈 절.
+// 메뉴 동작은 그대로: 처음 하는 유저의 '게임하기' = 이야기 → 튜토리얼(2026-11-13), 튜토리얼 버튼은 언제든 다시, 테스트 = 고르기 창.
 import { bus } from '../../core/events';
 import { Progress } from '../../core/Progress';
 import { RunState } from '../../core/RunState';
+import { characterById } from '../../data';
 import { startTutorial } from '../Story';
 import { openTestSheet } from '../TestSheet';
 import { h, svg } from '../dom';
 import { gearIcon, pawIcon, playIcon, podiumIcon, shopIcon, tutorialIcon } from '../icons';
 import { portraitUrl, screenShell } from './common';
 
+/** 둥근 버튼: 남색 유리 원 + 굵은 선 아이콘 + 아래 글자 (5절 둥근 배지 규칙) */
+function badge(label: string, icon: string, onClick: () => void, aria?: string): HTMLButtonElement {
+  const b = h(
+    'button',
+    { class: 'home-badge', type: 'button', ...(aria ? { 'aria-label': aria } : {}) },
+    h('span', { class: 'home-badge__icon' }, svg(icon)),
+    h('span', { class: 'home-badge__label' }, label),
+  ) as HTMLButtonElement;
+  b.addEventListener('click', onClick);
+  return b;
+}
+
 export class HomeScreen {
   readonly el: HTMLElement;
   private readonly name: HTMLElement;
+  private readonly hero: HTMLImageElement;
+  private readonly heroButton: HTMLElement;
+  private readonly avatar: HTMLImageElement;
 
   constructor() {
     const settings = h('button', { class: 'icon-button home__settings', type: 'button', 'aria-label': '설정' }, svg(gearIcon));
     settings.addEventListener('click', () => bus.emit('ui:open-settings'));
 
-    const start = h('button', { class: 'pill pill--primary', type: 'button' }, svg(playIcon), '게임하기');
+    const start = h('button', { class: 'pill pill--primary home__start', type: 'button' }, svg(playIcon), '게임하기');
     start.addEventListener('click', () => {
       if (Progress.tutorialDone) bus.emit('ui:navigate', { to: 'select' });
       else startTutorial();
     });
-    const tutorial = h('button', { class: 'pill pill--secondary home__tutorial', type: 'button', 'aria-label': '튜토리얼: 처음 밤을 다시 해 봐요' }, svg(tutorialIcon), '튜토리얼');
-    tutorial.addEventListener('click', () => startTutorial());
-    const ranking = h('button', { class: 'pill pill--secondary', type: 'button' }, svg(podiumIcon), '지난 밤들');
-    ranking.addEventListener('click', () => bus.emit('ui:navigate', { to: 'ranking' }));
-    const shop = h('button', { class: 'pill pill--secondary', type: 'button' }, svg(shopIcon), '상점');
-    shop.addEventListener('click', () => bus.emit('ui:navigate', { to: 'shop' }));
-    // 2026-11-13 라이언: 테스트 = 스타파크식 연습장. 2026-11-14 라이언: 연습장·튜토리얼·모든 스테이지 중 골라 바로 플레이(TestSheet). 항상 보인다
-    const test = h('button', { class: 'pill pill--secondary home__test', type: 'button', 'aria-label': '테스트: 연습장이나 스테이지를 골라 바로 해 봐요' }, svg(pawIcon), '테스트');
-    test.addEventListener('click', () => openTestSheet());
 
+    this.hero = h('img', { class: 'home__hero-img', src: portraitUrl(RunState.characterId), alt: '', width: 192, height: 192 }) as HTMLImageElement;
+    this.heroButton = h('button', { class: 'home__hero', type: 'button' }, this.hero);
+    this.heroButton.addEventListener('click', () => bus.emit('ui:navigate', { to: 'select' }));
+
+    this.avatar = h('img', { class: 'profile__avatar', src: portraitUrl(RunState.characterId), alt: '', width: 40, height: 40 }) as HTMLImageElement;
     this.name = h('span', { class: 'profile__name' }, RunState.nickname);
     this.el = screenShell(
       'home',
+      h('div', { class: 'home__scene' }, this.heroButton),
       settings,
       h(
         'header',
         { class: 'home__title' },
-        h('h1', { class: 'logo' }, h('span', { class: 'logo__en' }, 'LIGHT', h('br'), 'DEFENSE'), h('span', { class: 'logo__ko' }, '라이트 디펜스')),
+        h(
+          'h1',
+          { class: 'logo' },
+          h('img', { class: 'home__logo', src: 'assets/backgrounds/home-title.webp', alt: 'LIGHT DEFENSE', width: 600, height: 464 }),
+          h('span', { class: 'logo__ko' }, '라이트 디펜스'),
+        ),
         h('p', { class: 'home__slogan' }, '작은 빛으로, 마을을 되찾아요.'),
       ),
-      h('nav', { class: 'home__menu', 'aria-label': '메뉴' }, start, ranking, shop, tutorial, test),
       h(
-        'div',
-        { class: 'profile' },
-        h('img', { class: 'profile__avatar', src: portraitUrl('lumi'), alt: '', width: 40, height: 40 }),
-        this.name,
+        'nav',
+        { class: 'home__menu', 'aria-label': '메뉴' },
+        h(
+          'div',
+          { class: 'home__badges' },
+          badge('지난 밤들', podiumIcon, () => bus.emit('ui:navigate', { to: 'ranking' })),
+          badge('상점', shopIcon, () => bus.emit('ui:navigate', { to: 'shop' })),
+          badge('튜토리얼', tutorialIcon, () => startTutorial(), '튜토리얼: 처음 밤을 다시 해 봐요'),
+          // 2026-11-14 라이언: 연습장(트라이얼)·튜토리얼·모든 스테이지 중 골라 바로 플레이(TestSheet). 항상 보인다
+          badge('테스트', pawIcon, () => openTestSheet(), '테스트: 트라이얼이나 스테이지를 골라 바로 해 봐요'),
+        ),
+        start,
       ),
+      h('div', { class: 'profile' }, this.avatar, this.name),
     );
   }
 
-  /** 화면에 들어올 때마다 닉네임을 새로 읽는다 */
+  /** 화면에 들어올 때마다 닉네임과 고른 등불지기를 새로 읽는다 */
   show(): void {
     this.name.textContent = RunState.nickname;
+    const id = RunState.characterId;
+    const src = portraitUrl(id);
+    if (!this.hero.src.endsWith(src)) this.hero.src = src;
+    if (!this.avatar.src.endsWith(src)) this.avatar.src = src;
+    this.heroButton.setAttribute('aria-label', `${characterById(id).name} — 등불지기 고르기`);
   }
 }

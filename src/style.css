@@ -1268,3 +1268,18 @@ body {
   white-space: nowrap;
   pointer-events: none;
 }
+
+/* home-side-bands (2026-11-18): PC 세로 화면에서 홈일 때 9:16 상자 양옆 띠에 세로 홈 그림을 흐리고 어둡게 */
+:root[data-screen='home']:not([data-layout='landscape']) body {
+  background: transparent;
+}
+
+:root[data-screen='home']:not([data-layout='landscape']) body::before {
+  content: '';
+  position: fixed;
+  inset: -24px;
+  z-index: -1;
+  background: url('/assets/backgrounds/home.webp') center / cover no-repeat;
+  filter: blur(18px) brightness(0.62) saturate(0.95);
+  pointer-events: none;
+}
