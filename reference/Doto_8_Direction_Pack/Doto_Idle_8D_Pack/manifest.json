@@ -1,0 +1,65 @@
+{
+  "pack": "Doto_Idle_8D_Pack",
+  "version": "1.0",
+  "canvas": {
+    "width": 512,
+    "height": 512,
+    "format": "PNG RGBA transparent"
+  },
+  "alignment": {
+    "feet_baseline_y": 496,
+    "scale_factor": 1.227397,
+    "horizontal_alignment": "silhouette centered (tail included)",
+    "note": "One shared scale was applied to all eight views; per-view fit was not used."
+  },
+  "directions": [
+    {
+      "angle": 0,
+      "name": "front",
+      "file": "doto_idle_000_front",
+      "derived_by": "drawn on turnaround sheet"
+    },
+    {
+      "angle": 45,
+      "name": "front_right",
+      "file": "doto_idle_045_front_right",
+      "derived_by": "drawn on turnaround sheet"
+    },
+    {
+      "angle": 90,
+      "name": "right",
+      "file": "doto_idle_090_right",
+      "derived_by": "drawn on turnaround sheet"
+    },
+    {
+      "angle": 135,
+      "name": "back_right",
+      "file": "doto_idle_135_back_right",
+      "derived_by": "drawn on turnaround sheet"
+    },
+    {
+      "angle": 180,
+      "name": "back",
+      "file": "doto_idle_180_back",
+      "derived_by": "drawn on turnaround sheet"
+    },
+    {
+      "angle": 225,
+      "name": "back_left",
+      "file": "doto_idle_225_back_left",
+      "derived_by": "drawn on turnaround sheet"
+    },
+    {
+      "angle": 270,
+      "name": "left",
+      "file": "doto_idle_270_left",
+      "derived_by": "drawn on turnaround sheet"
+    },
+    {
+      "angle": 315,
+      "name": "front_left",
+      "file": "doto_idle_315_front_left",
+      "derived_by": "drawn on turnaround sheet"
+    }
+  ]
+}

@@ -31,6 +31,11 @@ interface FriendPack {
    * 게임은 여기에 걸음 빠르기 배율(Lightkeeper: 끝까지 밀면 약 ×1.65)을 곱한다
    */
   walkCycle?: { order: number[]; frameRate: number };
+  /**
+   * 방향(각도)별 몸 기준점 x(팩 캔버스 px). 없으면 발 가운데(아래 15% 줄 평균)를 잰다.
+   * 꼬리가 크고 바닥에 닿는 도토처럼, 자동으로 재면 꼬리에 끌려가는 팩에 쓴다
+   */
+  anchorX?: Partial<Record<number, number>>;
 }
 
 /** 각도 → 팩의 방향 이름 (파일 이름 규칙) */
@@ -46,6 +51,7 @@ const NAMES: Record<number, string> = {
 };
 
 const TORI_DIR = '/reference/Tori_8_Direction_Pack';
+const DOTO_DIR = '/reference/Doto_8_Direction_Pack';
 export const FRIEND_PACKS: Partial<Record<KeeperSpriteId, FriendPack>> = {
   tori: {
     idle: (deg, name) => `${TORI_DIR}/Tori_Idle_8D_Pack/tori_idle_${deg}_${name}.png`,
@@ -56,6 +62,21 @@ export const FRIEND_PACKS: Partial<Record<KeeperSpriteId, FriendPack>> = {
     // 2026-11-18 라이언: 오른쪽 깡충이 빠르고 과해 보임 → 앉음 2칸·박차기 1·공중 1·착지 2칸, 끝까지 밀어도 한 번에 약 0.66초(제안).
     // 루미 방식(4칸 9fps)이면 끝까지 밀 때 1초에 약 15칸 = 깡충 한 번 0.27초였다. 땅에 있는 시간을 늘리고 공중은 짧게
     walkCycle: { order: [0, 0, 1, 2, 3, 3], frameRate: 5.5 },
+  },
+  // 2026-11-18: ChatGPT 도토 대기 팩(8장 한 축척, 발끝 496, 귀 끝 털 약 54줄 = 몸 높이 약 442).
+  // 팩은 '꼬리까지 포함한 실루엣'을 가로 가운데에 맞춰 와서(README), 몸 기준점을 방향마다 정했다(그림 위에 선을 그어 확인,
+  // 좌우 짝 45/315·90/270·135/225는 512 대칭). 그림 파일은 받은 그대로 — 옮기면 큰 꼬리가 캔버스 밖으로 잘린다.
+  // 크기 95px(제안): 브리프 '몸은 셋 중 가장 작다'(루미 약 101px, 머리 폭 루미의 약 83%). 더 크면 128 칸에서 꼬리 끝이 잘린다.
+  // 걷기 팩이 오기 전까지 걷기는 대기 그림으로 만든 임시 깡충, 박자는 토리와 같다
+  doto: {
+    idle: (deg, name) => `${DOTO_DIR}/Doto_Idle_8D_Pack/doto_idle_${deg}_${name}.png`,
+    walk: (deg, name, n) => `${DOTO_DIR}/Doto_Walk_8D_4Frames_Pack/${deg}_${name}/doto_walk_${deg}_${name}_f0${n}.png`,
+    feetY: 496,
+    bodyH: 442,
+    heightPx: 95,
+    walkCycle: { order: [0, 0, 1, 2, 3, 3], frameRate: 5.5 },
+    // 90·135(270·225)는 몸 아래보다 10px 몸 쪽: 꼬리 끝이 128 칸 밖으로 나가지 않게(게임에서 2px)
+    anchorX: { 0: 256, 45: 300, 90: 320, 135: 340, 180: 256, 225: 172, 270: 192, 315: 212 },
   },
 };
 
@@ -69,7 +90,7 @@ interface Pose {
 /** 숨쉬기 4칸 (루미 breathe와 같은 값) */
 const BREATHE: Pose[] = [{}, { sx: 0.995, sy: 1.02 }, { sx: 0.99, sy: 1.035 }, { sx: 0.995, sy: 1.015 }];
 /** 걷기 팩이 아직 없는 방향의 임시 깡충 (제안): 모음 → 박차기 → 공중 → 착지. 귀 끝이 칸(위 7px 여유) 밖으로 나가지 않는 만큼만 늘이고 든다 */
-const HOP: Pose[] = [{}, { sx: 0.98, sy: 1.03 }, { sx: 1.01, sy: 0.99, lift: 5 }, { sx: 1.04, sy: 0.95 }];
+const HOP: Pose[] = [{}, { sx: 0.98, sy: 1.03 }, { sx: 1.01, sy: 0.99, lift: 5 }, { sx: 1.02, sy: 0.96 }];
 
 function loadImage(url: string): Promise<HTMLImageElement | null> {
   return new Promise((resolve) => {
@@ -132,6 +153,7 @@ export async function composeFriend(id: KeeperSpriteId): Promise<HTMLCanvasEleme
   if (!pack) return null;
   const s = pack.heightPx / pack.bodyH;
   const idle = new Map<Dir, HTMLImageElement>();
+  const anchor = new Map<Dir, number>();
   const walk = new Map<Dir, HTMLImageElement[]>();
   for (const [deg, name] of Object.entries(NAMES)) {
     const a = deg.padStart(3, '0');
@@ -139,6 +161,7 @@ export async function composeFriend(id: KeeperSpriteId): Promise<HTMLCanvasEleme
     const img = await loadImage(pack.idle(a, name));
     if (!img) return null;
     idle.set(dir, img);
+    anchor.set(dir, pack.anchorX?.[Number(deg)] ?? feetX(img));
     const frames = await Promise.all([1, 2, 3, 4].map((n) => loadImage(pack.walk(a, name, n))));
     if (frames.every((f): f is HTMLImageElement => f !== null)) walk.set(dir, frames as HTMLImageElement[]);
   }
@@ -155,8 +178,8 @@ export async function composeFriend(id: KeeperSpriteId): Promise<HTMLCanvasEleme
 
   for (const [row, d] of DIRS.entries()) {
     const img = idle.get(d) as HTMLImageElement;
-    // 한 방향 안의 대기·걷기는 같은 발 가운데(대기 그림 기준)에 둔다 → 걷기 프레임의 앞뒤 움직임이 그대로 보인다
-    const fx = feetX(img);
+    // 한 방향 안의 대기·걷기는 같은 기준점(대기 그림의 발 가운데 또는 anchorX)에 둔다 → 걷기 프레임의 앞뒤 움직임이 그대로 보인다
+    const fx = anchor.get(d) as number;
     for (let i = 0; i < LUMI_COLS.idle; i++) place(g, img, i, row, fx, pack, s, BREATHE[i % BREATHE.length]);
     const frames = walk.get(d);
     for (let i = 0; i < LUMI_COLS.walk; i++) {
