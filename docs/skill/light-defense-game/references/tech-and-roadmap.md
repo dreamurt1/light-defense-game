@@ -52,7 +52,7 @@ light_defense_game/
 ├─ art-src/        게임에 넣을 원본 PNG
 ├─ public/assets/  npm run assets 결과 + manifest.json
 ├─ tests/          *.test.ts (순수 로직·조작·지도·스테이지·랭킹 …)
-├─ scripts/        art-check  screens  station  ship  shot  sync-skill  notify.ps1 …
+├─ scripts/        acceptance  art-check  screens  station  ship  shot  sync-skill  notify.ps1 …
 └─ docs/           DECISION_LOG.md  design/  skill/  archive/
 ```
 
@@ -108,6 +108,8 @@ export interface CharacterDef {
 | 6 | 튜토리얼·설정·사운드·모바일 마무리·배포 | 시연판(이야기·필수 튜토리얼·트라이얼·스틱 좌우·합성 사운드·라이브). 상점 = 빛 색(2026-11-18), 음량 슬라이더·휴대폰 방향 고정·녹음 음원 자리(2026-11-19) |
 
 2026-11-18 점검: 자동 플레이로 1~4스테이지 완전 승리, 노월 진정, 패배 흐름, 토리 구출 해금을 확인했다(콘솔 오류 0).
+
+2026-11-19 완료 기준(`docs/design/ACCEPTANCE_CRITERIA.md`)을 채웠다: 단위 테스트 + 헤드리스 점검 `npm run check:acceptance`(`scripts/acceptance.mjs`, 22항목) + 자동 플레이. 사람이 볼 것만 남음 — 실제 휴대폰(특히 아이폰 사파리), 밸런스·손맛 체감.
 
 ## 완료 보고 형식
 

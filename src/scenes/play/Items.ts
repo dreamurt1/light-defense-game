@@ -16,7 +16,7 @@ import { carryOrDefault } from '../../systems/unlocks';
 import { Progress } from '../../core/Progress';
 import { loadSettings } from '../../core/Settings';
 import type { LightPoints } from '../../systems/lightPoints';
-import { pushOut, type Rect } from '../../systems/obstacles';
+import { itemSpot, type Rect } from '../../systems/obstacles';
 import type { Vitals } from '../../systems/vitals';
 
 // 수치 원본: game.json items(칸·줍기·생기는 둘레), items.json golden_acorn(helper*)
@@ -103,10 +103,10 @@ export class Items {
             : [place.central, CFG.spawnRingMin, CFG.spawnRingMax];
         const a = this.rng.range(0, Math.PI * 2);
         const d = this.rng.range(min, max);
-        const p = pushOut({ x: base.x + Math.cos(a) * d, y: base.y + Math.sin(a) * d }, 30, obstacles);
+        const p = itemSpot(base, a, d, 30, obstacles, area);
         // 위험할 때는 빛의 부적(HP·LP)도 나올 수 있다 (제안)
         const def = this.rng.pick(GameData.items.filter((i) => place.danger || i.id !== 'light_charm'));
-        this.drop(def.id, Math.min(area.x + area.w, Math.max(area.x, p.x)), Math.min(area.y + area.h, Math.max(area.y, p.y)));
+        this.drop(def.id, p.x, p.y);
       }
     }
     for (let i = this.ground.length - 1; i >= 0; i--) {

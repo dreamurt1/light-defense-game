@@ -2074,3 +2074,23 @@
 :root[data-layout='landscape'] .sheet--settings .sheet__actions {
   margin-top: calc(var(--u) * 16);
 }
+
+/* 가로 선택 화면: 처음 유저(시작 버튼 '처음 밤부터 해요')에서 PC 풀 화면 아래가 26px 넘치던 것 — 칸·버튼을 조금 낮춤 (2026-11-19 완료 기준 A4) */
+:root[data-layout='landscape'] .select__go {
+  min-height: max(48px, calc(var(--u) * 50));
+}
+
+:root[data-layout='landscape'] .stage-card {
+  min-height: max(44px, calc(var(--u) * 68));
+}
+
+:root[data-layout='landscape'] .select__label {
+  margin-top: calc(var(--u) * 10);
+}
+
+/* 4:3 근처(위의 max-aspect-ratio: 3/2 묶음)는 64u 그대로 */
+@media (min-aspect-ratio: 3/2) {
+  :root[data-layout='landscape'] .select__roster {
+    grid-template-columns: repeat(3, minmax(0, calc(var(--u) * 68)));
+  }
+}

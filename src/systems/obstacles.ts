@@ -51,3 +51,12 @@ export function insideRect(p: Vec, r: Rect, inset = 0): boolean {
 export function bushAt(p: Vec, bushes: readonly Rect[], inset = 0): number {
   return bushes.findIndex((b) => insideRect(p, b, inset));
 }
+
+/**
+ * 아이템을 떨어뜨릴 자리 (scenes/play/Items.ts, 2026-11-19 완료 기준 G3 — 주울 수 없는 곳에 생기지 않게):
+ * base에서 angle·dist만큼 간 곳을 장애물(광원·등불 발자리·강 포함)에서 radius만큼 밀어내고 걷기 영역 안으로 자른다.
+ */
+export function itemSpot(base: Vec, angle: number, dist: number, radius: number, rects: readonly Rect[], area: Rect): Vec {
+  const p = pushOut({ x: base.x + Math.cos(angle) * dist, y: base.y + Math.sin(angle) * dist }, radius, rects);
+  return { x: Math.min(area.x + area.w, Math.max(area.x, p.x)), y: Math.min(area.y + area.h, Math.max(area.y, p.y)) };
+}

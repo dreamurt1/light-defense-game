@@ -120,7 +120,7 @@
 ## 9. 환경·명령
 
 - Node 24 · npm 11 · firebase-tools 15 · Windows 11. dev 서버 `npm run dev`(5173, 개발 모드에서만 `window.__game`).
-- 테스트 `npx vitest run` · 타입 `npx tsc --noEmit` · 빌드 `npm run build` · 에셋 `npm run assets`(포트 5179 임시 Vite) · 스킬 `npm run doc:skill`.
+- 테스트 `npx vitest run` · 타입 `npx tsc --noEmit` · 빌드 `npm run build` · 에셋 `npm run assets`(포트 5179 임시 Vite) · 스킬 `npm run doc:skill` · 완료 기준 헤드리스 점검 `npm run check:acceptance`(약 4분, dev 서버 필요, 결과는 `docs/design/ACCEPTANCE_CRITERIA.md`).
 - 화면 찍기 `npm run shot -- "<url>" <out.png> <대기ms> [폭] [높이] [배율] [phone]`. 개발 URL 옵션: `?autoplay=초`, `&lamp`, `&idle`, `&walk`, `&burst`, `&pause`, `&aim`, `?screen=select|shop|ranking|play`, `&preview=boss|dawn`, `&skill=0.15~1`.
 - 확인 크기(라이언 지정 4종): PC 풀 화면 1920×1080, PC 세로(설정 orientation 'portrait'), 모바일 세로 390×844, 모바일 가로 844×390. 덤: 태블릿 820×1180·1180×820, 16:10, 16:9 작은 폰 360×640. → 스킬 `ld-screen-check`.
 - 보여 줄 이미지는 프로젝트 폴더(`sketches/…-YY-MMDD-HHMM/`)에.
