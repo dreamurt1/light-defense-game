@@ -76,7 +76,7 @@
 | 대체 그림 | `src/art/*` (Canvas 2D 코드) | ChatGPT 그림이 아직 없는 키에 쓰인다. 미리보기는 dev 서버의 `/assets.html` |
 
 - 루미 시트는 `npm run art:lumi`가 `reference/LUMI-sprites` 시트와 8방향 팩을 `src/art/lumiSheet.ts` 좌표·팩 매니페스트대로 잘라 `art-src/lumi/`에 쓰고, `npm run art:import`가 `lumi-8dir` 시트로 묶는다.
-- 홈 배경은 2026-11-18부터 ChatGPT 배경 두 장(세로 `home.webp`·가로 `home-wide.webp`, 캐릭터·제목·버튼 없음) + 제목 `home-title.webp` — 등불지기와 버튼은 게임이 얹는다(`docs/design/HOME_SCREEN.md`). 받은 원본은 `reference/Home_Art_Pack/`.
+- 홈 배경은 2026-11-18부터 ChatGPT 배경 두 장(세로 `home.webp`·가로 `home-wide.webp`, 캐릭터·제목·버튼 없음) + 제목 `home-title.webp` — 홈은 캐릭터 없이 풍경만, 버튼은 게임이 얹는다(`docs/design/HOME_SCREEN.md`). 받은 원본은 `reference/Home_Art_Pack/`.
 - 텍스처·애니메이션 키는 `TextureKeys`·`AnimKeys` 한 곳에서 관리한다.
 
 ## UI / HUD (세로 화면)

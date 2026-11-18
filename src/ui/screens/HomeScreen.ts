@@ -1,16 +1,15 @@
 // 홈(엔트리) — 2026-11-18 새 기획(docs/design/HOME_SCREEN.md, 라이언: 그림의 캐릭터·등불과 버튼이 엇갈리고 리본이 틀림 → 여기서 처음부터).
-// 배경 그림(ChatGPT)에는 캐릭터·제목·버튼이 없다. 별 등불이 놓인 빈터만 있다. 게임이 그 위에 얹는다:
+// 배경 그림(ChatGPT)에는 캐릭터·제목·버튼이 없다. 별 등불이 놓인 빈터 풍경만 있다. 게임이 그 위에 얹는다:
 //  - 제목 PNG(최신 제목 그대로) + 한글 이름·슬로건
-//  - 지금 고른 등불지기(검증된 초상 = 대기 팩 45°)를 그림 속 등불 왼쪽 빈터에 — 누르면 선택 화면
+//  (2026-11-18 라이언: 홈은 캐릭터 없이 풍경만 — 잠깐 넣었던 '무대의 고른 등불지기'는 뺐다)
 //  - 둥근 버튼 넷(지난 밤들·상점·튜토리얼·테스트, 둥근 배지 규칙) + '게임하기' 알약
 //  - 프로필(아바타 = 고른 등불지기)·설정
-// 배경과 등불지기는 그림 비율 그대로 화면을 덮는 장면 상자(.home__scene) 안에 그림 %로 놓아 빈터에 정확히 선다.
+// 배경은 그림 비율 그대로 화면을 덮는 장면 상자(.home__scene)에 깐다.
 // 제목·버튼·프로필은 화면 기준으로 놓아 비율이 달라도 잘리지 않는다. 세로·가로 배치는 screens.css 홈 절.
 // 메뉴 동작은 그대로: 처음 하는 유저의 '게임하기' = 이야기 → 튜토리얼(2026-11-13), 튜토리얼 버튼은 언제든 다시, 테스트 = 고르기 창.
 import { bus } from '../../core/events';
 import { Progress } from '../../core/Progress';
 import { RunState } from '../../core/RunState';
-import { characterById } from '../../data';
 import { startTutorial } from '../Story';
 import { openTestSheet } from '../TestSheet';
 import { h, svg } from '../dom';
@@ -32,8 +31,6 @@ function badge(label: string, icon: string, onClick: () => void, aria?: string):
 export class HomeScreen {
   readonly el: HTMLElement;
   private readonly name: HTMLElement;
-  private readonly hero: HTMLImageElement;
-  private readonly heroButton: HTMLElement;
   private readonly avatar: HTMLImageElement;
 
   constructor() {
@@ -46,15 +43,11 @@ export class HomeScreen {
       else startTutorial();
     });
 
-    this.hero = h('img', { class: 'home__hero-img', src: portraitUrl(RunState.characterId), alt: '', width: 192, height: 192 }) as HTMLImageElement;
-    this.heroButton = h('button', { class: 'home__hero', type: 'button' }, this.hero);
-    this.heroButton.addEventListener('click', () => bus.emit('ui:navigate', { to: 'select' }));
-
     this.avatar = h('img', { class: 'profile__avatar', src: portraitUrl(RunState.characterId), alt: '', width: 40, height: 40 }) as HTMLImageElement;
     this.name = h('span', { class: 'profile__name' }, RunState.nickname);
     this.el = screenShell(
       'home',
-      h('div', { class: 'home__scene' }, this.heroButton),
+      h('div', { class: 'home__scene', 'aria-hidden': 'true' }),
       settings,
       h(
         'header',
@@ -85,13 +78,10 @@ export class HomeScreen {
     );
   }
 
-  /** 화면에 들어올 때마다 닉네임과 고른 등불지기를 새로 읽는다 */
+  /** 화면에 들어올 때마다 닉네임과 프로필 사진(고른 등불지기)을 새로 읽는다 */
   show(): void {
     this.name.textContent = RunState.nickname;
-    const id = RunState.characterId;
-    const src = portraitUrl(id);
-    if (!this.hero.src.endsWith(src)) this.hero.src = src;
+    const src = portraitUrl(RunState.characterId);
     if (!this.avatar.src.endsWith(src)) this.avatar.src = src;
-    this.heroButton.setAttribute('aria-label', `${characterById(id).name} — 등불지기 고르기`);
   }
 }

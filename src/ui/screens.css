@@ -125,19 +125,15 @@
 }
 
 /* ---------- 홈 (2026-11-18 새 기획, docs/design/HOME_SCREEN.md) ----------
-   배경(ChatGPT)에는 캐릭터·제목·버튼이 없다. 장면 상자(.home__scene)는 그림 비율 그대로 화면을 덮고 가운데에 —
-   등불지기는 그 안에서 그림 %로(그림 속 등불 왼쪽 빈터). 제목·버튼·프로필은 화면 기준.
-   세로 그림 home.webp 1064×2340: 등불 x 77%·받침 아래 y 70.5% → 등불지기 발 x 53%·y 72%, 키 = 그림 높이의 16.5%(등불의 약 1.35배).
-   가로 그림 home-wide.webp 2332×1080: 등불 x 51.7%·받침 아래 y 98.5% → 발 x 40%·y 97.5%, 키 34.5%(아래 가로 규칙). */
+   배경(ChatGPT)에는 캐릭터·제목·버튼이 없다 — 홈은 캐릭터 없이 풍경만(2026-11-18 라이언).
+   장면 상자(.home__scene)는 그림 비율 그대로 화면을 덮고 가운데에. 제목·버튼·프로필은 화면 기준.
+   세로 그림 home.webp 1064×2340(등불 x 77%·받침 아래 y 70.5%), 가로 그림 home-wide.webp 2332×1080(등불 x 51.7%·y 98.5%). */
 .screen--home {
   isolation: isolate;
   overflow: hidden;
   background: var(--predawn);
   --art: url('/assets/backgrounds/home.webp');
   --art-r: 0.4547;
-  --hero-x: 53%;
-  --hero-y: 72%;
-  --hero-h: 16.5%;
 }
 
 .home__scene {
@@ -159,70 +155,6 @@
   z-index: -1;
   pointer-events: none;
   background: linear-gradient(to top, rgba(17, 18, 40, 0.6), rgba(17, 18, 40, 0) 24%);
-}
-
-/* 무대의 등불지기: 초상 그림(발 = 높이의 97.9%, 캐릭터 = 높이의 94%) */
-.home__hero {
-  position: absolute;
-  left: var(--hero-x);
-  top: var(--hero-y);
-  height: calc(var(--hero-h) / 0.94);
-  aspect-ratio: 1;
-  padding: 0;
-  border: 0;
-  background: none;
-  cursor: pointer;
-  transform: translate(-50%, -97.9%);
-  -webkit-tap-highlight-color: transparent;
-}
-
-/* 발밑에 등불 빛이 고인 듯 */
-.home__hero::before {
-  content: '';
-  position: absolute;
-  left: 50%;
-  bottom: 2.1%;
-  width: 78%;
-  height: 14%;
-  transform: translate(-50%, 50%);
-  border-radius: 50%;
-  background: radial-gradient(closest-side, rgba(255, 200, 87, 0.36), rgba(255, 200, 87, 0));
-}
-
-.home__hero-img {
-  position: relative;
-  display: block;
-  width: 100%;
-  height: 100%;
-  transform-origin: 50% 97.9%;
-  filter: drop-shadow(0 0 calc(var(--u) * 10) rgba(255, 200, 87, 0.16));
-  animation: home-hero-breathe 3.2s ease-in-out infinite;
-}
-
-@keyframes home-hero-breathe {
-  0%,
-  100% {
-    transform: scale(1, 1);
-  }
-  50% {
-    transform: scale(0.995, 1.02);
-  }
-}
-
-.home__hero:active .home__hero-img {
-  scale: 0.97;
-}
-
-.home__hero:focus-visible {
-  outline: calc(var(--u) * 2) solid var(--amber);
-  outline-offset: calc(var(--u) * 4);
-  border-radius: calc(var(--u) * 16);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .home__hero-img {
-    animation: none;
-  }
 }
 
 .home__settings {
@@ -1393,14 +1325,11 @@
     max(calc(var(--u) * 18), env(safe-area-inset-bottom, 0px)) max(calc(var(--u) * 36), env(safe-area-inset-left, 0px));
 }
 
-/* 홈 (2026-11-18 새 기획): 가로 그림. 제목은 위 가운데(맑은 하늘), 등불지기는 가운데 왼쪽 빈터,
-   메뉴는 오른쪽 아래(언덕 위 마을 밑) — 둥근 버튼 넷 한 줄 + '게임하기', 프로필은 왼쪽 아래 */
+/* 홈 (2026-11-18 새 기획): 가로 그림. 제목은 위 가운데(맑은 하늘), 메뉴는 오른쪽 아래(언덕 위 마을 밑) —
+   둥근 버튼 넷 한 줄 + '게임하기', 프로필은 왼쪽 아래 */
 :root[data-layout='landscape'] .screen--home {
   --art: url('/assets/backgrounds/home-wide.webp');
   --art-r: 2.1593;
-  --hero-x: 40%;
-  --hero-y: 97.5%;
-  --hero-h: 34.5%;
 }
 
 :root[data-layout='landscape'] .screen--home::before {
@@ -1450,15 +1379,10 @@
   }
 }
 
-/* 3:2보다 좁은 가로(4:3 태블릿): 장면을 왼쪽으로 조금 옮겨 등불이 메뉴에서 떨어지게, 프로필은 등불지기를 피해 왼쪽 위 */
+/* 3:2보다 좁은 가로(4:3 태블릿): 장면을 왼쪽으로 조금 옮겨 등불이 메뉴에서 떨어지게 */
 @container (max-aspect-ratio: 3 / 2) {
   :root[data-layout='landscape'] .home__scene {
     transform: translate(calc(-50% - calc(var(--u) * 50)), -50%);
-  }
-
-  :root[data-layout='landscape'] .profile {
-    top: max(calc(var(--u) * 18), env(safe-area-inset-top, 0px));
-    bottom: auto;
   }
 }
 

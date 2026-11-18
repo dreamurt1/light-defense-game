@@ -34,7 +34,7 @@ index.html 스플래시 → BootScene → PreloadScene ─(ui:load-progress)→ 
 | 스플래시 (2026-11-04) | `index.html` + `src/ui/Splash.ts` | 스크립트보다 먼저 보이는 첫 화면 | 흐린 홈 그림·일렁이는 등불·금빛 로고·슬로건·불러오기 막대·`등불을 켜는 중…`. Preload 진행(`ui:load-progress`)을 채운 뒤 최소 1.2초 후 사라짐 |
 | `BootScene` | Phaser | 설정·진행도 로드(localStorage), 스케일 설정 | — |
 | `PreloadScene` | Phaser | 데이터 JSON·오디오·`manifest.json`의 텍스처 로드 | 진행을 스플래시 막대로 보냄 |
-| 홈(엔트리) | `src/ui/screens/HomeScreen.ts` | 제목(그림)·슬로건, 고른 등불지기(무대), 둥근 버튼 넷(지난 밤들·상점·튜토리얼·테스트), 게임하기, 설정, 프로필 | 2026-11-18 새 기획(`docs/design/HOME_SCREEN.md`): ChatGPT 배경 세로·가로(캐릭터·제목·버튼 없음, 별 등불 빈터) + 제목 webp, 게임이 등불지기(등불 왼쪽)·버튼을 얹음, 세로 = 아래 가운데 메뉴, 가로 = 오른쪽 아래 메뉴·위 가운데 제목, `bgm_entry` |
+| 홈(엔트리) | `src/ui/screens/HomeScreen.ts` | 제목(그림)·슬로건, 둥근 버튼 넷(지난 밤들·상점·튜토리얼·테스트), 게임하기, 설정, 프로필 | 2026-11-18 새 기획(`docs/design/HOME_SCREEN.md`): ChatGPT 배경 세로·가로(캐릭터·제목·버튼 없음, 별 등불 빈터) + 제목 webp, 캐릭터 없이 풍경만(라이언), 게임이 제목·버튼을 얹음, 세로 = 아래 가운데 메뉴, 가로 = 오른쪽 아래 메뉴·위 가운데 제목, `bgm_entry` |
 | 선택 | `SelectScreen.ts` | 큰 초상 + 좌우 화살표 + 이름·한 줄 소개 + 아래 주인공 5칸(잠긴 칸은 어둡게 + 해금 조건), 장착물 4종, 맨 아래 `등불을 켜요` | 카드 탭 시 `voice_<id>_light` 미리듣기. 직전 선택을 기본값으로. 해금·장착물 고르기는 M3 |
 | 상점 | `ShopScreen.ts` | 외형(스킨·등불 외형·빛 색) | M6, 지금은 `준비 중` |
 | 지난 밤들(랭킹) | `RankingScreen.ts` | Top 100, 내 순위, 기간 탭(오늘/이번 주/전체) | Firebase 연동(M5) 전엔 로컬 |
