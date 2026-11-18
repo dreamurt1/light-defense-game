@@ -134,6 +134,8 @@ export interface GameConfig {
     pinnedBackPx: number;
     pinnedLungePx: number;
     pinnedLungeSec: number;
+    /** 들이받을 때 루미 몸에 겹쳐 들어가는 정도(2026-11-18: 실제로 닿을 때만 피해) */
+    pinnedOverlap: number;
   };
   light: {
     mode: 'aimStick';

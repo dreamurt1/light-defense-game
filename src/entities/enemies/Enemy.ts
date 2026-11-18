@@ -105,6 +105,8 @@ export abstract class Enemy extends Phaser.GameObjects.Container {
   /** 고정된 적의 숨 고르기(뒤로 젖힘)·들이받기(내밂) 남은 시간과 방향 */
   private windLeft = 0;
   private lungeLeft = 0;
+  /** 이번 들이받기가 나가는 거리(시작할 때 루미까지 재서 정함) */
+  private lungeDist = 0;
   private readonly lungeDir = new Phaser.Math.Vector2(1, 0);
   /** 들이받은 뒤 튕겨 물러나는 남은 시간과 방향 */
   private recoilLeft = 0;
@@ -134,11 +136,32 @@ export abstract class Enemy extends Phaser.GameObjects.Container {
     return this.role === 'station' || !!this.def.friend || this.mode === 'returning' || this.anchor !== null;
   }
 
-  /** 트라이얼: 루미가 몸이 닿는 거리 + pinnedReach 안이면 chargeLead 동안 숨을 고른 뒤 들이받는다(그 적의 피해·주기 그대로). 멀어지면 취소 */
+  /**
+   * 트라이얼: 루미가 몸이 닿는 거리 + pinnedReach 안이면 chargeLead 동안 숨을 고른 뒤(뒤로 젖힘) 루미 쪽으로 들이받는다(그 적의 피해·주기 그대로).
+   * 2026-11-18 라이언(닿기만 해도 피해인지 확인 → 적이 공격할 때만 피해): 예전에는 숨 고르기가 끝나는 순간 거리만 보고 피해를 줬다
+   * (내미는 거리 20px라 몸에 닿지 않아도 맞음). 이제 들이받기가 가장 멀리 나간 순간 적의 몸이 루미 몸에 실제로 닿아 있을 때만 피해.
+   * 숨 고르는 동안 멀어지면 취소, 들이받는 동안 비켜서면 빗나감. 들이받는 거리 = 시작할 때 루미 몸까지 + pinnedOverlap(최대 pinnedReach + pinnedOverlap)
+   */
   private pinnedAttack(dt: number, ctx: EnemyContext, at: Vec): EnemyStep['hit'] {
-    this.lungeLeft = Math.max(0, this.lungeLeft - dt);
     const p = ctx.player;
-    const near = !!p && this.mode !== 'stunned' && this.attackDamage > 0 && Math.hypot(p.x - at.x, p.y - at.y) <= p.radius + this.radius + AI.pinnedReach;
+    if (this.mode === 'stunned') {
+      this.windLeft = 0;
+      this.lungeLeft = 0;
+      return null;
+    }
+    if (this.lungeLeft > 0) {
+      const half = AI.pinnedLungeSec / 2;
+      const before = this.lungeLeft;
+      this.lungeLeft = Math.max(0, this.lungeLeft - dt);
+      if (!p || before <= half || this.lungeLeft > half) return null;
+      // 가장 멀리 나간 순간: 몸이 닿았나
+      const tipX = at.x + this.lungeDir.x * this.lungeDist;
+      const tipY = at.y + this.lungeDir.y * this.lungeDist;
+      if (Math.hypot(p.x - tipX, p.y - tipY) > p.radius + this.radius) return null;
+      this.playSlam();
+      return { target: 'player', damage: this.attackDamage, sourceDamage: 0 };
+    }
+    const near = !!p && this.attackDamage > 0 && Math.hypot(p.x - at.x, p.y - at.y) <= p.radius + this.radius + AI.pinnedReach;
     if (!p || !near) {
       this.windLeft = 0;
       return null;
@@ -149,12 +172,13 @@ export abstract class Enemy extends Phaser.GameObjects.Container {
       this.windLeft -= dt;
       if (this.windLeft > 0) return null;
       this.windLeft = 0;
-      this.tickLeft = this.def.damageTickSec;
+      const gap = Math.hypot(p.x - at.x, p.y - at.y) - (p.radius + this.radius);
+      this.lungeDist = Phaser.Math.Clamp(gap + AI.pinnedOverlap, AI.pinnedLungePx, AI.pinnedReach + AI.pinnedOverlap);
       this.lungeLeft = AI.pinnedLungeSec;
-      this.playSlam();
-      return { target: 'player', damage: this.attackDamage, sourceDamage: 0 };
+      this.tickLeft = this.def.damageTickSec; // 맞든 빗나가든 다음 공격까지 쉰다
+      return null;
     }
-    if (this.tickLeft <= 0 && this.lungeLeft <= 0) this.windLeft = AI.chargeLead;
+    if (this.tickLeft <= 0) this.windLeft = AI.chargeLead;
     return null;
   }
 
@@ -292,7 +316,7 @@ export abstract class Enemy extends Phaser.GameObjects.Container {
       out.hit = this.pinnedAttack(dt, ctx, this.anchor);
       // 연출만: 숨 고르기 동안 뒤로 젖혔다가, 들이받을 때 앞으로 내민다
       const back = this.windLeft > 0 ? -Math.sin((Math.PI / 2) * (1 - this.windLeft / AI.chargeLead)) * AI.pinnedBackPx : 0;
-      const lunge = this.lungeLeft > 0 ? Math.sin(Math.PI * (1 - this.lungeLeft / AI.pinnedLungeSec)) * AI.pinnedLungePx : 0;
+      const lunge = this.lungeLeft > 0 ? Math.sin(Math.PI * (1 - this.lungeLeft / AI.pinnedLungeSec)) * this.lungeDist : 0;
       this.setPosition(this.anchor.x + this.lungeDir.x * (back + lunge), this.anchor.y + this.lungeDir.y * (back + lunge));
       this.setDepth(this.y);
       return out;

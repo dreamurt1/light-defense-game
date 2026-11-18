@@ -151,7 +151,8 @@
     "pinnedReach": 36,
     "pinnedBackPx": 7,
     "pinnedLungePx": 20,
-    "pinnedLungeSec": 0.26
+    "pinnedLungeSec": 0.26,
+    "pinnedOverlap": 8
   },
   "light": {
     "mode": "aimStick",
