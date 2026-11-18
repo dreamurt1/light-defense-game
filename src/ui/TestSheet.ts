@@ -6,11 +6,14 @@
 //  - 각 스테이지(처음 밤·1~4스테이지): 실제 체험판 — 정식 판과 똑같이 끝이 있다(아침·하트·광원). 잠금과 상관없이 바로 시작
 //    (튜토리얼도 이야기 카드 없이 바로 판 — 테스트이므로).
 //  - 테스트 판은 진행(깬 스테이지·튜토리얼·구출한 친구)과 지난 밤들에 남지 않는다(core/Progress, ResultSheet, 제안).
+//  - 트라이얼 줄에 루미·토리·도토 칸 (2026-11-18 라이언): 누른 등불지기로 바로 시작. 잠긴 친구도 고를 수 있다(테스트라서).
+//    고른 등불지기는 그 테스트 판에서만 쓰이고 선택 화면의 등불지기는 그대로(RunState.trialCharacterId).
 //  - 모양은 선택 화면의 스테이지 카드(.stage-card)를 그대로 쓴다. 뒤로가기·ESC·바깥 누르기로 닫힌다(HistoryNav).
 import { bus } from '../core/events';
-import { STAGE_ORDER, enemyById, stageById } from '../data';
+import { GameData, STAGE_ORDER, enemyById, stageById, type CharacterId } from '../data';
 import { h, svg } from './dom';
 import { lampIcon, moonIcon, pawIcon, tutorialIcon } from './icons';
+import { portraitUrl } from './screens/common';
 import { rescueFriend } from './screens/SelectScreen';
 
 /** 스테이지 카드 순서 (트라이얼은 맨 위 한 줄에 따로) */
@@ -59,16 +62,31 @@ export class TestSheet {
       return card;
     });
 
-    // 트라이얼: 맨 위 한 줄 (카드 전체를 누르면 시작)
+    // 트라이얼: 맨 위 한 줄 — 왼쪽 소개, 오른쪽 등불지기 셋(누르면 그 등불지기로 바로 시작, 2026-11-18 라이언)
     const trialDef = stageById('trial');
+    const who = GameData.characters.map((c) => {
+      const b = h(
+        'button',
+        { class: 'test-who', type: 'button', 'aria-label': `${c.name}로 트라이얼 시작` },
+        h('span', { class: 'test-who__face' }, h('img', { src: portraitUrl(c.id), alt: '', width: 64, height: 64 })),
+        h('span', { class: 'test-who__name' }, c.name),
+      );
+      b.addEventListener('click', () => this.start('trial', c.id));
+      return b;
+    });
     const trial = h(
-      'button',
-      { class: 'stage-card test-trial', type: 'button', 'data-theme': trialDef.theme, 'aria-label': `${trialDef.name}: 시작 자리 둘레에 고정된 적으로 연습, 끝없음` },
-      h('span', { class: 'stage-card__num' }, '연습'),
-      h('span', { class: 'stage-card__name' }, trialDef.name),
-      h('span', { class: 'stage-card__meta' }, svg(pawIcon), '시작 자리 둘레에 고정된 적 · 끝없음'),
+      'div',
+      { class: 'stage-card test-trial', 'data-theme': trialDef.theme, role: 'group', 'aria-label': `${trialDef.name}: 시작 자리 둘레에 고정된 적으로 연습, 끝없음. 등불지기를 골라 시작` },
+      h(
+        'div',
+        { class: 'test-trial__info' },
+        h('span', { class: 'stage-card__num' }, '연습'),
+        h('span', { class: 'stage-card__name' }, trialDef.name),
+        h('span', { class: 'stage-card__meta' }, svg(pawIcon), '시작 자리 둘레에 고정된 적 · 끝없음'),
+        h('span', { class: 'test-trial__hint' }, '누구로 해 볼까요? 잠긴 친구도 돼요'),
+      ),
+      h('div', { class: 'test-trial__who' }, ...who),
     );
-    trial.addEventListener('click', () => this.start('trial'));
 
     const close = h('button', { class: 'pill pill--secondary', type: 'button' }, '닫기');
     close.addEventListener('click', () => this.toggle(false));
@@ -96,9 +114,9 @@ export class TestSheet {
     sheet = this;
   }
 
-  private start(stageId: string): void {
+  private start(stageId: string, characterId?: CharacterId): void {
     this.toggle(false);
-    bus.emit('ui:start-test', { stageId });
+    bus.emit('ui:start-test', { stageId, characterId });
   }
 
   toggle(open: boolean): void {

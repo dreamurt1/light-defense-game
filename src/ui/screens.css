@@ -1085,6 +1085,105 @@
   min-height: max(48px, calc(var(--u) * 72));
 }
 
+/* 트라이얼 줄: 왼쪽 소개 + 오른쪽 등불지기 셋 (2026-11-18 라이언). 줄 전체는 버튼이 아니라 칸을 담는 판 */
+.stage-card.test-trial {
+  flex-direction: row;
+  align-items: center;
+  gap: calc(var(--u) * 10);
+  cursor: default;
+}
+
+.stage-card.test-trial:active {
+  transform: none;
+}
+
+.test-trial__info {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: calc(var(--u) * 3);
+  min-width: 0;
+}
+
+.test-trial__info .stage-card__meta {
+  white-space: normal;
+}
+
+.test-trial__hint {
+  margin-top: calc(var(--u) * 4);
+  font-size: calc(var(--u) * 12.5);
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--mint);
+  word-break: keep-all;
+}
+
+.test-trial__who {
+  display: flex;
+  flex: none;
+  gap: calc(var(--u) * 8);
+}
+
+/* 등불지기 칸: 선택 화면의 친구 칸(.roster-card)과 같은 결 — 남색 바탕 둥근 네모 초상 + 이름 */
+.test-who {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(var(--u) * 4);
+  min-width: 48px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--paper);
+  font: inherit;
+  cursor: pointer;
+  transition: transform 0.12s ease-out;
+}
+
+.test-who__face {
+  display: block;
+  width: max(48px, calc(var(--u) * 64));
+  aspect-ratio: 1;
+  overflow: hidden;
+  border: calc(var(--u) * 1.5) solid var(--hairline);
+  border-radius: calc(var(--u) * 16);
+  background: #1d1f3d;
+  box-shadow: 0 calc(var(--u) * 3) calc(var(--u) * 8) rgba(5, 4, 12, 0.32);
+  transition:
+    border-color 0.15s ease-out,
+    box-shadow 0.2s ease-out;
+}
+
+.test-who__face img {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.test-who__name {
+  font-size: calc(var(--u) * 13);
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.test-who:active {
+  transform: scale(0.94);
+}
+
+.test-who:active .test-who__face,
+.test-who:focus-visible .test-who__face {
+  border-color: var(--amber);
+  box-shadow: 0 0 calc(var(--u) * 12) color-mix(in srgb, var(--amber) 40%, transparent);
+}
+
+@media (hover: hover) {
+  .test-who:hover .test-who__face {
+    border-color: var(--amber);
+    box-shadow: 0 0 calc(var(--u) * 12) color-mix(in srgb, var(--amber) 40%, transparent);
+  }
+}
+
 .test-sheet__group {
   margin: calc(var(--u) * 16) 0 0;
   font-size: calc(var(--u) * 14);

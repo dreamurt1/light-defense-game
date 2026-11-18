@@ -110,7 +110,7 @@ export class PlayScene extends Phaser.Scene {
   }
 
   create(): void {
-    const keeperDef = characterById(RunState.characterId);
+    const keeperDef = characterById(RunState.keeperId);
     this.stageDef = stageById(RunState.stageId);
     const rng = new Rng(RunState.seed);
     Object.assign(this, { rescued: 0, retreated: 0, paused: false, ended: false, test: RunState.test, bushIn: -1, revealLeft: 0, time_: 0 });

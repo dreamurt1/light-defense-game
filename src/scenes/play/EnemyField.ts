@@ -124,7 +124,7 @@ export class EnemyField {
 
   /** 구출 스테이지: 진행 atProgress에 빛을 잃은 친구가 루미에게서 가장 먼 귀퉁이에 한 번 나타난다. 고른 주인공이 그 친구면 나타나지 않음(2026-11-17) */
   spawnFriend(progress: number, stage: StageDef, player: Vec): Creature | null {
-    const r = rescueFor(stage, RunState.characterId);
+    const r = rescueFor(stage, RunState.keeperId);
     if (!r || this.friendSpawned || progress < r.atProgress) return null;
     this.friendSpawned = true;
     const spot = [...FRIEND_SPOTS].sort((a, b) => Math.hypot(b.x - player.x, b.y - player.y) - Math.hypot(a.x - player.x, a.y - player.y))[0];

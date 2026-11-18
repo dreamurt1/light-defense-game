@@ -9,6 +9,7 @@ import type Phaser from 'phaser';
 import { bus, type ScreenId } from '../core/events';
 import { Progress } from '../core/Progress';
 import { RunState } from '../core/RunState';
+import type { CharacterId } from '../data';
 
 interface ScreenView {
   show?(): void;
@@ -30,11 +31,13 @@ export class Router {
       this.go(e.to);
     });
     bus.on('ui:start-run', () => this.play(false));
-    bus.on('ui:start-test', (e) => this.play(true, e.stageId));
+    bus.on('ui:start-test', (e) => this.play(true, e.stageId, e.characterId));
   }
 
-  private play(test: boolean, stageId?: string): void {
+  private play(test: boolean, stageId?: string, characterId?: CharacterId): void {
     RunState.test = test;
+    // 트라이얼에서 고른 등불지기는 그 테스트 판에서만 (일시정지의 '다시 하기'는 씬만 다시 시작하므로 그대로 이어짐)
+    RunState.trialCharacterId = test ? (characterId ?? null) : null;
     if (test) RunState.stageId = stageId ?? 'trial';
     // 정식 판은 트라이얼로 들어가지 않는다 (튜토리얼은 정식 시작이므로 그대로)
     else if (RunState.stageId === 'trial') RunState.stageId = Progress.nextStage;
