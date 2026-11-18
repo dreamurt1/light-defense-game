@@ -76,7 +76,7 @@
 | 대체 그림 | `src/art/*` (Canvas 2D 코드) | ChatGPT 그림이 아직 없는 키에 쓰인다. 미리보기는 dev 서버의 `/assets.html` |
 
 - 루미 시트는 `npm run art:lumi`가 `reference/LUMI-sprites` 시트와 8방향 팩을 `src/art/lumiSheet.ts` 좌표·팩 매니페스트대로 잘라 `art-src/lumi/`에 쓰고, `npm run art:import`가 `lumi-8dir` 시트로 묶는다.
-- 홈 배경은 「달빛 숲의 등불지기 고양이.png」를 잘라 정리한 그림(`assets/backgrounds/home.webp`, HUD 띠는 잘라 냄).
+- 홈 배경은 2026-11-18부터 ChatGPT 키 아트 'Moonlit Forest'(`art-src/backgrounds/home.png` → `assets/backgrounds/home.webp`, 영문 제목이 그림 안 — 배치는 screens-and-services). 그 전은 「달빛 숲의 등불지기 고양이.png」를 잘라 정리한 그림.
 - 텍스처·애니메이션 키는 `TextureKeys`·`AnimKeys` 한 곳에서 관리한다.
 
 ## UI / HUD (세로 화면)

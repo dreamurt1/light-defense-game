@@ -124,14 +124,27 @@
   font-weight: 600;
 }
 
-/* ---------- 홈: 마을 위 로고, 오른쪽 아래 메뉴, 왼쪽 아래 프로필 ---------- */
-
-/* 홈: 레퍼런스 그림(등불을 든 루미의 밤 마을)을 그대로 깔고 로고·메뉴 쪽만 살짝 어둡게 */
+/* ---------- 홈 (2026-11-18 라이언: ChatGPT 키 아트 'Moonlit Forest'를 홈 화면으로) ----------
+   그림 안에 영문 제목·달·언덕 위 마을·세 친구의 뒷모습(가운데 아래)·등불이 있다.
+   세로: 그림을 화면 가득(9:16). 그림 속 제목 아래에 한글 이름·슬로건, 메뉴는 아래 냇물 자리에 모아 세 친구를 가리지 않게,
+         프로필은 왼쪽 위.
+   가로: 같은 그림을 흐리게 크게 깔고 왼쪽 판 가운데에 그림을 온전히(제목까지), 오른쪽 열에 한글 이름·슬로건과 메뉴(아래 가로 규칙). */
 .screen--home {
+  isolation: isolate;
   background:
-    linear-gradient(to bottom, rgba(17, 18, 40, 0.78), rgba(17, 18, 40, 0) 34%),
-    linear-gradient(to top, rgba(17, 18, 40, 0.8), rgba(17, 18, 40, 0) 32%),
-    var(--predawn) url('/assets/backgrounds/home.webp') 32% 50% / cover no-repeat;
+    linear-gradient(to top, rgba(17, 18, 40, 0.86), rgba(17, 18, 40, 0) 22%),
+    var(--predawn) url('/assets/backgrounds/home.webp') 50% 0% / cover no-repeat;
+}
+
+/* 영문 제목은 그림 안에 있으니 글자 로고는 화면 읽기용으로만 남긴다 */
+.screen--home .logo__en {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 .home__settings {
@@ -140,8 +153,31 @@
   right: calc(var(--u) * 22);
 }
 
+/* 그림 속 제목 장식선(그림 높이의 약 30%) 바로 아래, 가운데 */
 .home__title {
-  margin-top: calc(var(--u) * 44);
+  position: absolute;
+  top: 31%;
+  left: 0;
+  right: 0;
+  margin: 0;
+  text-align: center;
+  pointer-events: none;
+}
+
+.screen--home .logo {
+  align-items: center;
+  gap: 0;
+}
+
+.screen--home .logo__ko,
+.screen--home .home__slogan {
+  text-shadow:
+    0 0 calc(var(--u) * 10) rgba(17, 18, 40, 0.95),
+    0 calc(var(--u) * 2) calc(var(--u) * 4) rgba(17, 18, 40, 0.85);
+}
+
+.screen--home .logo__ko {
+  font-size: calc(var(--u) * 18);
 }
 
 .logo {
@@ -172,29 +208,57 @@
 }
 
 .home__slogan {
-  margin: calc(var(--u) * 14) 0 0;
-  font-size: calc(var(--u) * 17);
+  margin: calc(var(--u) * 6) 0 0;
+  font-size: calc(var(--u) * 15);
   color: var(--paper-soft);
 }
 
+/* 세로: 아래 가운데에 모은 메뉴 — 게임하기 한 줄 + 보조 넷 (세 친구 발밑 아래 냇물 자리).
+   세로로 긴 폰(가로÷세로 0.5 이하)은 두 줄 두 칸, 9:16에 가까운 화면은 등불에 닿지 않게 한 줄 네 칸(아래 @container) */
 .home__menu {
   position: absolute;
-  right: calc(var(--u) * 26);
-  bottom: max(calc(var(--u) * 110), calc(env(safe-area-inset-bottom, 0px) + var(--u) * 92));
+  left: 50%;
+  bottom: max(calc(var(--u) * 26), calc(env(safe-area-inset-bottom, 0px) + calc(var(--u) * 12)));
+  transform: translateX(-50%);
   display: grid;
-  gap: calc(var(--u) * 12);
-  width: calc(var(--u) * 250);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: calc(var(--u) * 10);
+  width: min(calc(100% - calc(var(--u) * 52)), calc(var(--u) * 440));
+}
+
+.home__menu .pill--primary {
+  grid-column: 1 / -1;
 }
 
 .home__menu .pill {
-  justify-content: flex-start;
-  padding-left: calc(var(--u) * 24);
+  justify-content: center;
+}
+
+.home__menu .pill--secondary {
+  gap: calc(var(--u) * 6);
+  padding: 0 calc(var(--u) * 10);
+  font-size: calc(var(--u) * 18);
+  white-space: nowrap;
+}
+
+@container (min-aspect-ratio: 1 / 2) {
+  .home__menu {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: calc(var(--u) * 10) calc(var(--u) * 8);
+    width: min(calc(100% - calc(var(--u) * 40)), calc(var(--u) * 500));
+  }
+
+  .home__menu .pill--secondary {
+    gap: calc(var(--u) * 4);
+    padding: 0 calc(var(--u) * 6);
+    font-size: calc(var(--u) * 16);
+  }
 }
 
 .profile {
   position: absolute;
   left: calc(var(--u) * 22);
-  bottom: max(calc(var(--u) * 24), env(safe-area-inset-bottom, 0px));
+  top: max(calc(var(--u) * 18), env(safe-area-inset-top, 0px));
   display: flex;
   align-items: center;
   gap: calc(var(--u) * 10);
@@ -1214,17 +1278,72 @@
     max(calc(var(--u) * 18), env(safe-area-inset-bottom, 0px)) max(calc(var(--u) * 36), env(safe-area-inset-left, 0px));
 }
 
-/* 홈: 넓은 그림 + 왼쪽 위 로고 + 오른쪽 메뉴는 세로와 같은 구성, 위아래 여백만 줄인다 */
+/* 홈 (2026-11-18): 뒤에 같은 그림을 흐리고 어둡게 크게, 그 위 왼쪽 판(오른쪽 열을 뺀 자리)의 가운데에 그림을 온전히.
+   오른쪽 열 = 한글 이름·슬로건(설정 단추 아래) + 메뉴, 프로필은 왼쪽 아래 */
+:root[data-layout='landscape'] .screen--home {
+  background: var(--predawn);
+}
+
+:root[data-layout='landscape'] .screen--home::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  background: url('/assets/backgrounds/home.webp') 50% 58% / cover no-repeat;
+  filter: blur(16px) brightness(0.5) saturate(0.9);
+  transform: scale(1.1);
+}
+
+:root[data-layout='landscape'] .screen--home::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  top: 0;
+  bottom: 0;
+  left: calc((100% - calc(var(--u) * 300)) / 2);
+  aspect-ratio: 941 / 1672;
+  transform: translateX(-50%);
+  background: url('/assets/backgrounds/home.webp') center / cover no-repeat;
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 7%, #000 93%, transparent);
+  mask-image: linear-gradient(to right, transparent, #000 7%, #000 93%, transparent);
+}
+
 :root[data-layout='landscape'] .home__title {
-  margin-top: calc(var(--u) * 24);
+  top: max(calc(var(--u) * 84), calc(env(safe-area-inset-top, 0px) + calc(var(--u) * 66)));
+  left: auto;
+  right: max(calc(var(--u) * 40), env(safe-area-inset-right, 0px));
+  width: calc(var(--u) * 250);
+  text-align: left;
+}
+
+:root[data-layout='landscape'] .screen--home .logo {
+  align-items: flex-start;
 }
 
 :root[data-layout='landscape'] .home__menu {
+  left: auto;
   right: max(calc(var(--u) * 40), env(safe-area-inset-right, 0px));
-  bottom: max(calc(var(--u) * 40), env(safe-area-inset-bottom, 0px));
+  bottom: max(calc(var(--u) * 36), env(safe-area-inset-bottom, 0px));
+  transform: none;
+  grid-template-columns: 1fr;
+  width: calc(var(--u) * 250);
+}
+
+:root[data-layout='landscape'] .home__menu .pill {
+  justify-content: flex-start;
+  padding-left: calc(var(--u) * 24);
+}
+
+/* 세로의 한 줄 네 칸용 작은 보조 단추를 가로에서는 원래 크기로 */
+:root[data-layout='landscape'] .home__menu .pill--secondary {
+  gap: calc(var(--u) * 10);
+  padding: 0 calc(var(--u) * 20) 0 calc(var(--u) * 24);
+  font-size: calc(var(--u) * 19);
 }
 
 :root[data-layout='landscape'] .profile {
+  top: auto;
+  bottom: max(calc(var(--u) * 24), env(safe-area-inset-bottom, 0px));
   left: max(calc(var(--u) * 26), env(safe-area-inset-left, 0px));
 }
 

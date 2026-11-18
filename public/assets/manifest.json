@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-18T04:49:27.468Z",
+  "generatedAt": "2026-11-18T05:10:22.616Z",
   "sheets": [
     {
       "key": "portrait-lumi",
@@ -1717,12 +1717,12 @@
     {
       "key": "home",
       "category": "backgrounds",
-      "label": "홈 그림",
+      "label": "홈 그림 (Moonlit Forest)",
       "file": "backgrounds/home.webp",
       "frameWidth": 540,
       "frameHeight": 960,
       "frames": 1,
-      "res": 1.5,
+      "res": 1.74,
       "source": "art",
       "load": false,
       "anims": []

@@ -482,14 +482,15 @@ const backgrounds: SheetDef[] = [
   {
     key: 'home',
     category: 'backgrounds',
-    label: '홈 그림',
+    // 2026-11-18 라이언: ChatGPT 키 아트 'Light Defense: Moonlit Forest'(941×1672, art-src/backgrounds/home.png) — 원본 해상도에 가깝게(1.74배)
+    label: '홈 그림 (Moonlit Forest)',
     frameWidth: W,
     frameHeight: H,
     frames: 1,
     format: 'webp',
     load: false,
     draw: (ctx) => drawVillage(ctx, DARK),
-    art: cover(1.5),
+    art: cover(1.74),
   },
 ];
 
