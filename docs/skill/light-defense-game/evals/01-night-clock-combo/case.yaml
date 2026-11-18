@@ -1,0 +1,27 @@
+id: ld-eval-01-night-clock-combo
+title: 밤 시계(100초, 40%/70%) + 콤보(3초 안에 없으면 0, 배율 최대 4) — 순수 TS + Vitest
+skill: light-defense-game
+prompt: prompt.md
+workspace:
+  template: ../_template          # 빈 TypeScript + Vitest 프로젝트, 작업 전 npm i
+expect_files:
+  - src/systems/NightClock.ts
+  - src/systems/ComboSystem.ts
+  - tests/*.test.ts
+checks_rules:                     # 이 과제가 가려내는 규칙 (스킬 references/gameplay-systems.md)
+  - 한 판 기본 100초 (옛 기획 120초가 아님)
+  - 시간대 경계 = 진행률 40% · 70%, 70%부터 클라이맥스(predawn), 끝 = dawn
+  - 콤보는 3초 안에 다음 처리가 없으면 0으로 (옛 기획의 2초·절반 감소가 아님)
+  - 배율 = 1 + floor(콤보 / 5) × 0.5, 최대 4
+grade:
+  - id: hidden-tests
+    type: command
+    setup: copy graders/hidden.test.ts -> tests/__hidden__/night-clock-combo.test.ts
+    run: npx vitest run tests/__hidden__
+    score: passed_tests / total_tests
+    weight: 0.7
+  - id: rubric
+    type: rubric
+    file: graders/rubric.md
+    weight: 0.3
+timeout_min: 15

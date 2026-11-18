@@ -1,0 +1,29 @@
+id: ld-eval-03-two-stick-input
+title: 빛 스틱 입력 추상화(겨눔 문턱 35%, 짧게 탭 = 가장 가까운 적·없으면 안 쏨, 취소, 누른 채 0.12초 반자동) — 순수 TS + Vitest
+skill: light-defense-game
+prompt: prompt.md
+workspace:
+  template: ../_template
+expect_files:
+  - src/systems/aimStick.ts
+  - src/systems/autoFire.ts
+  - src/input/lightStick.ts
+  - tests/*.test.ts
+checks_rules:                     # 스킬 references/gameplay-systems.md '조작'·'반자동 연사'
+  - 빛 스틱은 반지름 35%를 넘게 끌어야 겨눔 (이동 스틱 18%와 다름), 그 안에서 떼면 짧게 탭
+  - 겨눈 채 떼면 그 방향·끈 정도로 발사, 끌었다 가운데로 되돌려 떼면 취소
+  - 짧게 탭 = 사거리 안 가장 가까운 적(몸 가장자리 기준), 없으면 쏘지 않음(null)
+  - 누른 채 끌지 않고 0.12초 지나면 빛이 준비될 때마다 반자동, PC 스페이스는 기다림 없이
+  - 끌기 시작하면 반자동 멈춤, 누르는 동안 반자동으로 쐈으면 뗄 때 탭 발사 없음
+grade:
+  - id: hidden-tests
+    type: command
+    setup: copy graders/hidden.test.ts -> tests/__hidden__/two-stick-input.test.ts
+    run: npx vitest run tests/__hidden__
+    score: passed_tests / total_tests
+    weight: 0.7
+  - id: rubric
+    type: rubric
+    file: graders/rubric.md
+    weight: 0.3
+timeout_min: 20
