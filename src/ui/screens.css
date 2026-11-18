@@ -305,8 +305,9 @@
   }
 }
 
-/* 세로 (2026-11-18 라이언: 등불 왼쪽 공간 활용): 둥근 버튼 넷은 그림 속 등불(x 70~84%, 손잡이~받침 y 58.5~70.5%) 왼쪽 빈터에
-   등불과 같은 높이로 한 줄(그림 x 6~66%, 위 y 60.5%), '게임하기'는 등불 받침 바로 아래(그림 y 76%).
+/* 세로 (2026-11-18 라이언: 등불 왼쪽 공간 활용 → '너무 일렬, 더 위로' → 세로 목록): 둥근 버튼 넷은 그림 왼쪽 어두운 숲에
+   위에서부터 한 줄씩 세로 목록(그림 x 7%, 화면 높이 37%부터 = 제목·슬로건 바로 밑 — 마을(x 52~85%)·등불(x 70~84%)의 왼쪽),
+   '게임하기'는 등불 받침 바로 아래(그림 y 76%).
    자리는 그림 % → 화면: 50cqw + (그림x − 0.5) × 장면 폭, 50cqh + (그림y − 0.5) × 장면 높이 */
 :root:not([data-layout='landscape']) .home__menu {
   display: contents;
@@ -314,9 +315,24 @@
 
 :root:not([data-layout='landscape']) .home__badges {
   position: absolute;
-  left: calc(50cqw + (0.06 - 0.5) * var(--scene-w));
-  top: calc(50cqh + (0.605 - 0.5) * var(--scene-h));
-  width: calc(0.6 * var(--scene-w));
+  left: calc(50cqw + (0.07 - 0.5) * var(--scene-w));
+  /* 위에서부터(라이언): 제목·슬로건(화면 높이 33% 안쪽) 바로 밑 */
+  top: 37%;
+  width: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: calc(var(--u) * 16);
+}
+
+/* 세로 목록: 둥근 아이콘 오른쪽에 글자 */
+:root:not([data-layout='landscape']) .home-badge {
+  flex-direction: row;
+  gap: calc(var(--u) * 12);
+}
+
+:root:not([data-layout='landscape']) .home-badge__label {
+  font-size: calc(var(--u) * 17);
 }
 
 :root:not([data-layout='landscape']) .home__start {
