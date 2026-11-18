@@ -3,6 +3,7 @@
 // 판정은 하지 않는다(빛 판정은 LightSystem). 수치는 제안: 기획서에 없음
 import Phaser from 'phaser';
 import { TextureKeys } from '../core/TextureKeys';
+import { lightTint } from '../core/lightColor';
 import { texScale } from '../core/textureRes';
 import type { Vec } from '../systems/fan';
 import { prefersReducedMotion } from '../ui/dom';
@@ -26,12 +27,15 @@ export class LightFx {
     const half = (fanDeg * Math.PI) / 360;
     const scene = this.scene;
     // 루미 앞의 휘두름 궤적
+    const tint = lightTint(); // 상점에서 고른 빛 색 (2026-11-18), 기본 호박빛이면 null
     const swing = this.sprite(TextureKeys.fxSwing, origin.x + Math.cos(angle) * 22, origin.y + Math.sin(angle) * 22, 4010, 0.9).setRotation(angle);
+    if (tint !== null) swing.setTint(tint);
     scene.tweens.add({ targets: swing, alpha: 0, scale: swing.scale * 1.3, duration: 220, ease: 'Quad.easeOut', onComplete: () => swing.destroy() });
     for (let i = 0; i < STARS; i++) {
       const a = angle + (((i + 0.5) / STARS) * 2 - 1) * half * 0.8 + (Math.random() - 0.5) * 0.08;
       const dist = range * (0.7 + Math.random() * 0.3);
       const star = this.sprite(TextureKeys.fxStar, origin.x, origin.y, 4020, 0.55 + Math.random() * 0.2).setRotation(a);
+      if (tint !== null) star.setTint(tint);
       scene.tweens.add({
         targets: star,
         x: origin.x + Math.cos(a) * dist,

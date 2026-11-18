@@ -7,6 +7,7 @@
 import Phaser from 'phaser';
 import { TextureKeys } from '../core/TextureKeys';
 import { AIM_CIRCLE, AIM_CONE_FILL } from '../art/vectors';
+import { lightTint } from '../core/lightColor';
 import type { Vec } from '../systems/fan';
 
 /** 빛이 대기 중일 때 원뿔 면의 불투명도 (제안: 기획서에 없음) */
@@ -41,6 +42,9 @@ export class AimGuide {
       return;
     }
     this.drawn.range = range;
+    const tint = lightTint();
+    if (tint === null) this.cone.clearTint();
+    else this.cone.setTintFill(tint);
     this.cone
       .setVisible(true)
       .setPosition(origin.x, origin.y)

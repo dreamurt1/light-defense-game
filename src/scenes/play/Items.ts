@@ -12,6 +12,9 @@ import { GameData, type ItemDef, type StageDef } from '../../data';
 import type { Enemy } from '../../entities/enemies/Enemy';
 import type { Vec } from '../../systems/fan';
 import { Effects, Inventory } from '../../systems/inventory';
+import { carryOrDefault } from '../../systems/unlocks';
+import { Progress } from '../../core/Progress';
+import { loadSettings } from '../../core/Settings';
 import type { LightPoints } from '../../systems/lightPoints';
 import { pushOut, type Rect } from '../../systems/obstacles';
 import type { Vitals } from '../../systems/vitals';
@@ -66,6 +69,9 @@ export class Items {
   ) {
     this.spawnLeft = stage.items?.firstSec ?? Infinity;
     if (!stage.tutorial) this.inventory.add('light_charm');
+    // 판 시작 전에 챙긴 아이템 (2026-11-18, 선택 화면) — 잠긴 것을 골라 두었으면 열린 첫 아이템으로
+    const carry = stage.tutorial ? '' : carryOrDefault(loadSettings().carryItem, GameData.items, Progress.data.cleared, Progress.data.demo);
+    if (carry) this.inventory.add(carry);
     this.emitSlots();
   }
 

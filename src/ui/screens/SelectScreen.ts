@@ -6,7 +6,9 @@
 import { bus } from '../../core/events';
 import { Progress } from '../../core/Progress';
 import { RunState } from '../../core/RunState';
-import { GameData, STAGE_ORDER, characterById, enemyById, stageById, type CharacterDef, type StageDef } from '../../data';
+import { GameData, STAGE_ORDER, characterById, enemyById, stageById, type CharacterDef, type ItemDef, type StageDef } from '../../data';
+import { loadSettings, saveSettings } from '../../core/Settings';
+import { carryItemIds, carryOrDefault, isUnlocked } from '../../systems/unlocks';
 import { h, svg } from '../dom';
 import { badgeStarIcon, chevronLeftIcon, chevronRightIcon, lampIcon, lockIcon, moonIcon, pawIcon, playIcon } from '../icons';
 import { lostPortraitUrl, portraitUrl, screenBar, screenShell } from './common';
@@ -58,6 +60,9 @@ export class SelectScreen {
   private readonly roster: HTMLButtonElement[];
   private readonly stages: StageCard[];
   private readonly stageLine: HTMLElement;
+  private readonly carry: { id: string; def: ItemDef; el: HTMLButtonElement }[];
+  private readonly carryRow: HTMLElement;
+  private readonly carryLine: HTMLElement;
   private readonly go: HTMLButtonElement;
   private readonly goLabel: HTMLElement;
   private readonly demo: HTMLButtonElement;
@@ -104,6 +109,21 @@ export class SelectScreen {
       return { def, el, friendTag: friend && !def.boss ? { el: tag, id: friend.id } : undefined };
     });
     this.stageLine = h('p', { class: 'select__stage-line' });
+    // 판 시작 전에 챙겨 갈 아이템 (2026-11-18): 빛의 부적은 늘 함께, 하나 더 고른다. 밤을 지나면 하나씩 열린다
+    this.carry = carryItemIds(GameData.items).map((id) => {
+      const def = GameData.items.find((i) => i.id === id) as ItemDef;
+      const el = h(
+        'button',
+        { class: 'carry-item', type: 'button', 'aria-pressed': 'false' },
+        h('span', { class: 'carry-item__icon' }, h('img', { src: `assets/items/item-${id}.png`, alt: '', width: 40, height: 40 })),
+        h('span', { class: 'carry-item__name' }, def.name),
+        h('span', { class: 'carry-item__lock' }, svg(lockIcon)),
+      ) as HTMLButtonElement;
+      el.addEventListener('click', () => this.pickCarry(id));
+      return { id, def, el };
+    });
+    this.carryRow = h('div', { class: 'select__carry', role: 'group', 'aria-label': '챙겨 갈 아이템' }, ...this.carry.map((c) => c.el));
+    this.carryLine = h('p', { class: 'select__carry-line' });
 
     this.goLabel = h('span', {}, '빛을 밝혀요');
     this.go = h('button', { class: 'pill pill--primary select__go', type: 'button' }, svg(playIcon), this.goLabel);
@@ -122,7 +142,9 @@ export class SelectScreen {
       this.stats,
       this.lock,
       h('div', { class: 'select__roster', role: 'group', 'aria-label': '등불지기' }, ...this.roster),
-      h('p', { class: 'select__note' }, '아이템은 곧 챙겨 갈 수 있어요'),
+      h('h4', { class: 'select__label select__label--carry' }, '챙겨 갈 아이템'),
+      this.carryRow,
+      this.carryLine,
       h('h4', { class: 'select__label' }, '밤을 골라요'),
       h('div', { class: 'select__nights', role: 'group', 'aria-label': '밤' }, ...this.stages.map((s) => s.el)),
       this.stageLine,
@@ -146,6 +168,7 @@ export class SelectScreen {
   private render(): void {
     this.view(this.index);
     this.pickStage(this.stageId);
+    this.renderCarry();
     this.demo.disabled = Progress.data.demo;
     this.demo.textContent = Progress.data.demo ? '시연: 모두 열렸어요' : '시연: 모두 열기';
   }
@@ -201,6 +224,32 @@ export class SelectScreen {
     this.updateGo();
   }
 
+  /** 챙겨 갈 아이템을 고른다 (다시 누르면 안 챙김). 잠긴 것은 안내만 */
+  private pickCarry(id: string): void {
+    const c = this.carry.find((x) => x.id === id);
+    if (!c || !isUnlocked(String(c.def.carryUnlock), Progress.data.cleared, Progress.data.demo)) {
+      if (c) this.carryLine.textContent = unlockLine(String(c.def.carryUnlock), c.def.name);
+      return;
+    }
+    const s = loadSettings();
+    saveSettings({ ...s, carryItem: s.carryItem === id ? '' : id });
+    this.renderCarry();
+  }
+
+  private renderCarry(): void {
+    const { cleared, demo } = Progress.data;
+    const chosen = carryOrDefault(loadSettings().carryItem, GameData.items, cleared, demo);
+    for (const c of this.carry) {
+      const open = isUnlocked(String(c.def.carryUnlock), cleared, demo);
+      c.el.classList.toggle('is-locked', !open);
+      c.el.classList.toggle('is-current', c.id === chosen);
+      c.el.setAttribute('aria-pressed', String(c.id === chosen));
+      c.el.setAttribute('aria-label', `${c.def.name}${open ? '' : ' (잠김)'}`);
+    }
+    const name = GameData.items.find((i) => i.id === chosen)?.name;
+    this.carryLine.textContent = name ? `빛의 부적과 ${name}${objectJosa(name)} 챙겨 가요` : '빛의 부적만 챙겨 가요';
+  }
+
   /** 주 버튼: 친구·스테이지가 모두 열려 있어야 시작. 아직 처음 밤(튜토리얼)을 안 했으면 그리로 안내 */
   private updateGo(): void {
     const charLocked = isLocked(GameData.characters[this.index]);
@@ -221,6 +270,13 @@ export class SelectScreen {
     RunState.stageId = this.stageId;
     bus.emit('ui:start-run');
   }
+}
+
+/** 잠긴 아이템·빛 색 안내: '경계의 밤을 지나면 열려요' */
+export function unlockLine(unlock: string, name: string): string {
+  if (unlock === 'start') return '';
+  const night = stageById(unlock).name;
+  return `${night}${objectJosa(night)} 지나면 ${name}${name.endsWith('빛') ? '이' : objectJosa(name) === '을' ? '이' : '가'} 열려요`;
 }
 
 /** 처음 고르는 밤: 아직 안 지난 가장 앞 밤(열려 있으면), 아니면 열린 밤 중 마지막 */

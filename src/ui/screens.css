@@ -1695,3 +1695,209 @@
     font-size: calc(var(--u) * 13.5);
   }
 }
+
+/* ── 2026-11-18 판 시작 전 챙겨 갈 아이템(선택 화면) · 상점 빛 색 ─────────────────── */
+.select__carry {
+  display: grid;
+  grid-template-columns: repeat(4, calc(var(--u) * 86));
+  justify-content: center;
+  gap: calc(var(--u) * 10);
+  margin-top: calc(var(--u) * 6);
+}
+
+.carry-item {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: calc(var(--u) * 4);
+  min-height: 44px;
+  padding: calc(var(--u) * 8) calc(var(--u) * 4);
+  border: calc(var(--u) * 1.5) solid var(--hairline);
+  border-radius: calc(var(--u) * 16);
+  background: #1d1f3d;
+  color: var(--paper-soft);
+  font: inherit;
+  font-size: calc(var(--u) * 13);
+  cursor: pointer;
+}
+
+.carry-item__icon img {
+  display: block;
+  width: calc(var(--u) * 40);
+  height: calc(var(--u) * 40);
+}
+
+.carry-item__lock {
+  display: none;
+  position: absolute;
+  top: calc(var(--u) * 6);
+  right: calc(var(--u) * 6);
+  width: calc(var(--u) * 18);
+  height: calc(var(--u) * 18);
+  color: var(--paper-soft);
+}
+
+.carry-item__lock svg {
+  width: 100%;
+  height: 100%;
+}
+
+.carry-item.is-locked {
+  background: var(--predawn);
+}
+
+.carry-item.is-locked .carry-item__icon {
+  opacity: 0.35;
+  filter: grayscale(1);
+}
+
+.carry-item.is-locked .carry-item__lock {
+  display: block;
+}
+
+.carry-item.is-current {
+  border: calc(var(--u) * 3) solid var(--amber);
+  background: linear-gradient(to bottom, #4a3522, #2c2120);
+  color: var(--paper);
+  box-shadow: 0 0 calc(var(--u) * 12) color-mix(in srgb, var(--amber) 35%, transparent);
+}
+
+.select__carry-line {
+  min-height: 1.3em;
+  margin: calc(var(--u) * 6) 0 0;
+  text-align: center;
+  font-size: calc(var(--u) * 13);
+  color: var(--paper-soft);
+}
+
+:root[data-layout='landscape'] .select__carry {
+  grid-template-columns: repeat(4, calc(var(--u) * 66));
+  gap: calc(var(--u) * 8);
+  margin-top: calc(var(--u) * 4);
+}
+
+:root[data-layout='landscape'] .carry-item {
+  padding: calc(var(--u) * 5) calc(var(--u) * 2);
+  font-size: calc(var(--u) * 11);
+}
+
+:root[data-layout='landscape'] .carry-item__icon img {
+  width: calc(var(--u) * 30);
+  height: calc(var(--u) * 30);
+}
+
+:root[data-layout='landscape'] .select__carry-line {
+  display: none;
+}
+
+.shop-card--light {
+  font: inherit;
+  font-size: calc(var(--u) * 15);
+  cursor: pointer;
+}
+
+.shop-card--light .shop-card__swatch {
+  background: radial-gradient(circle, #fff6e0, var(--swatch, var(--amber)) 55%, color-mix(in srgb, var(--swatch, var(--amber)) 70%, #000));
+  box-shadow: 0 0 calc(var(--u) * 18) color-mix(in srgb, var(--swatch, var(--amber)) 60%, transparent);
+}
+
+.shop-card.is-locked {
+  cursor: default;
+}
+
+.shop-card.is-locked .shop-card__swatch {
+  opacity: 0.3;
+  filter: grayscale(0.6);
+}
+
+.shop-card.is-locked .shop-card__tag {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--u) * 4);
+  padding: 0;
+  background: transparent;
+  color: var(--paper-soft);
+  font-weight: 600;
+  font-size: calc(var(--u) * 12);
+  text-align: center;
+}
+
+.shop-card.is-locked .shop-card__tag svg {
+  flex: none;
+  width: calc(var(--u) * 14);
+  height: calc(var(--u) * 14);
+}
+
+.shop-card--light:not(.is-locked):not(.is-equipped) .shop-card__tag {
+  background: transparent;
+  border: 1px solid var(--hairline);
+  color: var(--paper);
+}
+
+/* 가로는 높이가 540u뿐: '챙겨 갈 아이템' 제목은 접고 아이콘 줄만 (2026-11-18) */
+:root[data-layout='landscape'] .select__label--carry {
+  display: none;
+}
+
+:root[data-layout='landscape'] .select__carry {
+  margin-top: calc(var(--u) * 8);
+}
+
+:root[data-layout='landscape'] .select__carry + .select__carry-line + .select__label {
+  margin-top: calc(var(--u) * 8);
+}
+
+/* 시작 버튼이 화면 안에 들도록 아이템 줄을 낮춘다 (2026-11-18, 작은 폰·가로) */
+.carry-item {
+  padding: calc(var(--u) * 6) calc(var(--u) * 4);
+}
+
+.carry-item__icon img {
+  width: calc(var(--u) * 34);
+  height: calc(var(--u) * 34);
+}
+
+.select__carry {
+  margin-top: calc(var(--u) * 4);
+}
+
+.select__carry-line {
+  margin-top: calc(var(--u) * 2);
+  font-size: calc(var(--u) * 12);
+}
+
+:root[data-layout='landscape'] .carry-item__name {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+:root[data-layout='landscape'] .carry-item {
+  padding: calc(var(--u) * 5);
+  min-height: 0;
+}
+
+:root[data-layout='landscape'] .select__roster {
+  margin-top: calc(var(--u) * 6);
+}
+
+:root[data-layout='landscape'] .stage-card {
+  min-height: max(44px, calc(var(--u) * 74));
+}
+
+:root[data-layout='landscape'] .select__stage-line {
+  margin-top: calc(var(--u) * 4);
+}
+
+:root[data-layout='landscape'] .select__go {
+  margin-top: calc(var(--u) * 6);
+}
+
+/* 폰 가로처럼 아주 낮은 화면: 밤 안내 줄은 접는다(잠김은 시작 버튼 글자로 알 수 있음) */
+@container (max-height: 430px) {
+  :root[data-layout='landscape'] .select__stage-line {
+    display: none;
+  }
+}

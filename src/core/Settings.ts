@@ -16,6 +16,10 @@ export interface SettingsData {
   orientation: OrientationPref;
   /** 스틱 좌우 바꾸기: true면 이동 스틱이 오른쪽, 빛 스틱이 왼쪽 (2026-11-13) */
   sticksSwapped: boolean;
+  /** 판 시작 전에 챙겨 갈 아이템 id (빛의 부적은 늘 함께), 안 챙기면 '' (2026-11-18) */
+  carryItem: string;
+  /** 상점에서 고른 빛 색 id (cosmetics.json, 2026-11-18) */
+  lightColor: string;
 }
 
 const DEFAULTS: SettingsData = {
@@ -25,6 +29,8 @@ const DEFAULTS: SettingsData = {
   nickname: DEFAULT_NICKNAME,
   orientation: 'landscape',
   sticksSwapped: false,
+  carryItem: 'firefly_jar',
+  lightColor: 'amber',
 };
 
 type Listener = (data: Readonly<SettingsData>) => void;

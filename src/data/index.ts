@@ -6,6 +6,7 @@ import enemiesJson from './enemies.json';
 import itemsJson from './items.json';
 import stagesJson from './stages.json';
 import mapJson from './map.json';
+import cosmeticsJson from './cosmetics.json';
 
 export type CharacterId = 'lumi' | 'tori' | 'doto';
 export type EnemyId =
@@ -321,7 +322,19 @@ export const GameData = {
   items: itemsJson as unknown as ItemDef[],
   stages: stagesJson as unknown as StageDef[],
   map: mapJson as unknown as MapDef,
+  cosmetics: cosmeticsJson as unknown as CosmeticsDef,
 };
+
+/** 상점의 겉모습 (2026-11-18): 빛 색. unlock = 'start' 또는 그 스테이지를 깬 뒤 */
+export interface LightColorDef {
+  id: string;
+  name: string;
+  color: string;
+  unlock: string;
+}
+export interface CosmeticsDef {
+  lightColors: LightColorDef[];
+}
 
 export interface MapRect {
   x: number;
