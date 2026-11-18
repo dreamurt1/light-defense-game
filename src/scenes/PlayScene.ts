@@ -161,7 +161,7 @@ export class PlayScene extends Phaser.Scene {
     if (sd.dummies) this.field.setDummies(sd.dummies); // 트라이얼: 구석에 고정된 적
     this.items = new Items(this, sd, new Rng(RunState.seed + 31), traitOf(keeperDef).itemEffect);
     this.boss = sd.boss ? new Boss(this, sd, this.field, { x: CFG.central.x, y: CFG.central.y }, new Rng(RunState.seed + 59)) : null;
-    const host = { field: this.field, items: this.items, score: this.score, combo: this.combo, keeper: () => this.keeper.pos, litCount: () => this.sources.litCount };
+    const host = { field: this.field, items: this.items, score: this.score, combo: this.combo, keeper: () => this.keeper.pos, litCount: () => this.sources.litCount, sources: this.sources };
     this.rules = new StageRules(host, sd, new Rng(RunState.seed + 47), WALK_AREA);
     this.stage.setTheme(sd.theme);
     this.input.keyboard?.on('keydown-Q', () => this.useItem(0));
@@ -182,6 +182,7 @@ export class PlayScene extends Phaser.Scene {
         if (e.reason === 'gain' && isComboMilestone(e.combo)) this.stage.pulse();
       }),
       bus.on('enemy:returned', (e) => this.stage.burstAt(e.x, e.y)),
+      bus.on('run:event', (e) => e.kind === 'fireflies' && this.stage.swarm(e, GameData.game.runEvents.fireflies.radius, GameData.game.runEvents.fireflies.durationSec)),
       bus.on('input:move', (v) => (this.stickMove = v)),
       bus.on('input:aim', (e) => (this.aiming.stick = e.active ? { angle: e.angle, power: e.power } : null)),
       bus.on('input:auto', (e) => (e.active ? this.aiming.auto.press() : this.aiming.auto.stop())),
@@ -246,7 +247,7 @@ export class PlayScene extends Phaser.Scene {
     if (this.vitals.update(dt, nearCentral)) this.respawnKeeper();
     this.slow.update(dt);
     if (!this.vitals.down) {
-      const nearStation = this.sources.stations.some((s) => s.state.lit && near(s.pos, CFG.station.healRadius));
+      const nearStation = this.sources.nearLit(this.keeper.pos); // 켜진 등불 곁·이벤트 빛 고임(반딧불 무리) 안
       this.lp.update(dt, nearCentral ? 'central' : nearStation ? 'station' : 'field');
     }
     this.light.rangeMultiplier = this.lp.effectiveness;
@@ -308,7 +309,7 @@ export class PlayScene extends Phaser.Scene {
       lostSightSec: CFG.hide.lostSightSec,
       roam: this.roamPoint,
       roamSpeed: CFG.hide.roamSpeed,
-      speedMultiplier: this.items.enemySpeedMultiplier,
+      speedMultiplier: this.items.enemySpeedMultiplier * this.rules.events.enemySpeed, // 별 목걸이 · 어둠 바람(랜덤 이벤트)
       lightRadius: CFG.aura.glowMin + (CFG.aura.glowMax - CFG.aura.glowMin) * this.lp.ratio, // 빛 속에서 느려짐 (2026-11-18)
     };
   }

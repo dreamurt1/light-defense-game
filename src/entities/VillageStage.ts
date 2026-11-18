@@ -37,6 +37,8 @@ const FIREFLIES_BASE = 28;
 /** 넓은 마을에서 등불이 많아도 반딧불은 이만큼까지 (60fps) */
 const FIREFLIES_MAX = 72;
 const FIREFLIES_PER_LIGHT = 2;
+/** 반딧불 무리 이벤트의 점 수 */
+const SWARM_DOTS = 16;
 const FAN_SPARKLES = 12;
 /** 빛 고임의 늘 켜진 웅덩이는 글로우 반경의 이 비율만큼만: 쏜 부채꼴이 주인공이 되게 */
 const LIT_POOL_RATIO = 0.55;
@@ -77,6 +79,8 @@ export interface LightPool {
   y: number;
   radius: number;
   alpha: number;
+  /** 따뜻한 글로우 진하기 배율 (기본 1). 빛의 마을처럼 마을만 은은히 드러내는 고임은 낮게 (2026-11-18) */
+  glow?: number;
 }
 
 interface Fan {
@@ -116,6 +120,8 @@ export class VillageStage {
   private readonly fans: Fan[] = [];
   private readonly lights: LitPoint[] = [];
   private readonly fireflies: Firefly[] = [];
+  /** 반딧불 무리(랜덤 이벤트, 2026-11-18): 한 자리에 모였다가 시간이 다 되면 흩어진다 */
+  private readonly swarmDots: (Firefly & { life: number })[] = [];
   private readonly sparkles: Phaser.GameObjects.Image[] = [];
   private readonly rng = new Rng(777);
   private shadeColor = Phaser.Display.Color.ValueToColor(PHASE_SHADE.dusk.color);
@@ -132,6 +138,8 @@ export class VillageStage {
   private readonly litLayer: Phaser.GameObjects.Image;
   private readonly themeVeil: Phaser.GameObjects.Rectangle;
   private glowTint = POOL_GLOW;
+  /** 구획 막 (2026-11-18): 중앙 광원에서 멀수록 어두운 막 — 어둠의 마을은 더 어둡다(테마별 진하기) */
+  private readonly zoneVeil: Phaser.GameObjects.Image;
   private theme: StageDef['theme'] = 'light-village';
 
   constructor(
@@ -147,6 +155,13 @@ export class VillageStage {
     // 테마 막: 어두운 마을 위·켜진 마을 아래 (빛이 닿은 곳은 막 위로 드러난다). 빛의 마을에선 숨김
     this.themeVeil = scene.add.rectangle(0, 0, W, H, 0x000000, 1).setOrigin(0).setScrollFactor(0).setDepth(-945).setVisible(false);
 
+    // 구획 막: 어두운 마을 위·켜진 마을 아래 — 빛 고임(루미·광원·등불)이 닿은 곳은 막 위로 드러난다
+    const zc = GameData.game.zones;
+    this.zoneVeil = scene.add
+      .image(GameData.game.central.x, GameData.game.central.y, zoneVeilTexture(scene, zc.lightRadius, zc.darkRadius, ZONE_VEIL_REACH))
+      .setScale((ZONE_VEIL_REACH * 2) / ZONE_VEIL_TEX)
+      .setDepth(-940)
+      .setAlpha(zc.veil['light-village'] ?? 0.3);
     this.litLayer = scene.add.image(0, 0, TextureKeys.villageLit).setOrigin(0).setScale(texScale(TextureKeys.villageLit));
     this.lit = scene.add.container(0, 0, [this.litLayer]);
     this.lit.setDepth(-900);
@@ -201,6 +216,7 @@ export class VillageStage {
     this.themeVeil.setFillStyle(look.veil, 1).setAlpha(look.veilAlpha).setVisible(look.veilAlpha > 0);
     this.gloomLayer.setFillStyle(look.gloom, 1);
     this.glowTint = look.glow;
+    this.zoneVeil.setAlpha(GameData.game.zones.veil[theme] ?? 0.3);
     for (const g of this.glows) g.setTint(look.glow);
     for (const f of this.fireflies) f.dot.setTint(look.firefly);
   }
@@ -392,6 +408,23 @@ export class VillageStage {
     }
   }
 
+  /** 반딧불 무리: at 둘레(radius 안)에 반딧불 점이 모여 durationSec 동안 머문다 */
+  swarm(at: Vec, radius: number, durationSec: number): void {
+    for (let i = 0; i < SWARM_DOTS; i++) {
+      const a = this.rng.range(0, Math.PI * 2);
+      const r = Math.sqrt(this.rng.range(0, 1)) * radius * 0.75;
+      const home = { x: at.x + Math.cos(a) * r, y: at.y + Math.sin(a) * r };
+      const dot = this.scene.add
+        .image(home.x, home.y, TextureKeys.glow)
+        .setTint(0xffe08a)
+        .setBlendMode(Phaser.BlendModes.ADD)
+        .setScale(this.rng.range(14, 20) / 256)
+        .setAlpha(0)
+        .setDepth(4050);
+      this.swarmDots.push({ dot, home, t: this.rng.range(0, 100), speed: this.rng.range(0.5, 0.9), life: durationSec });
+    }
+  }
+
   /** 콤보 단계: 마을이 한 번 따뜻하게 환해진다 (깜빡임 아님: 한 번의 완만한 펄스) */
   pulse(): void {
     // 잠깐 머물렀다(0.18초) 천천히 가라앉는다: 눈에 남되 깜빡이지 않게
@@ -423,7 +456,7 @@ export class VillageStage {
     this.glows.forEach((g, i) => {
       const p = pools[i];
       g.setVisible(!!p && p.radius > 0);
-      if (p) g.setPosition(p.x, p.y).setScale((p.radius * 2) / 256).setAlpha(GLOW_ALPHA * p.alpha * this.dim);
+      if (p) g.setPosition(p.x, p.y).setScale((p.radius * 2) / 256).setAlpha(GLOW_ALPHA * p.alpha * (p.glow ?? 1) * this.dim);
     });
 
     // 켜진 불빛은 아주 살짝 일렁인다(깜빡임 아님: 초당 1회 미만의 완만한 변화)
@@ -439,6 +472,21 @@ export class VillageStage {
       f.dot.setAlpha(f.dot.alpha + (target - f.dot.alpha) * Math.min(1, dt * 2));
       f.dot.setPosition(f.home.x + Math.sin(f.t) * 26 + Math.sin(f.t * 0.37) * 14, f.home.y + Math.cos(f.t * 0.8) * 18);
     });
+
+    for (let i = this.swarmDots.length - 1; i >= 0; i--) {
+      const f = this.swarmDots[i];
+      f.t += dt * f.speed;
+      f.life -= dt;
+      // 천천히 나타나고(따라가기), 끝 1.5초 동안 사라지며 위로 흩어진다 (깜빡임 아님: 완만한 숨쉬기)
+      const fade = Math.min(1, f.life / 1.5);
+      const target = Math.max(0, fade) * (0.6 + 0.35 * Math.sin(f.t * 2.3));
+      f.dot.setAlpha(f.dot.alpha + (target - f.dot.alpha) * Math.min(1, dt * 1.5));
+      f.dot.setPosition(f.home.x + Math.sin(f.t) * 22 + Math.sin(f.t * 0.37) * 10, f.home.y + Math.cos(f.t * 0.8) * 16 - Math.max(0, -f.life) * 30);
+      if (f.life < -1) {
+        f.dot.destroy();
+        this.swarmDots.splice(i, 1);
+      }
+    }
 
     const expand = LIGHT.expandSec;
     for (let i = this.fans.length - 1; i >= 0; i--) {
@@ -478,6 +526,29 @@ export class VillageStage {
       });
     }
   }
+}
+
+/** 구획 막 그림 크기·덮는 반지름(마을 모서리까지 약 1840) */
+const ZONE_VEIL_TEX = 512;
+const ZONE_VEIL_REACH = 1900;
+
+/** 구획 막: 가운데(빛의 마을)는 비고, 경계에서 짙어져 어둠의 마을은 가득 — 한 번만 굽는다 */
+function zoneVeilTexture(scene: Phaser.Scene, lightR: number, darkR: number, reach: number): string {
+  const key = `zone-veil-${lightR}-${darkR}`;
+  if (scene.textures.exists(key)) return key;
+  const tex = scene.textures.createCanvas(key, ZONE_VEIL_TEX, ZONE_VEIL_TEX);
+  if (!tex) return key;
+  const ctx = tex.getContext();
+  const r = ZONE_VEIL_TEX / 2;
+  const grad = ctx.createRadialGradient(r, r, 0, r, r, r);
+  grad.addColorStop(0, 'rgba(10,8,28,0)');
+  grad.addColorStop(Math.min(0.99, lightR / reach), 'rgba(10,8,28,0)');
+  grad.addColorStop(Math.min(0.995, darkR / reach), 'rgba(10,8,28,0.6)');
+  grad.addColorStop(1, 'rgba(10,8,28,1)');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, ZONE_VEIL_TEX, ZONE_VEIL_TEX);
+  tex.refresh();
+  return key;
 }
 
 /** 창문 유리빛 그림(크기별로 한 번만 굽는다): 아치 창 또는 둥근 창 + 창살 */

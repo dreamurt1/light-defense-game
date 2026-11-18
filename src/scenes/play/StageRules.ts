@@ -17,6 +17,8 @@ import { TutorialScript, type TutorialSignal } from '../../systems/tutorial';
 import type { EndReason, StageOutcome } from '../../systems/stageOutcome';
 import type { EnemyField } from './EnemyField';
 import type { Items } from './Items';
+import { RunEvents } from './RunEvents';
+import type { Sources } from './Sources';
 
 const CFG = GameData.game;
 /** 튜토리얼 '걷기'를 마치는 거리 (game.json tutorial.walkGoal, 제안) */
@@ -29,6 +31,7 @@ export interface RulesHost {
   combo: ComboSystem;
   keeper: () => Vec;
   litCount: () => number;
+  sources: Sources;
 }
 
 export class StageRules {
@@ -40,6 +43,8 @@ export class StageRules {
   private readonly mercy = new MercyTracker(CFG.mercy);
   private readonly anger = new AngerMeter({ hitsPerWave: CFG.passive.angerHitsPerWave, maxWaves: CFG.passive.angerMaxWaves });
   private walked = 0;
+  /** 랜덤 이벤트 (2026-11-18, scenes/play/RunEvents.ts) */
+  readonly events: RunEvents;
 
   constructor(
     private readonly host: RulesHost,
@@ -48,6 +53,7 @@ export class StageRules {
     private readonly area: Rect,
   ) {
     this.tutorial = stage.tutorial ? new TutorialScript() : null;
+    this.events = new RunEvents({ field: host.field, items: host.items, sources: host.sources, keeper: host.keeper, mercyCount: () => this.mercyCount }, stage, rng);
   }
 
   start(): void {
@@ -59,6 +65,7 @@ export class StageRules {
     const h = this.host;
     const p = h.keeper();
     if (!this.tutorial) h.field.spawnPassives(dt, this.stage, this.rng, p, this.area);
+    this.events.update(dt, progress);
     const f = h.field.spawnFriend(progress, this.stage, p);
     if (f) this.friend = f;
     if (this.friend && !this.friend.targetable) this.friend = null;

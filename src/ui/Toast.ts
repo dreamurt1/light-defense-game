@@ -17,6 +17,14 @@ function objectParticle(word: string): string {
   return (last - 0xac00) % 28 === 0 ? '를' : '을';
 }
 
+/** 랜덤 이벤트 안내 (2026-11-18) */
+const EVENT_LINES: Record<'fireflies' | 'parade' | 'gift' | 'darkWind', string> = {
+  fireflies: '반딧불이가 모였어요 · 곁에 가면 빛이 차올라요',
+  parade: '길 잃은 주민들이 빛을 찾아와요',
+  gift: '지나쳐 준 주민이 작은 선물을 두고 갔어요',
+  darkWind: '어둠 바람이 불어요 · 잠깐 적이 빨라져요',
+};
+
 export class Toast {
   readonly el = h('div', { class: 'toast', role: 'status', 'aria-live': 'polite' });
   private readonly guide: HTMLElement;
@@ -100,6 +108,8 @@ export class Toast {
     bus.on('stealth:exposed', () => this.show('풀숲에 너무 오래 있었어요! 들켰어요'));
     // 2026-11-18: 패시브를 여러 번 맞히면 어둠의 호스틸이 몰려온다
     bus.on('passive:anger', () => this.show('화난 주민 너머로 어둠이 몰려와요'));
+    // 2026-11-18 랜덤 이벤트
+    bus.on('run:event', (e) => this.show(EVENT_LINES[e.kind]));
     bus.on('witch:spawn', () => this.show('노월이 나타났어요'));
     bus.on('item:pickup', (e) => {
       const name = GameData.items.find((i) => i.id === e.itemId)?.name;
@@ -108,6 +118,7 @@ export class Toast {
   }
 
   show(text: string): void {
+    if (!text) return;
     const line = h('p', { class: 'toast__line' }, text);
     line.addEventListener('animationend', () => line.remove());
     this.el.append(line);

@@ -13,6 +13,7 @@ import type { EnemyTarget } from '../../entities/enemies/Enemy';
 import type { LightTarget } from '../../systems/LightSystem';
 import type { Rect } from '../../systems/obstacles';
 import { MapLight } from '../../systems/villageMood';
+import { visionAt } from '../../systems/zones';
 import { wardRadius } from '../../systems/lampWard';
 import type { Vitals } from '../../systems/vitals';
 import type { ItemPlaces } from './Items';
@@ -23,6 +24,8 @@ export class Sources {
   readonly central: CentralSource;
   readonly stations: LightStation[];
   readonly mapLight = new MapLight(CFG.village);
+  /** 랜덤 이벤트가 만든 빛 고임 (반딧불 무리 등, 2026-11-18): 마을을 드러내고, 곁에서 LP가 등불 곁처럼 차오르고, 노란 화살표가 가리킨다 */
+  extraPools: (LightPool & { beacon?: boolean })[] = [];
 
   /** @param spots 등불 자리를 고정할 map.json stations 번호 (트라이얼, 없으면 seed로) */
   constructor(scene: Phaser.Scene, rng: Rng, stationCount: number, spots?: readonly number[]) {
@@ -70,15 +73,30 @@ export class Sources {
     return this.stations.map((s) => s.state.lit);
   }
 
-  /** 마을을 드러내는 빛 고임: 루미 주변(aura) + 중앙 광원(광도 = HP 비례) + 켜진 등불(광도 = HP 비례) */
+  /**
+   * 마을을 드러내는 빛 고임: 루미 주변(aura — 구획 시야 배율, 2026-11-18) + 빛의 마을(중앙 광원 둘레를 은은히) + 중앙 광원(광도 = HP 비례)
+   * + 켜진 등불(광도 = HP 비례) + 이벤트 빛 고임
+   */
   pools(aura: LightPool): LightPool[] {
     const c = CFG.central;
+    const z = CFG.zones;
     const st = this.central.state;
+    const vision = visionAt(this.central.pos, aura, z);
     return [
-      aura,
+      { ...aura, radius: aura.radius * vision },
+      { x: this.central.pos.x, y: this.central.pos.y, radius: st.out ? 0 : z.village.radiusMin + (z.village.radiusMax - z.village.radiusMin) * st.ratio, alpha: z.village.alpha, glow: z.village.glow },
       { x: this.central.pos.x, y: this.central.pos.y, radius: st.out ? 0 : c.glowMin + (c.glowMax - c.glowMin) * st.ratio, alpha: 1 },
       ...this.stations.map((s) => ({ x: s.pos.x, y: s.pos.y, radius: s.glowRadius, alpha: 1 })),
+      ...this.extraPools,
     ];
+  }
+
+  /** LP가 등불 곁처럼 차오르는 곳: 켜진 등불 곁, 이벤트 빛 고임 안 */
+  nearLit(p: { x: number; y: number }): boolean {
+    return (
+      this.stations.some((s) => s.state.lit && Math.hypot(s.pos.x - p.x, s.pos.y - p.y) <= CFG.station.healRadius) ||
+      this.extraPools.some((e) => Math.hypot(e.x - p.x, e.y - p.y) <= e.radius)
+    );
   }
 
   /** 등불지기를 가릴 수 있는 광원 그림들과 밑동 y (가리면 반투명, 2026-11-13) */
@@ -95,6 +113,7 @@ export class Sources {
   beacons(): Beacon[] {
     const out: Beacon[] = this.stations.filter((s) => !s.state.lit).map((s) => ({ x: s.pos.x, y: s.pos.y, lift: s.arrowLift, drop: s.arrowDrop }));
     if (this.central.state.light < CFG.lightLevels.bands[0]) out.push({ x: this.central.pos.x, y: this.central.pos.y, lift: this.central.arrowLift, drop: this.central.arrowDrop });
+    for (const e of this.extraPools) if (e.beacon) out.push({ x: e.x, y: e.y, lift: 40, drop: 30 });
     return out;
   }
 

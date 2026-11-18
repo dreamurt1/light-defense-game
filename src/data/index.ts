@@ -187,6 +187,24 @@ export interface GameConfig {
     angerMaxWaves: number;
     angerSpawnDist: number;
   };
+  /** 구획 시야 (2026-11-18, systems/zones.ts) */
+  zones: {
+    lightRadius: number;
+    darkRadius: number;
+    vision: { light: number; border: number; dark: number };
+    veil: Record<string, number>;
+    village: { radiusMin: number; radiusMax: number; alpha: number; glow: number };
+  };
+  /** 랜덤 이벤트 (2026-11-18, systems/runEvents.ts · scenes/play/RunEvents.ts) */
+  runEvents: {
+    atMin: number;
+    atMax: number;
+    weights: { fireflies: number; parade: number; gift: number; darkWind: number };
+    calmStages: string[];
+    fireflies: { durationSec: number; radius: number };
+    parade: { count: number };
+    darkWind: { durationSec: number; enemySpeed: number };
+  };
   /** 노월 (2026-11-13, scenes/play/Boss.ts) */
   boss: {
     orbitRx: number;
@@ -359,6 +377,8 @@ export interface MapDef {
   stations: { x: number; y: number }[];
   /** 빛을 잃은 친구(토리·도토)가 기다리는 자리 후보 (2026-11-13) */
   friendSpots: { x: number; y: number }[];
+  /** 테마별로 더하는 장애물·풀숲 (2026-11-18, systems/mapTheme.ts) */
+  themes?: Record<string, { obstacles?: MapDef['obstacles']; bushes?: MapRect[] }>;
 }
 
 export function characterById(id: CharacterId): CharacterDef {

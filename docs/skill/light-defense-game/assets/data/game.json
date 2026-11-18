@@ -256,5 +256,51 @@
     "slam": "2026-11-13 몸박치기(라이언: 붙어 있지 말고 들이받게): 목표 가까이(chargeDist 안)에서 다음 공격 주기까지 숨을 고르다가 chargeLead초 남으면 ×chargeSpeed로 돌진, 부딪히는 순간 피해를 주고 slamSec 동안 slamBack만큼 튕겨 물러난다. 공격 주기(damageTickSec)는 그대로라 초당 피해는 같다(제안)",
     "ward": "2026-11-14 라이언: 적의 이동 경로·플레이어의 동기·등불의 존재 이유를 자연스럽게. station.ward = 등불의 결계(모두 제안): 켜진 등불 둘레 maxRadius × 광도/100 안은 대부분의 적이 피해 돌아가고(steerBuffer 앞에서부터 비켜 감, 안에 있던 적은 초당 pushPerSec로 밀려남), 결계가 등불 몸에 닿을 만큼 줄면(약 HP 30% 아래) 적이 다가와 공격한다. 등불을 노리는 뱀파이어는 예외. 켜진 등불 spawnRadius 안에서는 적이 나올 확률이 최대 spawnAvoid × 광도/100만큼 준다 — 등불이 어두워질수록 그쪽에서 나오는 적이 늘어남(라이언 정정, 꺼지면 평소대로). items: 아이템은 켜진 등불이 있으면 lampShare 확률로 그 빛 안(lampRingMin~Max)에, 나머지는 중앙 광원 둘레(spawnRingMin~Max). 패배 위험(마지막 하트에 HP ≤ dangerHpRatio, 또는 중앙 광원 광도 낮음)이면 루미 곁(dangerRingMin~Max)에, 다음 아이템까지 dangerSoonSec 넘게 남았으면 그만큼으로 당김",
     "pinned": "2026-11-14 라이언: 트라이얼의 고정된 적 중 공격할 수 있는 몹(피해 > 0, 화난 패시브 포함)은 루미가 아주 가까우면(몸이 닿는 거리 + pinnedReach) chargeLead 동안 pinnedBackPx만큼 뒤로 젖혔다가 pinnedLungePx만큼 내밀며 들이받는다(pinnedLungeSec). 피해·주기는 그 적의 damage·damageTickSec 그대로, 자리는 고정(연출만 움직임). 모두 제안"
+  },
+  "zones": {
+    "_note": "2026-11-18 구획 시야(제안): 중앙 광원에서 lightRadius 안 = 빛의 마을, darkRadius 밖 = 어둠의 마을. vision = 등불지기 주변 빛 반지름 배율, veil = 바깥이 어두운 막의 진하기(테마별), village = 빛의 마을을 은은히 드러내는 빛 고임(중앙 광원 광도 비례)",
+    "lightRadius": 560,
+    "darkRadius": 1000,
+    "vision": {
+      "light": 1.1,
+      "border": 1,
+      "dark": 0.85
+    },
+    "veil": {
+      "light-village": 0.28,
+      "border": 0.38,
+      "dark-village": 0.5
+    },
+    "village": {
+      "radiusMin": 380,
+      "radiusMax": 560,
+      "alpha": 0.45,
+      "glow": 0.12
+    }
+  },
+  "runEvents": {
+    "_note": "2026-11-18 랜덤 이벤트(제안): 정식 스테이지에서 한 판에 한 번, 진행 atMin~atMax 사이(seed). 어둠 바람은 calmStages에서 고르지 않음",
+    "atMin": 0.35,
+    "atMax": 0.6,
+    "weights": {
+      "fireflies": 3,
+      "parade": 3,
+      "gift": 2,
+      "darkWind": 2
+    },
+    "calmStages": [
+      "stage-1"
+    ],
+    "fireflies": {
+      "durationSec": 15,
+      "radius": 170
+    },
+    "parade": {
+      "count": 3
+    },
+    "darkWind": {
+      "durationSec": 10,
+      "enemySpeed": 1.15
+    }
   }
 }

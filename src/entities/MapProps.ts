@@ -6,7 +6,9 @@ import Phaser from 'phaser';
 import { Rng } from '../core/rng';
 import { TextureKeys } from '../core/TextureKeys';
 import { texScale } from '../core/textureRes';
-import { GameData } from '../data';
+import { GameData, stageById } from '../data';
+import { RunState } from '../core/RunState';
+import { layoutFor } from '../systems/mapTheme';
 import type { Rect } from '../systems/obstacles';
 import { COTTAGE_LAMPS, COTTAGE_WINDOWS } from '../art/village';
 import { Occluders } from './Occluders';
@@ -31,10 +33,12 @@ export class MapProps {
 
   constructor(scene: Phaser.Scene) {
     const rng = new Rng(8803);
-    this.obstacles = MAP.obstacles.map(({ x, y, w, h }) => ({ x, y, w, h }));
-    this.bushes = MAP.bushes.map(({ x, y, w, h }) => ({ x, y, w, h }));
+    // 테마별 지도 모양 (2026-11-18): 그 판의 테마(경계·어둠의 마을)에 맞는 장애물·풀숲을 더한다
+    const lay = layoutFor(MAP, stageById(RunState.stageId).theme);
+    this.obstacles = lay.obstacles.map(({ x, y, w, h }) => ({ x, y, w, h }));
+    this.bushes = lay.bushes.map(({ x, y, w, h }) => ({ x, y, w, h }));
 
-    for (const ob of MAP.obstacles) {
+    for (const ob of lay.obstacles) {
       const bottom = ob.y + ob.h;
       if (ob.kind === 'rocks') {
         const n = Math.max(1, Math.round(ob.w / 46));
@@ -76,7 +80,7 @@ export class MapProps {
 
     if (MAP.river) drawRiver(scene, MAP.river, MAP.bridges ?? []);
 
-    this.bushLeaves = MAP.bushes.map((b) => {
+    this.bushLeaves = lay.bushes.map((b) => {
       const leaves: Phaser.GameObjects.Image[] = [];
       const cols = Math.max(1, Math.round(b.w / BUSH_STEP.x));
       const rows = Math.max(1, Math.round(b.h / BUSH_STEP.y));
