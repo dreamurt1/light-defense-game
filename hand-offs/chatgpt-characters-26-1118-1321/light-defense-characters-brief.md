@@ -9,6 +9,10 @@
 > - 스프라이트 팩: 루미 팩과 같은 폴더 구성으로 만든다(5절 단계 4).
 > - 게임 전체 사실은 같이 넘기는 **기준 사실서**(`light-defense-canon.md`)를 따른다.
 > - **토리 대기 팩 점검 뒤 고침(같은 날 밤)**: 리본과 접힌 귀는 같은 귀 = 토리의 왼쪽 귀(4-6). 토리는 왼쪽 방향을 좌우로 뒤집지 않는다. 걷기 팩은 대기 팩과 같은 캔버스·축척·발끝 높이로(5절 단계 4). 135° 한 장 다시 그리기(7절 '토리 135° 고치기').
+>
+> **2026-11-18 갱신**
+> - **토리 135° 고침 받음**: 다시 그린 135°(1254×1254로 옴)를 Claude가 대기 팩 규격(512×512 · 발끝 97% · 가로 가운데)으로 맞춰 넣었다. 토리 대기 8장 완료 → 다음은 걷기(7절 Step B).
+> - **앞으로 받는 토리 그림도 512×512 · 대기 팩과 같은 축척 · 같은 발끝으로** 준다. 걷기 프레임이 저마다 다른 크기로 오면 프레임끼리 축척을 맞추기 어렵다.
 
 ## 1. 게임 한 줄
 
@@ -210,7 +214,7 @@ Tori_8_Direction_Pack/                         (도토는 Doto_…, 파일 이�
 - 토리 대기 8장은 512×512로 `Tori_Idle_8D_Pack/`에 바로 들어 있다. Claude가 가져올 때 크기를 맞추니 다시 만들 필요는 없다. 다만 한 팩 안에서는 같은 크기로 맞춘다.
 - **토리 대기 점검 (2026-11-17 Claude, 그림 `tori-idle-check.png`)**
   - 좋은 점: 8장 모두 같은 크기·같은 발끝 높이·같은 가로 가운데, 투명 배경, 잘린 곳 없음. 정면·옆·뒤의 7장은 리본이 토리의 왼쪽 귀에 바르게 있다.
-  - **고칠 것 1장**: `tori_idle_135_back_right.png`는 리본과 접힌 귀가 **오른쪽 귀**에 있다(225°를 뒤집은 모습). 7절의 '135° 고치기' 프롬프트로 이 한 장만 다시 그린다.
+  - **고침 (2026-11-18)**: `tori_idle_135_back_right.png`는 리본과 접힌 귀가 오른쪽 귀에 있었다(225°를 뒤집은 모습). 다시 그린 그림은 리본·접힌 귀가 토리의 왼쪽 귀(뒤에서 보면 화면 왼쪽·먼 쪽)로 맞다. 1254×1254로 와서 Claude가 다른 7장과 같게(512 · 귀 끝 9% · 발끝 97% · 가로 가운데) 맞춰 넣었다. 눈이 살짝 보여 225°보다 옆모습에 조금 가깝지만 그대로 쓴다.
   - 없어도 되는 것: `manifest.json`·`README.md`, `PNG_256/` 폴더. 걷기 팩을 만들 때 함께 만들어 주면 좋다.
 - 도토 대기 폴더는 아직 비어 있다.
 
@@ -267,7 +271,7 @@ Create a character sheet for TORI in the same layout as the attached Lumi sheet:
 
 **7·8. 스프라이트** (토리를 만든 뒤 DOTO로 한 번 더 — 아래는 단계별로 나눈 버전, 루미 팩과 같은 순서)
 
-**토리 135° 고치기** (2026-11-17, 토리 대기 팩에서 이 한 장만 다시 — `tori-idle-check.png`와 대기 8장을 함께 올린다)
+**토리 135° 고치기** (2026-11-17 — **2026-11-18 끝남, 다시 쓰지 않는다**. 기록으로 남김)
 
 ```
 Fix one idle sprite: tori_idle_135_back_right.png. In this pose Tori faces away from the viewer and turns toward the right. The mint ribbon with the star and the folded ear tip belong to Tori's own LEFT ear — the same ear in every direction (in the front view it is the ear on the viewer's right; in the 180° back view it is on the viewer's left). In the current 135° image the ribbon and the fold are on the wrong ear (the viewer's right), as if the 225° image had been mirrored. Redraw it like the 180° back sprite turned 45° toward the right: the ribbon ear stays on the viewer's left, on the far side, so only a little of the ribbon peeks out; the straight ear is on the viewer's right. Do not mirror the 225° image. Keep everything else identical to the other seven idle sprites: 512x512 transparent PNG, same character scale, same feet baseline and horizontal center. Save it with the same file name.
@@ -276,6 +280,8 @@ Fix one idle sprite: tori_idle_135_back_right.png. In this pose Tori faces away 
 ```
 Step A (idle). Using the attached chosen concept art as the exact design, make TORI's idle sprites for the game in the same format as the Lumi 8-direction idle pack: 0° front, 45° front-right, 90° right, 135° back-right, 180° back, 225° back-left, 270° left and 315° front-left, each a separate transparent PNG of the same size with the same character scale, feet baseline and horizontal center. Tori's ribbon and folded ear are always on Tori's own LEFT ear, so do NOT make the left-facing directions by mirroring the right-facing ones — draw them so the ribbon stays on that ear. (For DOTO, mirroring 135°/90°/45° into 225°/270°/315° is fine.) With Python: name the files tori_idle_000_front.png … tori_idle_315_front_left.png; put them in Tori_Idle_8D_Pack/PNG_256/; write Tori_Idle_8D_Pack/manifest.json (pack, version, canvas, directions[{angle, name, file, derived_by for any mirrored ones}]) and a short README.md; give me a zip.
 ```
+
+Step B를 쓸 때는 **토리 대기 8장(2026-11-18 고친 135° 포함, 512×512)**을 함께 올린다. 걷기는 이 8장과 같은 크기·축척·발끝으로 만든다.
 
 ```
 Step B (walk). Now make TORI's walk cycle: 4 frames per direction in the order contact/stance → passing → opposite stride → return. Use exactly the same canvas size, character scale, feet baseline and horizontal center as Tori's idle pack (512x512, feet at 97% of the height). Draw 90° right, 0° front and 180° back as real walk frames; for the other directions, draw them too if you can, otherwise derive each from the idle pose of the same direction with a subtle body bob and lower-body stride. Do NOT mirror for Tori — the ribbon must stay on Tori's own left ear, so derive 225°/270°/315° from the left-facing idle sprites. (For DOTO, mirroring 135°/90°/45° into 225°/270°/315° is fine.) With Python, save them as Tori_Walk_8D_4Frames_Pack/Tori_Walk_8D_4Frames/PNG_256/<deg>_<dir>/tori_walk_<deg>_<dir>_f01.png … f04.png, write manifest.json (pack, canvas, directions[{degrees, name, frames}], frame_order, generation_notes saying which directions were drawn vs derived/mirrored) and README.md, and give me a zip.
