@@ -28,6 +28,7 @@ import { DIRS } from '../systems/facing';
 import { CREATURES, creatureAnims, creatureKey, drawCreature, type CreatureId } from './creatures';
 import { DARK_ORB, ITEM_ICON, ITEM_IDS, ITEM_LABEL, drawDarkOrb, drawItemIcon, itemKey } from './items';
 import { buildKeeperSheet, drawKeeperSpriteFrame, keeperAnims } from './keeperSprites';
+import { FRIEND_PACKS, composeFriend } from './friendSheet';
 
 export type AssetCategory = 'characters' | 'enemies' | 'objects' | 'effects' | 'backgrounds' | 'items';
 
@@ -166,17 +167,18 @@ const characters: SheetDef[] = [
     buildRes: 2,
   },
   // 2026-11-13 컨셉 시연판: 토리·도토 플레이용 8방향 시트 (임시 코드 그림, lumi-8dir과 같은 줄·칸·애니메이션 이름 규칙)
+  // 2026-11-18: ChatGPT 팩이 있으면 그 그림으로(src/art/friendSheet.ts — 토리 대기 8방향 + 받은 방향의 걷기), 없으면 임시 코드 그림
   ...(['tori', 'doto'] as const).map(
     (id): SheetDef => ({
       key: `${id}-8dir`,
       category: 'characters',
-      label: `${GameData.characters.find((c) => c.id === id)?.name ?? id} 8방향 (임시 그림: 정지·걷기 + 넉아웃·기절)`,
+      label: `${GameData.characters.find((c) => c.id === id)?.name ?? id} 8방향 (${FRIEND_PACKS[id] ? 'ChatGPT 팩: 정지 8방향 + 받은 방향의 걷기, 나머지 걷기·넉아웃·기절은 임시' : '임시 그림: 정지·걷기 + 넉아웃·기절'})`,
       frameWidth: 64,
       frameHeight: 64,
       frames: LUMI_COLUMNS * LUMI_ROWS,
       draw: (ctx, f) => drawKeeperSpriteFrame(ctx, id, f),
       anims: keeperAnims(id),
-      build: () => buildKeeperSheet(id),
+      build: async () => (await composeFriend(id)) ?? buildKeeperSheet(id),
       buildRes: 2,
     }),
   ),
