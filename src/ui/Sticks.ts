@@ -13,6 +13,8 @@ import { h, svg } from './dom';
 import { starIcon } from './icons';
 
 const DEADZONE = GameData.game.controls.deadzone;
+/** 빛 스틱이 '겨눔'으로 바뀌는 문턱: 이동 스틱보다 넓게 — 누르기만 한 엄지가 조금 밀려도 반자동이 유지되게 (2026-11-18 라이언, 제안 0.35) */
+const AIM_DEADZONE = GameData.game.controls.aimDeadzone;
 /** 손잡이가 움직일 수 있는 거리 = 바닥 원 반지름 × 이 비율 */
 const KNOB_TRAVEL = 0.62;
 
@@ -56,7 +58,7 @@ function stick(kind: 'move' | 'light', label: string, knobContent?: Node): Stick
 export class Sticks {
   readonly el: HTMLElement;
   private readonly light: StickParts;
-  private readonly aim = new AimStick(DEADZONE);
+  private readonly aim = new AimStick(AIM_DEADZONE);
   private readonly releases: (() => void)[] = [];
 
   constructor() {

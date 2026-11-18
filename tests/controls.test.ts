@@ -99,6 +99,16 @@ describe('autoAimAngle', () => {
   it('is null with no neighbours', () => {
     expect(autoAimAngle(origin, [], 220)).toBeNull();
   });
+
+  it('counts the target body edge (radius) like the light hit test, never beyond it', () => {
+    expect(autoAimAngle(origin, [{ x: 240, y: 0, radius: 30 }], 220)).toBeCloseTo(0);
+    expect(autoAimAngle(origin, [{ x: 260, y: 0, radius: 30 }], 220)).toBeNull();
+  });
+
+  it('picks the nearest by body edge', () => {
+    const a = autoAimAngle(origin, [{ x: 0, y: 150, radius: 0 }, { x: 170, y: 0, radius: 40 }], 220);
+    expect(a).toBeCloseTo(0);
+  });
 });
 
 describe('dragAim (PC 마우스 끌기)', () => {

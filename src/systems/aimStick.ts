@@ -84,14 +84,16 @@ export function dragAim(origin: Vec, cursor: Vec, maxRange: number, cancelRadius
 }
 
 /**
- * 반자동 조준 방향 (2026-11-12 새 기획: 적이 가까이 있을 때 탭 한 번): 사거리 안에서 가장 가까운 대상.
+ * 반자동 조준 방향 (2026-11-12 새 기획: 적이 가까이 있을 때 탭 한 번): 사거리 안에서 가장 가까운 대상의 한가운데로.
  * 사거리 안에 아무도 없으면 null → 쏘지 않는다(라이언 답변: 대상이 없으면 오발 없음)
+ * 2026-11-18 라이언(반경이 작음, 최대 반경은 넘지 말 것): 빛이 맞히는 판정처럼 대상의 몸 가장자리(radius)까지가 사거리 안이면 잡고,
+ * 가장 가까운 것도 몸 가장자리 거리로 고른다
  */
-export function autoAimAngle(origin: Vec, targets: readonly Vec[], range: number): number | null {
+export function autoAimAngle(origin: Vec, targets: readonly (Vec & { radius?: number })[], range: number): number | null {
   let best: Vec | null = null;
   let bestD = Infinity;
   for (const t of targets) {
-    const d = Math.hypot(t.x - origin.x, t.y - origin.y);
+    const d = Math.hypot(t.x - origin.x, t.y - origin.y) - (t.radius ?? 0);
     if (d <= range && d < bestD) {
       bestD = d;
       best = t;
