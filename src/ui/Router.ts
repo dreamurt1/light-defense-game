@@ -25,7 +25,15 @@ export class Router {
     private readonly root: HTMLElement,
     private readonly views: Partial<Record<ScreenId, ScreenView>>,
   ) {
-    bus.on('ui:assets-ready', () => this.go(initialScreen()));
+    // 테스트 판·튜토리얼 판에서 새로고침하면 그 판을 처음부터 다시 (2026-11-18 라이언), 아니면 홈(개발 주소 옵션)
+    bus.on('ui:assets-ready', () => {
+      const again = reloadedRun();
+      if (again?.test) this.play(true, again.stageId, again.characterId ?? undefined);
+      else if (again) {
+        RunState.stageId = again.stageId;
+        this.play(false);
+      } else this.go(initialScreen());
+    });
     bus.on('ui:navigate', (e) => {
       if (e.to === 'select' && isSpecialStage(RunState.stageId)) RunState.stageId = Progress.nextStage;
       this.go(e.to);
@@ -41,6 +49,8 @@ export class Router {
     if (test) RunState.stageId = stageId ?? 'trial';
     // 정식 판은 트라이얼로 들어가지 않는다 (튜토리얼은 정식 시작이므로 그대로)
     else if (RunState.stageId === 'trial') RunState.stageId = Progress.nextStage;
+    // 새로고침으로 다시 할 판: 테스트 판(트라이얼·체험)과 튜토리얼 판
+    rememberRun(test || RunState.stageId === 'tutorial' ? { stageId: RunState.stageId, characterId: characterId ?? null, test } : null);
     this.go('play');
   }
 
@@ -51,8 +61,9 @@ export class Router {
       RunState.newRun();
       if (scenes.isActive('Play')) scenes.stop('Play');
       scenes.start('Play');
-    } else if (scenes.isActive('Play') || scenes.isPaused('Play')) {
-      scenes.stop('Play');
+    } else {
+      if (scenes.isActive('Play') || scenes.isPaused('Play')) scenes.stop('Play');
+      rememberRun(null); // 판을 떠나면 새로고침해도 홈부터
     }
     this.current = to;
     this.root.dataset.screen = to;
@@ -67,6 +78,40 @@ export class Router {
 
   get cameFrom(): ScreenId {
     return this.from;
+  }
+}
+
+/**
+ * 새로고침으로 다시 할 판 기억 (2026-11-18 라이언: 트라이얼·튜토리얼 판에서 새로고침하면 그 판을 다시 플레이).
+ * 탭마다의 sessionStorage에 두고, 페이지가 '새로고침'으로 열렸을 때만 이어 간다(주소를 새로 열면 홈부터).
+ * 저장소를 못 쓰면(사생활 보호 모드 등) 그냥 홈부터.
+ */
+const RUN_KEY = 'ld.replayRun.v1';
+interface RunMemo {
+  stageId: string;
+  characterId: CharacterId | null;
+  /** 테스트 판(진행·지난 밤들에 남지 않음)인가 — 아니면 홈 '튜토리얼'로 연 판 */
+  test: boolean;
+}
+
+function rememberRun(memo: RunMemo | null): void {
+  try {
+    if (memo) sessionStorage.setItem(RUN_KEY, JSON.stringify(memo));
+    else sessionStorage.removeItem(RUN_KEY);
+  } catch {
+    // 저장소를 못 쓰면 새로고침 뒤 홈부터
+  }
+}
+
+function reloadedRun(): RunMemo | null {
+  try {
+    const nav = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined;
+    if (nav?.type !== 'reload') return null;
+    const raw = sessionStorage.getItem(RUN_KEY);
+    const memo = raw ? (JSON.parse(raw) as Partial<RunMemo>) : null;
+    return typeof memo?.stageId === 'string' ? { stageId: memo.stageId, characterId: memo.characterId ?? null, test: memo.test !== false } : null;
+  } catch {
+    return null;
   }
 }
 
