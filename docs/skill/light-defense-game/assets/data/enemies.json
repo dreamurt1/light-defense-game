@@ -14,10 +14,7 @@
     "radius": 16,
     "flies": true,
     "behavior": "zigzag",
-    "behaviorParams": {
-      "amplitude": 34,
-      "periodSec": 0.6
-    },
+    "behaviorParams": { "amplitude": 34, "periodSec": 0.6, "special": "slow", "slowMultiplier": 0.75, "slowSec": 1 },
     "group": {
       "min": 1,
       "max": 3,
@@ -39,9 +36,7 @@
     "radius": 22,
     "knockbackMultiplier": 0.5,
     "behavior": "straight",
-    "behaviorParams": {
-      "role": "central"
-    }
+    "behaviorParams": { "role": "central", "special": "push", "pushPx": 70, "lightReaction": "coverEyes", "coverEyesStun": 1.6 }
   },
   {
     "id": "vampire",
@@ -58,11 +53,7 @@
     "radius": 18,
     "behavior": "avoidLight",
     "flies": true,
-    "behaviorParams": {
-      "amplitude": 26,
-      "periodSec": 0.9,
-      "role": "station"
-    }
+    "behaviorParams": { "amplitude": 26, "periodSec": 0.9, "role": "station", "special": "drain", "drainLp": 10, "drainSourceMultiplier": 1.5, "lightReaction": "coverEyes", "coverEyesStun": 1.6 }
   },
   {
     "id": "frog",
@@ -97,9 +88,7 @@
     "score": 220,
     "radius": 18,
     "behavior": "straight",
-    "behaviorParams": {
-      "role": "source"
-    }
+    "behaviorParams": { "role": "source", "special": "guard", "guardMultiplier": 0.5, "guardCooldownSec": 4 }
   },
   {
     "id": "redpanda",

@@ -60,6 +60,8 @@ export interface EnemyContext {
   roamSpeed: number;
   /** 별 목걸이 등 아이템 배율(Phase 4) */
   speedMultiplier: number;
+  /** 등불지기 주변 빛의 반지름 — 그 안에서는 느려진다(종류별 빛 반응, 2026-11-18). 없으면 느려지지 않음 */
+  lightRadius?: number;
 }
 
 export interface EnemyStep {
@@ -108,6 +110,9 @@ export abstract class Enemy extends Phaser.GameObjects.Container {
   /** 이번 들이받기가 나가는 거리(시작할 때 루미까지 재서 정함) */
   private lungeDist = 0;
   private readonly lungeDir = new Phaser.Math.Vector2(1, 0);
+  /** 정식 판의 돌진: 숨 고르기를 마치고 돌진 중 / 노려보는 숨 고르기(attached)를 이미 거쳐 바로 돌진해도 됨 (2026-11-18) */
+  private charging = false;
+  private primed = false;
   /** 들이받은 뒤 튕겨 물러나는 남은 시간과 방향 */
   private recoilLeft = 0;
   private recoilTotal = 0;
@@ -268,8 +273,17 @@ export abstract class Enemy extends Phaser.GameObjects.Container {
     this.scene.tweens.add({ targets: this, scaleX: 1.18, scaleY: 0.84, duration: 70, yoyo: true, ease: 'Quad.easeOut' });
   }
 
+  /** 빛 속에서 느려짐 (종류별 빛 반응 — XMind '어둠에서보다 느려짐'): 등불지기 주변 빛 안이면 lightSlowMultiplier배, 패시브는 제외 */
+  private lightSlow(ctx: EnemyContext): number {
+    const p = ctx.player;
+    if (!p || !ctx.lightRadius || this.def.kind === 'passive') return 1;
+    return Math.hypot(p.x - this.x, p.y - this.y) < ctx.lightRadius ? AI.lightSlowMultiplier : 1;
+  }
+
   /** 들이받고 튕겨 물러난다 (피해가 없는 부딪힘은 반만) */
   private bounceOff(goal: Vec, full: boolean): void {
+    this.charging = false;
+    this.primed = false;
     this.recoilDir.set(this.x - goal.x, this.y - goal.y);
     if (this.recoilDir.lengthSq() < 1) this.recoilDir.set(-this.lastDir.x, -this.lastDir.y);
     this.recoilDir.normalize();
@@ -366,6 +380,7 @@ export abstract class Enemy extends Phaser.GameObjects.Container {
         return out;
       }
       this.mode = 'approach';
+      this.primed = true; // 노려보며 이미 숨을 골랐다 → 바로 돌진
     }
 
     // 맴돌기(숨은 주인공을 놓침) 또는 목표로 다가간다
@@ -397,12 +412,33 @@ export abstract class Enemy extends Phaser.GameObjects.Container {
     const near = goal && dest === goal && dist - reach <= AI.chargeDist;
     if (near && this.tickLeft > AI.chargeLead) {
       this.mode = 'attached';
+      this.charging = false;
       this.base.set(this.x, this.y);
       this.face(dir);
       return out;
     }
-    if (near) pace *= AI.chargeSpeed;
-    const move = this.def.speed * ctx.speedMultiplier * pace * dt;
+    if (!near) {
+      this.charging = false;
+      this.primed = false;
+      this.windLeft = 0;
+    } else if (!this.charging) {
+      // 2026-11-18 라이언(적이 공격할 때만 피해): 첫 돌진 전에도 chargeLead 동안 멈춰 뒤로 젖힌다 — 이때 비켜설 수 있다
+      if (!this.primed) {
+        if (this.windLeft <= 0) this.windLeft = AI.chargeLead;
+        this.windLeft -= dt;
+        if (this.windLeft > 0) {
+          const back = Math.sin((Math.PI / 2) * (1 - this.windLeft / AI.chargeLead)) * AI.pinnedBackPx;
+          this.setPosition(this.base.x - dir.x * back, this.base.y - dir.y * back);
+          this.face(dir);
+          this.setDepth(this.y);
+          return out;
+        }
+        this.windLeft = 0;
+      }
+      this.charging = true;
+    }
+    if (near && this.charging) pace *= AI.chargeSpeed;
+    const move = this.def.speed * ctx.speedMultiplier * this.lightSlow(ctx) * pace * dt;
     this.base.x += dir.x * move;
     this.base.y += dir.y * move;
 

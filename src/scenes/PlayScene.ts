@@ -29,6 +29,7 @@ import { Spawner } from '../systems/Spawner';
 import type { Vec } from '../systems/fan';
 import { autoAimAngle } from '../systems/aimStick';
 import { Aiming } from './play/Aiming';
+import { KeeperSlow, specialOf } from '../systems/specials';
 import { stepMove, strongerInput, walkArea } from '../systems/movement';
 import { bushAt, pushOut, type Rect } from '../systems/obstacles';
 import { follow } from '../systems/facing';
@@ -40,24 +41,16 @@ import { EnemyField } from './play/EnemyField';
 import { Sources } from './play/Sources';
 
 const CFG = GameData.game;
-/** 오늘은 여기까지 연출 (입력 막고 빛이 사그라듦) */
-const OVER_SEC = 1.5;
-/** 아침 연출 (마을 전체가 2초간 켜짐) */
-const DAWN_SEC = 2;
-/** 프레임이 길게 끊겨도 한 번에 너무 많이 진행하지 않게 */
-const MAX_DT = 1 / 20;
+const OVER_SEC = 1.5; // 오늘은 여기까지 연출 (입력 막고 빛이 사그라듦)
+const DAWN_SEC = 2; // 아침 연출 (마을 전체가 2초간 켜짐)
+const MAX_DT = 1 / 20; // 프레임이 길게 끊겨도 한 번에 너무 많이 진행하지 않게
 const WALK_AREA = walkArea(CFG.world.width, CFG.world.height, CFG.keeper.walkInset);
-/** 루미 몸 가운데에서 발까지: 장애물·풀숲은 발 위치로 판정한다 (2.5D) */
-const FEET_Y = KEEPER_FOOT_Y;
-/** 풀숲 가장자리에서 이만큼 들어가야 숨는다 (제안) */
-const BUSH_INSET = 16;
-/** 이동 입력이 따라붙는 반응 시간: 출발·정지가 부드럽게 (제안) */
-const MOVE_TAU = 0.1;
+const FEET_Y = KEEPER_FOOT_Y; // 루미 몸 가운데에서 발까지: 장애물·풀숲은 발 위치로 판정한다 (2.5D)
+const BUSH_INSET = 16; // 풀숲 가장자리에서 이만큼 들어가야 숨는다 (제안)
+const MOVE_TAU = 0.1; // 이동 입력이 따라붙는 반응 시간: 출발·정지가 부드럽게 (제안)
 const HURT_SHAKE = { ms: 120, intensity: 0.004 };
-/** 무적 깜빡임: 초당 2.5회의 완만한 맥박 (깜빡임 초당 3회 이하 규칙) */
-const INVULN_PULSE_HZ = 2.5;
-/** 모든 등불이 켜졌을 때 환해지는 시간 */
-const CELEBRATE_SEC = 0.9;
+const INVULN_PULSE_HZ = 2.5; // 무적 깜빡임: 초당 2.5회의 완만한 맥박 (깜빡임 초당 3회 이하 규칙)
+const CELEBRATE_SEC = 0.9; // 모든 등불이 켜졌을 때 환해지는 시간
 const FRIEND_MARK = { lift: 98, drop: 22 }; // 빛을 잃은 친구를 가리키는 노란 화살표 끝 (초상 꼭대기 위·발밑 아래, 연출 값)
 
 export class PlayScene extends Phaser.Scene {
@@ -89,6 +82,8 @@ export class PlayScene extends Phaser.Scene {
   private stickMove: Vec = { x: 0, y: 0 };
   /** 빛 스틱 겨눔 · PC 마우스 끌기 · 반자동 (scenes/play/Aiming.ts) */
   private aiming!: Aiming;
+  /** 박쥐 필살기 '속도 스턴'으로 느려진 등불지기 (systems/specials.ts) */
+  private readonly slow = new KeeperSlow();
   private props!: MapProps;
   private settingsOpen = false;
   /** 루미가 들어가 있는 풀숲 번호 (-1 = 밖) */
@@ -117,6 +112,7 @@ export class PlayScene extends Phaser.Scene {
     Object.assign(this, { rescued: 0, retreated: 0, paused: false, ended: false, test: RunState.test, bushIn: -1, revealLeft: 0, time_: 0 });
     freeze(this, false); // 앞 판이 어떻게 끝났든 멈춘 채 시작하지 않게 (애니메이션 멈춤은 게임 전체에 걸린다, 2026-11-13)
     this.stickMove = { x: 0, y: 0 };
+    this.slow.reset();
     this.moveVec = { x: 0, y: 0 };
     this.hud = new HudFeed();
     this.roamPoint = makeRoam(new Rng(RunState.seed + 17), WALK_AREA);
@@ -248,6 +244,7 @@ export class PlayScene extends Phaser.Scene {
     const near = (p: Vec, r: number) => Math.hypot(p.x - this.keeper.pos.x, p.y - this.keeper.pos.y) <= r;
     const nearCentral = near(central.pos, CFG.central.healRadius);
     if (this.vitals.update(dt, nearCentral)) this.respawnKeeper();
+    this.slow.update(dt);
     if (!this.vitals.down) {
       const nearStation = this.sources.stations.some((s) => s.state.lit && near(s.pos, CFG.station.healRadius));
       this.lp.update(dt, nearCentral ? 'central' : nearStation ? 'station' : 'field');
@@ -312,6 +309,7 @@ export class PlayScene extends Phaser.Scene {
       roam: this.roamPoint,
       roamSpeed: CFG.hide.roamSpeed,
       speedMultiplier: this.items.enemySpeedMultiplier,
+      lightRadius: CFG.aura.glowMin + (CFG.aura.glowMax - CFG.aura.glowMin) * this.lp.ratio, // 빛 속에서 느려짐 (2026-11-18)
     };
   }
 
@@ -320,17 +318,20 @@ export class PlayScene extends Phaser.Scene {
     const climax = this.clock.climax;
     const to = hit.target === 'player' ? this.keeper.pos : this.sources.posOf(hit.target); // 몸박치기 효과 (2026-11-13)
     if (to) this.fx.slam(e.x + (to.x - e.x) * 0.45, e.y + (to.y - e.y) * 0.45 - 12);
+    const sp = specialOf(e.def.behaviorParams); // 적의 필살기: 박쥐 감속 · 웨어울프 밀어냄 · 뱀파이어 빛 빼앗기 (systems/specials.ts)
     if (hit.target === 'player') {
       const res = this.vitals.hurt(hit.damage);
       if (res === 'none') return;
       this.sources.mapLight.hit('player', climax);
       bus.emit('player:hurt', { hp: this.vitals.hp, by: e.def.id });
-      if (res === 'hurt') this.hurtKeeper(e);
+      if (res === 'hurt') this.hurtKeeper(e, sp.push);
       else this.knockOut(res === 'out');
+      if (sp.slow) this.slow.apply(sp.slow.multiplier, sp.slow.sec);
+      if (sp.drainLp) this.lp.spend(sp.drainLp);
       this.emitVitals(true);
       return;
     }
-    this.damageSource(hit.target, hit.sourceDamage, e.def.id);
+    this.damageSource(hit.target, hit.sourceDamage * sp.sourceMultiplier, e.def.id);
   }
 
   /** 중앙 광원 광도 / 등불 광도가 줄어든다 (적의 공격·노월의 구슬) */
@@ -420,7 +421,7 @@ export class PlayScene extends Phaser.Scene {
     const k = follow(dt, MOVE_TAU);
     this.moveVec = { x: this.moveVec.x + (raw.x - this.moveVec.x) * k, y: this.moveVec.y + (raw.y - this.moveVec.y) * k };
     const input = this.moveVec;
-    const stepped = stepMove(this.keeper.pos, input, CFG.keeper.moveSpeed * this.items.speedMultiplier * traitOf(this.keeper.def).move, dt, WALK_AREA);
+    const stepped = stepMove(this.keeper.pos, input, CFG.keeper.moveSpeed * this.items.speedMultiplier * this.slow.multiplier * traitOf(this.keeper.def).move, dt, WALK_AREA);
     const feet = pushOut({ x: stepped.x, y: stepped.y + FEET_Y }, CFG.keeper.radius, this.obstacles);
     const next = { x: feet.x, y: feet.y - FEET_Y };
     this.revealLeft = Math.max(0, this.revealLeft - dt);
@@ -472,14 +473,14 @@ export class PlayScene extends Phaser.Scene {
   }
 
   /** 맞음(HP만 줄어듦): 피격 동작·흰 번쩍임, 적 반대쪽으로 살짝 밀림(장애물·마을 끝 판정), 짧은 화면 흔들림 */
-  private hurtKeeper(from: Vec): void {
+  private hurtKeeper(from: Vec, push: number = CFG.player.hurtKnockback): void {
     const k = this.keeper;
     const dx = k.pos.x - from.x;
     const dy = k.pos.y - from.y;
     k.hurt(Math.atan2(dy, dx));
     this.fx.hurt(k.pos.x, k.pos.y);
     const len = Math.hypot(dx, dy) || 1;
-    const stepped = stepMove(k.pos, { x: dx / len, y: dy / len }, CFG.player.hurtKnockback, 1, WALK_AREA);
+    const stepped = stepMove(k.pos, { x: dx / len, y: dy / len }, push, 1, WALK_AREA);
     const feet = pushOut({ x: stepped.x, y: stepped.y + FEET_Y }, CFG.keeper.radius, this.obstacles);
     k.pos.x = feet.x;
     k.pos.y = feet.y - FEET_Y;

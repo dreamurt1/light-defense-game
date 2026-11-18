@@ -136,6 +136,8 @@ export interface GameConfig {
     pinnedLungeSec: number;
     /** 들이받을 때 루미 몸에 겹쳐 들어가는 정도(2026-11-18: 실제로 닿을 때만 피해) */
     pinnedOverlap: number;
+    /** 종류별 빛 반응 '어둠에서보다 느려짐' (2026-11-18): 등불지기 주변 빛 안에서 호스틸·잃어버린 주민 이동 배율 (제안) */
+    lightSlowMultiplier: number;
   };
   light: {
     mode: 'aimStick';

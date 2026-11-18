@@ -152,7 +152,8 @@
     "pinnedBackPx": 7,
     "pinnedLungePx": 20,
     "pinnedLungeSec": 0.26,
-    "pinnedOverlap": 8
+    "pinnedOverlap": 8,
+    "lightSlowMultiplier": 0.85
   },
   "light": {
     "mode": "aimStick",

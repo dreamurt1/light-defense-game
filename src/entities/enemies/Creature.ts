@@ -42,6 +42,9 @@ export class Creature extends Enemy {
   private wanderTo: { x: number; y: number } | null = null;
   /** 지금 모습 (걷는 종은 옆·앞·뒤, 2026-11-13) */
   private view: CritterView = 'side';
+  /** 방어(고슴도치 필살기)를 다시 쓸 수 있을 때까지 / 눈 가림 말풍선을 이미 했는지 (2026-11-18) */
+  private guardLeft = 0;
+  private eyesSaid = false;
   private look: CreatureLook = 'dark';
 
   /** @param rng 대사 타이밍·대사 고르기·첫 동작 칸 (판 seed에서, 같은 seed면 같은 밤) */
@@ -128,10 +131,26 @@ export class Creature extends Enemy {
       sayAbove(this.scene, this, '아야.. 왜 그래');
       return super.hitByLight(0, knockback, stunSec, ctx);
     }
+    const p = this.def.behaviorParams;
+    // 방어(고슴도치, 필살기): 몸을 말아 빛 위력을 줄인다 — guardCooldownSec마다 한 번 (systems/specials.ts 설명)
+    if (p?.special === 'guard' && this.guardLeft <= 0 && power > 0) {
+      power *= Number(p.guardMultiplier ?? 0.5);
+      this.guardLeft = Number(p.guardCooldownSec ?? 4);
+      this.scene.tweens.add({ targets: this, scaleX: 1.12, scaleY: 0.78, duration: 160, yoyo: true, hold: 220, ease: 'Quad.easeOut' });
+    }
+    // 눈 가림(웨어울프·뱀파이어, 종류별 빛 반응): 눈부셔 더 오래 멈칫한다
+    if (p?.lightReaction === 'coverEyes' && power > 0) {
+      stunSec *= Number(p.coverEyesStun ?? 1.6);
+      if (!this.eyesSaid && this.hp - power > 0) {
+        this.eyesSaid = true;
+        sayAbove(this.scene, this, '눈부셔..');
+      }
+    }
     return super.hitByLight(power, knockback, stunSec, ctx);
   }
 
   override step(dt: number, ctx: EnemyContext): EnemyStep {
+    this.guardLeft = Math.max(0, this.guardLeft - dt);
     // 트라이얼의 고정된 적 (패시브도 떠돌지 않음 — 곁을 지나가면 자비, 맞히면 화남 → 화난 채로 아주 가까우면 제자리에서 공격)
     if (this.pinned && !this.leaving) return super.step(dt, ctx);
     if (this.def.behavior === 'idle') {
