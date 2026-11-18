@@ -1,0 +1,162 @@
+{
+  "pack": "Tori_Front_Back_Walk_4Frames",
+  "canvas": {
+    "width": 512,
+    "height": 512,
+    "format": "png"
+  },
+  "directions": [
+    {
+      "degrees": 0,
+      "name": "front",
+      "frames": 4
+    },
+    {
+      "degrees": 180,
+      "name": "back",
+      "frames": 4
+    }
+  ],
+  "frame_order": [
+    "f01 idle (copied unchanged from source idle PNG)",
+    "f02 push-off",
+    "f03 airborne",
+    "f04 landing"
+  ],
+  "fps_hint": 9,
+  "generation_notes": [
+    "f01 files are byte-for-byte copies of tori_idle_000_front.png and tori_idle_180_back.png.",
+    "f02-f04 were cut from a shared 2x3 generated movement sheet; all six use the same 1.06 scale factor.",
+    "All frames are centered around x=256. Grounded frames align to y=496; airborne frames lift the feet 6 px to y=490.",
+    "No horizontal mirroring was used. The mint ribbon and folded ear remain on the same character-left ear as each direction idle reference.",
+    "Movement is intentionally restrained: small push-off, low airborne hop, soft landing."
+  ],
+  "frame_metrics": {
+    "000_front": {
+      "f01": {
+        "source": "tori_idle_000_front.png",
+        "sha256": "901d52251012f662d21b71735fb68fa18717822763dd843423ff51ebfeef1fa4",
+        "bbox": [
+          126,
+          48,
+          385,
+          496
+        ]
+      },
+      "f02": {
+        "generated_cell_bbox": [
+          159,
+          43,
+          397,
+          467
+        ],
+        "scale": 1.06,
+        "output_alpha_bbox_gt10": [
+          130,
+          47,
+          382,
+          496
+        ],
+        "target_ground_y": 496,
+        "feet_lift_px": 0
+      },
+      "f03": {
+        "generated_cell_bbox": [
+          143,
+          23,
+          372,
+          431
+        ],
+        "scale": 1.06,
+        "output_alpha_bbox_gt10": [
+          134,
+          58,
+          377,
+          490
+        ],
+        "target_ground_y": 490,
+        "feet_lift_px": 6
+      },
+      "f04": {
+        "generated_cell_bbox": [
+          130,
+          63,
+          367,
+          467
+        ],
+        "scale": 1.06,
+        "output_alpha_bbox_gt10": [
+          130,
+          68,
+          381,
+          496
+        ],
+        "target_ground_y": 496,
+        "feet_lift_px": 0
+      }
+    },
+    "180_back": {
+      "f01": {
+        "source": "tori_idle_180_back.png",
+        "sha256": "dfc105db8d52ae4ae1cbe48d8324ff783e21ef50e451af38761d669dda5c2a92",
+        "bbox": [
+          128,
+          48,
+          384,
+          496
+        ]
+      },
+      "f02": {
+        "generated_cell_bbox": [
+          154,
+          31,
+          390,
+          454
+        ],
+        "scale": 1.06,
+        "output_alpha_bbox_gt10": [
+          131,
+          48,
+          381,
+          496
+        ],
+        "target_ground_y": 496,
+        "feet_lift_px": 0
+      },
+      "f03": {
+        "generated_cell_bbox": [
+          146,
+          7,
+          373,
+          407
+        ],
+        "scale": 1.06,
+        "output_alpha_bbox_gt10": [
+          136,
+          66,
+          377,
+          490
+        ],
+        "target_ground_y": 490,
+        "feet_lift_px": 6
+      },
+      "f04": {
+        "generated_cell_bbox": [
+          126,
+          51,
+          364,
+          454
+        ],
+        "scale": 1.06,
+        "output_alpha_bbox_gt10": [
+          130,
+          69,
+          382,
+          496
+        ],
+        "target_ground_y": 496,
+        "feet_lift_px": 0
+      }
+    }
+  }
+}
