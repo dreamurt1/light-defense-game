@@ -14,7 +14,11 @@
     "art:import": "node scripts/export-assets.mjs",
     "art:lumi": "node scripts/extract-lumi.mjs",
     "doc:plan": "node scripts/build-plan-pdf.mjs",
-    "doc:skill": "node scripts/sync-skill.mjs"
+    "doc:skill": "node scripts/sync-skill.mjs",
+    "art:check": "node scripts/art-check.mjs",
+    "screens": "node scripts/screens.mjs",
+    "station": "node scripts/station.mjs",
+    "ship": "node scripts/ship.mjs"
   },
   "dependencies": {
     "phaser": "^3.90.0",
