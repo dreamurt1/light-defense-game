@@ -119,6 +119,8 @@ export interface GameEvents {
   'input:move': { x: number; y: number };
   /** 빛 스틱을 끄는 동안 겨누는 방향과 끈 정도(0~1, 원뿔 반지름 = 사거리 × power). active=false면 범위 표시를 끈다 */
   'input:aim': { active: boolean; angle: number; power: number };
+  /** 빛 스틱을 누름(active) / 끌기 시작·뗌: 누른 채 끌지 않고 있으면 반자동(2026-11-18 라이언, systems/autoFire.ts) */
+  'input:auto': { active: boolean };
   /** 빛 스틱을 놓음: angle이 null이면 반자동(사거리 안 가장 가까운 적, 없으면 쏘지 않음), 아니면 power만큼 */
   'input:fire': { angle: number | null; power?: number };
 }

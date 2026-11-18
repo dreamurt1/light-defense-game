@@ -27,7 +27,8 @@ import { ScoreCalculator } from '../systems/ScoreCalculator';
 import { LightSystem } from '../systems/LightSystem';
 import { Spawner } from '../systems/Spawner';
 import type { Vec } from '../systems/fan';
-import { autoAimAngle, dragAim } from '../systems/aimStick';
+import { autoAimAngle } from '../systems/aimStick';
+import { Aiming } from './play/Aiming';
 import { stepMove, strongerInput, walkArea } from '../systems/movement';
 import { bushAt, pushOut, type Rect } from '../systems/obstacles';
 import { follow } from '../systems/facing';
@@ -86,8 +87,8 @@ export class PlayScene extends Phaser.Scene {
   private edgeArrows!: EdgeArrows;
   private desktop!: DesktopControls;
   private stickMove: Vec = { x: 0, y: 0 };
-  /** 빛 스틱으로 겨누는 방향과 끈 정도(0~1). 겨누지 않으면 null */
-  private stickAim: { angle: number; power: number } | null = null;
+  /** 빛 스틱 겨눔 · PC 마우스 끌기 · 반자동 (scenes/play/Aiming.ts) */
+  private aiming!: Aiming;
   private props!: MapProps;
   private settingsOpen = false;
   /** 루미가 들어가 있는 풀숲 번호 (-1 = 밖) */
@@ -117,7 +118,6 @@ export class PlayScene extends Phaser.Scene {
     freeze(this, false); // 앞 판이 어떻게 끝났든 멈춘 채 시작하지 않게 (애니메이션 멈춤은 게임 전체에 걸린다, 2026-11-13)
     this.stickMove = { x: 0, y: 0 };
     this.moveVec = { x: 0, y: 0 };
-    this.stickAim = null;
     this.hud = new HudFeed();
     this.roamPoint = makeRoam(new Rng(RunState.seed + 17), WALK_AREA);
 
@@ -134,9 +134,10 @@ export class PlayScene extends Phaser.Scene {
     this.edgeArrows = new EdgeArrows(this);
     // PC: 마우스를 끌다 놓으면 커서 쪽으로, 루미 중심에서 커서까지의 거리만큼 (루미 몸 위에서 놓으면 취소)
     this.desktop = new DesktopControls(this, (point) => {
-      const aim = this.mouseAim(point);
+      const aim = this.aiming.mouse(this.keeper.pos, point, this.light.range);
       if (aim) this.fire(aim.angle, aim.range);
     });
+    this.aiming = new Aiming(this.desktop, this.aimGuide);
 
     const cam = this.cameras.main;
     cam.setBounds(0, 0, CFG.world.width, CFG.world.height);
@@ -186,8 +187,10 @@ export class PlayScene extends Phaser.Scene {
       }),
       bus.on('enemy:returned', (e) => this.stage.burstAt(e.x, e.y)),
       bus.on('input:move', (v) => (this.stickMove = v)),
-      bus.on('input:aim', (e) => (this.stickAim = e.active ? { angle: e.angle, power: e.power } : null)),
-      bus.on('input:fire', (e) => this.fire(e.angle, e.power === undefined ? Infinity : e.power * this.light.range)),
+      bus.on('input:aim', (e) => (this.aiming.stick = e.active ? { angle: e.angle, power: e.power } : null)),
+      bus.on('input:auto', (e) => (e.active ? this.aiming.auto.press() : this.aiming.auto.stop())),
+      // 짧은 탭(angle null)은 누르는 동안 반자동으로 이미 쐈으면 다시 쏘지 않는다
+      bus.on('input:fire', (e) => (e.angle !== null || this.aiming.auto.tapAllowed) && this.fire(e.angle, e.power === undefined ? Infinity : e.power * this.light.range)),
       bus.on('ui:settings', (e) => (this.settingsOpen = e.open)),
       bus.on('ui:layout', () => this.pauseIfRunning()),
       bus.on('night:phase', (e) => {
@@ -431,31 +434,27 @@ export class PlayScene extends Phaser.Scene {
     this.keeper.setVeil((this.hidden ? CFG.hide.keeperAlpha : 1) * pulse);
     this.keeper.moveTo(next.x, next.y, input, dt);
     followCamera(this.cameras.main, next, dt);
-    // 빛 스틱이 우선, 아니면 PC 마우스 끌기. 원뿔 반지름은 끈 거리에 비례 (스틱: 사거리 × 끈 정도, 마우스: 커서까지 거리)
-    const stick = this.stickAim;
-    const drag = stick ? null : this.desktop.dragPoint();
-    const mouse = drag ? this.mouseAim(drag) : null;
-    const aim = down ? null : (stick?.angle ?? mouse?.angle ?? null);
-    const reach = stick ? stick.power * this.light.range : (mouse?.range ?? this.light.range);
-    this.aimGuide.draw(this.keeper.pos, aim, reach, this.light.ready);
+    // 조준선: 빛 스틱 > PC 마우스 끌기 > 반자동(빛 스틱을 누르고 있기 · PC 스페이스, 2026-11-18 라이언) — 반자동 차례면 한 발
+    if (this.aiming.update(dt, this.keeper.pos, this.light.range, this.light.ready, down, () => this.autoAngle()) && this.fire(null)) this.aiming.auto.fired();
   }
 
-  private mouseAim(point: Vec): { angle: number; range: number } | null {
-    return dragAim(this.keeper.pos, point, this.light.range, CFG.controls.mouseCancelRadius);
+  /** 반자동 대상 방향: 사거리 안 가장 가까운 적(패시브·친구 빼고, 노월 포함). 없으면 null = 쏘지 않음 */
+  private autoAngle(): number | null {
+    const targets = [...this.field.active.filter((e) => e.def.kind !== 'passive' && !e.def.friend), ...(this.boss?.lightTargets() ?? [])];
+    return autoAimAngle(this.keeper.pos, targets, this.light.range);
   }
 
   /**
    * 빛 스틱을 놓음(또는 PC 마우스를 끌다 놓음). angle이 null이면 반자동: 사거리 안 가장 가까운 적,
    * 없으면 쏘지 않는다(2026-11-12 라이언 답변). reach = 끈 거리만큼(사거리를 넘지 않음)
    */
-  fire(angle: number | null, reach = Infinity): void {
-    if (this.paused || this.ended || this.vitals.down) return;
+  fire(angle: number | null, reach = Infinity): boolean {
+    if (this.paused || this.ended || this.vitals.down) return false;
     const origin = this.keeper.pos;
-    const aimables = [...this.field.active.filter((e) => e.def.kind !== 'passive' && !e.def.friend), ...(this.boss?.lightTargets() ?? [])];
-    const a = angle ?? autoAimAngle(origin, aimables, this.light.range);
-    if (a === null) return;
+    const a = angle ?? this.autoAngle();
+    if (a === null) return false;
     const cast = this.light.tryCast(a, reach);
-    if (!cast) return;
+    if (!cast) return false;
     this.lp.spend(CFG.lp.castCost);
     // 빛을 보내면 풀숲 속에서도 잠깐 드러난다 (브롤스타즈처럼)
     this.revealLeft = CFG.hide.revealAfterFireSec;
@@ -469,6 +468,7 @@ export class PlayScene extends Phaser.Scene {
       range: cast.range,
       characterId: this.keeper.def.id,
     });
+    return true;
   }
 
   /** 맞음(HP만 줄어듦): 피격 동작·흰 번쩍임, 적 반대쪽으로 살짝 밀림(장애물·마을 끝 판정), 짧은 화면 흔들림 */

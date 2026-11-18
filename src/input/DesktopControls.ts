@@ -5,7 +5,7 @@ import Phaser from 'phaser';
 import { keysVector } from '../systems/movement';
 import type { Vec } from '../systems/fan';
 
-type KeyName = 'w' | 'a' | 's' | 'd' | 'up' | 'down' | 'left' | 'right';
+type KeyName = 'w' | 'a' | 's' | 'd' | 'up' | 'down' | 'left' | 'right' | 'space';
 
 export class DesktopControls {
   private readonly keys: Record<KeyName, Phaser.Input.Keyboard.Key> | null;
@@ -27,6 +27,7 @@ export class DesktopControls {
         down: KC.DOWN,
         left: KC.LEFT,
         right: KC.RIGHT,
+        space: KC.SPACE, // 누르고 있으면 반자동 빛 (2026-11-18, 모바일 빛 스틱 누르고 있기와 같음)
         // 키를 가로채지 않는다: 일시정지 중 설정의 닉네임 입력란에 W·A·S·D도 써져야 한다
       }, false) as Record<KeyName, Phaser.Input.Keyboard.Key> | undefined) ?? null;
 
@@ -54,6 +55,11 @@ export class DesktopControls {
     // 입력란에 글자를 쓰는 중이면 걷지 않는다
     if (!k || document.activeElement instanceof HTMLInputElement) return { x: 0, y: 0 };
     return keysVector(k.a.isDown || k.left.isDown, k.d.isDown || k.right.isDown, k.w.isDown || k.up.isDown, k.s.isDown || k.down.isDown);
+  }
+
+  /** 스페이스를 누르고 있음 = 반자동 (입력란에 글자를 쓰는 중이면 아님) */
+  get autoHeld(): boolean {
+    return !!this.keys?.space.isDown && !(document.activeElement instanceof HTMLInputElement);
   }
 
   /** 마우스로 끄는 중이면 커서가 가리키는 마을 좌표, 아니면 null */
