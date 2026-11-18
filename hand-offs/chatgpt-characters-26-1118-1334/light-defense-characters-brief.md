@@ -13,6 +13,7 @@
 > **2026-11-18 갱신**
 > - **토리 135° 고침 받음**: 다시 그린 135°(1254×1254로 옴)를 Claude가 대기 팩 규격(512×512 · 발끝 97% · 가로 가운데)으로 맞춰 넣었다. 토리 대기 8장 완료 → 다음은 걷기(7절 Step B).
 > - **앞으로 받는 토리 그림도 512×512 · 대기 팩과 같은 축척 · 같은 발끝으로** 준다. 걷기 프레임이 저마다 다른 크기로 오면 프레임끼리 축척을 맞추기 어렵다.
+> - **의뢰서 (이 브리프보다 최신)**: 토리 걷기 = `order-tori-walk.md`(+ `tori-walk-guide.png`), 도토 대기 = `order-doto-idle.md`(+ `doto-idle-guide.png`). 걷기는 방향마다 4장이고 **첫 장은 그 방향의 대기 그림 그대로**, 4장이 자연스럽게 한 바퀴 이어진다(라이언). 캔버스는 모두 512×512.
 
 ## 1. 게임 한 줄
 
@@ -135,8 +136,8 @@
 
 ### 단계 4 — 게임용 스프라이트 (루미 8방향 팩과 같은 형식)
 
-7. **대기 8방향**: 투명 PNG 256×256을 한 장씩. 모든 장에서 발끝 높이와 가로 가운데를 같게 한다.
-8. **걷기 8방향 × 4프레임**: 규격은 7번과 같다. 프레임 순서는 디딤 → 지나감 → 반대 발 → 돌아옴이다.
+7. **대기 8방향**: 투명 PNG 512×512를 한 장씩(2026-11-18: 256에서 바꿈 — 토리 대기 팩과 같게). 모든 장에서 축척·발끝 높이·가로 가운데를 같게 한다. 도토는 `order-doto-idle.md`.
+8. **걷기 8방향 × 4프레임**: 규격은 7번과 같다. **첫 장(f01)은 그 방향의 대기 그림 그대로**, f01 → f04 → 다시 f01로 자연스럽게 한 바퀴(2026-11-18 라이언). 토리는 작게 깡충 뛰기 — `order-tori-walk.md`. (예전 순서 '디딤 → 지나감 → 반대 발 → 돌아옴'은 루미 고양이 걸음)
 9. **선택 화면 초상**: 앉아서 오른쪽 앞(45°)을 보는 자세. 루미 초상과 같은 자세로, 1024px 이상의 투명 PNG.
 10. **빛을 잃은 모습 초상**: 9번과 같은 자세.
 
@@ -186,11 +187,11 @@
 Tori_8_Direction_Pack/                         (도토는 Doto_…, 파일 이름은 doto_…)
 ├─ Tori_Concept_Introduce/tori_concept.png      ← 고른 컨셉 그림 (이미 있음)
 ├─ Tori_Idle_8D_Pack/
-│  ├─ PNG_256/tori_idle_000_front.png … tori_idle_315_front_left.png   (8장)
+│  ├─ tori_idle_000_front.png … tori_idle_315_front_left.png   (8장, 512×512)
 │  ├─ manifest.json
 │  └─ README.md
 └─ Tori_Walk_8D_4Frames_Pack/
-   ├─ Tori_Walk_8D_4Frames/PNG_256/000_front/tori_walk_000_front_f01.png … f04.png
+   ├─ 000_front/tori_walk_000_front_f01.png … f04.png   (512×512, f01 = 대기 그림)
    │                     (000_front · 045_front_right · 090_right · 135_back_right ·
    │                      180_back · 225_back_left · 270_left · 315_front_left — 8폴더 × 4장)
    ├─ manifest.json
@@ -205,7 +206,7 @@ Tori_8_Direction_Pack/                         (도토는 Doto_…, 파일 이�
 - **걷기**
   - `pack`, `canvas`를 둔다.
   - `directions` 배열에 `{ "degrees": 0, "name": "front", "frames": 4 }`를 8개 넣는다.
-  - `frame_order`: `["contact/stance", "passing", "opposite stride", "return"]`
+  - `frame_order`: 토리는 `["f01 idle (copied from tori_idle_<dir>.png)", "f02 push-off", "f03 airborne", "f04 landing"]`(2026-11-18, `order-tori-walk.md`)
   - `generation_notes`: 어느 방향을 새로 그렸고 어느 방향을 뒤집거나 만들어 냈는지 적는다.
 
 **빼도 되는 것**: 루미 팩에 있던 `SVG_Vector`, `Parts_Reference_Crops`, `SpriteSheets`는 게임이 쓰지 않는다.
@@ -215,8 +216,9 @@ Tori_8_Direction_Pack/                         (도토는 Doto_…, 파일 이�
 - **토리 대기 점검 (2026-11-17 Claude, 그림 `tori-idle-check.png`)**
   - 좋은 점: 8장 모두 같은 크기·같은 발끝 높이·같은 가로 가운데, 투명 배경, 잘린 곳 없음. 정면·옆·뒤의 7장은 리본이 토리의 왼쪽 귀에 바르게 있다.
   - **고침 (2026-11-18)**: `tori_idle_135_back_right.png`는 리본과 접힌 귀가 오른쪽 귀에 있었다(225°를 뒤집은 모습). 다시 그린 그림은 리본·접힌 귀가 토리의 왼쪽 귀(뒤에서 보면 화면 왼쪽·먼 쪽)로 맞다. 1254×1254로 와서 Claude가 다른 7장과 같게(512 · 귀 끝 9% · 발끝 97% · 가로 가운데) 맞춰 넣었다. 눈이 살짝 보여 225°보다 옆모습에 조금 가깝지만 그대로 쓴다.
-  - 없어도 되는 것: `manifest.json`·`README.md`, `PNG_256/` 폴더. 걷기 팩을 만들 때 함께 만들어 주면 좋다.
-- 도토 대기 폴더는 아직 비어 있다.
+  - 없어도 되는 것: `manifest.json`·`README.md`. 걷기 팩을 만들 때 함께 만들어 주면 좋다.
+- 도토 대기 폴더는 아직 비어 있다 → 의뢰서 `order-doto-idle.md`(2026-11-18).
+- 토리 걷기 → 의뢰서 `order-tori-walk.md`(2026-11-18).
 
 ## 6. 공통 규칙
 
@@ -270,6 +272,8 @@ Create a character sheet for TORI in the same layout as the attached Lumi sheet:
 ```
 
 **7·8. 스프라이트** (토리를 만든 뒤 DOTO로 한 번 더 — 아래는 단계별로 나눈 버전, 루미 팩과 같은 순서)
+
+> **2026-11-18: 토리 걷기와 도토 대기는 의뢰서의 프롬프트를 쓴다** — `order-tori-walk.md` · `order-doto-idle.md`. 아래 Step A·B와 예전 한 번에 만들기 프롬프트는 기록으로 남긴 것이다(256 캔버스·고양이 걸음 순서는 쓰지 않는다).
 
 **토리 135° 고치기** (2026-11-17 — **2026-11-18 끝남, 다시 쓰지 않는다**. 기록으로 남김)
 
