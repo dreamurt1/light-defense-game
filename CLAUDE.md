@@ -9,13 +9,13 @@
 
 - **기준 우선순위**(충돌하면 가장 최근 것): 라이언 최신 지시(`docs/DECISION_LOG.md`) > 새 기획 `docs/design/`(GAME_DESIGN·OPEN_QUESTIONS·ACCEPTANCE_CRITERIA·IMPLEMENTATION_PLAN·ASSET_MANIFEST·HOME_SCREEN, 원본 XMind `reference/light-defense-xmind-1112.pdf`) > `light-defense-game` 스킬(`docs/skill/`) > 코드. 옛 기획서(PDF 2026-10-28)는 새 기획과 충돌하지 않는 부분만. `hand-offs/light-defense-claude-handoff-chatgpt1112/`는 원본 보관용(여우·삵은 넣지 않음).
 - **세부는 Claude가 정한다.** 라이언은 큰 방향만 묻는다. 수치·작은 설계는 정해서 "제안"으로 보고. 질문 목록을 길게 만들지 않는다. 첫 스테이지는 쉽게. 큰 변경은 확인 뒤 시작.
-- **역할 분담**: Claude Code = 개발·게임 구성·기획 정본(이 파일·`docs/design/`·스킬), ChatGPT = 디자인·스타일·비주얼(캐릭터·배경·홍보물·UI 그림).
+- **역할 분담**: Claude Code(이 터미널) = 개발 + 기획 정본 파일 관리(이 파일·`docs/design/`·스킬), claude.ai 기획 세션 = 전체 기획 조정·스토리 개연성 판단(2026-11-18 — 스킬 zip을 올려 쓰고, 저장소와 대조한 결과를 지시서로 보냄 → Claude Code가 반영), ChatGPT = 디자인·스타일·비주얼(캐릭터·배경·홍보물·UI 그림).
   - ChatGPT의 기획 문서는 대조할 입력(그대로 따르지 않음, 대조는 `docs/design/DESIGN_RECONCILIATION.md`).
   - ChatGPT에 넘길 때 기준 사실서(`hand-offs/chatgpt-canon-*`)를 함께. 기획이 바뀌면 기준 사실서부터 고친다.
   - **오갈 때마다 점검**: 받은 그림·문서는 즉시 기준·브리프·게임 규격(크기·발끝·방향·이름·리본 귀·눈 색)과 대조하고, 어긋남·질문·오류를 **보고 맨 앞에** 알린다(내 문서 탓이면 밝히고 고침). → 스킬 `ld-art-intake`, 의뢰는 `ld-chatgpt-order`.
 - **스킬 쓰기**: 그림 받기 `ld-art-intake` · 화면 점검 `ld-screen-check` · ChatGPT 의뢰 `ld-chatgpt-order` · 마무리·배포 `ld-ship`(모두 `.claude/skills/`). 게임 규칙·구현 = `light-defense-game` 스킬, 화면 구성·UX = impeccable. 외부(2026-11-18 설치): **superpowers**(큰 기능·복잡한 버그에 brainstorming·writing-plans·systematic-debugging — 그림 적용·작은 수정은 절차 없이 ld-* 스킬로 바로), **claude-md-management**(이 파일 점검·`/revise-claude-md`, 짧게 유지), **game-qa**(테스트 설계 생각만 가져오고 헤드리스만), **game-designer**(손맛은 약하게, 차분함 우선) — 뒤의 둘은 OpusGameLabs/game-creator(MIT)에서 그 둘만 `.claude/skills/`로.
 - **이 파일·기록 갱신**: 새 지시·결정 → 이 파일의 해당 절을 고치고 `docs/DECISION_LOG.md` 맨 아래에 `- YYYY-MM-DD · 내용` 한 줄. 일회성 요청은 적지 않는다. **이 파일은 짧게**(경위·옛 수치는 로그로).
-- **스킬·기획 즉시 갱신**: 스킬 원본 `docs/skill/light-defense-game/` → `npm run doc:skill`(데이터 복사·동기화 사본·zip). zip이 바뀌면 보고 맨 위에 **"zip 다시 올리기 필요"**(claude.ai 자동 업로드 방법 없음). 기획 개정판 본문 `docs/plan/revisions.html`, PDF(`npm run doc:plan`)는 지시 때만.
+- **스킬·기획 즉시 갱신**: 스킬 원본 `docs/skill/light-defense-game/`(지금 기준만, 옛 기획은 `docs/archive/`) → `npm run doc:skill`(데이터 복사·동기화 사본·zip, `evals/`는 빼고 — `ship.mjs`가 늘 돌림). zip이 바뀌면 보고 맨 위에 **"zip 다시 올리기 필요"**(claude.ai 자동 업로드 방법 없음). 기획 개정판 본문 `docs/plan/revisions.html`, PDF(`npm run doc:plan`)는 지시 때만.
 - **외부용 파일은 지시 때만 고친다**: 기획서 PDF·발표 자료·홍보 그림(`reference/showcase-*`, 바탕화면 썸네일·리플렛). 바꿀 내용은 기록만.
 - **보고는 한국어**(코드 식별자·명령·ChatGPT 영문 프롬프트만 영어). 완료 보고 = 바꾼 것·동작·테스트/빌드 결과·남은 문제·수동 확인 방법·"제안" 값·새 문구.
 - **알림**: 끝나거나 멈춰야 하면 폰(PushNotification)과 윈도우(`scripts/notify.ps1`) 둘 다.

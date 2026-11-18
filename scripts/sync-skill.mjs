@@ -31,7 +31,8 @@ const targets = existsSync(SYNCED_ROOT)
 if (!targets.length) console.log('이 컴퓨터에 동기화된 light-defense-game 스킬이 없어 건너뜀');
 for (const t of targets) {
   rmSync(t, { recursive: true, force: true });
-  cpSync(SKILL, t, { recursive: true });
+  // evals/(평가 과제·숨긴 채점 테스트)는 빼고 복사 — 스킬을 켠 모델이 답을 읽지 못하게 (2026-11-18)
+  cpSync(SKILL, t, { recursive: true, filter: (src) => !isEvals(src) });
   console.log(`동기화 사본 갱신 → ${t}`);
 }
 
@@ -46,13 +47,20 @@ if (!existsSync(ZIP)) {
 }
 console.log(`claude.ai 업로드용 → ${ZIP}`);
 
-/** 폴더를 prefix/… 경로의 zip(deflate)으로. 경로 구분은 항상 '/' */
+/** 스킬 안의 평가 과제 폴더(evals/)인가 — 동기화 사본·zip에 넣지 않는다 */
+function isEvals(abs) {
+  const rel = abs.slice(SKILL.length).split('\\').join('/');
+  return rel === '/evals' || rel.startsWith('/evals/');
+}
+
+/** 폴더를 prefix/… 경로의 zip(deflate)으로. 경로 구분은 항상 '/'. evals/는 뺀다 */
 function makeZip(dir, prefix) {
   const files = [];
   const walk = (abs, rel) => {
     for (const e of readdirSync(abs, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
       const a = join(abs, e.name);
       const r = `${rel}/${e.name}`;
+      if (isEvals(a)) continue;
       if (e.isDirectory()) walk(a, r);
       else files.push({ name: r, data: readFileSync(a) });
     }

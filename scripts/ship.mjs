@@ -37,12 +37,12 @@ step('빌드', 'npm run build');
 const paths = (arg('paths', '') || '').split(',').filter(Boolean);
 if (paths.length) sh(`git add -A -- ${paths.map((p) => `"${p}"`).join(' ')}`);
 const staged = sh('git diff --cached --name-only').split('\n').filter(Boolean);
-let zipNotice = false;
-if (staged.some((f) => f.startsWith('docs/skill/light-defense-game/') || f.startsWith('src/data/'))) {
-  step('스킬 zip', 'npm run doc:skill');
-  sh('git add -A -- docs/skill');
-  zipNotice = true;
-}
+// 스킬 동기화는 늘 돌린다: zip은 날짜를 고정해 만들어 내용이 같으면 바뀌지 않으므로, 실제로 바뀐 때만 "zip 다시 올리기 필요"
+// (2026-11-18: 스킬 원본을 앞 커밋들에서 이미 올리면 이번 커밋에 안 잡혀 동기화를 건너뛰던 문제)
+void staged;
+step('스킬 zip', 'npm run doc:skill');
+sh('git add -A -- docs/skill');
+const zipNotice = sh('git diff --cached --name-only').split(/\r?\n/).includes('docs/skill/light-defense-game.zip');
 
 const msg = arg('msg');
 let committed = false;

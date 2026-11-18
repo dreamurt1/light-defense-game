@@ -28,7 +28,7 @@ description: 라이언의 모바일 웹 액션 디펜스 게임 "라이트 디�
 | 색상, 아트 디렉션, 2.5D, 캐릭터 그림, HUD·두 스틱, 소리·진동 | `references/visual-audio.md` |
 | 화면 흐름, 뒤로가기·새로고침, Firebase, 수익 모델 | `references/screens-and-services.md` |
 | 프로젝트 구조, 개발 단계(Phase 0~6), 결정·남은 결정 | `references/tech-and-roadmap.md` |
-| 이 스킬의 평가 과제(작성만, 실행은 따로) | `evals/` |
+| 이 스킬의 평가 과제(작성만, 실행은 따로) | 프로젝트 저장소의 `docs/skill/light-defense-game/evals/` — 답이 새지 않게 zip·동기화 사본에는 넣지 않는다 |
 | 밸런스 수치 원본(JSON) — 코드에서 그대로 로드 | `assets/data/*.json` (`game`·`stages`·`characters`·`enemies`·`items`·`map`) |
 
 ## 기술 스택 (고정)
