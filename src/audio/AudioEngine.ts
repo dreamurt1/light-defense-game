@@ -1,6 +1,6 @@
 // Web Audio 바탕 (2026-11-13 컨셉 시연판): 소리 파일 없이 오실레이터·잡음으로 합성한다.
 //  - 브라우저 정책상 첫 사용자 입력(pointerdown·keydown) 뒤에 AudioContext를 만들고 resume한다(5절: 소리는 첫 입력 이후)
-//  - 버스: master ← sfx(효과음), master ← bgm(배경음). 설정의 효과음·배경음 토글은 각 버스 음량으로 바로 반영
+//  - 버스: master ← sfx(효과음), master ← bgm(배경음). 설정의 효과음·배경음 켜기·음량(2026-11-19)은 각 버스 음량으로 바로 반영
 //  - 탭이 가려지면 컨텍스트를 멈춰 배터리를 아낀다
 export interface ToneOpts {
   type?: OscillatorType;
@@ -103,11 +103,13 @@ export class AudioEngine {
     for (const fn of this.ready.splice(0)) fn(ctx);
   }
 
-  setSfx(on: boolean): void {
-    this.sfxLevel = on ? 1 : 0;
+  /** 효과음 켜기 + 버스 음량(0~1, 이미 귀 곡선을 거친 값) */
+  setSfx(on: boolean, level = 1): void {
+    this.sfxLevel = on ? level : 0;
     if (this.ctx && this.sfx) this.sfx.gain.setTargetAtTime(this.sfxLevel, this.ctx.currentTime, 0.03);
   }
 
+  /** 배경음 버스 음량(0~1, 이미 귀 곡선을 거친 값). 켜기·끄기는 Bgm이 따로 */
   setBgm(level: number): void {
     this.bgmLevel = level;
     if (this.ctx && this.bgm) this.bgm.gain.setTargetAtTime(level, this.ctx.currentTime, 0.25);

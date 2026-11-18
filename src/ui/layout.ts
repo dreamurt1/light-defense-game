@@ -1,9 +1,11 @@
 // 화면 방식 적용 (2026-11-06 라이언 지시: 가로 화면 — PC 꽉 찬 화면 + 휴대폰 가로).
 // <html data-layout="portrait|landscape">을 정하고(CSS가 상자·HUD·메뉴 배치를 바꾼다), 창 크기·기기 방향·설정이
 // 바뀌면 게임의 논리 크기를 맞춘다(Scale.FIT 그대로, 주 카메라는 Phaser가 새 크기로 맞춤). 판정은 core/layout.ts.
+// 2026-11-19 휴대폰 방향 고정: 설정 '화면 방향'이 세로·가로면 브라우저에 방향 잠금을 부탁하고(안드로이드 전체 화면에서만 됨),
+// 안 되면 기기가 다른 방향일 때 <html data-turn="portrait|landscape"> → 돌려 달라는 안내(ui/TurnHint.ts)가 화면을 덮는다.
 import type Phaser from 'phaser';
 import { bus } from '../core/events';
-import { pickLayout, viewSize, type Layout } from '../core/layout';
+import { pickLayout, turnHint, viewSize, type Layout } from '../core/layout';
 import { loadSettings } from '../core/Settings';
 import { GameData } from '../data';
 
@@ -25,8 +27,27 @@ export function currentView(): { width: number; height: number } {
 /** <html data-layout>을 지금 방식으로 (스크립트가 돌자마자 한 번, 그 뒤 바뀔 때마다) */
 export function applyLayout(): Layout {
   const layout = currentLayout();
-  document.documentElement.dataset.layout = layout;
+  const root = document.documentElement;
+  root.dataset.layout = layout;
+  const turn = turnHint({ coarse: isTouchDevice(), width: innerWidth, height: innerHeight, lock: loadSettings().phoneOrientation });
+  if (turn) root.dataset.turn = turn;
+  else delete root.dataset.turn;
   return layout;
+}
+
+type Lockable = ScreenOrientation & { lock?: (o: string) => Promise<void>; unlock?: () => void };
+
+/** 휴대폰 방향 고정을 브라우저에 부탁한다 (설정을 바꿀 때·전체 화면이 될 때). 막히면 조용히 넘어가고 안내가 대신한다 */
+export function lockOrientation(): void {
+  if (!isTouchDevice()) return;
+  const so = screen.orientation as Lockable | undefined;
+  const lock = loadSettings().phoneOrientation;
+  try {
+    if (lock === 'auto') so?.unlock?.();
+    else void so?.lock?.(lock)?.catch(() => undefined);
+  } catch {
+    // 잠금이 없는 브라우저(아이폰 사파리 등)
+  }
 }
 
 let refresh: () => void = applyLayout;
@@ -64,5 +85,7 @@ export function watchLayout(game: Phaser.Game): void {
   };
   addEventListener('resize', refresh);
   screen.orientation?.addEventListener('change', refresh);
+  document.addEventListener('fullscreenchange', lockOrientation);
+  lockOrientation();
   visualViewport?.addEventListener('resize', refresh);
 }

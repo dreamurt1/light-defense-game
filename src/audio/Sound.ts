@@ -1,11 +1,13 @@
 // 효과음 + 배경음 + 진동을 버스 이벤트에 붙인다 (2026-11-13 컨셉 시연판, 5절 사운드).
-// 소리 파일이 없어 전부 Web Audio 합성음이다. 짧고 부드럽게, 볼륨은 낮게(차분하고 은은한 톤).
+// 기본은 Web Audio 합성음이다. 짧고 부드럽게, 볼륨은 낮게(차분하고 은은한 톤).
+// 2026-11-19: public/audio/manifest.json에 같은 이름의 녹음 파일이 있으면 그 파일을 튼다(audio/Recorded.ts). 음량 = 설정 슬라이더.
 // 게임 로직은 이벤트만 발행하고, 여기서는 구독만 한다. main.ts에서 installAudio()를 한 번 부른다.
 import { bus } from '../core/events';
-import { loadSettings, onSettingsChange, type SettingsData } from '../core/Settings';
+import { loadSettings, onSettingsChange, volumeGain, type SettingsData } from '../core/Settings';
 import { audio, midi } from './AudioEngine';
 import { Bgm } from './Bgm';
 import { Haptics } from './Haptics';
+import { recorded } from './Recorded';
 
 /** 같은 소리가 한 프레임에 몰려 시끄러워지지 않게 최소 간격(초) */
 const lastPlayed = new Map<string, number>();
@@ -164,12 +166,22 @@ export function installAudio(): void {
   if (installed) return;
   installed = true;
   audio.install();
+  // 녹음 음원: 같은 이름의 파일이 있으면 합성 대신 (없으면 합성 그대로)
+  const table = Sfx as unknown as Record<string, (...a: unknown[]) => void>;
+  for (const name of Object.keys(table)) {
+    const synth = table[name];
+    table[name] = (...a: unknown[]) => {
+      if (!recorded.play(name)) synth(...a);
+    };
+  }
+  audio.whenReady((ctx) => recorded.load(ctx));
   const bgm = new Bgm();
   const haptics = new Haptics();
 
   const apply = (s: Readonly<SettingsData>) => {
-    audio.setSfx(s.sfx);
-    bgm.setEnabled(s.bgm);
+    audio.setSfx(s.sfx, volumeGain(s.sfxVolume));
+    audio.setBgm(volumeGain(s.bgmVolume));
+    bgm.setEnabled(s.bgm && s.bgmVolume > 0);
     haptics.setEnabled(s.vibration);
   };
   apply(loadSettings());

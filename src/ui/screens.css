@@ -1901,3 +1901,176 @@
     display: none;
   }
 }
+
+/* ---------- 설정: 음량 슬라이더 · 화면 방향 고르기 (2026-11-19 Phase 6) ---------- */
+
+.settings__row--volume {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  column-gap: calc(var(--u) * 14);
+}
+
+.settings__slider {
+  --fill: 100%;
+  appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
+  height: max(28px, calc(var(--u) * 34));
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.settings__slider::-webkit-slider-runnable-track {
+  height: max(6px, calc(var(--u) * 8));
+  border-radius: 999px;
+  background: linear-gradient(to right, var(--amber) var(--fill), #3a3f6b var(--fill));
+}
+
+.settings__slider::-moz-range-track {
+  height: max(6px, calc(var(--u) * 8));
+  border-radius: 999px;
+  background: linear-gradient(to right, var(--amber) var(--fill), #3a3f6b var(--fill));
+}
+
+.settings__slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: max(22px, calc(var(--u) * 26));
+  height: max(22px, calc(var(--u) * 26));
+  margin-top: calc((max(6px, calc(var(--u) * 8)) - max(22px, calc(var(--u) * 26))) / 2);
+  border: 0;
+  border-radius: 50%;
+  background: var(--paper);
+  box-shadow: 0 calc(var(--u) * 2) calc(var(--u) * 6) rgba(5, 4, 12, 0.4);
+}
+
+.settings__slider::-moz-range-thumb {
+  width: max(22px, calc(var(--u) * 26));
+  height: max(22px, calc(var(--u) * 26));
+  border: 0;
+  border-radius: 50%;
+  background: var(--paper);
+}
+
+/* 소리가 꺼져 있으면 음량은 흐리게 (기억만 하고 있음) */
+.settings__slider.is-off {
+  opacity: 0.4;
+}
+
+.settings__slider:focus-visible {
+  outline: 2px solid var(--amber);
+  outline-offset: 2px;
+  border-radius: 999px;
+}
+
+.tabs--seg {
+  grid-template-columns: repeat(3, auto);
+  gap: calc(var(--u) * 6);
+  margin: 0;
+}
+
+.tabs--seg .tab {
+  min-height: max(40px, calc(var(--u) * 44));
+  min-width: max(48px, calc(var(--u) * 58));
+  padding: 0 calc(var(--u) * 12);
+  font-size: calc(var(--u) * 16);
+}
+
+/* ---------- 휴대폰 방향 고정 안내 (2026-11-19, ui/TurnHint.ts) ---------- */
+
+.turn-hint {
+  position: fixed;
+  inset: 0;
+  z-index: 400;
+  display: none;
+  place-content: center;
+  justify-items: center;
+  gap: 14px;
+  padding: 24px;
+  background: radial-gradient(circle at 50% 40%, #2a2f5a, #120f24 70%);
+  color: var(--paper);
+  text-align: center;
+}
+
+:root[data-turn] .turn-hint {
+  display: grid;
+}
+
+.turn-hint__art svg {
+  display: block;
+  width: 96px;
+  height: 96px;
+  color: var(--amber);
+  animation: turn-hint-rock 1.6s cubic-bezier(0.16, 1, 0.3, 1) infinite alternate;
+}
+
+@keyframes turn-hint-rock {
+  0%,
+  30% {
+    rotate: 0deg;
+  }
+  60%,
+  100% {
+    rotate: 90deg;
+  }
+}
+
+:root[data-turn='portrait'] .turn-hint__art svg {
+  animation-direction: reverse;
+}
+
+.turn-hint__text {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.turn-hint__to-portrait,
+.turn-hint__to-landscape {
+  display: none;
+}
+
+:root[data-turn='portrait'] .turn-hint__to-portrait,
+:root[data-turn='landscape'] .turn-hint__to-landscape {
+  display: inline;
+}
+
+.turn-hint__sub {
+  color: var(--paper-soft);
+  font-size: 14px;
+}
+
+.turn-hint .pill {
+  margin-top: 8px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .turn-hint__art svg {
+    animation: none;
+  }
+}
+
+/* 가로 설정 창: 줄을 조금 촘촘히 — 휴대폰 가로에서 '닫기'까지 한 화면에 (2026-11-19) */
+:root[data-layout='landscape'] .sheet--settings .sheet__panel {
+  padding-top: calc(var(--u) * 26);
+}
+
+:root[data-layout='landscape'] .sheet--settings .settings__row {
+  min-height: calc(var(--u) * 50);
+}
+
+:root[data-layout='landscape'] .sheet--settings .settings__label {
+  margin-top: calc(var(--u) * 10);
+}
+
+:root[data-layout='landscape'] .sheet--settings .settings__help {
+  margin-top: calc(var(--u) * 10);
+}
+
+:root[data-layout='landscape'] .sheet--settings .sheet__title {
+  font-size: calc(var(--u) * 32);
+}
+
+:root[data-layout='landscape'] .sheet--settings .sheet__actions {
+  margin-top: calc(var(--u) * 16);
+}

@@ -6,8 +6,13 @@
 //  - calm  : 판이 끝난 뒤. 패드와 선율 첫 음만 작게
 // 화음 진행 Dmaj9 → A/C# → Bm7 → F#m7 → Gmaj7 → D/F# → Em7 → A7 (화음 하나 = 8분음 16개, 한 바퀴 약 50초).
 // 분산 화음의 쉼·옥타브는 고정 seed 난수(규칙: 난수는 core/rng.ts)로 정해 같은 마디가 되풀이돼도 덜 거슬리게.
+// 2026-11-19 녹음 음원: 그 모드의 파일(manifest bgm.<mode>)이 있으면 합성 대신 파일을 반복하고, 모드가 바뀌면 천천히 엇갈려 바꾼다.
 import { Rng } from '../core/rng';
 import { audio, midi } from './AudioEngine';
+import { recorded } from './Recorded';
+
+/** 녹음 배경음의 기본 음량 (합성보다 꽉 찬 소리라 낮게, 제안) */
+const FILE_LEVEL = 0.5;
 
 export type BgmMode = 'menu' | 'play' | 'climax' | 'calm';
 
@@ -118,12 +123,15 @@ export class Bgm {
   private out: GainNode | null = null;
   private arpBus: GainNode | null = null;
   private padFilter: BiquadFilterNode | null = null;
+  /** 지금 반복 중인 녹음 배경음 */
+  private file: { mode: BgmMode; src: AudioBufferSourceNode; gain: GainNode } | null = null;
 
   constructor() {
     audio.whenReady((ctx) => {
       this.build(ctx);
       this.apply();
     });
+    recorded.onChange(() => this.apply());
   }
 
   setEnabled(on: boolean): void {
@@ -192,7 +200,9 @@ export class Bgm {
     if (!ctx || !this.out) return;
     const p = PROFILES[this.mode];
     const level = this.enabled ? p.level * (this.ducked ? 0.3 : 1) : 0;
-    this.out.gain.setTargetAtTime(level, ctx.currentTime, this.enabled ? 0.6 : 0.15);
+    const buf = recorded.track(this.mode);
+    this.out.gain.setTargetAtTime(buf ? 0 : level, ctx.currentTime, this.enabled ? 0.6 : 0.15);
+    this.syncFile(ctx, buf, this.enabled ? FILE_LEVEL * (this.ducked ? 0.3 : 1) : 0);
     this.padFilter?.frequency.setTargetAtTime(p.padCutoff, ctx.currentTime, 1.2);
     if (this.enabled && this.timer === null) {
       this.nextTime = ctx.currentTime + 0.1;
@@ -203,9 +213,37 @@ export class Bgm {
     }
   }
 
+  /** 녹음 배경음: 모드가 바뀌면 옛 파일은 천천히 줄여 멈추고 새 파일을 천천히 키운다 */
+  private syncFile(ctx: AudioContext, buf: AudioBuffer | null, level: number): void {
+    if (this.file && (this.file.mode !== this.mode || !buf)) {
+      const old = this.file;
+      old.gain.gain.setTargetAtTime(0, ctx.currentTime, 0.6);
+      old.src.stop(ctx.currentTime + 3);
+      old.src.onended = () => old.gain.disconnect();
+      this.file = null;
+    }
+    if (buf && !this.file && audio.bgm) {
+      const src = ctx.createBufferSource();
+      src.buffer = buf;
+      src.loop = true;
+      const gain = ctx.createGain();
+      gain.gain.value = 0;
+      src.connect(gain);
+      gain.connect(audio.bgm);
+      src.start();
+      this.file = { mode: this.mode, src, gain };
+    }
+    this.file?.gain.gain.setTargetAtTime(level, ctx.currentTime, 0.6);
+  }
+
   private tick(): void {
     const ctx = audio.ctx;
     if (!ctx || ctx.state !== 'running') return;
+    // 녹음 배경음이 도는 동안은 합성 음을 짜지 않는다
+    if (this.file) {
+      this.nextTime = ctx.currentTime + 0.05;
+      return;
+    }
     // 탭이 오래 가려졌다 돌아오면 밀린 음을 몰아 치지 않는다
     if (this.nextTime < ctx.currentTime - 0.5) this.nextTime = ctx.currentTime + 0.05;
     while (this.nextTime < ctx.currentTime + LOOKAHEAD) {

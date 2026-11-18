@@ -3,20 +3,31 @@
 // 가로에서는 왼쪽(소리·닉네임) / 오른쪽(조작·화면) 두 열.
 // 2026-11-13 컨셉 시연판: 소리·진동 토글이 실제로 연결됨(audio/Sound.ts가 onSettingsChange로 받음), '스틱 좌우 바꾸기',
 // '이야기 다시 보기'(ui/Story.ts), '처음부터 다시'(진행 저장 지우기, 한 번 더 눌러 확인).
+// 2026-11-19 Phase 6: 배경음악·효과음 = 켜기 스위치 + 음량 슬라이더(놓으면 효과음 한 번 들려줌), 휴대폰 '화면 방향'(자동·세로·가로).
+// 설정은 다른 화면(선택 화면의 챙겨 갈 아이템, 상점의 빛 색)도 저장하므로 늘 마지막 저장값을 받아 쓴다(onSettingsChange).
 import { bus } from '../core/events';
 import { Progress } from '../core/Progress';
 import { RunState } from '../core/RunState';
-import { NICKNAME_MAX, cleanNickname, loadSettings, saveSettings, type SettingsData } from '../core/Settings';
+import { Sfx } from '../audio/Sound';
+import { audio } from '../audio/AudioEngine';
+import type { PhoneOrientation } from '../core/layout';
+import { NICKNAME_MAX, cleanNickname, loadSettings, onSettingsChange, saveSettings, type SettingsData } from '../core/Settings';
 import { h } from './dom';
 import { openStory } from './Story';
-import { isTouchDevice, refreshLayout } from './layout';
+import { isTouchDevice, lockOrientation, refreshLayout } from './layout';
 
 type Toggle = 'bgm' | 'sfx' | 'vibration';
 
-const TOGGLES: { id: Toggle; label: string }[] = [
-  { id: 'bgm', label: '배경음악' },
-  { id: 'sfx', label: '효과음' },
+const TOGGLES: { id: Toggle; label: string; volume?: 'bgmVolume' | 'sfxVolume' }[] = [
+  { id: 'bgm', label: '배경음악', volume: 'bgmVolume' },
+  { id: 'sfx', label: '효과음', volume: 'sfxVolume' },
   { id: 'vibration', label: '진동' },
+];
+
+const PHONE_ORIENTATIONS: { id: PhoneOrientation; label: string }[] = [
+  { id: 'auto', label: '자동' },
+  { id: 'portrait', label: '세로' },
+  { id: 'landscape', label: '가로' },
 ];
 
 /** 두 스틱 조작 그림: 왼쪽 이동 스틱, 오른쪽 빛 스틱과 퍼지는 부채꼴 */
@@ -33,6 +44,8 @@ export class SettingsSheet {
   readonly el: HTMLElement;
   private data: SettingsData = loadSettings();
   private readonly switches: Record<Toggle, HTMLButtonElement>;
+  private readonly sliders: { key: 'bgmVolume' | 'sfxVolume'; on: Toggle; el: HTMLInputElement }[] = [];
+  private readonly phoneTabs: { id: PhoneOrientation; el: HTMLButtonElement }[] = [];
   /** PC 화면 방향: 켜짐 = 가로(창을 꽉 채움) */
   private readonly landscape: HTMLButtonElement;
   private readonly fullscreen: HTMLButtonElement;
@@ -47,14 +60,27 @@ export class SettingsSheet {
   constructor() {
     RunState.nickname = this.data.nickname;
     this.switches = {} as Record<Toggle, HTMLButtonElement>;
-    const rows = TOGGLES.map(({ id, label }) => {
+    // 다른 화면이 저장한 값(챙겨 갈 아이템·빛 색 등)을 덮어쓰지 않게 늘 최신으로
+    onSettingsChange((d) => (this.data = { ...d }));
+    const rows = TOGGLES.map(({ id, label, volume }) => {
       const sw = h('button', { class: 'switch', type: 'button', role: 'switch', 'aria-label': label }, h('span', { class: 'switch__knob' }));
       sw.addEventListener('click', () => {
         this.data[id] = !this.data[id];
         this.persist();
       });
       this.switches[id] = sw;
-      return h('div', { class: 'settings__row' }, h('span', {}, label), sw);
+      if (!volume) return h('div', { class: 'settings__row' }, h('span', {}, label), sw);
+      const slider = h('input', { class: 'settings__slider', type: 'range', min: 0, max: 100, step: 5, 'aria-label': `${label} 음량` });
+      slider.addEventListener('input', () => {
+        this.data[volume] = Number(slider.value) / 100;
+        // 음량을 올리면 꺼져 있던 소리도 켠다
+        if (this.data[volume] > 0) this.data[id] = true;
+        this.persist();
+      });
+      // 효과음은 손을 놓을 때 한 번 들려준다
+      if (id === 'sfx') slider.addEventListener('change', () => audio.sfxOn && Sfx.pickup());
+      this.sliders.push({ key: volume, on: id, el: slider });
+      return h('div', { class: 'settings__row settings__row--volume' }, h('span', {}, label), slider, sw);
     });
 
     this.nickname = h('input', {
@@ -109,10 +135,31 @@ export class SettingsSheet {
       this.resetButton.textContent = '처음부터 다시 시작해요';
       window.setTimeout(() => this.disarmReset(), 1600);
     });
+    // 휴대폰 화면 방향 고정 (2026-11-19): 자동 = 기기 방향
+    const phoneRow = h(
+      'div',
+      { class: 'settings__row settings__row--seg' },
+      h('span', {}, '화면 방향'),
+      h(
+        'div',
+        { class: 'tabs tabs--seg', role: 'radiogroup', 'aria-label': '화면 방향' },
+        ...PHONE_ORIENTATIONS.map(({ id, label }) => {
+          const b = h('button', { class: 'tab', type: 'button', role: 'radio' }, label);
+          b.addEventListener('click', () => {
+            this.data.phoneOrientation = id;
+            this.persist();
+            lockOrientation();
+            refreshLayout();
+          });
+          this.phoneTabs.push({ id, el: b });
+          return b;
+        }),
+      ),
+    );
     const screenRows = [
       // 휴대폰은 기기를 돌리면 바뀌므로 PC에서만
       h('div', { class: 'settings__row' }, h('span', {}, '스틱 좌우 바꾸기'), this.swapSticks),
-      isTouchDevice() ? null : h('div', { class: 'settings__row' }, h('span', {}, '가로 화면'), this.landscape),
+      isTouchDevice() ? phoneRow : h('div', { class: 'settings__row' }, h('span', {}, '가로 화면'), this.landscape),
       document.fullscreenEnabled ? h('div', { class: 'settings__row' }, h('span', {}, '전체 화면'), this.fullscreen) : null,
     ].filter((r): r is HTMLDivElement => r !== null);
 
@@ -172,6 +219,15 @@ export class SettingsSheet {
 
   private render(): void {
     for (const { id } of TOGGLES) this.switches[id].setAttribute('aria-checked', String(this.data[id]));
+    for (const s of this.sliders) {
+      s.el.value = String(Math.round(this.data[s.key] * 100));
+      s.el.classList.toggle('is-off', !this.data[s.on]);
+      s.el.style.setProperty('--fill', `${Math.round(this.data[s.key] * 100)}%`);
+    }
+    for (const t of this.phoneTabs) {
+      t.el.classList.toggle('is-on', t.id === this.data.phoneOrientation);
+      t.el.setAttribute('aria-checked', String(t.id === this.data.phoneOrientation));
+    }
     this.landscape.setAttribute('aria-checked', String(this.data.orientation === 'landscape'));
     this.swapSticks.setAttribute('aria-checked', String(this.data.sticksSwapped));
     this.helpLine.textContent = this.data.sticksSwapped ? '오른쪽으로 걷고, 왼쪽으로 겨눠요' : '왼쪽으로 걷고, 오른쪽으로 겨눠요';

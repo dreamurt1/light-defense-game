@@ -1,0 +1,5 @@
+{
+  "_note": "녹음 음원 자리 (2026-11-19, src/audio/Recorded.ts): 이 폴더에 소리 파일을 넣고 이름을 적으면 합성 대신 그 파일을 씁니다. bgm = menu·play·climax·calm(반복), sfx = Sound.ts의 Sfx 이름(cast·hit·rescue·retreat·stationLit·pickup·use·mercy·upset·hurt·down·respawn·friend·bossAttack·witchSpawn·witchReturned·clear·over·combo·rustle). 예: \"bgm\": { \"menu\": \"bgm-menu.ogg\" }",
+  "bgm": {},
+  "sfx": {}
+}

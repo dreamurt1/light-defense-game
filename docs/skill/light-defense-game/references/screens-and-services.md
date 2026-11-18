@@ -35,7 +35,8 @@ index.html 스플래시 → Boot → Preload ─(ui:load-progress)→ 스플래�
 | 플레이 | `PlayScene` + `ui/Hud.ts`·`Sticks.ts`·`BossBar.ts`·`Toast.ts` | HUD 위에서는 CSS `pointer-events`로 게임 입력을 막는다 |
 | 일시정지 | `ui/PauseSheet.ts` | `잠시 쉬어요` — 계속 / 다시 한 번 / 홈으로 / 설정 |
 | 결과 | `ui/ResultSheet.ts` | 오늘 전투 개요(`world-and-story.md` 결과 문구). 통계 = 오늘 점수·최대 콤보·구출한 주민·돌려보낸 어둠의 주민·켠 등불·자비·쓴 아이템 |
-| 설정 | `ui/SettingsSheet.ts` | 배경음악·효과음·진동, 닉네임, 가로 화면(PC)·전체 화면, 스틱 좌우 바꾸기, 이야기 다시 보기, 처음부터 다시, 조작 설명 1장 |
+| 설정 | `ui/SettingsSheet.ts` | 배경음악·효과음(켜기 + 음량 슬라이더, 2026-11-19)·진동, 닉네임, 가로 화면(PC) / 화면 방향 자동·세로·가로(휴대폰, 2026-11-19)·전체 화면, 스틱 좌우 바꾸기, 이야기 다시 보기, 처음부터 다시, 조작 설명 1장 |
+| 방향 안내 | `ui/TurnHint.ts` | 휴대폰에서 방향을 고정했는데 기기가 다른 방향이면 화면을 덮고 돌려 달라고 함 + '자동으로 바꾸기'. 브라우저가 방향 잠금을 허락하면(안드로이드 전체 화면) 잠그고, 안 되면(아이폰 등) 이 안내로 대신 |
 
 ### 홈 상세 (2026-11-18)
 - ChatGPT 배경 두 장(세로 `home.webp`·가로 `home-wide.webp`, 별 등불이 놓인 빈터)과 제목 그림 `home-title.webp`를 쓴다.

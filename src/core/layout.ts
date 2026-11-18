@@ -6,6 +6,18 @@
 export type Layout = 'portrait' | 'landscape';
 /** PC에서 고르는 화면 방향 (휴대폰은 기기 방향) */
 export type OrientationPref = Layout;
+/** 휴대폰 화면 방향 고정 (2026-11-19): auto = 기기 방향 */
+export type PhoneOrientation = 'auto' | Layout;
+
+/**
+ * 휴대폰에서 방향을 고정했는데 기기가 다른 방향으로 들려 있으면, 돌려 달라고 안내할 방향 (맞으면 null).
+ * 브라우저가 방향 잠금을 허락하면(안드로이드 전체 화면) 기기가 이미 맞게 돌아가 있어 안내가 뜨지 않는다.
+ */
+export function turnHint(o: { coarse: boolean; width: number; height: number; lock: PhoneOrientation }): Layout | null {
+  if (!o.coarse || o.lock === 'auto') return null;
+  const now: Layout = o.width > o.height ? 'landscape' : 'portrait';
+  return now === o.lock ? null : o.lock;
+}
 
 export interface ViewRules {
   /** 세로: 540×960 고정 */
