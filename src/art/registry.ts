@@ -27,8 +27,8 @@ import { LUMI_COLUMNS, LUMI_ROWS, composeLumi, lumiAnims } from './lumiCompose';
 import { DIRS } from '../systems/facing';
 import { CREATURES, creatureAnims, creatureKey, drawCreature, type CreatureId } from './creatures';
 import { DARK_ORB, ITEM_ICON, ITEM_IDS, ITEM_LABEL, drawDarkOrb, drawItemIcon, itemKey } from './items';
-import { buildKeeperSheet, drawKeeperSpriteFrame, keeperAnims } from './keeperSprites';
-import { FRIEND_PACKS, composeFriend } from './friendSheet';
+import { buildKeeperSheet, drawKeeperSpriteFrame } from './keeperSprites';
+import { FRIEND_PACKS, composeFriend, friendAnims } from './friendSheet';
 
 export type AssetCategory = 'characters' | 'enemies' | 'objects' | 'effects' | 'backgrounds' | 'items';
 
@@ -177,7 +177,7 @@ const characters: SheetDef[] = [
       frameHeight: 64,
       frames: LUMI_COLUMNS * LUMI_ROWS,
       draw: (ctx, f) => drawKeeperSpriteFrame(ctx, id, f),
-      anims: keeperAnims(id),
+      anims: friendAnims(id),
       build: async () => (await composeFriend(id)) ?? buildKeeperSheet(id),
       buildRes: 2,
     }),

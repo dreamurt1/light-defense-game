@@ -8,7 +8,8 @@
 //  - 연출 줄(잠듦·기절): 아직 팩 그림이 없어 임시 코드 그림(keeperSprites)을 그대로.
 //  - 대기 팩이 한 장이라도 없으면 null → 임시 코드 그림 시트 전체를 쓴다(도토는 팩이 올 때까지 이쪽).
 import { DIRS, type Dir } from '../systems/facing';
-import { buildKeeperSheet, type KeeperSpriteId } from './keeperSprites';
+import { buildKeeperSheet, keeperAnims, type KeeperSpriteId } from './keeperSprites';
+import type { AnimDef } from './registry';
 import { CELL, FEET_Y, LUMI_COLS, packDir } from './lumiSheet';
 
 interface FriendPack {
@@ -25,6 +26,11 @@ interface FriendPack {
    * 토리 115 = 머리 크기를 루미와 맞추고 귀가 루미 키의 약 1.14배(브리프 '귀 끝까지는 루미의 약 1.2배', 2026-11-17 측정의 ×1.22 제안)
    */
   heightPx: number;
+  /**
+   * 걷기 한 바퀴의 칸 순서(0~3 = f01~f04)와 기본 속도(초당 칸). 없으면 루미와 같이 4칸을 9fps로.
+   * 게임은 여기에 걸음 빠르기 배율(Lightkeeper: 끝까지 밀면 약 ×1.65)을 곱한다
+   */
+  walkCycle?: { order: number[]; frameRate: number };
 }
 
 /** 각도 → 팩의 방향 이름 (파일 이름 규칙) */
@@ -47,6 +53,9 @@ export const FRIEND_PACKS: Partial<Record<KeeperSpriteId, FriendPack>> = {
     feetY: 496,
     bodyH: 448,
     heightPx: 115,
+    // 2026-11-18 라이언: 오른쪽 깡충이 빠르고 과해 보임 → 앉음 2칸·박차기 1·공중 1·착지 2칸, 끝까지 밀어도 한 번에 약 0.66초(제안).
+    // 루미 방식(4칸 9fps)이면 끝까지 밀 때 1초에 약 15칸 = 깡충 한 번 0.27초였다. 땅에 있는 시간을 늘리고 공중은 짧게
+    walkCycle: { order: [0, 0, 1, 2, 3, 3], frameRate: 5.5 },
   },
 };
 
@@ -107,6 +116,14 @@ function place(g: CanvasRenderingContext2D, img: HTMLImageElement, col: number, 
   g.scale(p.sx ?? 1, p.sy ?? 1);
   g.drawImage(img, -fx * s, -pack.feetY * s, img.naturalWidth * s, img.naturalHeight * s);
   g.restore();
+}
+
+/** 애니메이션: 루미와 같은 이름 규칙(`${id}-walk-<방향>` 등), 걷기는 친구별 칸 순서·속도(walkCycle) */
+export function friendAnims(id: KeeperSpriteId): AnimDef[] {
+  const cycle = FRIEND_PACKS[id]?.walkCycle;
+  return keeperAnims(id).map((a) =>
+    cycle && a.key.startsWith(`${id}-walk-`) ? { ...a, frames: cycle.order.map((i) => a.frames[i]), frameRate: cycle.frameRate } : a,
+  );
 }
 
 /** 2배 해상도(128 칸) 시트. 대기 팩이 다 없으면 null */

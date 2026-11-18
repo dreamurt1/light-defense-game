@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-18T05:10:22.616Z",
+  "generatedAt": "2026-11-18T05:22:09.461Z",
   "sheets": [
     {
       "key": "portrait-lumi",
@@ -300,11 +300,13 @@
           "key": "tori-walk-e",
           "frames": [
             4,
+            4,
             5,
             6,
+            7,
             7
           ],
-          "frameRate": 9,
+          "frameRate": 5.5,
           "repeat": -1
         },
         {
@@ -322,11 +324,13 @@
           "key": "tori-walk-se",
           "frames": [
             12,
+            12,
             13,
             14,
+            15,
             15
           ],
-          "frameRate": 9,
+          "frameRate": 5.5,
           "repeat": -1
         },
         {
@@ -344,11 +348,13 @@
           "key": "tori-walk-s",
           "frames": [
             20,
+            20,
             21,
             22,
+            23,
             23
           ],
-          "frameRate": 9,
+          "frameRate": 5.5,
           "repeat": -1
         },
         {
@@ -366,11 +372,13 @@
           "key": "tori-walk-sw",
           "frames": [
             28,
+            28,
             29,
             30,
+            31,
             31
           ],
-          "frameRate": 9,
+          "frameRate": 5.5,
           "repeat": -1
         },
         {
@@ -388,11 +396,13 @@
           "key": "tori-walk-w",
           "frames": [
             36,
+            36,
             37,
             38,
+            39,
             39
           ],
-          "frameRate": 9,
+          "frameRate": 5.5,
           "repeat": -1
         },
         {
@@ -410,11 +420,13 @@
           "key": "tori-walk-nw",
           "frames": [
             44,
+            44,
             45,
             46,
+            47,
             47
           ],
-          "frameRate": 9,
+          "frameRate": 5.5,
           "repeat": -1
         },
         {
@@ -432,11 +444,13 @@
           "key": "tori-walk-n",
           "frames": [
             52,
+            52,
             53,
             54,
+            55,
             55
           ],
-          "frameRate": 9,
+          "frameRate": 5.5,
           "repeat": -1
         },
         {
@@ -454,11 +468,13 @@
           "key": "tori-walk-ne",
           "frames": [
             60,
+            60,
             61,
             62,
+            63,
             63
           ],
-          "frameRate": 9,
+          "frameRate": 5.5,
           "repeat": -1
         },
         {
