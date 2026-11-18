@@ -1,202 +1,153 @@
-# 기술 구조와 개발 로드맵
-
-> **2026-11-13 팀 컨셉 시연판 (아래 본문·11-12 요약보다 우선)** — 라이언: 13시 팀 시연, 전체 Phase를 한 번에 가볍게. 치명적이지 않으면 Claude 판단, 그림은 임시, 사운드는 Web Audio 합성만, 디자인보다 기능 우선.
-> - 스테이지(`stages.json`): tutorial(필수, 6단계) · stage-1 빛의 마을 등불 1 · stage-2 경계 등불 2 + 토리 구출 · stage-3 어둠의 마을 등불 3 + 도토 구출 · stage-4 등불 4 + 노월 · trial(트라이얼 — 시작 자리 둘레(430 안)에 고정된 적 12마리: 네 모서리 표적·큰 표적·박쥐 5마리 무리 등, 브롤스타즈 훈련 동굴 참고, 공격할 수 있는 몹은 루미가 아주 가까우면 제자리에서 들이받음, 쓰러지면 2.5초 뒤 같은 자리에, 끝없음 `endless`, 2026-11-14). 진행 `src/core/Progress.ts`(앞 스테이지를 깨면 열림, 선택 화면 '시연: 모두 열기').
-> - 적 9종 구현(`entities/enemies/Creature.ts` 데이터 구동): 호스틸 역할 role(박쥐 추적·웨어울프 중앙 광원·뱀파이어 등불), 잃어버린 주민 구출, 패시브 떠돌기·빛 피하기·대사, **자비**(곁 200 안 1.5초, 300점) · **분노**(맞으면 주인공을 쫓음). 빛을 잃은 친구 `tori-lost`·`doto-lost` → `friend:rescued` → 해금.
-> - 아이템(`scenes/play/Items.ts`, `systems/inventory.ts`): 칸 2개, 빛의 부적 기본 1개, 광원·켜진 등불 둘레에 생김, PC Q·E. 노월(`scenes/play/Boss.ts`): 둘레를 돌며 박쥐 소환·어둠 구슬, HP 200, 진정 = 바로 아침(이유 boss).
-> - 맵: `map.json` wall·fence 미로 요소(걷는 적은 막히고 우회, 나는 적은 넘음). 풀숲에 4초 넘게 있으면 들킴(`systems/stealth.ts`). 테마 = `VillageStage.setTheme` 색조.
-> - UI: 이야기 카드(`ui/Story.ts`) → 튜토리얼 안내 띠(`tutorial:step`), 선택 화면 스테이지 4칸, 결과 '다음 밤으로', 설정 스틱 좌우·이야기 다시 보기, 사운드 `src/audio/*`.
-> - 미룬 것: 강·다리·건물·구획 시야, 필살기, 시작 전 아이템 고르기, 녹음 음원, 음량 슬라이더.
-
-> **2026-11-12 새 기획 개정 요약 (아래 본문보다 우선)**
-> - 마일스톤 M0~M6 → **Phase 0~6**(`docs/design/IMPLEMENTATION_PLAN.md`): 0 감사(완료) · 1 핵심 판(완료 2026-11-12) · 2 광도·등불·맵 · 3 적 무리·자비 · 4 아이템·점수 · 5 맵 3종·스테이지·구출 해금·보스 · 6 튜토리얼·설정·사운드·배포.
-> - 구조 추가: `src/scenes/play/EnemyField.ts`(스폰·적 이동), `src/scenes/play/Sources.ts`(중앙 광원·등불·맵 광도), 엔티티 `CentralSource`·`LightStation`·`enemies/Frog`, 순수 로직 `systems/vitals.ts`·`lightPoints.ts`·`lightLevel.ts`·`centralSource.ts`·`lightStation.ts`·`stageOutcome.ts`(+ `tests/stage.test.ts`). 데이터 `stages.json` 추가, `waves.json`·`equipment.json` 삭제, `Lantern` 엔티티 삭제.
-> - 저장소: 2026-11-12 git 시작(첫 커밋 = 구 기획 스냅샷).
-> - 결정(2026-11-12): 최근 수정된 것을 따른다 / 루미는 빛을 발사(손 등불 없음) / 장착물 → 아이템 / 하트를 잃으면 HP 100% / 기본 승리 = 하트 ≥1 / 반자동은 대상이 없으면 쏘지 않음 / 맵 3종 = 스테이지 테마 / 시너지·대광원 없앰 / 세부 수치는 Claude 판단(첫 스테이지는 쉽게). 자비 대상 = 어둠의 패시브 주민(라이언 확정) / 라이브 반영(피드백용) / 정해진 에셋(루미) 외 그림은 Claude가 임시 그림을 직접 그림(2026-11-17: 실제 그림은 ChatGPT 몫 — 역할 분담) / 1스테이지 등불 1개 / 기획서 개정판 PDF를 새 기획 전체로 다시 만듦(`npm run doc:plan`, 옛 원본은 더 붙이지 않음).
-> - 완료 보고: 바꾼 파일, 동작, 실행·빌드·테스트 결과, 남은 문제·미확정 기획, 수동 확인 방법, "제안" 값·새 문구.
-
+# 기술 구조와 개발 단계
 
 ## 스택 (결정됨)
 
 | 계층 | 선택 | 이유 |
 |---|---|---|
-| 엔진 | **Phaser 3.80+ + TypeScript 5** | WebGL 우선·Canvas 폴백, 터치·사운드·스케일 매니저 내장, 2D 아케이드 사례 풍부 |
-| 빌드 | **Vite** | 빠른 개발 서버, 에셋 최적화 |
-| 테스트 | **Vitest** | 순수 TS 로직 단위 테스트 |
-| 2.5D | 2D 스프라이트 + 깊이 정렬 + 그림자·빛 오버레이 | 진짜 3D 없이 입체감, 모바일 성능 부담 적음 |
-| UI 레이어 | 메뉴·HUD는 캔버스 위 **HTML/CSS 오버레이**, 프레임워크 없이 TS (2026-10-28 개정) | 글자·버튼·safe area를 CSS로 다루기 쉬움 |
-| 아트 | 분리된 투명 PNG 스프라이트 시트 `public/assets/<분류>/` + `manifest.json`. 실제 그림은 라이언이 ChatGPT로 생성 → `art-src/` → `npm run art:import` (2026-11-04 개정) | 그림과 코드 분리, 같은 키로 교체 |
-| 배포 | **Firebase Hosting** (2026-10-28 개정, 원안: 정적 CDN + 소형 VPS) | M1부터 휴대폰으로 손맛 확인 |
-| 인증 (M5) | **Firebase Authentication (Google)** (2026-10-28 개정, 원안: Google OAuth 2.0 직접 구현) | 서버 없이 소셜 로그인 |
-| DB (M5) | **Cloud Firestore** `asia-northeast3` 서울 (2026-10-28 개정, 원안: Node.js + Fastify + PostgreSQL) | `RemoteRanking`이 SDK로 직접 읽고 씀, 서버 운영 없음 |
+| 엔진 | **Phaser 3.90 + TypeScript 5**(`strict`) | WebGL 우선·Canvas 폴백, 터치·사운드·스케일 매니저 내장 |
+| 빌드·테스트 | **Vite** · **Vitest** | 빠른 개발 서버, 순수 TS 로직 단위 테스트 |
+| 2.5D | 2D 스프라이트 + 깊이 정렬(`setDepth(y)`) + 그림자·빛 마스크 | 진짜 3D 없이 입체감, 모바일 부담 적음 |
+| UI | 메뉴·HUD는 캔버스 위 **HTML/CSS 오버레이**, 프레임워크 없이 TS | 글자·버튼·safe area를 CSS로 |
+| 그림 | 투명 PNG 시트 `public/assets/<분류>/` + `manifest.json`. 실제 그림은 ChatGPT 팩(`reference/…`) → `art-src/` → `npm run assets`. 아직 없는 것은 `src/art/*` 코드 그림 | 그림과 코드 분리, 같은 키로 교체 |
+| 소리 | Web Audio 합성(`src/audio/*`) | 파일 없이 바로, 녹음 음원은 남은 일 |
+| 배포 | **Firebase Hosting** https://light-defense-game.web.app | 테스터가 휴대폰으로 바로 확인 |
+| 인증·DB (나중) | Firebase Authentication(Google) · Cloud Firestore 서울 | 서버 운영 없음. 지금 랭킹은 `LocalRanking`, `firestore.rules`는 전부 차단 |
 
-- 설치: `npm create vite@latest light-defense -- --template vanilla-ts` → `npm i phaser` → `npm i -D vitest`. Firebase SDK(`firebase` npm)는 M5에서 붙인다.
-- `tsconfig`: `strict: true`, `resolveJsonModule: true`, `noImplicitOverride: true`.
-- 기준: 모바일 브라우저 60fps, 한 사람이 유지보수 가능.
-- 레이아웃: 9:16 컨테이너(높이 `100dvh` 기준, PC는 가운데 + 양옆 배경) 안에 Phaser 캔버스(`Scale.FIT`)와 `#ui` 오버레이를 같은 박스로 겹친다. 오버레이 크기는 컨테이너 쿼리 단위(`cqw`/`cqh`), safe area는 `env(safe-area-inset-*)`.
+- 기준: 모바일 브라우저 60fps(`fps: { target: 60, limit: 60 }`), 한 사람이 유지보수 가능.
+- 화면: 짧은 변 540 기준. 세로 540×960, 가로는 높이 540·폭 720~1280. 물체 크기는 그대로이고 보는 프레임만 바뀐다.
+- 레이아웃은 `<html data-layout>`(`src/ui/layout.ts`), UI 단위 `--u`, `.stage`가 size 컨테이너다. 바뀌면 Phaser 부모 크기를 다시 잰다.
 
 ## 프로젝트 구조
 
-2026-10-28 개정: `server/` 폴더는 만들지 않고(Firebase), 기획서의 `HudScene`과 Phaser `ui/*.ts`(버튼·토스트·불꽃 바·쿨다운 링·카드)는 `src/ui/`의 DOM 컴포넌트로 만든다. 2026-11-04 개정: `TapInput` 대신 두 스틱(DOM `src/ui/Sticks.ts`, 판정 `movement.ts`·`aimStick.ts`, PC `src/input/DesktopControls.ts`), `Placeholder.ts` 대신 그림 파이프라인(`src/art/*`, `art-src/`).
-
 ```
-light-defense/
-├─ index.html                  # viewport meta: width=device-width, viewport-fit=cover. 스플래시·세로 안내를 직접 그림
+light_defense_game/
+├─ index.html                  # viewport-fit=cover, 스플래시를 직접 그림
 ├─ assets.html                 # 그림 내보내기·시트 미리보기 (npm run assets)
-├─ firebase.json  .firebaserc  firestore.rules  firestore.indexes.json  .env.example
+├─ firebase.json  .firebaserc  firestore.rules  .env.example   # 설정은 .env.local의 VITE_FIREBASE_*
 ├─ src/
-│  ├─ main.ts                  # Phaser.Game 생성, 씬 등록, DOM UI 붙이기
-│  ├─ config.ts                # 처음 크기 = 화면 방식(세로 540x960 / 가로 높이 540), Scale.FIT + CENTER_BOTH, arcade 물리 (2026-11-06 개정: 크기는 ui/layout.ts가 바꿈)
-│  ├─ style.css                # 9:16 컨테이너, 캔버스와 #ui 오버레이 겹치기
-│  ├─ core/
-│  │  ├─ RunState.ts           # 한 판 상태(선택 캐릭터, 장착물, 닉네임, seed, 직전 결과, 테스트 판 여부)
-│  │  ├─ Progress.ts           # 해금 진행도(판 수, 아이템 수, 누적 시간, 최대 콤보), localStorage
-│  │  ├─ rng.ts                # seedable RNG (mulberry32)
-│  │  ├─ events.ts             # 이벤트 이름 상수 + payload 타입 (게임 ↔ DOM UI ↔ 스틱 입력)
-│  │  ├─ Settings.ts           # BGM/SFX/진동/닉네임/devUnlockAll, localStorage
-│  │  └─ TextureKeys.ts        # 텍스처·애니메이션(AnimKeys)·오디오 키 상수
-│  ├─ data/                    # 이 스킬의 assets/data/*.json 복사
-│  │  ├─ game.json  characters.json  enemies.json  items.json  equipment.json  waves.json  map.json
-│  │  └─ index.ts              # 타입 붙여서 export (GameData)
-│  ├─ scenes/                  # Phaser는 Boot → Preload → Play만 (메뉴는 씬 없이 DOM)
-│  │  ├─ BootScene.ts  PreloadScene.ts  PlayScene.ts
-│  ├─ entities/
-│  │  ├─ Lightkeeper.ts        # 주인공: 걷기, 8방위 모습, 손에 든 등불, 특성 훅
-│  │  ├─ Lantern.ts            # HP, 글로우, 불꽃 5개 상태 (등불지기 손을 따라감)
-│  │  ├─ AimGuide.ts           # 조준 원뿔·대광원 원 (독립 벡터)
-│  │  ├─ VillageStage.ts  MapProps.ts   # 마을 바닥·집·풀숲·장애물 (map.json)
-│  │  ├─ EdgeArrows.ts         # 화면 밖 이웃 화살표
-│  │  ├─ Item.ts
-│  │  ├─ enemies/
-│  │  │  ├─ Enemy.ts           # 공통(HP, 등불 쫓기, 등불 피해, 되돌림 연출)
-│  │  │  ├─ Bat.ts Croc.ts Slime.ts Ghost.ts Hyena.ts Witch.ts
-│  │  │  └─ index.ts           # id → 클래스 맵
-│  ├─ systems/
-│  │  ├─ movement.ts           # 이동 스틱·키보드 → 걷기 (순수 로직)
-│  │  ├─ aimStick.ts           # 빛 스틱 겨눔·발사·자동 조준·취소, PC 끌기 조준 (순수 로직)
-│  │  ├─ fan.ts                # inFan() 부채꼴 판정 (순수 로직)
-│  │  ├─ obstacles.ts          # 장애물·풀숲 판정
-│  │  ├─ keeperMotion.ts       # 공격·피격·부활 동작 효과
-│  │  ├─ LightSystem.ts        # 발사(루미 중심), 실제 빛 길이, 대기, 대광원
-│  │  ├─ ComboSystem.ts        # 콤보(절반 감소), 배율, 시너지 게이지 (순수 로직)
-│  │  ├─ NightClock.ts         # 120초, 시간대, timeScale (순수 로직)
-│  │  ├─ Spawner.ts            # waves.json 기반 스폰 (선택 로직은 순수)
-│  │  ├─ ItemSystem.ts         # 생성·수명·빛으로 획득·킥킥 탈취
-│  │  ├─ HazardSystem.ts       # 안개(사거리 ×0.65), 달그림자
-│  │  ├─ ScoreCalculator.ts    # 점수 (순수 로직)
-│  │  └─ AudioBus.ts  Haptics.ts
-│  ├─ input/
-│  │  └─ DesktopControls.ts    # PC: WASD·방향키, 마우스 누른 채 끌었다 놓기
-│  ├─ ui/                      # DOM 컴포넌트 (HUD 위에서는 CSS pointer-events로 게임 입력을 막음)
-│  │  ├─ Router.ts  Splash.ts  Hud.ts  Sticks.ts  BossBar.ts  Toast.ts
-│  │  ├─ PauseSheet.ts  ResultSheet.ts  SettingsSheet.ts
-│  │  ├─ screens/              # HomeScreen.ts  SelectScreen.ts  ShopScreen.ts  RankingScreen.ts
-│  │  └─ screens.css  sticks.css  finish.css   # 배치 / 스틱 / UI 재질(광택·테두리·결·별 장식)
-│  ├─ art/                     # 대체 그림(Canvas 2D 코드), 그림 규격 registry.ts, 배경 지우기 cutout.ts, 루미 시트 좌표 lumiSheet.ts
-│  └─ services/
-│     ├─ Ranking.ts            # 인터페이스 submit / top / me
-│     ├─ LocalRanking.ts       # localStorage 구현 (M1~M4)
-│     └─ RemoteRanking.ts      # Firestore 구현 (M5)
-├─ art-src/<분류>/             # ChatGPT로 만든 원본 PNG (라이언)
-├─ public/assets/<characters·enemies·objects·effects·backgrounds·ui>/ + manifest.json   # npm run art:import 결과
-├─ public/audio/               # 있으면 사용, 없으면 합성음
-├─ tests/                      # ComboSystem NightClock ScoreCalculator Spawner fan controls(스틱) obstacles … .test.ts
-└─ shared/types.ts             # 랭킹 제출 타입 (M5)
+│  ├─ main.ts  config.ts  style.css
+│  ├─ core/        RunState.ts(characterId·stageId·seed·test·trialCharacterId → keeperId)  Progress.ts(ld.progress.v1)
+│  │               Settings.ts  rng.ts(난수는 여기만)  events.ts(이벤트 이름 + payload 타입)  layout.ts  TextureKeys.ts
+│  ├─ data/        game.json characters.json enemies.json items.json map.json stages.json + index.ts(타입, GameData)
+│  ├─ scenes/      BootScene  PreloadScene(manifest.json으로 시트 불러오기)  PlayScene(조립만, 600줄 아래)
+│  │  └─ play/     EnemyField(스폰·적 이동·트라이얼 고정 적)  Sources(중앙 광원·등불·맵 광도)  Boss(노월)
+│  │               Items(아이템)  StageRules(자비·은신·친구·튜토리얼)  Aiming(겨눔·마우스·반자동)  sceneKit
+│  ├─ entities/    Lightkeeper(등불지기)  CentralSource  LightStation  SourceGauge  AimGuide  LightFx
+│  │               VillageStage  MapProps  Occluders  EdgeArrows  Bubble
+│  │  └─ enemies/  Enemy(공통 AI·몸박치기·트라이얼 고정)  Creature(데이터 구동 9종·친구)  Bat  Frog
+│  ├─ systems/     (순수 로직, Vitest) movement aimStick autoFire fan obstacles stealth lampWard
+│  │               LightSystem ComboSystem NightClock Spawner ScoreCalculator stageOutcome
+│  │               vitals lightPoints lightLevel centralSource lightStation villageMood mercy inventory
+│  │               tutorial keeperMotion facing critterView
+│  ├─ input/       DesktopControls(WASD·방향키·마우스 끌기·스페이스)
+│  ├─ ui/          Router  HistoryNav  PullRefresh  Splash  Hud  Sticks  BossBar  Toast  Story  TestSheet
+│  │               PauseSheet  ResultSheet  SettingsSheet  layout  icons  dom
+│  │  └─ screens/  HomeScreen  SelectScreen  ShopScreen  RankingScreen  common
+│  ├─ audio/       AudioEngine  Bgm  Sound  Haptics
+│  ├─ art/         registry(시트 규격)  friendSheet(토리·도토 팩)  lumiSheet·lumiCompose(루미 팩)  cutout(배경 지우기)
+│  │               characters creatures enemies friends objects items effects village …(임시 코드 그림)
+│  ├─ services/    Ranking(인터페이스)  LocalRanking(ld.ranking.v2)
+│  └─ dev/         autoplay(?autoplay=…)  preview  assetExport  lumiExtract
+├─ reference/      ChatGPT 팩·컨셉 원본(Lumi·Tori·Doto 8방향, Home_Art_Pack …)
+├─ art-src/        게임에 넣을 원본 PNG
+├─ public/assets/  npm run assets 결과 + manifest.json
+├─ tests/          *.test.ts (순수 로직·조작·지도·스테이지·랭킹 …)
+├─ scripts/        art-check  screens  station  ship  shot  sync-skill  notify.ps1 …
+└─ docs/           DECISION_LOG.md  design/  skill/  archive/
 ```
 
 ## 핵심 설계 포인트
 
-- **PlayScene은 조립만.** `create()`에서 시스템을 만들고 `update(dt)`에서 `nightClock.update → spawner.update → enemies.update → light.update → combo.update → hazards.update → items.update` 순으로 호출한다. 판정 결과는 이벤트로 흘려보낸다.
-- **입력은 이벤트로만.** 두 스틱(DOM)은 `input:move / input:aim / input:fire`를 보내고, PC는 `DesktopControls`가 같은 동작을 만든다. PlayScene은 입력 장치를 모른다. 카메라는 등불지기를 따라가고 마을(2400×2400) 밖을 비추지 않는다.
-- **순수 로직은 Phaser 의존 없이** 작성한다(`ComboSystem`, `NightClock`, `ScoreCalculator`, `Spawner`의 선택 로직, 부채꼴 각도 판정 함수, 스틱 판정). 그래야 Vitest로 바로 테스트된다.
-- **부채꼴 판정**은 순수 함수 `inFan(origin, angle, fanDeg, range, point, pointRadius)`로 분리한다(각도 차를 -180~180으로 정규화해서 비교, 악당 반지름만큼 관대하게). `origin`은 루미의 중심이다(2026-11-06 개정).
-- **물리는 Arcade**를 쓰되 충돌은 원 vs 원 거리 계산으로 직접 한다(개체 수 12 이하라 충분하고, 그림자 위치와 어긋나지 않는다). 등불지기와 장애물은 발 위치로 판정한다.
+- **PlayScene은 조립만.** `update`에서 걷기·겨눔(`Aiming`) → `tick`을 부른다. `tick`의 순서:
+  1. 시계
+  2. 광원(등불 점화·광도)
+  3. HP·LP
+  4. 규칙(자비·은신·친구·튜토리얼)
+  5. 스폰·적 이동
+  6. 노월
+  7. 아이템
+  8. 빛 적중
+  9. 콤보
+  판정 결과는 이벤트로 흘려보낸다.
+- **입력은 이벤트로만.** 두 스틱(DOM `ui/Sticks.ts`)은 `input:move · input:aim · input:auto · input:fire`를 보낸다. PC는 `DesktopControls`가 같은 동작을 만든다. PlayScene은 입력 장치를 모른다.
+- **카메라**는 등불지기를 따라가고 마을 3200×1800 밖을 비추지 않는다.
+- **순수 로직은 Phaser 없이** 쓴다(`systems/*`). 그래야 Vitest로 바로 테스트된다. 이동·대기·타이머는 dt로 잰다.
+- **부채꼴 판정**은 순수 함수 `inFan(origin, angle, fanDeg, range, point, pointRadius)`다. 각도 차를 −180~180으로 정규화하고, 대상 반지름만큼 관대하게 본다. `origin` = 등불지기 중심.
+- **충돌**은 원 대 원 거리 계산으로 직접 한다. 등불지기와 장애물은 발 위치로 판정한다.
+- **씬 ↔ DOM**은 `src/core/events.ts` 이벤트로만 주고받는다. HUD는 값이 바뀔 때만 갱신한다.
+- **일시정지**의 `anims.pauseAll`은 게임 전체에 걸린다. 판을 닫거나 새로 시작할 때 꼭 `freeze(scene, false)`.
 - **데이터 타입**은 `src/data/index.ts`에서 한 번 정의한다. 예:
 
 ```ts
 export interface CharacterDef {
   id: 'lumi' | 'tori' | 'doto';
-  name: string; nameEn: string; animal: string;
-  lightRange: number; // 최대 사거리 (실제 빛 길이 = lightRange × 끈 정도)
+  name: string; nameEn: string; animal: string; default?: boolean;
+  lightRange: number; // 최대 사거리 (빛 길이 = lightRange × 끈 정도 × LP 약해짐)
   lightPower: number; lightCooldownMultiplier: number;
-  trait: 'nightEyes' | 'quickFeet' | 'cheekPouch'; // 2026-11-17: 토리 빠른 발(옛 quickPaw·warmth·bark 없음), 배율은 traitOf(def)
+  trait: 'nightEyes' | 'quickFeet' | 'cheekPouch'; // 배율은 traitOf(def)
   traitParams: Record<string, number>;
-  color: string; blurb: string; voicePitchHz: number; default?: boolean;
+  unlock: 'rescue' | null; // rescue = 구출 스테이지에서 구하면 해금
+  color: string; blurb: string; voicePitchHz: number;
 }
 ```
 
-- **그림은 매니페스트로, 코드는 키만 안다**(2026-11-04 개정, 기획서의 '플레이스홀더 먼저' 대신). 게임은 `PreloadScene`이 `manifest.json`으로 시트를 불러올 뿐 그림 코드를 쓰지 않는다. ChatGPT 그림이 없는 키는 `src/art/*` 코드 그림을 `npm run assets`로 내보낸 것이 대신한다. 키는 `TextureKeys`·`AnimKeys` 한 곳.
+- **그림은 매니페스트로, 코드는 키만 안다.** `PreloadScene`이 `manifest.json`으로 시트를 불러온다. 키는 `TextureKeys`·`AnimKeys` 한 곳에 둔다.
 
-## 마일스톤별 작업
+## 개발 단계 (Phase 0~6, `docs/design/IMPLEMENTATION_PLAN.md`)
 
-### M0 — 뼈대 (반나절)
-- Vite + Phaser + TS 설정, `config.ts`(540×960), Boot/Preload/Play 씬 빈 껍데기, `data/` 복사 + 타입, `rng.ts`, `events.ts`.
-- 완료: `npm run dev`에서 남색 세로 화면 PlayScene과 등불 원이 보인다.
+2026-11-13 팀 시연 때 라이언 지시로 전체를 한 번에 '컨셉 시연판'까지 돌렸다. 평소에는 한 Phase를 끝내고 검증·보고한 뒤 다음으로 간다.
 
-### M1 — 코어 루프, 손맛 검증 (가장 중요)
-- 순수 TS `ComboSystem`(절반 감소·배율·시너지), `NightClock`(120초·시간대), `ScoreCalculator` + Vitest.
-- PlayScene: `Lightkeeper`(루미 고정), 두 스틱 조작(2026-11-04 개정, 기획서의 `TapInput` 대신)·넓은 마을·카메라, `Lantern`(HP·글로우·불꽃 5개), `LightSystem`(부채꼴 60°·최대 사거리 330·대기 0.4·넉백), `Enemy` + `Bat`, 단순 `Spawner`(2.5초마다 박쥐 떼), 게임 오버 → 결과, `LocalRanking`. Firebase Hosting으로 휴대폰 확인.
-- 완료 기준: **본인이 10판 연속으로 하고 싶은가.** 재미없으면 수치(부채꼴 각도·대기·넉백·박쥐 속도)를 먼저 만진다. 여기서 라이언에게 실행을 보여주고 확인받는다.
+| Phase | 목표 | 상태 |
+|---|---|---|
+| 0 | 기존 코드 감사(`docs/CODEBASE_AUDIT.md`) | 완료 2026-11-12 |
+| 1 | 핵심 판: 중앙 광원·등불·루미 HP/하트/LP·박쥐·개구리·100초 승패·HUD·결과 | 완료 2026-11-12 |
+| 2 | 광도·등불 여러 개·전체 버프·장애물·강·다리·울타리·오두막·풀숲 은신 시간 | 시연판. **남음: 구획 시야** |
+| 3 | 적 무리 차별화(3·3·3)·자비·분노·대사·클라이맥스 | 시연판. **남음: 적의 필살기, 종류별 빛 반응** |
+| 4 | 아이템 5종·점수·콤보·완전 승리·결과 요약 | 시연판. **남음: 시작 전 아이템 고르기(상점과 함께)** |
+| 5 | 테마 3종·스테이지 1~4(등불 1→4)·토리·도토 구출 해금·노월 | 시연판(테마 = 색조). **남음: 테마별 맵 모양, 랜덤 이벤트** |
+| 6 | 튜토리얼·설정·사운드·모바일 마무리·배포 | 시연판(이야기·필수 튜토리얼·트라이얼·스틱 좌우·합성 사운드·라이브). **남음: 음량 슬라이더, 휴대폰 방향 고정, 녹음 음원, 상점** |
 
-### M2 — 악당과 웨이브
-- `Croc`/`Slime`(분열)/`Ghost`(은신)/`Hyena`(무리·탈취)/`Witch`(방해), `waves.json` 기반 3단계 `Spawner`, `HazardSystem`(안개·달그림자, 예고 포함), `ItemSystem`(반딧불 병·별사탕, 빛으로 획득), 땅으로 걷는 이웃의 장애물 돌아가기, 클리어(새벽 연출), 시간대 배경 보간, HUD(DOM) 기본(진행 바·점수·콤보·게이지·불꽃·보스 체력바).
-- 완료: 120초 난이도 곡선이 성립한다(초저녁 무난, 한밤 압박, 새벽 전 절반 탈락).
-
-### M3 — 캐릭터와 장착물
-- 주인공 5종 특성(`quickPaw`, `cheekPouch`, `warmth`, `bark`, `nightEyes`), 장착물 4종, 선택 화면(DOM, 한 화면) 동작, `Progress` + 해금 조건, 결과 시트(두 톤).
-- 완료: 캐릭터마다 플레이 느낌이 다른가.
-
-### M4 — 연출과 오디오
-- 팔레트·폰트 적용, Entry·Result 연출(불씨, 여명), `AudioBus`(BGM 스템·효과음·목소리, 폴백 합성음), `Haptics`, 설정(소리·진동 적용), 세로 고정 안내, 첫 판 힌트, 지난 밤들(랭킹) 화면.
-- 완료: 지인 테스트에서 세계관을 설명 없이 이해하는가.
-
-### M5 — Firebase와 랭킹 (2026-10-28 개정)
-- Firebase SDK, Authentication(Google), Firestore 랭킹, `RemoteRanking`, 게스트(익명 로그인 제안), 점수 검증(보안 규칙 또는 Cloud Functions — 정할 것), `firestore.rules` 컬렉션별 열기, 오프라인 폴백, 해금 진행도 동기화.
-- 완료: 점수 제출 → 조회 왕복 정상 동작.
-
-### M6 — 수익과 출시
-- 기부 버튼, 보상형 광고 이어하기(`continued` 표시), 템 샵 기본 스킨 3종(`cosmetics.json`). 모두 밸런스 무관.
-- 완료: 공개 링크 배포.
+2026-11-18 점검: 자동 플레이로 1~4스테이지 완전 승리, 노월 진정, 패배 흐름, 토리 구출 해금을 확인했다(콘솔 오류 0).
 
 ## 완료 보고 형식
 
-각 마일스톤을 끝내면 라이언에게 짧게 알린다: 실행 방법(`npm run dev`), 조작법(왼쪽 스틱 걷기 · 오른쪽 스틱 끌었다 놓기 · 짧게 탭 자동 조준, PC는 WASD + 마우스 끌었다 놓기), 이번에 들어간 것, 확인해 달라는 포인트 1~2개(예: "부채꼴 60°가 너무 넓은지"), 기획서에 없어서 제안으로 넣은 값, 다음 단계.
+- 한국어로 쓴다(코드 식별자·명령·ChatGPT 영문 프롬프트만 영어).
+- 담을 것: 바꾼 것, 동작, 테스트·빌드 결과, 남은 문제, 수동 확인 방법, "제안" 값, 새 문구.
+- 스킬 zip이 바뀌었으면 맨 위에 "zip 다시 올리기 필요".
 
-## 결정된 사항 (2026-10-23 통합 기획서, 2026-11-06 개정)
+## 결정된 사항
 
 | 항목 | 결정 |
 |---|---|
-| 세계관 톤 | 차분하고 은은하되 캐주얼하고 박진감 있게. 과도한 스토리 지양 |
-| 조작 | 브롤스타즈식 두 스틱: 왼쪽 이동, 오른쪽 빛(끌어 겨눔·놓아 발사·짧게 탭 자동 조준·누르고 있으면 반자동 연사·가운데로 되돌려 취소). PC는 WASD + 마우스 끌었다 놓기 (2026-11-04·11-06 개정, 기획서의 '탭 하나·이동 없음'을 대체) |
-| 등불 | 등불지기가 손에 들고 다님. 이웃은 등불을 쫓아옴 (2026-11-04) |
-| 빛 | 루미 중심에서 60° 부채꼴, 실제 길이 = 최대 사거리 × 끈 거리, 최대 사거리는 기획서의 1.5배 (2026-11-06) |
-| 한 판 길이 | 120초, 새벽 클리어 있는 구조 (시간대 40/90/120) |
-| 화면 | 세로 540×960 / 가로 높이 540·폭은 화면 비율 720~1280(짧은 변 540 고정 = 물체 크기는 그대로, 보는 프레임만 바뀜, 2026-11-06). 휴대폰은 기기 방향, PC는 창을 꽉 채우는 가로 + 세로 선택. 마을 16:9 3200×1800(2026-11-06, 처음 정사각 2400×2400과 면적 같음 — 풀숲·장애물은 크기 그대로 위치만 옮김), 시작 위치 가운데(1600, 900) (2026-11-06 개정) |
-| 캐릭터 이름 | 한글 + 영문 병기 (루미 Lumi … / 그르르 Grumble …) |
-| 콤보 감소 | 피격·유지 시간 초과 모두 절반(소수점 버림) |
-| 화면 수 | 선택 화면 1개(주인공 + 장착물). 메뉴·HUD는 DOM/CSS 오버레이 (2026-10-28) |
-| 아트 | 아트 디렉션은 `reference/ChatGPT-Images/`(1순위 「달빛 숲의 등불지기 고양이」, 2026-10-30), 그림은 라이언이 ChatGPT로 생성 → `art-src/` → `npm run art:import` (2026-11-04) |
-| 서버 | Firebase(Hosting + Authentication + Firestore 서울) (2026-10-28 개정) |
+| 톤 | 차분하고 은은하되 플레이는 캐주얼·박진감. 짧은 이야기 카드와 대사, 긴 설명은 피함 |
+| 조작 | 브롤스타즈식 두 스틱. 왼쪽 이동, 오른쪽 빛(끌어 겨눔·놓아 발사·짧게 탭 자동 조준·누르고 있으면 반자동 연사·가운데로 되돌려 취소). PC는 WASD + 마우스 끌었다 놓기 + 스페이스 |
+| 빛 | 등불지기 중심에서 60° 부채꼴, 길이 = 최대 사거리 × 끈 거리. **루미는 등불을 들지 않는다** |
+| 한 판 | **100초**, 시간대 0~40% · 40~70% · 70%~ 클라이맥스, 끝 = 아침 |
+| 지킬 것 | 중앙 광원(꺼지면 끝)·등불 스테이션(1~4개). 등불지기 = HP·하트 3·LP |
+| 콤보 | 3초 안에 다음 처리가 없으면 **0으로**(reset), 배율 최대 4 |
+| 캐릭터 | 루미·토리·도토 3명(토리·도토는 구출 해금). 장착물 대신 소모형 아이템 |
+| 화면 | 짧은 변 540, 휴대폰은 기기 방향, PC는 가로 기본(설정에서 세로). 마을 3200×1800 |
+| 그림·역할 | 실제 그림 = ChatGPT, 기획·개발 정본 = Claude Code. 받은 그림은 기준과 대조한 뒤 넣는다 |
+| 서버 | Firebase(Hosting, 나중에 Auth·Firestore 서울) |
+| 노월 | 진정시키면 1000점 + 바로 아침 |
 
-채택하지 않은 과거 안: 대시, 가로 화면, 콤보 0 초기화, 분리된 선택 씬, 탭 하나 조작·등불 고정·단일 화면(2026-11-04 두 스틱으로 대체 — 주인공 이동은 이때 다시 들어옴), 자체 서버 Node.js + Fastify + PostgreSQL + Google OAuth 2.0(2026-10-28 Firebase로 대체), 비주얼 방향 '겹겹 종이 라이트박스'(2026-10-30 레퍼런스 이미지로 대체), Phaser Graphics 도형 플레이스홀더(2026-11-04 그림 파이프라인으로 대체).
+채택하지 않은 과거 안은 `docs/archive/`에 남아 있다: 하룻밤 120초, 손에 든 등불(불꽃 5개), 등불지기 5종, 장착물·시너지·대광원, 방해 요소(안개·달그림자), 옛 적 명단, 콤보 절반 감소, 탭 하나 조작, 자체 서버.
 
-## 남은 결정 사항 (라이언이 정할 것)
+## 남은 결정 (라이언이 정할 것)
 
-구현 중 이 항목에 걸리면 임의로 정하지 말고 묻는다. 기본값은 괄호 안.
+구현 중 여기에 걸리면 임의로 정하지 말고 묻는다. 기본값은 괄호 안.
 
-1. 빛을 만들 때 등불 HP를 소모할지 (기본: 소모 안 함)
-2. 노월을 되돌렸을 때 새벽이 당겨지는지 (기본: 당겨지지 않음, 보너스만)
-3. 보상형 광고 이어하기 판의 랭킹 처리 (기본: 등록은 되되 `continued` 아이콘 표시)
-4. 캐릭터 목소리를 실제 녹음할지, 합성할지 (기본: 합성음으로 시작)
-5. 해금 조건 수치(3판 / 아이템 50개 / 누적 10분 / 콤보 20·30)가 적당한지 (기본: 그대로)
-6. 바루 온기 상시 +0.5/s가 과한지 (기본: 그대로, 밸런스 체크리스트로 확인)
-7. **콤보 유지 2.0초** — 초저녁 생성 간격 2.5초보다 짧아 초반 콤보가 끊기기 쉬움. 튜닝 1순위, 후보 3.0초 (기본: 2.0초)
-8. 두 스틱 조작의 수치: 이동 속도 225(라이언 지시), 마을 크기 3200×1800(16:9), 스틱 데드존 0.18, 끌지 않고 놓으면 자동 조준(사거리 안 가장 가까운 이웃, 없으면 가장 가까운 이웃), 붙은 이웃은 등불이 닿는 거리×1.25 밖으로 멀어지면 떨어짐, PC 마우스 취소 반경 48(`controls.mouseCancelRadius`), 등불지기 발 판정 반지름 26(`keeper.radius`) (기본: 그대로, 휴대폰 체감 후 조정)
-9. 장애물이 빛도 막는지 (기본: 막지 않음 — 브롤스타즈는 벽이 공격을 막음), 땅으로 걷는 이웃(그르르·말랑·킥킥, M2)이 장애물을 돌아가는지 (기본: M2에서 돌아가게)
-10. 풀숲 숨기 수치: 알아채는 거리 140, 빛을 쏘면 1초 드러남, 숨었을 때 불투명도 0.45 (기본: 그대로, 체감 후 조정)
+1. 랭킹을 계속 이 기기에만 둘지, 온라인으로 할지 (기본: 지금은 로컬)
+2. 보상형 광고 이어하기 판의 랭킹 처리 (기본: 등록은 되되 `continued` 아이콘 표시)
+3. 캐릭터 목소리·배경음을 실제 녹음할지 (기본: 합성음)
+4. 장애물이 빛을 막는지 (기본: 막지 않음)
+5. 조작 수치 — 이동 스틱 데드존 0.18, 빛 스틱 겨눔 문턱 0.35, 반자동 기다림 0.12초, PC 마우스 취소 반경 48, 발 판정 반지름 26 (기본: 그대로, 휴대폰 체감 후 조정)
+6. 풀숲 수치 — 알아채는 거리 140, 들킴 4초, 빛을 쏘면 1초 드러남, 반투명 0.45 (기본: 그대로)
+7. 버벅임 재검증·사람 감각의 밸런스 확인 (라이언이 해 보고 알려 줌)
 
-## 성능 (2026-11-06 개정)
+## 성능
 
-- 게임은 초당 60번 상한(`fps: { target: 60, limit: 60 }`): 120Hz 휴대폰에서 부담·발열을 절반으로.
-- 모양이 변하지 않는 도형은 Graphics로 매 프레임 그리지 않고 `generateTexture`로 한 번 구워 이미지로 쓴다(Phaser Graphics는 매 프레임 다시 쪼개 그린다). 예: 창문 유리빛, 조준 원뿔(면만 있어 늘여도 반지름만 바뀜).
+- 게임은 초당 60번 상한이다. 120Hz 휴대폰에서 부담·발열을 절반으로 줄인다.
+- 모양이 변하지 않는 도형은 `generateTexture`로 한 번 구워 이미지로 쓴다. Phaser Graphics는 매 프레임 다시 쪼개 그린다.
+- Phaser 도형 길이는 `setScale`·`setSize`로 바꾼다.
 - 버벅임은 헤드리스 크롬 + CPU 4배 느림으로 프레임 시간 분포·프로파일을 재서 찾는다.
