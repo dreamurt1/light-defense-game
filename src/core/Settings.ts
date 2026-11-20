@@ -1,4 +1,4 @@
-// 기기별 설정: 배경음악·효과음·진동·닉네임·PC 화면 방향(2026-11-06)·스틱 좌우(2026-11-13)·음량·휴대폰 방향 고정(2026-11-19).
+// 기기별 설정: 배경음악·효과음·진동·닉네임·PC 화면 방향(2026-11-06)·스틱 좌우(2026-11-13)·음량·휴대폰 방향 고정(2026-11-19)·휴대폰 기본 전체 화면(2026-11-20).
 // localStorage에 저장한다.
 // 소리(audio/Sound.ts)·진동(audio/Haptics.ts)·스틱(ui/Sticks.ts)은 onSettingsChange로 바뀐 값을 바로 받는다.
 import { DEFAULT_NICKNAME } from './RunState';
@@ -26,6 +26,8 @@ export interface SettingsData {
   carryItem: string;
   /** 상점에서 고른 빛 색 id (cosmetics.json, 2026-11-18) */
   lightColor: string;
+  /** 휴대폰: 페이지를 연 뒤 첫 탭에서 전체 화면으로 (기본 켬, 2026-11-20 — ui/fullscreen.ts) */
+  phoneFullscreen: boolean;
 }
 
 const DEFAULTS: SettingsData = {
@@ -40,6 +42,7 @@ const DEFAULTS: SettingsData = {
   phoneOrientation: 'auto',
   carryItem: 'firefly_jar',
   lightColor: 'amber',
+  phoneFullscreen: true,
 };
 
 type Listener = (data: Readonly<SettingsData>) => void;

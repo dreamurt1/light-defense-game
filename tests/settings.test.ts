@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { turnHint } from '../src/core/layout';
 import { loadSettings, volumeGain } from '../src/core/Settings';
 import { manifestEntries } from '../src/audio/Recorded';
+import { autoFullscreenWanted } from '../src/ui/fullscreen';
 
 const store = (v: unknown) => ({ getItem: () => (v === null ? null : JSON.stringify(v)) });
 
@@ -55,5 +56,22 @@ describe('녹음 음원 목록 (audio/Recorded.ts)', () => {
     expect(manifestEntries(null)).toEqual([]);
     expect(manifestEntries('nope')).toEqual([]);
     expect(manifestEntries({ bgm: {}, sfx: {} })).toEqual([]);
+  });
+});
+
+describe('휴대폰 기본 전체 화면 (2026-11-20)', () => {
+  it('기본은 켬, 끈 값은 기억한다', () => {
+    expect(loadSettings(store({})).phoneFullscreen).toBe(true);
+    expect(loadSettings(store({ phoneFullscreen: false })).phoneFullscreen).toBe(false);
+  });
+
+  it('첫 탭에서만, 휴대폰·켬·지원·아직 아닐 때만 들어간다', () => {
+    const base = { coarse: true, pref: true, supported: true, active: false, tried: false };
+    expect(autoFullscreenWanted(base)).toBe(true);
+    expect(autoFullscreenWanted({ ...base, coarse: false })).toBe(false); // PC
+    expect(autoFullscreenWanted({ ...base, pref: false })).toBe(false); // 설정에서 끔
+    expect(autoFullscreenWanted({ ...base, supported: false })).toBe(false); // 아이폰 사파리
+    expect(autoFullscreenWanted({ ...base, active: true })).toBe(false); // 이미 전체 화면
+    expect(autoFullscreenWanted({ ...base, tried: true })).toBe(false); // 스스로 나간 뒤엔 다시 끌어들이지 않음
   });
 });

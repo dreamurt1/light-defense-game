@@ -12,6 +12,7 @@ import { applyLayout, watchLayout } from './ui/layout';
 import { watchProgress } from './core/Progress';
 import { installAudio } from './audio/Sound';
 import { installPullRefresh } from './ui/PullRefresh';
+import { installAutoFullscreen } from './ui/fullscreen';
 
 // 스플래시는 index.html에 이미 보이고 있다: 불러오기 진행을 받을 준비를 게임보다 먼저
 runSplash();
@@ -22,6 +23,8 @@ watchLayout(game);
 watchProgress();
 installAudio();
 installPullRefresh();
+// 휴대폰은 첫 탭에서 전체 화면 (2026-11-20)
+installAutoFullscreen();
 const uiRoot = document.getElementById('ui');
 if (uiRoot) mountUi(uiRoot, game);
 

@@ -15,6 +15,7 @@ import { NICKNAME_MAX, cleanNickname, loadSettings, onSettingsChange, saveSettin
 import { h } from './dom';
 import { openStory } from './Story';
 import { isTouchDevice, lockOrientation, refreshLayout } from './layout';
+import { toggleFullscreen } from './fullscreen';
 
 type Toggle = 'bgm' | 'sfx' | 'vibration';
 
@@ -105,10 +106,8 @@ export class SettingsSheet {
       refreshLayout();
     });
     this.fullscreen = sw('전체 화면');
-    this.fullscreen.addEventListener('click', () => {
-      if (document.fullscreenElement) void document.exitFullscreen();
-      else void document.documentElement.requestFullscreen().catch(() => undefined);
-    });
+    // 휴대폰은 다음 방문의 기본값으로도 기억한다(끄면 첫 탭에 자동으로 들어가지 않음, ui/fullscreen.ts)
+    this.fullscreen.addEventListener('click', () => toggleFullscreen());
     document.addEventListener('fullscreenchange', () => this.render());
     this.swapSticks = sw('스틱 좌우 바꾸기');
     this.swapSticks.addEventListener('click', () => {
