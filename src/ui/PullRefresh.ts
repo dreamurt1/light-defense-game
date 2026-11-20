@@ -39,7 +39,8 @@ export function installPullRefresh(): void {
   addEventListener(
     'touchstart',
     (e) => {
-      if (e.touches.length !== 1 || inGame() || scrolledInside(e.target)) return reset();
+      // 열린 창(설정 등) 안에서 끄는 것은 그 창을 넘기는 것 — 새로고침으로 받지 않는다 (2026-11-20)
+      if (e.touches.length !== 1 || inGame() || scrolledInside(e.target) || (e.target instanceof Element && e.target.closest('.sheet'))) return reset();
       const t = e.touches[0];
       start = { x: t.clientX, y: t.clientY };
       pulling = false;

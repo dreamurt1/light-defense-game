@@ -149,7 +149,11 @@ export interface CharacterDef {
 
 ## 성능
 
-- 게임은 초당 60번 상한이다. 120Hz 휴대폰에서 부담·발열을 절반으로 줄인다.
+- 게임은 초당 60번 상한이다. 120Hz 휴대폰에서 부담·발열을 절반으로 줄인다. Phaser 3.90의 상한 판정은 120Hz에서 늘 세 번을 기다려 실제 초당 40번이 되므로 `src/core/frameLimit.ts`가 문턱을 바로잡는다(2026-11-20: 120Hz → 60, 144Hz → 72, 90Hz → 90).
+- 켜진 마을은 화면 크기 RenderTexture 하나에 매 프레임 한 번에 그린다(`beginDraw` → 빛 자국 `stamp(..., { skipBatch: true })` → 켜진 마을을 '알파만큼만 남김' 섞기 → '덮어쓰기'로 `endDraw`). Phaser 3.90 DynamicTexture는 begin/end마다 따로 받는 버퍼를 지우고 화면 크기로 옮겨 그리므로, stamp마다 begin/end를 하면 휴대폰 GPU가 가장 힘들어한다. BitmapMask도 쓰지 않는다(전체 화면 3번 더 그림).
+- 판 위 DOM(HUD·스틱)은 매 프레임 레이아웃·다시 그리기를 부르지 않는다: 움직임은 `transform`·`opacity`만(`left`·`width`·배경·CSS 변수 애니메이션 금지 — 예: 밤 진행 별은 막대 폭 띠를 translateX, 빛 대기 링은 반쪽 고리 둘을 회전). 게임 프레임 도중 `offsetWidth` 같은 강제 레이아웃도 금지.
+- 배포판(`vite build`)만 게임이 쓰는 기능만 묶은 Phaser(`src/vendor/phaser-slim.cjs`, 물리·타일맵·사운드·파티클·글자 등 뺌)를 쓴다. 새 Phaser 기능(`this.add.xxx`)을 쓰면 그 Factory/Creator를 거기에 더하고 배포판을 미리보기로 확인한다.
+- 큰 스프라이트(캐릭터 시트·초상·중앙 광원·노월·마을 소품)와 배경은 WebP, 작은 그림·빛 효과(투명도가 정확해야 함)는 PNG.
 - 모양이 변하지 않는 도형은 `generateTexture`로 한 번 구워 이미지로 쓴다. Phaser Graphics는 매 프레임 다시 쪼개 그린다.
 - Phaser 도형 길이는 `setScale`·`setSize`로 바꾼다.
 - 버벅임은 헤드리스 크롬 + CPU 4배 느림으로 프레임 시간 분포·프로파일을 재서 찾는다.

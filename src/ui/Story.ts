@@ -34,9 +34,9 @@ function artFor(kind: Card['art']): HTMLElement {
   } else if (kind === 'lost') {
     art.append(h('img', { class: 'story__portrait story__portrait--lost', src: 'assets/characters/portrait-tori-lost.png', alt: '', width: 192, height: 192 }));
   } else if (kind === 'shard') {
-    art.append(h('span', { class: 'story__totem' }), h('img', { class: 'story__portrait story__portrait--small', src: 'assets/characters/portrait-lumi.png', alt: '', width: 192, height: 192 }));
+    art.append(h('span', { class: 'story__totem' }), h('img', { class: 'story__portrait story__portrait--small', src: 'assets/characters/portrait-lumi.webp', alt: '', width: 192, height: 192 }));
   } else {
-    art.append(h('img', { class: 'story__portrait', src: 'assets/characters/portrait-lumi.png', alt: '', width: 192, height: 192 }));
+    art.append(h('img', { class: 'story__portrait', src: 'assets/characters/portrait-lumi.webp', alt: '', width: 192, height: 192 }));
   }
   return art;
 }

@@ -4,7 +4,7 @@ import type { CharacterId } from '../../data';
 import { h, svg } from '../dom';
 import { chevronLeftIcon } from '../icons';
 
-export const portraitUrl = (id: CharacterId): string => `assets/characters/portrait-${id}.png`;
+export const portraitUrl = (id: CharacterId): string => `assets/characters/portrait-${id}.webp`;
 
 /**
  * 잠긴 친구 칸 (2026-11-20 라이언): reference 컨셉 그림의 실루엣(짙은 면색, `portrait-<id>-shade` — src/art/lockedShade.ts) + 물음표.

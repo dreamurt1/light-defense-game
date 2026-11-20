@@ -50,7 +50,12 @@ const DECO: Record<'move' | 'light', string> = {
 
 function stick(kind: 'move' | 'light', label: string, knobContent?: Node): StickParts {
   const knob = h('span', { class: 'stick__knob' }, knobContent ?? '');
-  const base = h('span', { class: 'stick__base' }, svg(DECO[kind]), knob);
+  // 빛 스틱만: 쏜 뒤 대기 링(반쪽 고리 둘, sticks.css)
+  const cool =
+    kind === 'light'
+      ? [h('span', { class: 'stick__cool', 'aria-hidden': 'true' }, h('span', { class: 'stick__cool-half stick__cool-half--r' }, h('i')), h('span', { class: 'stick__cool-half stick__cool-half--l' }, h('i')))]
+      : [];
+  const base = h('span', { class: 'stick__base' }, svg(DECO[kind]), ...cool, knob);
   const el = h('div', { class: `stick stick--${kind}`, 'aria-label': label }, base);
   return { el, base, knob };
 }
@@ -107,9 +112,14 @@ export class Sticks {
     bus.on('light:cast', (e) => {
       const sec = GameData.game.light.cooldownSec * characterById(e.characterId).lightCooldownMultiplier;
       this.light.el.style.setProperty('--cool', `${sec}s`);
-      this.light.el.classList.remove('is-cooling');
-      void this.light.el.offsetWidth;
-      this.light.el.classList.add('is-cooling');
+      // 대기 링을 처음부터 다시: 강제 레이아웃(offsetWidth) 대신 애니메이션만 되감는다 (게임 프레임 도중 레이아웃을 부르지 않게)
+      if (this.light.el.classList.contains('is-cooling')) {
+        for (const a of this.light.el.getAnimations({ subtree: true })) {
+          if (!(a instanceof CSSAnimation) || !a.animationName.startsWith('stick-cool')) continue;
+          a.cancel();
+          a.play();
+        }
+      } else this.light.el.classList.add('is-cooling');
     });
     bus.on('light:ready', () => this.light.el.classList.remove('is-cooling'));
     // 판이 바뀌거나 끝나면 잡고 있던 손가락을 놓은 것으로

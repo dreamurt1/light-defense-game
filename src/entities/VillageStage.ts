@@ -1,5 +1,5 @@
 // 밤 마을 무대. 어두운 마을 위에 '빛을 받은 마을'을 올리고, 빛 고임(루미·중앙 광원·켜진 등불)과 부채꼴이 닿은 곳만 보이게 마스크한다.
-// 마스크는 매 프레임 RenderTexture에 그려 BitmapMask로 쓴다(WebGL). Canvas 렌더러에서는 켜진 마을을 생략한다.
+// 빛 자국과 켜진 마을은 매 프레임 화면 크기 RenderTexture 하나에 한 번에 그린다(WebGL, 2026-11-20 — 예전 BitmapMask). Canvas 렌더러에서는 켜진 마을을 생략한다.
 // 콤보 단계마다 마을 창문·등불이 하나씩 켜지고, 반딧불이 늘어난다. 반짝이 별은 부채꼴·되돌림의 따뜻함을 보탠다.
 // 2026-11-04: 마을은 화면보다 넓고(카메라가 따라감). 2026-11-12 새 기획: 빛 고임이 여러 개(update의 pools) — 루미 주변(LP 비례),
 // 중앙 광원(광도 비례), 켜진 등불. 맵 전체 광도(systems/villageMood MapLight)가 켜진 마을 드러남(lit)과 어둠 덮개(gloom)를 정한다.
@@ -110,8 +110,8 @@ interface Firefly {
 
 export class VillageStage {
   private readonly shade: Phaser.GameObjects.Rectangle;
-  private readonly lit: Phaser.GameObjects.Container;
-  private readonly maskTexture: Phaser.GameObjects.RenderTexture | null = null;
+  /** 빛 자국만큼 드러난 켜진 마을 (화면 크기, WebGL만 — Canvas 렌더러에서는 켜진 마을을 생략) */
+  private readonly litTexture: Phaser.GameObjects.RenderTexture | null = null;
   /** 빛 고임마다 하나씩 쓰는 글로우 */
   private readonly glows: Phaser.GameObjects.Image[] = [];
   /** 판이 끝날 때 빛 고임이 사그라드는 배율 */
@@ -162,18 +162,17 @@ export class VillageStage {
       .setScale((ZONE_VEIL_REACH * 2) / ZONE_VEIL_TEX)
       .setDepth(-940)
       .setAlpha(zc.veil['light-village'] ?? 0.3);
-    this.litLayer = scene.add.image(0, 0, TextureKeys.villageLit).setOrigin(0).setScale(texScale(TextureKeys.villageLit));
-    this.lit = scene.add.container(0, 0, [this.litLayer]);
-    this.lit.setDepth(-900);
+    // 2026-11-20 휴대폰 가로 버벅임: BitmapMask(전체 화면 3번 더 그림 + 그릴 대상 3번 바꿈)와 빛 자국마다 대상을 바꾸던 것을 없앴다.
+    // 이제 화면 크기 텍스처 하나(litTexture)에 매 프레임 한 번에: 지움 → 빛 자국(흰 알파) → 켜진 마을을 '알파만큼만 남김' 섞기(DST_ALPHA, ZERO)로.
+    // 결과 = 켜진 마을 × 빛 자국 알파 — 예전 마스크와 같은 식. 그 텍스처를 어두운 마을 위(깊이 -900)에 그대로 올린다
+    this.litLayer = scene.make.image({ x: 0, y: 0, key: TextureKeys.villageLit }, false).setOrigin(0).setScale(texScale(TextureKeys.villageLit));
     if (scene.renderer.type === Phaser.WEBGL) {
-      this.maskTexture = scene.make.renderTexture({ x: 0, y: 0, width: W, height: H }, false).setOrigin(0).setScrollFactor(0);
-      this.lit.setMask(this.maskTexture.createBitmapMask());
-      // 표시 목록에 넣지 않은 텍스처라 씬이 끝날 때 직접 지운다 (판마다 GPU 메모리가 쌓이지 않게)
-      const rt = this.maskTexture;
-      scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => rt.destroy());
-    } else {
-      this.lit.setVisible(false);
+      this.litLayer.setBlendMode(keepByDestAlpha(scene.renderer as Phaser.Renderer.WebGL.WebGLRenderer));
+      this.litTexture = scene.add.renderTexture(0, 0, W, H).setOrigin(0).setScrollFactor(0).setDepth(-900);
     }
+    // 표시 목록에 넣지 않은 그림이라 씬이 끝날 때 직접 지운다
+    const litLayer = this.litLayer;
+    scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => litLayer.destroy());
 
     for (const def of WORLD_LIGHTS) this.lights.push(this.makeLight(def));
     for (let i = 0; i < Math.min(FIREFLIES_MAX, FIREFLIES_BASE + FIREFLIES_PER_LIGHT * WORLD_LIGHTS.length); i++) this.fireflies.push(this.makeFirefly());
@@ -203,7 +202,7 @@ export class VillageStage {
     this.flash.setSize(width, height);
     this.gloomLayer.setSize(width, height);
     this.themeVeil.setSize(width, height);
-    this.maskTexture?.resize(width, height);
+    this.litTexture?.resize(width, height);
   }
 
   /** 맵 3종 = 스테이지 테마. 'light-village'는 지금 그대로, 'border'는 차가운 라벤더, 'dark-village'는 더 어둡고 보랏빛.
@@ -500,18 +499,24 @@ export class VillageStage {
       }
     }
 
-    const rt = this.maskTexture;
+    const rt = this.litTexture;
     if (!rt) return;
-    rt.clear();
+    // 한 번에 그린다. Phaser 3.90의 DynamicTexture는 beginDraw마다 따로 받는 버퍼를 지우고, endDraw에서 그것을 텍스처로 화면 크기만큼 옮겨 그린다
+    // → 예전처럼 stamp마다 begin/end를 하면 빛 자국 하나에 전체 화면 지우기 + 옮겨 그리기가 한 번씩 (휴대폰 GPU가 가장 힘들어하는 일)
+    rt.beginDraw();
     const base = Math.max(this.flood, this.dawning);
-    if (base > 0) rt.fill(0xffffff, base);
-    // 마스크는 화면에 붙어 있으므로 마을 좌표에서 카메라 스크롤을 뺀 자리에 찍는다
+    if (base > 0) {
+      const white = this.scene.textures.getFrame('__WHITE');
+      rt.stamp('__WHITE', undefined, 0, 0, { originX: 0, originY: 0, scaleX: rt.width / white.width, scaleY: rt.height / white.height, alpha: base, skipBatch: true });
+    }
+    // 화면에 붙어 있으므로 마을 좌표에서 카메라 스크롤을 뺀 자리에 찍는다
     const cam = this.scene.cameras.main;
     for (const p of pools) {
       if (p.radius <= 0) continue;
       rt.stamp(TextureKeys.glowMask, undefined, p.x - cam.scrollX, p.y - cam.scrollY, {
         scale: (p.radius * 2 * LIT_POOL_RATIO) / 256,
         alpha: p.alpha * LIT_POOL_ALPHA * this.dim,
+        skipBatch: true,
       });
     }
     for (const f of this.fans) {
@@ -523,10 +528,32 @@ export class VillageStage {
         rotation: f.angle,
         scale: r / FAN_TEXTURE_RADIUS,
         alpha: Math.max(0, fade),
+        skipBatch: true,
       });
     }
+    // 켜진 마을: 빛 자국의 알파만큼만 남는다
+    rt.batchDraw(this.litLayer, -cam.scrollX, -cam.scrollY);
+    // endDraw의 옮겨 그리기는 마지막 섞기 방식을 그대로 쓴다 → '그대로 덮어쓰기'로 두면 텍스처를 따로 지울 필요도 없다
+    const renderer = this.scene.renderer as Phaser.Renderer.WebGL.WebGLRenderer;
+    renderer.setBlendMode(blendModes(renderer).copy);
+    rt.endDraw();
+    renderer.setBlendMode(Phaser.BlendModes.NORMAL);
   }
 }
+
+/** 켜진 마을용 섞기 두 가지 (렌더러마다 한 번만 만든다)
+ *  keep = 이미 그려진 알파만큼만 남김(결과 = 그림 × 그 자리 알파, 예전 마스크와 같은 식), copy = 그대로 덮어쓰기 */
+const BLENDS = new WeakMap<Phaser.Renderer.WebGL.WebGLRenderer, { keep: number; copy: number }>();
+function blendModes(r: Phaser.Renderer.WebGL.WebGLRenderer): { keep: number; copy: number } {
+  let m = BLENDS.get(r);
+  if (!m) {
+    const gl = r.gl;
+    m = { keep: r.addBlendMode([gl.DST_ALPHA, gl.ZERO], gl.FUNC_ADD), copy: r.addBlendMode([gl.ONE, gl.ZERO], gl.FUNC_ADD) };
+    BLENDS.set(r, m);
+  }
+  return m;
+}
+const keepByDestAlpha = (r: Phaser.Renderer.WebGL.WebGLRenderer): number => blendModes(r).keep;
 
 /** 구획 막 그림 크기·덮는 반지름(마을 모서리까지 약 1840) */
 const ZONE_VEIL_TEX = 512;

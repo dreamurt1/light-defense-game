@@ -87,7 +87,7 @@ export interface SheetDef {
    */
   build?: (load: (src: string) => Promise<CanvasImageSource | null>) => Promise<HTMLCanvasElement | null>;
   buildRes?: number;
-  /** 파일 형식. 배경처럼 큰 불투명 그림은 webp */
+  /** 파일 형식. 배경처럼 큰 불투명 그림과 큰 스프라이트(캐릭터 시트·초상·중앙 광원·노월·마을 소품, 2026-11-20 크기 줄이기)는 webp — 작은 그림·빛 효과(투명도가 정확해야 함)는 png */
   format?: 'png' | 'webp';
   /** false면 Phaser가 불러오지 않는다 (DOM 화면에서만 쓰는 그림) */
   load?: boolean;
@@ -128,6 +128,7 @@ const characters: SheetDef[] = [
   ...KEEPER_IDS.map(
     (id): SheetDef => ({
       key: `portrait-${id}`,
+      format: 'webp',
       category: 'characters',
       label: `${GameData.characters.find((c) => c.id === id)?.name ?? id} 초상`,
       frameWidth: PORTRAIT.size,
@@ -170,6 +171,7 @@ const characters: SheetDef[] = [
   // 디자인 단위 64×64(영문 지시서의 게임 안 크기), 파일은 2배(128×128 원본). 줄 = 방향(e·se·s·sw·w·nw·n·ne) + 연출 줄
   {
     key: 'lumi-8dir',
+    format: 'webp',
     category: 'characters',
     label: '루미 8방향 (정지·걷기 팩 + 넉아웃·기절)',
     frameWidth: 64,
@@ -185,6 +187,7 @@ const characters: SheetDef[] = [
   ...(['tori', 'doto'] as const).map(
     (id): SheetDef => ({
       key: `${id}-8dir`,
+      format: 'webp',
       category: 'characters',
       label: `${GameData.characters.find((c) => c.id === id)?.name ?? id} 8방향 (${FRIEND_PACKS[id] ? 'ChatGPT 팩: 정지 8방향 + 받은 방향의 걷기, 나머지 걷기·넉아웃·기절은 임시' : '임시 그림: 정지·걷기 + 넉아웃·기절'})`,
       frameWidth: 64,
@@ -264,6 +267,7 @@ const enemies: SheetDef[] = [
   },
   {
     key: 'witch',
+    format: 'webp',
     category: 'enemies',
     label: '노월 (보스: 대기 4 · 시전 2 · 진정 1)',
     frameWidth: WITCH.size,
@@ -330,6 +334,7 @@ const LIT_FILTER = 'brightness(1.45) saturate(1.2) sepia(0.28)';
 const objects: SheetDef[] = [
   {
     key: 'central-source',
+    format: 'webp',
     category: 'objects',
     label: '중앙 광원 (밝음·약함·꺼짐)',
     frameWidth: CENTRAL.w,
@@ -378,6 +383,7 @@ const objects: SheetDef[] = [
   ...VILLAGE_OBJECTS.map(
     (o): SheetDef => ({
       key: `village-${o.key}`,
+      format: 'webp',
       category: 'objects',
       label: `${o.label} (밤·빛 받음)`,
       frameWidth: o.bounds.w,

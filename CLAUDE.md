@@ -92,7 +92,8 @@
 - **그림 규칙**: 실제 그림 = ChatGPT, 그때까지 Claude 임시 코드 그림(`src/art/*` → `npm run assets`), ChatGPT 그림이 오면 같은 키로 교체. 아직 임시: 중앙 광원 `central-source`, 개구리, 등불 스테이션(`lantern`), 적들, 친구의 빛을 잃은 모습·잠듦·기절.
 - **둥근 버튼·배지 규칙**: 남색 유리 원(#34396C → #14152E) + 얇은 밝은 테두리 + 굵고 끝이 둥근 선 아이콘(연한 종이색), 켜짐 = 호박 사탕 채움 + 남색 아이콘, 놓으면 부드럽게 제자리(cubic-bezier(0.16, 1, 0.3, 1)). 기준 `.pull-refresh`·`refreshIcon`·`.icon-button`. 알약 버튼(주요 = 호박, 보조 = 어두운 유리), 최소 48px.
 - **팔레트**: NIGHT `#1B1F3B` · DUSK `#2A2F5A` · PREDAWN `#120F24` · DAWN `#F2B880` · AMBER `#FFC857` · MINT `#9ED9B5` · LAVENDER `#A89CD9` · EMBER `#FF8C5A` · PAPER `#F6F1E7` · ASH `#8A8FA8`. 폰트 Pretendard → Noto Sans KR.
-- **사운드**: Web Audio 합성(`src/audio/*`, 효과음·진동), 설정에 켜기 + 음량 슬라이더. 녹음 파일이 오면 `public/audio/manifest.json`에 적어 바꿔 틀기(`audio/Recorded.ts`, 없으면 합성). 배경음 = D장조의 은은한 곡(OneShot 분위기만 참고, 메뉴 60·판 72·새벽 전 92BPM). 소리는 첫 입력 이후, 깜빡임 초당 3회 이하, 60fps.
+- **늘 어두운 화면**: `color-scheme: only dark`(+ index.html meta) — 브라우저·기기 야간 모드가 색을 바꾸지 않게(2026-11-20). **설정 창**: 낮은 가로(휴대폰)는 위 한 줄에 제목·닫기, 아래는 위아래로 넘기는 한 줄 목록(글자 px 최소값).
+- **사운드**: Web Audio 합성(`src/audio/*`, 효과음·진동, Phaser 사운드는 끔), 설정에 켜기 + 음량 슬라이더. 녹음 파일이 오면 `public/audio/manifest.json`에 적어 바꿔 틀기(`audio/Recorded.ts`, 없으면 합성). 배경음 = D장조의 은은한 곡(OneShot 분위기만 참고, 메뉴 60·판 72·새벽 전 92BPM). 소리는 첫 입력 이후, 깜빡임 초당 3회 이하, 60fps.
 
 ## 6. 기술·구조
 
@@ -100,7 +101,8 @@
 - 씬 ↔ DOM UI는 `src/core/events.ts` 이벤트로만. 두 스틱 `src/ui/Sticks.ts`(`input:*`), PC `src/input/DesktopControls.ts`. 메뉴는 씬 없이 DOM.
 - 상태 `src/core/RunState.ts`(characterId·stageId·seed·test·trialCharacterId → `keeperId`). 난수는 `src/core/rng.ts`만.
 - 레이아웃 `<html data-layout>`(`src/ui/layout.ts`), UI 단위 `--u`(세로 = 폭/540, 가로 = 높이/540), `.stage`가 size 컨테이너. 바뀌면 Phaser 부모 크기를 다시 잼.
-- 아트: 시트 정의 `src/art/registry.ts`, 생성 원본 `art-src/`, 결과 `public/assets/`(+ manifest), 키는 `TextureKeys`·`AnimKeys`. 루미 시트 `npm run art:lumi`, 친구 시트 `friendSheet.ts`.
+- 아트: 시트 정의 `src/art/registry.ts`, 생성 원본 `art-src/`, 결과 `public/assets/`(+ manifest, 큰 스프라이트·배경은 WebP), 키는 `TextureKeys`·`AnimKeys`. 루미 시트 `npm run art:lumi`, 친구 시트 `friendSheet.ts`.
+- **배포판 Phaser는 줄인 판**(`src/vendor/phaser-slim.cjs`, `vite build`에서만 — 개발·테스트는 전체): 새 Phaser 기능(`this.add.xxx` 등)을 쓰면 거기에 더하고 배포판을 미리보기로 확인.
 - 서버: Firebase Hosting(+ 나중에 Auth·Firestore 서울). 지금 랭킹은 `LocalRanking`(`ld.ranking.v2`). `firestore.rules` 전부 차단.
 
 ## 7. 개발 규칙
@@ -108,6 +110,7 @@
 - 수치는 JSON, 로직은 TS. 순수 로직 분리 + Vitest. 이동·타이머는 dt.
 - 일시정지의 `anims.pauseAll`은 게임 전체 → 판을 닫거나 새로 시작할 때 꼭 `freeze(scene, false)`.
 - 변하지 않는 도형은 `generateTexture`, Phaser 도형 길이는 `setScale`·`setSize`.
+- **휴대폰 프레임**(2026-11-20): 판 위 DOM은 `transform`·`opacity`로만 움직임(레이아웃·다시 그리기를 매 프레임 부르지 않게), RenderTexture는 `beginDraw`/`endDraw` 한 번에(`stamp`마다 begin/end = 전체 화면 옮겨 그리기), BitmapMask 쓰지 않음, 초당 60번 상한은 `core/frameLimit.ts`. 확인 = 헤드리스로 프레임당 그릴 대상 바꾸기·레이아웃 횟수.
 - 작은 단위로. 동작하는 기능·에셋을 임의로 지우거나 전면 재작성하지 않는다.
 - 입력: 터치·마우스·키보드를 같은 `input:*`로. 당겨서 새로고침은 직접 구현(`ui/PullRefresh.ts`, 게임 중 제외). 뒤로·앞으로가기는 `ui/HistoryNav.ts`(메뉴 화면만 기록, 게임 중엔 아무 일도 안 함 — 단 테스트 판(트라이얼·체험)은 홈 + 테스트 창, 튜토리얼 판은 홈으로, 이 두 판은 새로고침하면 그 판을 다시(sessionStorage `ld.replayRun.v1`), 맨 처음에서 "한 번 더 누르면 나가요").
 - 셸: 따옴표·백틱이 섞인 긴 편집은 bash heredoc이 깨질 수 있다 → 편집 스크립트는 파일로 만들어 `node`로.

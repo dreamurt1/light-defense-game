@@ -56,7 +56,8 @@ export class Hud {
       { class: 'night-bar', role: 'progressbar', 'aria-label': '아침까지', 'aria-valuemin': 0, 'aria-valuemax': 100 },
       h('span', { class: 'night-bar__fill' }),
       ...notches,
-      h('span', { class: 'night-bar__marker' }, svg(starIcon)),
+      // 별은 막대 폭 전체 띠(track) 안에 두고 띠를 transform으로 옮긴다(합성기만 일함, 2026-11-20)
+      h('span', { class: 'night-bar__track' }, h('span', { class: 'night-bar__marker' }, svg(starIcon))),
       h('span', { class: 'night-bar__dawn' }, svg(starIcon)),
     );
 

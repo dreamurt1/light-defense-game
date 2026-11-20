@@ -176,9 +176,11 @@ const keepEnemiesAway = `(() => { const s = ${SC}; const f = s.field; const away
   record('B6 반자동 — 대상 없으면 안 쏨', noTarget.casts === 0, noTarget);
 
   // B7 프레임이 달라도 같은 빠르기·대기 시간: 그대로 vs 30fps로 묶기 (PlayScene MAX_DT = 1/20초: 20fps 아래로 떨어지면 한 프레임에 너무 멀리 가지 않게 일부러 느려짐)
+  // 게임의 상한은 '제한 간격 × LIMIT_SLACK'부터 돌린다(src/core/frameLimit.ts, 2026-11-20 120Hz 바로잡기) → 30fps로 묶으려면 간격을 그만큼 늘린다
+  const LIMIT_SLACK = 0.6;
   const measure = (limit) =>
     page.evaluate(`(async () => { ${wait} const g = window.__game; const s = ${SC};
-      g.loop.fpsLimit = ${limit}; g.loop.hasFpsLimit = ${limit} > 0; g.loop._limitRate = ${limit} > 0 ? 1000 / ${limit} : 0; g.loop.sleep(); g.loop.wake(true); await wait(1200);
+      g.loop.fpsLimit = ${limit}; g.loop.hasFpsLimit = ${limit} > 0; g.loop._limitRate = ${limit} > 0 ? 1000 / ${limit} / ${LIMIT_SLACK} : 0; g.loop.sleep(); g.loop.wake(true); await wait(1200);
       let frames = 0; const tick = () => frames++; s.events.on('postupdate', tick); await wait(1000); s.events.off('postupdate', tick);
       ${place} await wait(100); const x0 = s.keeper.pos.x; let gt = 0; const acc = (_t, d) => (gt += d);
       // 게임 시간(프레임 dt 합)으로 나눈다: 벽시계로 재면 20fps의 프레임 경계 때문에 들쭉날쭉
