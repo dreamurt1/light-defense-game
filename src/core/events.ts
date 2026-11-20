@@ -2,6 +2,7 @@
 // 2026-11-12 새 기획(XMind 1112): 손 등불 HP·시너지 이벤트를 걷어 내고 주인공 HP·하트·LP·중앙 광원·등불 이벤트를 더했다.
 import type { CharacterId, EnemyId, EnemyKind, NightPhase } from '../data';
 import type { EndReason, StageOutcome } from '../systems/stageOutcome';
+import { reportError } from './errorLog';
 
 export type Outcome = StageOutcome;
 
@@ -153,7 +154,14 @@ export class EventBus<E extends object> {
   emit<K extends keyof E>(event: K, ...args: E[K] extends undefined ? [] : [E[K]]): void {
     const set = this.handlers.get(event);
     if (!set) return;
-    for (const handler of [...set]) (handler as Handler<E[K] | undefined>)(args[0]);
+    // 2026-11-20: 연출(HUD·소리·진동) 구독자 하나의 예외가 게임 프레임을 끊어 판을 멈추지 않게 — 남기고 다음 구독자로
+    for (const handler of [...set]) {
+      try {
+        (handler as Handler<E[K] | undefined>)(args[0]);
+      } catch (err) {
+        reportError(err, `bus:${String(event)}`);
+      }
+    }
   }
 }
 

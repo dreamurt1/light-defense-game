@@ -3,7 +3,9 @@
 // 120Hz 화면의 두 번(8.33 + 8.33 = 16.66ms)은 그보다 아주 조금 짧아 늘 세 번(25ms)을 기다린다 → 실제 초당 40번, 간격도 들쭉날쭉.
 // 문턱을 화면 주기의 배수 사이(제한 간격 × 0.6 ≈ 10ms)로 내린다: 60Hz → 매번, 90Hz → 매번(90), 120Hz → 두 번마다(60), 144Hz → 두 번마다(72).
 // 뜻은 그대로(빠른 화면에서 초당 약 60번만 그려 발열·부담을 줄임), 세 번을 기다리는 일만 없앤다.
+// 2026-11-20: 한 프레임의 예외가 판 전체를 멈추지 않게 이 자리에서 잡는다(core/errorLog.ts).
 import type Phaser from 'phaser';
+import { reportError } from './errorLog';
 
 /** 제한 간격에 대한 문턱 비율 */
 export const LIMIT_SLACK = 0.6;
@@ -43,7 +45,12 @@ export function patchFrameLimit(TimeStep: typeof Phaser.Core.TimeStep): void {
     if (time >= this.nextFpsUpdate) this.updateFPS(time);
     this.framesThisSecond++;
     if (limitReached(this.delta, this._limitRate)) {
-      this.callback(time, this.delta);
+      // 2026-11-20 휴대폰 멈춤: Phaser는 이 호출에서 예외가 나면 다음 프레임을 예약하지 않아 판이 영영 멈춘다 → 잡아서 남기고 계속
+      try {
+        this.callback(time, this.delta);
+      } catch (err) {
+        reportError(err, 'frame');
+      }
       this.delta = 0;
     }
     this.lastTime = time;

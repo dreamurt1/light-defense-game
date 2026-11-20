@@ -2135,135 +2135,157 @@
   }
 }
 
-/* ---------- 휴대폰 가로 설정 창 (2026-11-20 라이언: 한 화면에 안 들어오고, 글자가 세로로 서는 곳이 있음) ----------
-   높이가 낮은 가로(휴대폰, 주소창 빼면 300px 안팎 — 큰 글씨 설정이면 더 낮다): 위 한 줄에 제목과 '닫기'가 늘 보이고
-   가운데만 위아래로 넘기는 한 줄 목록. 글자는 화면 비율(--u)만 따르지 않고 px 최소값을 둬 작은 화면에서도 크게,
-   한국어는 낱말 사이에서만 줄을 바꾼다(keep-all) */
+/* ---------- 휴대폰 가로 설정 창 (2026-11-20 라이언) ----------
+   처음: 한 화면에 안 들어오고 글자가 세로로 섬 → 위 한 줄(제목·닫기) + 넘기는 목록.
+   다시(라이언): PC처럼 두 칸으로, 항목을 조금 작게 — 넘기는 양을 줄인다. 글자는 px 최소값(작은 화면에서도 읽히게),
+   한국어는 낱말 사이에서만 줄을 바꾼다(keep-all). 아주 좁으면(큰 글씨 설정 등, 폭 640px 아래) 한 칸으로 */
 @media (max-height: 560px) {
   :root[data-layout='landscape'] .sheet--settings {
     padding: max(8px, env(safe-area-inset-top, 0px)) max(12px, env(safe-area-inset-right, 0px)) max(8px, env(safe-area-inset-bottom, 0px))
       max(12px, env(safe-area-inset-left, 0px));
   }
 
-  /* 위 한 줄 = 제목(왼쪽) + 닫기(오른쪽), 아래 = 넘기는 목록 — 목록이 화면 높이를 거의 다 쓴다 */
+  /* 위 한 줄 = 제목(왼쪽) + 닫기(오른쪽), 아래 = 넘기는 두 칸 목록 */
   :root[data-layout='landscape'] .sheet--settings .sheet__panel {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
     grid-template-rows: auto minmax(0, 1fr);
     grid-template-areas: 'title actions' 'list list';
     align-items: center;
-    width: min(100%, 620px);
+    width: min(100%, 920px);
     height: 100%;
     max-height: 100%;
     overflow: hidden;
-    padding: 10px 0 0;
-    border-radius: 20px;
+    padding: 8px 0 0;
+    border-radius: 18px;
   }
 
   :root[data-layout='landscape'] .sheet--settings .sheet__title {
     grid-area: title;
-    padding: 0 24px;
-    font-size: 24px;
+    padding: 0 20px;
+    font-size: 21px;
   }
 
-  /* 가운데: 한 줄로 쌓고 위아래로 넘긴다 */
+  /* 가운데: PC처럼 두 칸(왼쪽 소리·닉네임 / 오른쪽 조작·화면), 넘치면 위아래로 넘긴다 */
   :root[data-layout='landscape'] .sheet--settings .settings__cols {
-    display: block;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    column-gap: 22px;
+    align-content: start;
     grid-area: list;
     align-self: stretch;
     min-height: 0;
-    margin-top: 8px;
-    padding: 0 24px 8px;
+    margin-top: 6px;
+    padding: 2px 20px 8px;
     overflow-y: auto;
     overscroll-behavior: contain;
     touch-action: pan-y;
     border-top: 1px solid var(--hairline);
-    border-bottom: 1px solid var(--hairline);
   }
 
   :root[data-layout='landscape'] .sheet--settings .settings__row {
-    gap: 16px;
-    min-height: 58px;
-    font-size: 18px;
+    gap: 12px;
+    min-height: 46px;
+    font-size: 16px;
   }
 
   :root[data-layout='landscape'] .sheet--settings .settings__row > span:first-child {
     flex: 1 1 auto;
-    min-width: 5em;
+    min-width: 4.5em;
     word-break: keep-all;
   }
 
   :root[data-layout='landscape'] .sheet--settings .settings__row--volume {
-    grid-template-columns: minmax(5em, auto) minmax(0, 1fr) auto;
+    grid-template-columns: minmax(4.5em, auto) minmax(0, 1fr) auto;
+  }
+
+  :root[data-layout='landscape'] .sheet--settings .switch {
+    width: 48px;
+    height: 28px;
+  }
+
+  :root[data-layout='landscape'] .sheet--settings .switch[aria-checked='true'] .switch__knob {
+    left: calc(100% - 4px - 20px);
+  }
+
+  :root[data-layout='landscape'] .sheet--settings .settings__slider {
+    height: 28px;
   }
 
   :root[data-layout='landscape'] .sheet--settings .settings__label {
-    gap: 8px;
-    margin-top: 14px;
-    font-size: 16px;
+    gap: 6px;
+    margin-top: 8px;
+    font-size: 14px;
   }
 
   :root[data-layout='landscape'] .sheet--settings .settings__input {
-    min-height: 48px;
-    padding: 0 16px;
-    font-size: 18px;
+    min-height: 42px;
+    padding: 0 14px;
+    font-size: 16px;
   }
 
   :root[data-layout='landscape'] .sheet--settings .settings__buttons {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    margin: 14px 0 6px;
+    gap: 8px;
+    margin: 10px 0 4px;
   }
 
   :root[data-layout='landscape'] .sheet--settings .settings__buttons .pill {
-    min-height: 48px;
-    padding: 0 12px;
-    font-size: 16px;
+    min-height: 42px;
+    padding: 0 10px;
+    font-size: 15px;
     word-break: keep-all;
   }
 
   :root[data-layout='landscape'] .sheet--settings .settings__help {
-    gap: 14px;
+    gap: 10px;
     margin-top: 0;
-    padding: 12px 14px;
-    font-size: 16px;
+    padding: 8px 12px;
+    font-size: 14px;
     word-break: keep-all;
   }
 
   :root[data-layout='landscape'] .sheet--settings .settings__help-text small {
-    font-size: 14px;
+    font-size: 12px;
   }
 
   :root[data-layout='landscape'] .sheet--settings .settings__art svg {
-    width: 88px;
-    height: 48px;
+    width: 70px;
+    height: 38px;
   }
 
   :root[data-layout='landscape'] .sheet--settings .tabs--seg {
     flex: none;
-    gap: 6px;
+    gap: 5px;
   }
 
   :root[data-layout='landscape'] .sheet--settings .tabs--seg .tab {
-    min-height: 44px;
-    min-width: 60px;
-    padding: 0 12px;
-    font-size: 17px;
+    min-height: 38px;
+    min-width: 50px;
+    padding: 0 10px;
+    font-size: 15px;
     white-space: nowrap;
   }
 
   :root[data-layout='landscape'] .sheet--settings .sheet__actions {
     grid-area: actions;
     margin: 0;
-    padding: 0 16px 0 0;
+    padding: 0 14px 0 0;
   }
 
   :root[data-layout='landscape'] .sheet--settings .sheet__actions .pill {
     width: auto;
-    min-width: 112px;
-    min-height: 46px;
-    padding: 0 22px;
-    font-size: 18px;
+    min-width: 100px;
+    min-height: 42px;
+    padding: 0 20px;
+    font-size: 16px;
+  }
+}
+
+/* 아주 좁은 가로(큰 글씨 설정 등): 두 칸이면 글자가 눌리므로 한 칸 */
+@media (max-height: 560px) and (max-width: 640px) {
+  :root[data-layout='landscape'] .sheet--settings .settings__cols {
+    grid-template-columns: minmax(0, 1fr);
   }
 }

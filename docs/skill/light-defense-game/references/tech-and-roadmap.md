@@ -154,6 +154,7 @@ export interface CharacterDef {
 - 판 위 DOM(HUD·스틱)은 매 프레임 레이아웃·다시 그리기를 부르지 않는다: 움직임은 `transform`·`opacity`만(`left`·`width`·배경·CSS 변수 애니메이션 금지 — 예: 밤 진행 별은 막대 폭 띠를 translateX, 빛 대기 링은 반쪽 고리 둘을 회전). 게임 프레임 도중 `offsetWidth` 같은 강제 레이아웃도 금지.
 - 배포판(`vite build`)만 게임이 쓰는 기능만 묶은 Phaser(`src/vendor/phaser-slim.cjs`, 물리·타일맵·사운드·파티클·글자 등 뺌)를 쓴다. 새 Phaser 기능(`this.add.xxx`)을 쓰면 그 Factory/Creator를 거기에 더하고 배포판을 미리보기로 확인한다.
 - 큰 스프라이트(캐릭터 시트·초상·중앙 광원·노월·마을 소품)와 배경은 WebP, 작은 그림·빛 효과(투명도가 정확해야 함)는 PNG.
-- 모양이 변하지 않는 도형은 `generateTexture`로 한 번 구워 이미지로 쓴다. Phaser Graphics는 매 프레임 다시 쪼개 그린다.
+- 모양이 변하지 않는 도형은 `generateTexture`로 한 번 구워 이미지로 쓴다(`entities/bake.ts`). Phaser Graphics는 화면 밖이어도 매 프레임 다시 쪼개 그린다 — 2026-11-20 3스테이지 돌담·울타리 30개·게이지가 프레임마다 약 3,500개 명령을 쪼개, 휴대폰 수준 CPU에서 한 프레임 19.4ms → 굽고 화면 밖 장식 끄기(`entities/WorldCuller.ts`) 뒤 7.0ms.
+- 한 프레임의 예외가 판을 멈추지 않게: Phaser RequestAnimationFrame은 호출 뒤에 다음 프레임을 예약하므로, 프레임·이벤트 버스의 예외는 잡아서 `core/errorLog.ts`에 남기고 계속한다. 휴대폰에서 `?debug`로 실제 초당 갱신 수·오류를 본다.
 - Phaser 도형 길이는 `setScale`·`setSize`로 바꾼다.
 - 버벅임은 헤드리스 크롬 + CPU 4배 느림으로 프레임 시간 분포·프로파일을 재서 찾는다.

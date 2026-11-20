@@ -13,13 +13,22 @@ import { watchProgress } from './core/Progress';
 import { installAudio } from './audio/Sound';
 import { installPullRefresh } from './ui/PullRefresh';
 import { installAutoFullscreen } from './ui/fullscreen';
+import { installGlobalErrorLog } from './core/errorLog';
+import { installContextGuard, installDebugOverlay } from './ui/healthGuard';
 
+// 처리되지 않은 오류도 남긴다(휴대폰에서만 나는 멈춤을 ?debug로 보기, 2026-11-20)
+installGlobalErrorLog();
 // 스플래시는 index.html에 이미 보이고 있다: 불러오기 진행을 받을 준비를 게임보다 먼저
 runSplash();
 // 화면 방식(세로·가로)을 게임·UI보다 먼저 정한다
 applyLayout();
 const game = new Phaser.Game(gameConfig);
 watchLayout(game);
+// 그래픽 문맥을 잃고 못 돌려받으면 새로고침, ?debug면 점검 화면 (2026-11-20)
+game.events.once(Phaser.Core.Events.READY, () => {
+  installContextGuard(game);
+  installDebugOverlay(game);
+});
 watchProgress();
 installAudio();
 installPullRefresh();

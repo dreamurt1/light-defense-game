@@ -39,6 +39,11 @@ export class Occluders {
     this.items.push({ objs: [...objs], box: r, depth, base: objs.map((o) => o.alpha), fade: 1 });
   }
 
+  /** 등록된 물체 모두 (화면 밖 끄기에 넘김, 2026-11-20) */
+  all(): Fadable[] {
+    return this.items.flatMap((it) => it.objs);
+  }
+
   /** @param keeper 등불지기 위치(깊이 = y). null이면(쓰러짐 등) 모두 원래대로 */
   update(dt: number, keeper: Vec | null): void {
     const k = Math.min(1, dt * RATE);

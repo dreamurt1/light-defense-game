@@ -24,7 +24,8 @@ export const gameConfig: Phaser.Types.Core.GameConfig = {
   input: { activePointers: 3 },
   // 소리는 게임 자체 Web Audio(src/audio)만 쓴다: Phaser 사운드가 AudioContext를 하나 더 만들지 않게 (2026-11-20)
   audio: { noAudio: true },
-  render: { antialias: true, powerPreference: 'high-performance' },
+  // antialiasGL(멀티샘플링): 그림 대부분이 스프라이트라 거의 차이가 없고 휴대폰 GPU 메모리·대역폭만 먹어 끈다 (2026-11-20)
+  render: { antialias: true, antialiasGL: false, powerPreference: 'high-performance' },
   // 2026-11-06 버벅임 보완: 120Hz 화면에서도 초당 60번만 그린다 (부담 절반, 발열로 느려지는 것 방지)
   fps: { target: 60, limit: 60 },
   // Boot → Preload(에셋) → Play. 메뉴 화면은 DOM(그림 배경)이라 씬이 없다. 화면 이동은 ui/Router.ts

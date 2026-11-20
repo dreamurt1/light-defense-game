@@ -129,11 +129,13 @@ export class AudioEngine {
     const out = opts.bus ?? this.sfx;
     if (!ctx || !out) return;
     const { type = 'sine', gain = 0.1, attack = 0.008, dur = 0.25 } = opts;
+    // Web Audio는 0 이하·숫자가 아닌 값으로 지수 변화를 주면 예외를 던진다 → 소리 하나 때문에 판이 멈추지 않게 건너뛴다 (2026-11-20)
+    if (!okPositive(freq) || !okPositive(gain) || !okPositive(attack) || !okPositive(dur) || !Number.isFinite(at)) return;
     const t0 = Math.max(at, ctx.currentTime);
     const osc = ctx.createOscillator();
     osc.type = type;
     osc.frequency.setValueAtTime(freq, t0);
-    if (opts.glideTo) osc.frequency.exponentialRampToValueAtTime(opts.glideTo, t0 + dur * 0.85);
+    if (opts.glideTo && okPositive(opts.glideTo)) osc.frequency.exponentialRampToValueAtTime(opts.glideTo, t0 + dur * 0.85);
     if (opts.detune) osc.detune.value = opts.detune;
     const env = ctx.createGain();
     env.gain.setValueAtTime(0.0001, t0);
@@ -160,6 +162,7 @@ export class AudioEngine {
     const out = this.sfx;
     if (!ctx || !out) return;
     const { gain = 0.08, dur = 0.2, attack = 0.01, band = 2000, q = 1 } = opts;
+    if (!okPositive(gain) || !okPositive(dur) || !okPositive(attack) || !okPositive(band) || !Number.isFinite(q) || !Number.isFinite(at)) return;
     const t0 = Math.max(at, ctx.currentTime);
     if (!this.noiseBuf) {
       const len = Math.floor(ctx.sampleRate * 1);
@@ -211,4 +214,9 @@ export const audio = new AudioEngine();
 /** 음이름 대신 반음 번호(A4 = 69)로 주파수 */
 export function midi(n: number): number {
   return 440 * Math.pow(2, (n - 69) / 12);
+}
+
+/** 0보다 큰 유한한 수 (Web Audio 지수 변화·주파수에 쓸 수 있는 값) */
+function okPositive(v: number): boolean {
+  return Number.isFinite(v) && v > 0;
 }

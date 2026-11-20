@@ -2,6 +2,8 @@
 // 게임이 쓰는 것만: phaser/src/phaser-core.js(공식 코어 빌드) + 컨테이너·사각형·선·렌더 텍스처·색·수학 전체.
 // 빠진 것: 물리(Arcade·Matter)·타일맵·사운드(게임은 자체 Web Audio)·파티클·글자·비디오·메시 등 → 압축 전 1196KB → 약 866KB, gzip 317KB → 약 191KB.
 // 새 Phaser 기능(this.add.xxx)을 쓰면 여기에 그 Factory/Creator를 더할 것 — 빠지면 배포판에서만 'add.xxx is not a function'.
+// 2026-11-20: add.text(말풍선·빛 맞힘 글자)를 빠뜨려 배포판에서 적이 빛에 맞을 때 예외 → 판이 멈췄다. 이제 tests/phaserSlim.test.ts가
+// 소스의 add.·make. 호출(줄바꿈 포함)이 모두 여기 Factory/Creator에 있는지 확인한다.
 require('phaser/src/polyfills/requestVideoFrame');
 var CONST = require('phaser/src/const');
 var Extend = require('phaser/src/utils/object/Extend');
@@ -31,6 +33,7 @@ var Phaser = {
     Shape: require('phaser/src/gameobjects/shape/Shape'),
     Rectangle: require('phaser/src/gameobjects/shape/rectangle/Rectangle'),
     Line: require('phaser/src/gameobjects/shape/line/Line'),
+    Text: require('phaser/src/gameobjects/text/Text'),
     Factories: {
       Container: require('phaser/src/gameobjects/container/ContainerFactory'),
       Graphics: require('phaser/src/gameobjects/graphics/GraphicsFactory'),
@@ -39,6 +42,7 @@ var Phaser = {
       RenderTexture: require('phaser/src/gameobjects/rendertexture/RenderTextureFactory'),
       Rectangle: require('phaser/src/gameobjects/shape/rectangle/RectangleFactory'),
       Line: require('phaser/src/gameobjects/shape/line/LineFactory'),
+      Text: require('phaser/src/gameobjects/text/TextFactory'),
     },
     Creators: {
       Container: require('phaser/src/gameobjects/container/ContainerCreator'),
@@ -46,6 +50,7 @@ var Phaser = {
       Image: require('phaser/src/gameobjects/image/ImageCreator'),
       Sprite: require('phaser/src/gameobjects/sprite/SpriteCreator'),
       RenderTexture: require('phaser/src/gameobjects/rendertexture/RenderTextureCreator'),
+      Text: require('phaser/src/gameobjects/text/TextCreator'),
     },
   },
   Input: require('phaser/src/input'),

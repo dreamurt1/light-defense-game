@@ -12,6 +12,8 @@ import { layoutFor } from '../systems/mapTheme';
 import type { Rect } from '../systems/obstacles';
 import { COTTAGE_LAMPS, COTTAGE_WINDOWS } from '../art/village';
 import { Occluders } from './Occluders';
+import { bakeTexture } from './bake';
+import { WorldCuller } from './WorldCuller';
 import type { Vec } from '../systems/fan';
 
 const MAP = GameData.map;
@@ -30,9 +32,13 @@ export class MapProps {
   private readonly bushLeaves: Phaser.GameObjects.Image[][];
   /** 등불지기를 가리면 반투명해지는 물체들 (2026-11-13) */
   readonly occluders = new Occluders();
+  /** 화면 밖 장식 끄기 (2026-11-20 휴대폰 렉) */
+  private readonly culler = new WorldCuller();
+  private readonly cam: Phaser.Cameras.Scene2D.Camera;
 
   constructor(scene: Phaser.Scene) {
     const rng = new Rng(8803);
+    this.cam = scene.cameras.main;
     // 테마별 지도 모양 (2026-11-18): 그 판의 테마(경계·어둠의 마을)에 맞는 장애물·풀숲을 더한다
     const lay = layoutFor(MAP, stageById(RunState.stageId).theme);
     this.obstacles = lay.obstacles.map(({ x, y, w, h }) => ({ x, y, w, h }));
@@ -100,10 +106,14 @@ export class MapProps {
       }
       return leaves;
     });
+    // 움직이지 않는 장식(바위·술통·담·오두막과 창문 빛·등불 기둥)과 풀숲 잎: 화면 밖이면 그리지 않는다
+    for (const o of this.occluders.all()) this.culler.add(o as unknown as Phaser.GameObjects.Image);
+    for (const leaves of this.bushLeaves) for (const leaf of leaves) this.culler.add(leaf);
   }
 
   /** 등불지기가 들어가 있는 풀숲(번호, 없으면 -1)을 반투명하게, 등불지기를 가리는 물체도 반투명하게 */
   update(dt: number, inside: number, keeper: Vec | null = null): void {
+    this.culler.update(this.cam);
     this.occluders.update(dt, keeper);
     const k = Math.min(1, dt * 8);
     this.bushLeaves.forEach((leaves, i) => {
@@ -116,9 +126,24 @@ export class MapProps {
 /** 담 높이(2.5D: 바닥 사각형 위로 솟은 만큼) — 2026-11-13 미로 요소, 임시 코드 그림 */
 const WALL_RISE = { wall: 26, fence: 22 };
 
-/** 돌담·나무 울타리: 바닥 사각형(판정)을 위로 솟은 덩어리로 그린다. 밑변 y로 앞뒤를 정한다 */
-function drawWall(scene: Phaser.Scene, r: Rect, kind: 'wall' | 'fence'): Phaser.GameObjects.Graphics {
-  const g = scene.add.graphics().setDepth(r.y + r.h);
+/** 굽는 그림의 가장자리 여유 (선 두께) */
+const BAKE_PAD = 2;
+
+/**
+ * 돌담·나무 울타리: 바닥 사각형(판정)을 위로 솟은 덩어리로 그린다. 밑변 y로 앞뒤를 정한다.
+ * 2026-11-20 휴대폰 렉: 매 프레임 다시 쪼개지는 Graphics 대신 크기별로 한 번 구운 그림(종류·폭·높이가 같으면 같은 그림)
+ */
+function drawWall(scene: Phaser.Scene, r: Rect, kind: 'wall' | 'fence'): Phaser.GameObjects.Image {
+  const rise = WALL_RISE[kind];
+  const key = bakeTexture(scene, `map-${kind}-${r.w}x${r.h}`, r.w + BAKE_PAD * 2, r.h + rise + BAKE_PAD * 2, (g) => {
+    // 원래 좌표 그대로 그리고 캔버스만 옮긴다
+    g.translateCanvas(BAKE_PAD - r.x, BAKE_PAD - (r.y - rise));
+    drawWallShape(g, r, kind);
+  });
+  return scene.add.image(r.x - BAKE_PAD, r.y - rise - BAKE_PAD, key).setOrigin(0, 0).setDepth(r.y + r.h);
+}
+
+function drawWallShape(g: Phaser.GameObjects.Graphics, r: Rect, kind: 'wall' | 'fence'): void {
   const rise = WALL_RISE[kind];
   if (kind === 'wall') {
     // 앞면(어두움) + 윗면(밝음) + 돌 줄눈
@@ -130,7 +155,7 @@ function drawWall(scene: Phaser.Scene, r: Rect, kind: 'wall' | 'fence'): Phaser.
     for (let x = r.x + 18; x < r.x + r.w - 6; x += 22) g.lineBetween(x, front, x, r.y + r.h);
     g.lineBetween(r.x, front + (r.y + r.h - front) / 2, r.x + r.w, front + (r.y + r.h - front) / 2);
     g.fillStyle(0xa89cd9, 0.18).fillRect(r.x + 2, r.y - rise + 2, r.w - 4, 3);
-    return g;
+    return;
   }
   // 세로 울타리: 기둥이 위아래로 늘어서고 가로대가 세로로
   if (r.h > r.w * 2) {
@@ -139,7 +164,7 @@ function drawWall(scene: Phaser.Scene, r: Rect, kind: 'wall' | 'fence'): Phaser.
     g.fillStyle(0x5a4636, 1);
     for (let i = 0; i <= n; i++) g.fillRect(r.x + 3, r.y - rise + (i * (r.h - 6)) / n, r.w - 6, 8);
     g.lineStyle(1, 0x1b1f3b, 0.7).strokeRect(r.x + 3, r.y - rise, r.w - 6, r.h + rise);
-    return g;
+    return;
   }
   // 울타리: 기둥 + 가로대 두 줄
   const posts = Math.max(2, Math.round(r.w / 34));
@@ -150,7 +175,6 @@ function drawWall(scene: Phaser.Scene, r: Rect, kind: 'wall' | 'fence'): Phaser.
   }
   g.fillStyle(0x7a5e48, 1).fillRect(r.x, r.y - rise + 6, r.w, 6).fillRect(r.x, r.y - rise + 18, r.w, 6);
   g.lineStyle(1, 0x1b1f3b, 0.7).strokeRect(r.x, r.y - rise + 6, r.w, 18);
-  return g;
 }
 
 /** 오두막 그림 키 (src/art에서 그린 임시 그림, 없으면 아래 대체 그림) */

@@ -14,6 +14,7 @@ import { texScale } from '../core/textureRes';
 import { WORLD_LIGHTS, type VillageLight } from '../art/village';
 import { expandRatio } from '../systems/LightSystem';
 import type { Vec } from '../systems/fan';
+import { WorldCuller } from './WorldCuller';
 
 /** 마을(월드) 크기 */
 const WORLD = GameData.game.world;
@@ -141,6 +142,8 @@ export class VillageStage {
   /** 구획 막 (2026-11-18): 중앙 광원에서 멀수록 어두운 막 — 어둠의 마을은 더 어둡다(테마별 진하기) */
   private readonly zoneVeil: Phaser.GameObjects.Image;
   private theme: StageDef['theme'] = 'light-village';
+  /** 화면 밖 창문 빛·반딧불 끄기 (2026-11-20 휴대폰 렉) */
+  private readonly culler = new WorldCuller();
 
   constructor(
     private readonly scene: Phaser.Scene,
@@ -176,6 +179,12 @@ export class VillageStage {
 
     for (const def of WORLD_LIGHTS) this.lights.push(this.makeLight(def));
     for (let i = 0; i < Math.min(FIREFLIES_MAX, FIREFLIES_BASE + FIREFLIES_PER_LIGHT * WORLD_LIGHTS.length); i++) this.fireflies.push(this.makeFirefly());
+    for (const p of this.lights) {
+      this.culler.add(p.pane);
+      this.culler.add(p.glow);
+    }
+    // 반딧불은 제자리 둘레를 맴돈다(±40)
+    for (const f of this.fireflies) this.culler.add(f.dot, 48);
     for (let i = 0; i < SPARKLE_POOL; i++) {
       this.sparkles.push(
         scene.add.image(0, 0, TextureKeys.sparkle).setBlendMode(Phaser.BlendModes.ADD).setVisible(false).setDepth(4100),
@@ -445,6 +454,7 @@ export class VillageStage {
 
   update(dt: number, pools: readonly LightPool[]): void {
     this.time += dt;
+    this.culler.update(this.scene.cameras.main);
     // 어두워질 땐 천천히, 회복으로 밝아질 땐 빨리
     const tau = this.gloomTarget > this.gloom ? GLOOM_DARKEN_TAU : GLOOM_LIFT_TAU;
     this.gloom += (this.gloomTarget - this.gloom) * follow(dt, tau);
@@ -503,41 +513,45 @@ export class VillageStage {
     if (!rt) return;
     // 한 번에 그린다. Phaser 3.90의 DynamicTexture는 beginDraw마다 따로 받는 버퍼를 지우고, endDraw에서 그것을 텍스처로 화면 크기만큼 옮겨 그린다
     // → 예전처럼 stamp마다 begin/end를 하면 빛 자국 하나에 전체 화면 지우기 + 옮겨 그리기가 한 번씩 (휴대폰 GPU가 가장 힘들어하는 일)
-    rt.beginDraw();
-    const base = Math.max(this.flood, this.dawning);
-    if (base > 0) {
-      const white = this.scene.textures.getFrame('__WHITE');
-      rt.stamp('__WHITE', undefined, 0, 0, { originX: 0, originY: 0, scaleX: rt.width / white.width, scaleY: rt.height / white.height, alpha: base, skipBatch: true });
-    }
-    // 화면에 붙어 있으므로 마을 좌표에서 카메라 스크롤을 뺀 자리에 찍는다
-    const cam = this.scene.cameras.main;
-    for (const p of pools) {
-      if (p.radius <= 0) continue;
-      rt.stamp(TextureKeys.glowMask, undefined, p.x - cam.scrollX, p.y - cam.scrollY, {
-        scale: (p.radius * 2 * LIT_POOL_RATIO) / 256,
-        alpha: p.alpha * LIT_POOL_ALPHA * this.dim,
-        skipBatch: true,
-      });
-    }
-    for (const f of this.fans) {
-      const r = f.range * expandRatio(f.age, expand);
-      const fade = f.age <= expand ? 1 : 1 - (f.age - expand) / LIT_AFTERGLOW_SEC;
-      rt.stamp(TextureKeys.fanMask, undefined, f.ox - cam.scrollX, f.oy - cam.scrollY, {
-        originX: 0,
-        originY: 0.5,
-        rotation: f.angle,
-        scale: r / FAN_TEXTURE_RADIUS,
-        alpha: Math.max(0, fade),
-        skipBatch: true,
-      });
-    }
-    // 켜진 마을: 빛 자국의 알파만큼만 남는다
-    rt.batchDraw(this.litLayer, -cam.scrollX, -cam.scrollY);
-    // endDraw의 옮겨 그리기는 마지막 섞기 방식을 그대로 쓴다 → '그대로 덮어쓰기'로 두면 텍스처를 따로 지울 필요도 없다
     const renderer = this.scene.renderer as Phaser.Renderer.WebGL.WebGLRenderer;
-    renderer.setBlendMode(blendModes(renderer).copy);
-    rt.endDraw();
-    renderer.setBlendMode(Phaser.BlendModes.NORMAL);
+    rt.beginDraw();
+    // 2026-11-20: 그리는 도중 예외가 나도 꼭 끝낸다 — 안 끝내면 그 뒤 프레임이 모두 받는 버퍼에 그려져 화면이 멎는다
+    try {
+      const base = Math.max(this.flood, this.dawning);
+      if (base > 0) {
+        const white = this.scene.textures.getFrame('__WHITE');
+        rt.stamp('__WHITE', undefined, 0, 0, { originX: 0, originY: 0, scaleX: rt.width / white.width, scaleY: rt.height / white.height, alpha: base, skipBatch: true });
+      }
+      // 화면에 붙어 있으므로 마을 좌표에서 카메라 스크롤을 뺀 자리에 찍는다
+      const cam = this.scene.cameras.main;
+      for (const p of pools) {
+        if (p.radius <= 0) continue;
+        rt.stamp(TextureKeys.glowMask, undefined, p.x - cam.scrollX, p.y - cam.scrollY, {
+          scale: (p.radius * 2 * LIT_POOL_RATIO) / 256,
+          alpha: p.alpha * LIT_POOL_ALPHA * this.dim,
+          skipBatch: true,
+        });
+      }
+      for (const f of this.fans) {
+        const r = f.range * expandRatio(f.age, expand);
+        const fade = f.age <= expand ? 1 : 1 - (f.age - expand) / LIT_AFTERGLOW_SEC;
+        rt.stamp(TextureKeys.fanMask, undefined, f.ox - cam.scrollX, f.oy - cam.scrollY, {
+          originX: 0,
+          originY: 0.5,
+          rotation: f.angle,
+          scale: r / FAN_TEXTURE_RADIUS,
+          alpha: Math.max(0, fade),
+          skipBatch: true,
+        });
+      }
+      // 켜진 마을: 빛 자국의 알파만큼만 남는다
+      rt.batchDraw(this.litLayer, -cam.scrollX, -cam.scrollY);
+    } finally {
+      // endDraw의 옮겨 그리기는 마지막 섞기 방식을 그대로 쓴다 → '그대로 덮어쓰기'로 두면 텍스처를 따로 지울 필요도 없다
+      renderer.setBlendMode(blendModes(renderer).copy);
+      rt.endDraw();
+      renderer.setBlendMode(Phaser.BlendModes.NORMAL);
+    }
   }
 }
 
