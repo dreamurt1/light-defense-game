@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-18T07:48:48.384Z",
+  "generatedAt": "2026-11-20T04:25:52.312Z",
   "sheets": [
     {
       "key": "portrait-lumi",
@@ -65,6 +65,32 @@
       "res": 1,
       "source": "code",
       "load": true,
+      "anims": []
+    },
+    {
+      "key": "portrait-tori-shade",
+      "category": "characters",
+      "label": "토리 실루엣 (잠긴 칸, 컨셉 그림)",
+      "file": "characters/portrait-tori-shade.png",
+      "frameWidth": 192,
+      "frameHeight": 192,
+      "frames": 1,
+      "res": 3,
+      "source": "art",
+      "load": false,
+      "anims": []
+    },
+    {
+      "key": "portrait-doto-shade",
+      "category": "characters",
+      "label": "도토 실루엣 (잠긴 칸, 컨셉 그림)",
+      "file": "characters/portrait-doto-shade.png",
+      "frameWidth": 192,
+      "frameHeight": 192,
+      "frames": 1,
+      "res": 3,
+      "source": "art",
+      "load": false,
       "anims": []
     },
     {

@@ -1,6 +1,6 @@
 // 선택 화면 (2026-11-12 새 기획 → 2026-11-13 컨셉 시연판): 등불지기(루미·토리·도토) + 스테이지(밤 4개).
 // 배치는 UI Screen Sheet(아치 속 큰 초상 + 좌우 화살표 + 이름·한 줄 소개 + 아래 칸 + 주 버튼) 아래에 '밤을 골라요' 줄을 더했다.
-//  - 친구 잠금은 진행 저장(Progress.isFriendOpen): 구출 스테이지에서 되찾으면 열린다. 잠긴 동안은 빛을 잃은 모습 초상
+//  - 친구 잠금은 진행 저장(Progress.isFriendOpen): 구출 스테이지에서 되찾으면 열린다. 잠긴 동안은 초상 실루엣(짙은 면색) + 물음표 (2026-11-20)
 //  - 스테이지는 앞 밤을 지나면 열린다(Progress.isStageOpen). 처음 들어오면 Progress.nextStage가 골라져 있다
 //  - 구석의 '시연: 모두 열기'(팀 시연용)는 Progress.unlockAll
 import { bus } from '../../core/events';
@@ -11,7 +11,7 @@ import { loadSettings, saveSettings } from '../../core/Settings';
 import { carryItemIds, carryOrDefault, isUnlocked } from '../../systems/unlocks';
 import { h, svg } from '../dom';
 import { badgeStarIcon, chevronLeftIcon, chevronRightIcon, lampIcon, lockIcon, moonIcon, pawIcon, playIcon } from '../icons';
-import { lostPortraitUrl, portraitUrl, screenBar, screenShell } from './common';
+import { lockedShade, portraitUrl, screenBar, screenShell, setLockedShade } from './common';
 import { startTutorial } from '../Story';
 
 /** 특성 이름과 짧은 설명 (제안: 새 기획에 특성이 없어 기존 이름을 이어 씀) */
@@ -21,7 +21,7 @@ const TRAIT: Record<CharacterDef['trait'], string> = {
   cheekPouch: '볼주머니 · 아이템 효과 1.5배',
 };
 
-/** 잠긴 친구 안내. 잠긴 동안은 빛을 잃은 모습 초상을 보여 준다 */
+/** 잠긴 친구 안내. 잠긴 동안은 초상 실루엣 + 물음표를 보여 준다 */
 const LOCKED_LINE = '잃어버린 친구예요. 구출하면 함께해요';
 const isLocked = (c: CharacterDef) => !Progress.isFriendOpen(c.id);
 
@@ -52,6 +52,8 @@ export class SelectScreen {
   /** 한 번 보여 준 뒤에는 직전 스테이지(RunState.stageId)를 기본으로 */
   private shownOnce = false;
   private readonly portrait: HTMLImageElement;
+  /** 잠긴 친구일 때 초상 대신 보이는 실루엣 + 물음표 */
+  private readonly shade: HTMLElement;
   private readonly name: HTMLElement;
   private readonly nameEn: HTMLElement;
   private readonly blurb: HTMLElement;
@@ -75,6 +77,7 @@ export class SelectScreen {
     next.addEventListener('click', () => this.view(this.index + 1));
 
     this.portrait = h('img', { class: 'select__portrait', alt: '', width: 192, height: 192 });
+    this.shade = lockedShade('select__portrait select__shade');
     this.name = h('span');
     this.nameEn = h('small');
     this.blurb = h('p', { class: 'select__blurb' });
@@ -82,7 +85,7 @@ export class SelectScreen {
     this.lock = h('p', { class: 'select__lock' });
 
     this.roster = chars.map((_c, i) => {
-      const b = h('button', { class: 'roster-card', type: 'button' }, h('img', { alt: '', width: 64, height: 64 }), h('span', { class: 'roster-card__lock' }, svg(lockIcon)));
+      const b = h('button', { class: 'roster-card', type: 'button' }, h('img', { alt: '', width: 64, height: 64 }), lockedShade(), h('span', { class: 'roster-card__lock' }, svg(lockIcon)));
       b.addEventListener('click', () => this.view(i));
       return b;
     });
@@ -136,7 +139,7 @@ export class SelectScreen {
     this.el = screenShell(
       'select',
       screenBar('등불지기'),
-      h('div', { class: 'select__stage' }, prev, h('div', { class: 'select__arch' }, this.portrait), next),
+      h('div', { class: 'select__stage' }, prev, h('div', { class: 'select__arch' }, this.portrait, this.shade), next),
       h('h3', { class: 'select__name' }, this.name, ' ', this.nameEn),
       this.blurb,
       this.stats,
@@ -178,8 +181,10 @@ export class SelectScreen {
     this.index = (i + chars.length) % chars.length;
     const c = chars[this.index];
     const locked = isLocked(c);
-    this.portrait.src = locked ? lostPortraitUrl(c.id) : portraitUrl(c.id);
-    this.portrait.classList.toggle('is-locked', locked);
+    this.portrait.src = portraitUrl(c.id);
+    this.portrait.hidden = locked;
+    this.shade.hidden = !locked;
+    if (locked) setLockedShade(this.shade, c.id);
     this.name.textContent = c.name;
     this.nameEn.textContent = c.nameEn;
     this.blurb.textContent = c.blurb;
@@ -190,7 +195,15 @@ export class SelectScreen {
       const def = chars[k];
       const off = isLocked(def);
       const img = b.querySelector('img');
-      if (img) img.src = off ? lostPortraitUrl(def.id) : portraitUrl(def.id);
+      if (img) {
+        img.src = portraitUrl(def.id);
+        img.hidden = off;
+      }
+      const shade = b.querySelector<HTMLElement>('.locked-shade');
+      if (shade) {
+        shade.hidden = !off;
+        if (off) setLockedShade(shade, def.id);
+      }
       b.classList.toggle('is-locked', off);
       b.classList.toggle('is-current', k === this.index);
       b.setAttribute('aria-label', `${def.name}${off ? ' (잠김)' : ''}`);

@@ -410,9 +410,53 @@
   height: calc(var(--u) * 236);
 }
 
-/* 잠긴 친구는 빛을 잃은 모습 그림(검은 털 + 보랏빛 눈)에 라벤더 기운만 (2026-11-12) */
-.select__portrait.is-locked {
-  filter: drop-shadow(0 0 calc(var(--u) * 10) color-mix(in srgb, var(--lavender) 45%, transparent));
+/* 아치 안의 초상과 잠긴 친구 실루엣은 같은 칸에 겹친다 */
+.select__arch > * {
+  grid-area: 1 / 1;
+}
+
+/* ---------- 잠긴 친구 (2026-11-20 라이언): reference 컨셉 그림의 실루엣을 짙은 면색으로 + 물음표, 자물쇠는 그대로 ----------
+   면 = portrait-<id>-shade.png(짙은 남색, 위가 아주 조금 밝음), 가장자리 = 얇은 라벤더 빛(어두운 바탕에서도 모양이 읽히게) */
+.locked-shade {
+  position: relative;
+  display: block;
+  container-type: size;
+  filter: drop-shadow(0 0 calc(var(--u) * 1.2) color-mix(in srgb, var(--lavender) 70%, transparent))
+    drop-shadow(0 0 calc(var(--u) * 9) color-mix(in srgb, var(--lavender) 28%, transparent));
+}
+
+.locked-shade[hidden] {
+  display: none;
+}
+
+.locked-shade__fill {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.locked-shade__mark {
+  position: absolute;
+  left: 50%;
+  top: 57%;
+  transform: translate(-50%, -50%);
+  font-size: 34cqh;
+  font-weight: 800;
+  line-height: 1;
+  color: color-mix(in srgb, var(--lavender) 80%, var(--paper));
+  text-shadow: 0 0 6cqh color-mix(in srgb, var(--lavender) 55%, transparent);
+}
+
+.roster-card .locked-shade {
+  position: absolute;
+  inset: 0;
+}
+
+/* 작은 칸: 오른쪽 아래 자물쇠(22u)와 겹치지 않게 물음표를 조금 작게, 조금 위로 */
+.roster-card .locked-shade__mark {
+  top: 43%;
+  font-size: 27cqh;
 }
 
 .select__name {
@@ -475,10 +519,6 @@
 .roster-card img {
   width: 100%;
   height: 100%;
-}
-
-.roster-card.is-locked {
-  background: var(--predawn);
 }
 
 .roster-card__lock {

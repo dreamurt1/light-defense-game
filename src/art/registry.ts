@@ -5,6 +5,7 @@
 import { GameData, type CharacterId } from '../data';
 import { KEEPER_SPRITE, PORTRAIT, drawKeeperFrame, drawPortrait } from './characters';
 import { drawFriendPortrait } from './friends';
+import { SHADE_RES, composeLockedShade, drawShadeFallback } from './lockedShade';
 import {
   FAN_TEXTURE_RADIUS,
   GLOW_SIZE,
@@ -148,6 +149,21 @@ const characters: SheetDef[] = [
       frames: 1,
       draw: (ctx) => drawFriendPortrait(ctx, id, 'lost'),
       art: { poses: ['sit'], frames: still(1), fit: 'contain', box: { x: 10, y: 8, w: 172, h: 180 }, align: 'feet', res: 3 },
+    }),
+  ),
+  // 선택 화면의 잠긴 친구 칸(2026-11-20 라이언): reference 컨셉 그림의 실루엣만 짙은 면색으로 (src/art/lockedShade.ts) — 화면(DOM)에서만 쓴다
+  ...(['tori', 'doto'] as const).map(
+    (id): SheetDef => ({
+      key: `portrait-${id}-shade`,
+      category: 'characters',
+      label: `${GameData.characters.find((c) => c.id === id)?.name ?? id} 실루엣 (잠긴 칸, 컨셉 그림)`,
+      frameWidth: PORTRAIT.size,
+      frameHeight: PORTRAIT.size,
+      frames: 1,
+      draw: (ctx) => drawShadeFallback(ctx, id),
+      build: () => composeLockedShade(id),
+      buildRes: SHADE_RES,
+      load: false,
     }),
   ),
   // 2026-11-04 루미 재구성: LUMI 시트에서 잘라 낸 프레임(npm run art:lumi)으로 만든 8방향 시트.
