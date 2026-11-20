@@ -10,6 +10,13 @@
     <!-- 늘 어두운 게임 화면: 브라우저·기기 야간 모드(크롬 '사이트에 어두운 테마', 삼성 인터넷 다크 모드, 확장 프로그램)가 색을 바꾸지 않게 (2026-11-20) -->
     <meta name="color-scheme" content="only dark" />
     <meta name="darkreader-lock" />
+    <!-- 홈 화면 앱(2026-11-20): 홈 화면 아이콘으로 열면 탭 없이 바로 전체 화면(display: fullscreen). 브라우저 주소로 열면 첫 탭에서 전체 화면(src/ui/fullscreen.ts) -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="라이트 디펜스" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
     <meta name="description" content="작은 빛으로, 마을을 되찾아요." />
     <link
       rel="icon"

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { turnHint } from '../src/core/layout';
 import { loadSettings, volumeGain } from '../src/core/Settings';
 import { manifestEntries } from '../src/audio/Recorded';
-import { autoFullscreenWanted } from '../src/ui/fullscreen';
+import { EXIT_HINT, autoFullscreenWanted } from '../src/ui/fullscreen';
 
 const store = (v: unknown) => ({ getItem: () => (v === null ? null : JSON.stringify(v)) });
 
@@ -73,5 +73,13 @@ describe('휴대폰 기본 전체 화면 (2026-11-20)', () => {
     expect(autoFullscreenWanted({ ...base, supported: false })).toBe(false); // 아이폰 사파리
     expect(autoFullscreenWanted({ ...base, active: true })).toBe(false); // 이미 전체 화면
     expect(autoFullscreenWanted({ ...base, tried: true })).toBe(false); // 스스로 나간 뒤엔 다시 끌어들이지 않음
+    expect(autoFullscreenWanted({ ...base, app: true })).toBe(false); // 홈 화면 앱은 처음부터 전체 화면
+  });
+});
+
+describe('전체 화면 해제 안내 (2026-11-20)', () => {
+  it('라이언이 확인한 방법(옆 가장자리에서 밀기)만, 위에서 드래그 이야기는 없다', () => {
+    expect(EXIT_HINT).toContain('옆 가장자리');
+    expect(EXIT_HINT).not.toContain('위에서');
   });
 });
