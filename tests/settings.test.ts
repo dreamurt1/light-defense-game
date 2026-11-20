@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { turnHint } from '../src/core/layout';
 import { loadSettings, volumeGain } from '../src/core/Settings';
 import { manifestEntries } from '../src/audio/Recorded';
-import { EXIT_HINT, autoFullscreenWanted } from '../src/ui/fullscreen';
+import { EXIT_HINT, TAP_HINT, autoFullscreenWanted } from '../src/ui/fullscreen';
 
 const store = (v: unknown) => ({ getItem: () => (v === null ? null : JSON.stringify(v)) });
 
@@ -81,5 +81,10 @@ describe('전체 화면 해제 안내 (2026-11-20)', () => {
   it('라이언이 확인한 방법(옆 가장자리에서 밀기)만, 위에서 드래그 이야기는 없다', () => {
     expect(EXIT_HINT).toContain('옆 가장자리');
     expect(EXIT_HINT).not.toContain('위에서');
+  });
+
+  it('접속 안내는 누르면 전체 화면이 된다고 알려 준다 (2026-11-20)', () => {
+    expect(TAP_HINT).toContain('누르면');
+    expect(TAP_HINT).toContain('전체 화면');
   });
 });

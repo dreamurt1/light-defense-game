@@ -6,6 +6,15 @@ import { bus } from '../core/events';
 const MIN_MS = 1200;
 const FADE_MS = 600;
 
+/** 스플래시가 다 사라진 뒤 할 일 (전체 화면 탭 안내 등, 2026-11-20) */
+const goneListeners: (() => void)[] = [];
+let gone = false;
+
+export function whenSplashGone(fn: () => void): void {
+  if (gone || !document.getElementById('splash')) window.setTimeout(fn, 0);
+  else goneListeners.push(fn);
+}
+
 export function runSplash(): void {
   const el = document.getElementById('splash');
   if (!el) return;
@@ -20,7 +29,11 @@ export function runSplash(): void {
     const wait = quick ? 0 : Math.max(0, MIN_MS - performance.now());
     window.setTimeout(() => {
       el.classList.add('is-done');
-      window.setTimeout(() => el.remove(), FADE_MS + 50);
+      window.setTimeout(() => {
+        el.remove();
+        gone = true;
+        goneListeners.splice(0).forEach((fn) => fn());
+      }, FADE_MS + 50);
     }, wait);
   });
 }

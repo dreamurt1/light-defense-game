@@ -1342,3 +1342,9 @@ body {
     transition: opacity 0.2s;
   }
 }
+
+/* 접속 안내('화면을 한 번 누르면…'): 안내 자체를 누르면 전체 화면만 — 밑의 버튼(상점 등)이 함께 눌려 다른 화면으로 가지 않게 */
+.fs-hint--tap.is-on {
+  pointer-events: auto;
+  cursor: pointer;
+}

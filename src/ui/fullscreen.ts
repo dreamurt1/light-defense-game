@@ -3,10 +3,14 @@
 // - 브라우저 주소로 열면: 브라우저는 사용자의 손길(탭) 직후에만 전체 화면을 허락하므로 페이지를 연 뒤 첫 탭에서 한 번 들어간다.
 //   설정 '전체 화면' 스위치로 끄면 다음부터 자동으로 들어가지 않는다(phoneFullscreen). 스스로 나가면(좌우 스와이프 등) 그 방문 동안은 다시 끌어들이지 않는다.
 // - 들어가면 게임의 해제 안내를 잠깐 띄운다(옆 가장자리에서 밀기 — 라이언 확인). 크롬이 위쪽에 띄우는 '위에서 아래로 드래그…'는 브라우저 문구라 바꿀 수 없다.
+import { bus } from '../core/events';
 import { loadSettings, saveSettings } from '../core/Settings';
 import { h } from './dom';
 import { isTouchDevice } from './layout';
+import { whenSplashGone } from './Splash';
 
+/** 브라우저로 접속했을 때 첫 탭 전까지 띄우는 안내 (2026-11-20 라이언) */
+export const TAP_HINT = '화면을 한 번 누르면 전체 화면으로 바뀌어요';
 /** 해제 안내 (라이언 확인: 좌우 가장자리에서 밀면 풀림) */
 export const EXIT_HINT = '옆 가장자리에서 밀면 전체 화면이 풀려요';
 const HINT_MS = 3200;
@@ -39,11 +43,8 @@ const GESTURES = ['pointerup', 'touchend', 'click'] as const;
 
 export function installAutoFullscreen(): void {
   let tried = false;
-  const onGesture = (e: Event): void => {
-    const ua = (navigator as Navigator & { userActivation?: { isActive: boolean } }).userActivation;
-    // 손길로 인정되기 전이면 다음 이벤트를 기다린다 (확인 수단이 없는 브라우저는 click에서)
-    if (ua ? !ua.isActive : e.type !== 'click') return;
-    const want = autoFullscreenWanted({
+  const wanted = (): boolean =>
+    autoFullscreenWanted({
       coarse: isTouchDevice(),
       pref: loadSettings().phoneFullscreen,
       supported: document.fullscreenEnabled === true,
@@ -51,7 +52,21 @@ export function installAutoFullscreen(): void {
       tried,
       app: isAppMode(),
     });
+
+  // 첫 탭 전까지: '화면을 한 번 누르면 전체 화면으로 바뀌어요' (스플래시가 사라진 뒤, 그 탭이 전체 화면으로 바꿀 때만)
+  const tapHint = h('div', { class: 'fs-hint fs-hint--tap', role: 'status', 'aria-live': 'polite' }, TAP_HINT);
+  document.body.append(tapHint);
+  // 메뉴 화면에서만: 판으로 바로 열렸거나(새로고침 다시 하기) 판이 시작되면 가린다 — 판 위 가운데를 덮지 않게
+  whenSplashGone(() => tapHint.classList.toggle('is-on', wanted() && document.documentElement.dataset.screen !== 'play'));
+  bus.on('run:start', () => tapHint.classList.remove('is-on'));
+
+  const onGesture = (e: Event): void => {
+    const ua = (navigator as Navigator & { userActivation?: { isActive: boolean } }).userActivation;
+    // 손길로 인정되기 전이면 다음 이벤트를 기다린다 (확인 수단이 없는 브라우저는 click에서)
+    if (ua ? !ua.isActive : e.type !== 'click') return;
+    const want = wanted();
     tried = true;
+    tapHint.classList.remove('is-on');
     for (const t of GESTURES) removeEventListener(t, onGesture, true);
     if (want) enter();
   };
