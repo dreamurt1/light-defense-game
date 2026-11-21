@@ -1304,7 +1304,7 @@ body {
   pointer-events: none;
 }
 
-/* 전체 화면 해제 안내 (2026-11-20, ui/fullscreen.ts): 휴대폰에서 전체 화면에 들어갈 때 화면 가운데에 잠깐 — 위쪽은 크롬이 자기 문구를 띄우는 자리, 아래쪽은 버튼·스틱 */
+/* 전체 화면 안내 (2026-11-20, ui/fullscreen.ts) — 자리는 아래 '게임하기 바로 위' 규칙 */
 .fs-hint {
   position: fixed;
   left: 50%;
@@ -1368,16 +1368,26 @@ body {
   pointer-events: none;
 }
 
-/* 홈(웹 썸네일, 2026-11-21): 가운데는 세로의 왼쪽 버튼 목록·가로의 실루엣과 겹친다 → 접속 안내는 화면 아래 가운데
-   (세로 = '게임하기' 밑 꽃밭, 가로 = 등불 아래 냇물) */
+/* 두 안내(접속 '화면을 한 번 누르면…'·해제 '옆에서 밀거나…')는 2.5초, 세로 화면에서는 홈 '게임하기' 바로 위·가운데 맞춤 (2026-11-21 라이언) —
+   자리는 ui/fullscreen.ts가 '게임하기'의 실제 자리로 잰다(--hint-x·--hint-y, 화면 밖으로 나가지 않게).
+   가로이거나 '게임하기'가 안 보이면(판 중 등) 원래 자리: 접속 안내 = 화면 아래 가운데, 해제 안내 = 가운데 */
 .fs-hint--tap {
   top: auto;
   bottom: max(1%, calc(env(safe-area-inset-bottom, 0px) + 6px));
-  padding: 7px 14px;
-  font-size: 14px;
   transform: translate(-50%, 12px);
 }
 
 .fs-hint--tap.is-on {
   transform: translate(-50%, 0);
+}
+
+.fs-hint.is-anchored {
+  left: var(--hint-x);
+  top: var(--hint-y);
+  bottom: auto;
+  transform: translate(-50%, calc(-100% + 10px));
+}
+
+.fs-hint.is-anchored.is-on {
+  transform: translate(-50%, -100%);
 }

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { turnHint } from '../src/core/layout';
 import { loadSettings, volumeGain } from '../src/core/Settings';
 import { manifestEntries } from '../src/audio/Recorded';
-import { EXIT_HINT, TAP_HINT, autoFullscreenWanted } from '../src/ui/fullscreen';
+import { EXIT_HINT, HINT_MS, TAP_HINT, autoFullscreenWanted, hintCenterX } from '../src/ui/fullscreen';
 
 const store = (v: unknown) => ({ getItem: () => (v === null ? null : JSON.stringify(v)) });
 
@@ -78,9 +78,19 @@ describe('휴대폰 기본 전체 화면 (2026-11-20)', () => {
 });
 
 describe('전체 화면 해제 안내 (2026-11-20)', () => {
-  it('라이언이 확인한 방법(옆 가장자리에서 밀기)만, 위에서 드래그 이야기는 없다', () => {
-    expect(EXIT_HINT).toContain('옆 가장자리');
+  it('해제 안내 = 라이언 문구 그대로(옆에서 밀기 또는 위 설정), 크롬의 위에서 드래그 이야기는 없다 (2026-11-21)', () => {
+    expect(EXIT_HINT).toBe('옆에서 밀거나 상단 환경설정에서 전체 화면을 풀어요');
     expect(EXIT_HINT).not.toContain('위에서');
+  });
+
+  it('두 안내는 2.5초 (2026-11-21)', () => {
+    expect(HINT_MS).toBe(2500);
+  });
+
+  it("안내는 '게임하기' 가운데에 두되 화면 밖으로 나가지 않는다", () => {
+    expect(hintCenterX(195, 300, 390)).toBe(195); // 폰 세로: 가운데 그대로
+    expect(hintCenterX(700, 400, 844)).toBe(844 - 200 - 8); // 폰 가로: 오른쪽 메뉴의 '게임하기' → 화면 안으로 당김
+    expect(hintCenterX(50, 300, 390)).toBe(150 + 8); // 왼쪽 끝
   });
 
   it('접속 안내는 누르면 전체 화면이 된다고 알려 준다 (2026-11-20)', () => {
