@@ -1,4 +1,12 @@
-# 홈 그림 — Claude 점검·적용 기록 (2026-11-18)
+# 홈 그림 — Claude 점검·적용 기록 (2026-11-18, 2026-11-21 세로 썸네일 추가)
+
+## 2026-11-21 세로 홈 = 웹 썸네일
+
+- `light-defense-web-thumbnail.png`: 바탕화면에서 받은 그대로(830×1894). 라이언 지시로 세로 홈(폰 세로·PC 세로)에 씀 → `art-src/backgrounds/home-thumb.png`(같은 파일) → `home-thumb.webp`.
+- 점검(`scripts/art-check.mjs --kind bg`): 경고 없음, 좌우 가장자리 어두움(흰 줄 없음).
+- 그림에 제목·실루엣이 들어 있음(앞선 '캐릭터 없이 풍경만'과 다름 — 라이언 최신 지시가 우선). 실루엣 일부는 캐릭터 기준과 다름(다람쥐 둘·새싹 머리·박쥐 날개·토끼 머리의 꽃).
+- 배치는 `docs/design/HOME_SCREEN.md` 7절.
+
 
 받은 것: `Light_Defense_Home_Assets.zip`(ChatGPT, 의뢰 `hand-offs/chatgpt-home-bg-26-1118-1440/`). 이 폴더의 PNG 3장과 `README.md`는 받은 그대로다.
 

@@ -514,6 +514,20 @@ const backgrounds: SheetDef[] = [
     art: cover(2),
   },
   {
+    // 2026-11-21 라이언: 세로 홈(폰 세로·PC 세로)은 웹 썸네일 그림 — 제목(LIGHT DEFENSE)과 등불 둘레 실루엣이 그림에 들어 있다.
+    // 원본 reference/Home_Art_Pack/light-defense-web-thumbnail.png(830×1894), 비율 그대로
+    key: 'home-thumb',
+    category: 'backgrounds',
+    label: '홈 배경 — 세로 (웹 썸네일: 제목·실루엣 포함)',
+    frameWidth: 415,
+    frameHeight: 947,
+    frames: 1,
+    format: 'webp',
+    load: false,
+    draw: (ctx) => drawVillage(ctx, DARK),
+    art: cover(2),
+  },
+  {
     key: 'home-wide',
     category: 'backgrounds',
     label: '홈 배경 — 가로',

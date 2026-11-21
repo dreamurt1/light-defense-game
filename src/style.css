@@ -1298,7 +1298,8 @@ body {
   position: fixed;
   inset: -24px;
   z-index: -1;
-  background: url('/assets/backgrounds/home.webp') center / cover no-repeat;
+  /* 띠에는 그림의 등불 둘레(따뜻한 빛)가 오게 — 제목 쪽이면 흐린 큰 글자가 띠에 비친다 */
+  background: url('/assets/backgrounds/home-thumb.webp') center 64% / cover no-repeat;
   filter: blur(18px) brightness(0.62) saturate(0.95);
   pointer-events: none;
 }
@@ -1365,4 +1366,17 @@ body {
   white-space: pre-wrap;
   word-break: break-all;
   pointer-events: none;
+}
+
+/* 세로 홈(웹 썸네일, 2026-11-21): 가운데는 왼쪽 둥근 버튼 목록과 겹친다 → 접속 안내는 '게임하기' 밑 빈 꽃밭(화면 아래)에 */
+:root:not([data-layout='landscape']) .fs-hint--tap {
+  top: auto;
+  bottom: max(1%, calc(env(safe-area-inset-bottom, 0px) + 6px));
+  padding: 7px 14px;
+  font-size: 14px;
+  transform: translate(-50%, 12px);
+}
+
+:root:not([data-layout='landscape']) .fs-hint--tap.is-on {
+  transform: translate(-50%, 0);
 }

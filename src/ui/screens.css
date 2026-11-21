@@ -125,15 +125,17 @@
 }
 
 /* ---------- 홈 (2026-11-18 새 기획, docs/design/HOME_SCREEN.md) ----------
-   배경(ChatGPT)에는 캐릭터·제목·버튼이 없다 — 홈은 캐릭터 없이 풍경만(2026-11-18 라이언).
-   장면 상자(.home__scene)는 그림 비율 그대로 화면을 덮고 가운데에. 제목·버튼·프로필은 화면 기준.
-   세로 그림 home.webp 1064×2340(등불 x 77%·받침 아래 y 70.5%), 가로 그림 home-wide.webp 2332×1080(등불 x 51.7%·y 98.5%). */
+   장면 상자(.home__scene)는 그림 비율 그대로 화면을 덮는다. 제목·버튼·프로필은 화면 기준.
+   가로 = home-wide.webp 2332×1080(캐릭터·제목 없는 풍경, 등불 x 51.7%·y 98.5%) + 게임이 얹는 제목 PNG·한글 이름·슬로건.
+   세로(폰 세로·PC 세로, 2026-11-21 라이언) = 웹 썸네일 home-thumb.webp 830×1894 — 제목(y 10~30%)과 등불 둘레 실루엣(y 52~72%,
+   등불 x 50%)이 그림에 들어 있어 게임의 제목·한글 문구는 숨긴다. 그림의 30% 높이를 화면 30% 높이에 맞춰(--anchor) PC 세로(9:16)에서도 제목이 남게 */
 .screen--home {
   isolation: isolate;
   overflow: hidden;
   background: var(--predawn);
-  --art: url('/assets/backgrounds/home.webp');
-  --art-r: 0.4547;
+  --art: url('/assets/backgrounds/home-thumb.webp');
+  --art-r: 0.4382;
+  --anchor: 0.3;
   /* 장면 상자 크기(그림 비율로 화면을 덮음) — 버튼을 그림 속 자리(그림 %)에 붙일 때 쓴다 */
   --scene-w: max(100cqw, calc(100cqh * var(--art-r)));
   --scene-h: max(100cqh, calc(100cqw / var(--art-r)));
@@ -142,11 +144,12 @@
 .home__scene {
   position: absolute;
   left: 50%;
-  top: 50%;
+  /* 그림의 --anchor 높이 = 화면의 --anchor 높이 (가로는 0.5 = 가운데) */
+  top: calc(var(--anchor) * 100%);
   z-index: -2;
   width: max(100cqw, calc(100cqh * var(--art-r)));
   aspect-ratio: var(--art-r);
-  transform: translate(-50%, -50%);
+  transform: translate(-50%, calc(var(--anchor) * -100%));
   background: var(--art) center / 100% 100% no-repeat;
 }
 
@@ -305,24 +308,38 @@
   }
 }
 
-/* 세로 (2026-11-18 라이언: 등불 왼쪽 공간 활용 → '너무 일렬, 더 위로' → 세로 목록): 둥근 버튼 넷은 그림 왼쪽 어두운 숲에
-   위에서부터 한 줄씩 세로 목록(그림 x 7%, 화면 높이 37%부터 = 제목·슬로건 바로 밑 — 마을(x 52~85%)·등불(x 70~84%)의 왼쪽),
-   '게임하기'는 등불 받침 바로 아래(그림 y 76%).
-   자리는 그림 % → 화면: 50cqw + (그림x − 0.5) × 장면 폭, 50cqh + (그림y − 0.5) × 장면 높이 */
+/* 세로 (2026-11-21 웹 썸네일): 제목은 그림 속 것을 쓰므로 게임의 제목 PNG·한글 이름·슬로건은 보이지 않게(라이언: 한글 문구 삭제) —
+   화면 읽기용으로만 남긴다. 둥근 버튼 넷은 그림 왼쪽 어두운 나무줄기 쪽에 위에서부터 세로 목록(그림 x 6%, 제목 밑 y 32%부터 —
+   달·성(x 47~80%)과 등불 둘레 실루엣(y 53% 아래)을 가리지 않게), '게임하기'는 등불 받침 바로 아래 풀·물 위(그림 y 73.5%).
+   자리는 그림 % → 화면: x = 50cqw + (그림x − 0.5) × 장면 폭, y = 고정점 × 100cqh + (그림y − 고정점) × 장면 높이 */
+:root:not([data-layout='landscape']) .home__title {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
 :root:not([data-layout='landscape']) .home__menu {
   display: contents;
 }
 
 :root:not([data-layout='landscape']) .home__badges {
   position: absolute;
-  left: calc(50cqw + (0.07 - 0.5) * var(--scene-w));
-  /* 위에서부터(라이언): 제목·슬로건(화면 높이 33% 안쪽) 바로 밑 */
-  top: 37%;
+  left: max(calc(var(--u) * 16), calc(50cqw + (0.06 - 0.5) * var(--scene-w)));
+  /* 제목 장식선(그림 y 29%) 바로 밑부터, 등불 둘레 실루엣 머리(그림 y 53%) 위에서 끝나게 */
+  top: calc(var(--anchor) * 100cqh + (0.305 - var(--anchor)) * var(--scene-h));
   width: auto;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: calc(var(--u) * 16);
+  gap: max(6px, calc(var(--u) * 8));
+}
+
+/* 세로 목록은 네 개가 위아래로 서므로 손가락 최소 크기를 44px로(작은 폰에서도 실루엣 머리에 닿지 않게) */
+:root:not([data-layout='landscape']) .home-badge__icon {
+  width: max(44px, calc(var(--u) * 56));
 }
 
 /* 세로 목록: 둥근 아이콘 오른쪽에 글자 */
@@ -332,13 +349,13 @@
 }
 
 :root:not([data-layout='landscape']) .home-badge__label {
-  font-size: calc(var(--u) * 17);
+  font-size: max(14px, calc(var(--u) * 17));
 }
 
 :root:not([data-layout='landscape']) .home__start {
   position: absolute;
   left: 50%;
-  top: calc(50cqh + (0.76 - 0.5) * var(--scene-h));
+  top: calc(var(--anchor) * 100cqh + (0.735 - var(--anchor)) * var(--scene-h));
   transform: translateX(-50%);
   width: min(calc(100% - calc(var(--u) * 44)), calc(var(--u) * 340));
 }
@@ -1412,6 +1429,7 @@
 :root[data-layout='landscape'] .screen--home {
   --art: url('/assets/backgrounds/home-wide.webp');
   --art-r: 2.1593;
+  --anchor: 0.5;
 }
 
 :root[data-layout='landscape'] .screen--home::before {
