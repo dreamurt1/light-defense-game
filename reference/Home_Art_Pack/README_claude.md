@@ -7,6 +7,11 @@
 - 그림에 제목·실루엣이 들어 있음(앞선 '캐릭터 없이 풍경만'과 다름 — 라이언 최신 지시가 우선). 실루엣 일부는 캐릭터 기준과 다름(다람쥐 둘·새싹 머리·박쥐 날개·토끼 머리의 꽃).
 - 배치는 `docs/design/HOME_SCREEN.md` 7절.
 
+## 2026-11-21 가로 홈 = 웹 썸네일 16:9
+
+- `light-defense-web-thumbnail-landscape.png`: 라이언이 이 폴더에 둔 그대로(1672×941). 가로 홈(PC 풀·폰 가로)에 씀 → `art-src/backgrounds/home-thumb-wide.png`(같은 파일) → `home-thumb-wide.webp`.
+- 점검(`scripts/art-check.mjs --kind bg`): 경고 없음. 제목·실루엣은 세로 썸네일과 같은 그림(16:9로 넓힘). 배치는 `docs/design/HOME_SCREEN.md` 8절.
+
 
 받은 것: `Light_Defense_Home_Assets.zip`(ChatGPT, 의뢰 `hand-offs/chatgpt-home-bg-26-1118-1440/`). 이 폴더의 PNG 3장과 `README.md`는 받은 그대로다.
 

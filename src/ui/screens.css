@@ -312,7 +312,8 @@
    화면 읽기용으로만 남긴다. 둥근 버튼 넷은 그림 왼쪽 어두운 나무줄기 쪽에 위에서부터 세로 목록(그림 x 6%, 제목 밑 y 32%부터 —
    달·성(x 47~80%)과 등불 둘레 실루엣(y 53% 아래)을 가리지 않게), '게임하기'는 등불 받침 바로 아래 풀·물 위(그림 y 73.5%).
    자리는 그림 % → 화면: x = 50cqw + (그림x − 0.5) × 장면 폭, y = 고정점 × 100cqh + (그림y − 고정점) × 장면 높이 */
-:root:not([data-layout='landscape']) .home__title {
+/* 2026-11-21: 가로 그림(웹 썸네일 16:9)에도 제목이 들어 있어 세로·가로 모두 숨긴다 */
+.screen--home .home__title {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -1424,34 +1425,37 @@
     max(calc(var(--u) * 18), env(safe-area-inset-bottom, 0px)) max(calc(var(--u) * 36), env(safe-area-inset-left, 0px));
 }
 
-/* 홈 (2026-11-18 새 기획): 가로 그림. 제목은 위 가운데(맑은 하늘), 메뉴는 오른쪽 아래(언덕 위 마을 밑) —
-   둥근 버튼 넷 한 줄 + '게임하기', 프로필은 왼쪽 아래 */
+/* 홈 가로 (2026-11-21 라이언: 웹 썸네일 16:9 home-thumb-wide.webp 1672×941) — 제목(x 44~58%, y 10~31%)·달·성·등불 둘레 실루엣
+   (x 35~64%, y 54~77%)이 가운데, 양옆(x 0~30%, 70~100%)은 어두운 숲. 메뉴는 오른쪽 숲 가운데 높이에 둥근 버튼 2×2 + '게임하기',
+   프로필은 왼쪽 아래, 설정은 오른쪽 위. 고정점 35%: 20:9 폰 가로처럼 위아래가 잘려도 제목이 남게 */
 :root[data-layout='landscape'] .screen--home {
-  --art: url('/assets/backgrounds/home-wide.webp');
-  --art-r: 2.1593;
-  --anchor: 0.5;
+  --art: url('/assets/backgrounds/home-thumb-wide.webp');
+  --art-r: 1.7787;
+  --anchor: 0.35;
 }
 
 :root[data-layout='landscape'] .screen--home::before {
-  background: linear-gradient(to left, rgba(17, 18, 40, 0.5), rgba(17, 18, 40, 0) 34%);
-}
-
-:root[data-layout='landscape'] .home__title {
-  top: max(11%, calc(env(safe-area-inset-top, 0px) + calc(var(--u) * 20)));
-}
-
-:root[data-layout='landscape'] .home__logo {
-  width: calc(var(--u) * 190);
+  background: linear-gradient(to left, rgba(17, 18, 40, 0.45), rgba(17, 18, 40, 0) 32%);
 }
 
 :root[data-layout='landscape'] .home__menu {
   left: auto;
   right: max(calc(var(--u) * 40), env(safe-area-inset-right, 0px));
-  /* 2026-11-18 라이언: 너무 바닥에 붙지 않게 → 10%(위로는 언덕 위 마을의 아래 끝까지만) */
-  bottom: max(10%, env(safe-area-inset-bottom, 0px));
-  gap: calc(var(--u) * 10);
-  transform: none;
-  width: calc(var(--u) * 340);
+  top: 52%;
+  bottom: auto;
+  gap: calc(var(--u) * 12);
+  transform: translateY(-50%);
+  width: calc(var(--u) * 240);
+}
+
+/* 둥근 버튼 2×2 (아이콘 위·글자 아래) */
+:root[data-layout='landscape'] .home__badges {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  row-gap: calc(var(--u) * 14);
+}
+
+:root[data-layout='landscape'] .home-badge__label {
+  font-size: max(12px, calc(var(--u) * 15));
 }
 
 :root[data-layout='landscape'] .home__start {
@@ -1468,11 +1472,11 @@
   left: max(calc(var(--u) * 26), env(safe-area-inset-left, 0px));
 }
 
-/* 16:10보다 좁은 가로(16:10 노트북·3:2·태블릿): 양옆이 더 잘려 등불이 오른쪽으로 밀린다 → 메뉴를 좁게 */
+/* 16:10보다 좁은 가로(16:10 노트북·3:2·태블릿): 그림 양옆이 잘려 실루엣이 오른쪽으로 다가온다 → 메뉴를 좁게 */
 @container (max-aspect-ratio: 17 / 10) {
   :root[data-layout='landscape'] .home__menu {
     right: max(calc(var(--u) * 28), env(safe-area-inset-right, 0px));
-    width: calc(var(--u) * 290);
+    width: calc(var(--u) * 220);
     gap: calc(var(--u) * 10);
   }
 
@@ -1481,14 +1485,13 @@
   }
 
   :root[data-layout='landscape'] .home-badge__label {
-    font-size: calc(var(--u) * 14);
+    font-size: max(12px, calc(var(--u) * 14));
   }
 }
 
 /* 키가 낮은 화면(폰 가로·16:9 작은 폰 세로): 손가락용 최소 크기(44~48px) 때문에 메뉴가 높아진다 →
    아래 여백을 줄여 그림 속 마을(가로)·등불 받침(세로)에 닿지 않게 */
 @container (max-height: 430px) {
-  :root[data-layout='landscape'] .home__menu,
   :root[data-layout='landscape'] .profile {
     bottom: max(7%, env(safe-area-inset-bottom, 0px));
   }
@@ -1500,10 +1503,10 @@
   }
 }
 
-/* 3:2보다 좁은 가로(4:3 태블릿): 장면을 왼쪽으로 조금 옮겨 등불이 메뉴에서 떨어지게 */
+/* 3:2보다 좁은 가로(4:3 태블릿): 장면을 왼쪽으로 조금 옮겨 등불 둘레 실루엣이 오른쪽 메뉴에서 떨어지게 (세로 자리는 고정점 그대로) */
 @container (max-aspect-ratio: 3 / 2) {
   :root[data-layout='landscape'] .home__scene {
-    transform: translate(calc(-50% - calc(var(--u) * 50)), -50%);
+    transform: translate(calc(-50% - calc(var(--u) * 50)), calc(var(--anchor) * -100%));
   }
 }
 

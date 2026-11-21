@@ -528,6 +528,20 @@ const backgrounds: SheetDef[] = [
     art: cover(2),
   },
   {
+    // 2026-11-21 라이언: 가로 홈(PC 풀·폰 가로)도 웹 썸네일 그림(16:9) — 제목과 등불 둘레 실루엣이 가운데, 양옆은 어두운 숲.
+    // 원본 reference/Home_Art_Pack/light-defense-web-thumbnail-landscape.png(1672×941)
+    key: 'home-thumb-wide',
+    category: 'backgrounds',
+    label: '홈 배경 — 가로 (웹 썸네일 16:9: 제목·실루엣 포함)',
+    frameWidth: 836,
+    frameHeight: 470,
+    frames: 1,
+    format: 'webp',
+    load: false,
+    draw: (ctx) => drawVillage(ctx, DARK),
+    art: cover(2),
+  },
+  {
     key: 'home-wide',
     category: 'backgrounds',
     label: '홈 배경 — 가로',

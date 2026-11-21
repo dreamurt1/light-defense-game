@@ -1368,8 +1368,9 @@ body {
   pointer-events: none;
 }
 
-/* 세로 홈(웹 썸네일, 2026-11-21): 가운데는 왼쪽 둥근 버튼 목록과 겹친다 → 접속 안내는 '게임하기' 밑 빈 꽃밭(화면 아래)에 */
-:root:not([data-layout='landscape']) .fs-hint--tap {
+/* 홈(웹 썸네일, 2026-11-21): 가운데는 세로의 왼쪽 버튼 목록·가로의 실루엣과 겹친다 → 접속 안내는 화면 아래 가운데
+   (세로 = '게임하기' 밑 꽃밭, 가로 = 등불 아래 냇물) */
+.fs-hint--tap {
   top: auto;
   bottom: max(1%, calc(env(safe-area-inset-bottom, 0px) + 6px));
   padding: 7px 14px;
@@ -1377,6 +1378,6 @@ body {
   transform: translate(-50%, 12px);
 }
 
-:root:not([data-layout='landscape']) .fs-hint--tap.is-on {
+.fs-hint--tap.is-on {
   transform: translate(-50%, 0);
 }

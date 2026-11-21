@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-21T10:53:00.320Z",
+  "generatedAt": "2026-11-21T11:12:40.730Z",
   "sheets": [
     {
       "key": "portrait-lumi",
@@ -1792,6 +1792,19 @@
       "file": "backgrounds/home-thumb.webp",
       "frameWidth": 415,
       "frameHeight": 947,
+      "frames": 1,
+      "res": 2,
+      "source": "art",
+      "load": false,
+      "anims": []
+    },
+    {
+      "key": "home-thumb-wide",
+      "category": "backgrounds",
+      "label": "홈 배경 — 가로 (웹 썸네일 16:9: 제목·실루엣 포함)",
+      "file": "backgrounds/home-thumb-wide.webp",
+      "frameWidth": 836,
+      "frameHeight": 470,
       "frames": 1,
       "res": 2,
       "source": "art",
