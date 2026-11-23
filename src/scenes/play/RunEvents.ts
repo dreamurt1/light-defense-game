@@ -21,6 +21,8 @@ export interface EventHost {
   sources: Sources;
   keeper: () => Vec;
   mercyCount: () => number;
+  /** 광장에서 먼 바닥 칸 (격자 맵, 2026-11-23) */
+  farSpots: readonly Vec[];
 }
 
 export class RunEvents {
@@ -80,11 +82,9 @@ export class RunEvents {
     }
   }
 
-  /** 루미에게서 먼 쉼터 자리(map.json rings, 중앙 광원 곁은 빼고) */
+  /** 루미에게서 먼 바닥 칸 (격자 맵, 2026-11-23 — 옛 map.json 쉼터 자리 대신) */
   private farSpot(p: Vec): Vec {
-    const c = GameData.game.central;
-    const rings = GameData.map.rings.filter((r) => Math.hypot(r.x - c.x, r.y - c.y) > 300);
-    const list = rings.length ? rings : GameData.map.friendSpots;
+    const list = this.host.farSpots.length ? this.host.farSpots : [{ x: GameData.game.central.x, y: GameData.game.central.y }];
     return [...list].sort((a, b) => Math.hypot(b.x - p.x, b.y - p.y) - Math.hypot(a.x - p.x, a.y - p.y))[0];
   }
 }

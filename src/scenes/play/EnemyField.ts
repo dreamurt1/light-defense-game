@@ -18,8 +18,6 @@ const WARD = GameData.game.station.ward;
 
 /** 화면 밖에서 적이 나타나는 거리: 보이는 영역 가장자리에서 이만큼 바깥 (제안) */
 const SPAWN_OUTSIDE = 56;
-/** 빛을 잃은 친구가 기다리는 자리 후보: 마을 네 귀퉁이 쪽 (map.json friendSpots, 제안) */
-const FRIEND_SPOTS = GameData.map.friendSpots;
 
 export class EnemyField {
   enemies: Enemy[] = [];
@@ -29,6 +27,8 @@ export class EnemyField {
   /** 나타난 빛을 잃은 친구 (구출 전) */
   friend: Creature | null = null;
   private friendSpawned = false;
+  /** 빛을 잃은 친구가 기다리는 자리 후보: 광장에서 먼 바닥 칸 4곳 (2026-11-23 격자 맵, PlayScene이 넣음) */
+  friendSpots: readonly Vec[] = [];
   /** 노월이 부른 박쥐 (동시 최대에 넣지 않음) */
   private readonly summoned = new WeakSet<Enemy>();
   /** 트라이얼의 고정된 적 자리 (2026-11-14): 쓰러지면 respawnSec 뒤 같은 자리에 */
@@ -105,7 +105,8 @@ export class EnemyField {
     const r = rescueFor(stage, RunState.keeperId);
     if (!r || this.friendSpawned || progress < r.atProgress) return null;
     this.friendSpawned = true;
-    const spot = [...FRIEND_SPOTS].sort((a, b) => Math.hypot(b.x - player.x, b.y - player.y) - Math.hypot(a.x - player.x, a.y - player.y))[0];
+    if (this.friendSpots.length === 0) return null;
+    const spot = [...this.friendSpots].sort((a, b) => Math.hypot(b.x - player.x, b.y - player.y) - Math.hypot(a.x - player.x, a.y - player.y))[0];
     const e = this.spawnAt(r.enemyId, spot.x, spot.y);
     this.friend = e instanceof Creature ? e : null;
     return this.friend;

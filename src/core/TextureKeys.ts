@@ -16,6 +16,8 @@ export const TextureKeys = {
   batDark: 'bat-dark',
   batTrue: 'bat-true',
   witch: 'witch',
+  /** 분노한 노월 (2026-11-23, 눈빛 잔불 주황) */
+  witchAngry: 'witch-angry',
   frogDark: 'frog-dark',
   frogTrue: 'frog-true',
   /** 중앙 광원 토템 (0 밝음, 1 약함, 2 꺼짐) */

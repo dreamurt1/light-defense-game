@@ -35,6 +35,8 @@ export interface RulesHost {
   sources: Sources;
   /** 점수가 바뀜 → HUD (런이면 누적, scenes/play/NightRun.ts) */
   emitScore(gained: number): void;
+  /** 광장에서 먼 바닥 칸 (격자 맵) */
+  farSpots: readonly Vec[];
 }
 
 export class StageRules {
@@ -60,7 +62,7 @@ export class StageRules {
   ) {
     this.tutorial = stage.tutorial ? new TutorialScript() : null;
     this.parade = new Parade(host.field, stage, rng, area);
-    this.events = new RunEvents({ field: host.field, items: host.items, sources: host.sources, keeper: host.keeper, mercyCount: () => this.mercyCount }, stage, rng);
+    this.events = new RunEvents({ field: host.field, items: host.items, sources: host.sources, keeper: host.keeper, mercyCount: () => this.mercyCount, farSpots: host.farSpots }, stage, rng);
   }
 
   start(): void {

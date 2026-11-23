@@ -18,7 +18,7 @@
     "radius": 26,
     "startOffsetY": 130,
     "walkInset": {
-      "top": 250,
+      "top": 100,
       "side": 100,
       "bottom": 110
     }
@@ -207,7 +207,8 @@
     "cooldownSec": 0.4,
     "expandSec": 0.25,
     "knockback": 70,
-    "stunSec": 0.3
+    "stunSec": 0.3,
+    "blockedByObstacles": true
   },
   "combo": {
     "windowSec": 3,

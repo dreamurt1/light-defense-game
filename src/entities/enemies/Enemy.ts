@@ -44,7 +44,14 @@ export interface EnemyTarget extends Vec {
   ward?: number;
 }
 
+/** 걷는 적의 길찾기 (2026-11-23 격자 맵, scenes/play/GridWorld.ts): 목표 쪽 다음 칸 중심, 아직 경로가 없으면 null */
+export interface PathProvider {
+  waypoint(who: { uid: number; x: number; y: number }, goal: Vec): Vec | null;
+}
+
 export interface EnemyContext {
+  /** 길찾기 (없으면 곧게) */
+  paths?: PathProvider;
   /** 주인공 (쓰러져 있으면 null). seen = 숨지 않았거나 아주 가까움. 무적 중에도 쫓지만 피해는 Vitals가 막는다 */
   player: (EnemyTarget & { seen: boolean }) | null;
   /** 중앙 광원과 켜진 등불 */
@@ -411,6 +418,8 @@ export abstract class Enemy extends Phaser.GameObjects.Container {
     } else {
       this.roamTo = null;
     }
+    // 2026-11-23 격자 맵: 걷는 적은 A* 경로의 다음 칸으로 (경로가 아직 없으면 곧게, 막혀 돌아가는 중이면 우회 지점)
+    if (dest && ctx.paths && !this.def.flies) dest = ctx.paths.waypoint(this, dest) ?? dest;
     if (this.detourLeft > 0) {
       this.detourLeft -= dt;
       dest = this.detour;

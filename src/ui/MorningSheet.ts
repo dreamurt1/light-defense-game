@@ -13,6 +13,8 @@ import { saveRun } from '../core/runSave';
 import { GameData, characterById, type PrepDef } from '../data';
 import { runPath, type RunData } from '../systems/nightRun';
 import { growthLine } from '../systems/growth';
+import { firstNightOfBand } from '../systems/nightRules';
+import { parseBlobs, type GridMap } from '../systems/grid';
 import { buyPrep, canBuy } from '../systems/shop';
 import { formatScore, h, svg } from './dom';
 import { heartIcon, homeIcon, playIcon, prepIcons } from './icons';
@@ -90,6 +92,7 @@ export class MorningSheet {
     this.shopNote.textContent = '';
     const n = r.night ?? before.night;
     this.title.textContent = `${nightSubject(n)} 밝았어요`;
+    this.renderRegion(run.night);
     const friends = (r.friends ?? []).map((id) => characterById(id).name);
     this.ribbon.textContent = friends.length ? `${friends.join('와 ')}가 함께하게 됐어요` : '';
     this.ribbon.hidden = friends.length === 0;
@@ -111,6 +114,28 @@ export class MorningSheet {
     this.renderRun(run);
     const up = growthLine(before.level, run.level, run.characterId, GameData.game.growth);
     this.level.textContent = up ? `빛 레벨 ★${run.level} · 이번 밤 ${up}` : `빛 레벨 ★${run.level}`;
+  }
+
+  /**
+   * 새 지역 (2026-11-23, NIGHT_RUN.md 7-5절): 다음 밤이 구간에 처음 닿는 밤이고 그 구간의 맵을 아직 발견하지 않았으면
+   * '{구간}을 발견했어요 · 밤 n부터 이 길로 나가요' + 작은 지도 + '발견한 지역 n/6', 그 구간의 맵을 발견한 것으로
+   */
+  private renderRegion(nextNight: number): void {
+    const band = firstNightOfBand(nextNight);
+    const fresh = band ? band.maps.filter((id) => !Progress.data.discovered.includes(id)) : [];
+    this.region.hidden = !band || fresh.length === 0 || RunState.test;
+    if (this.region.hidden || !band) return;
+    Progress.discover(band.maps);
+    const total = Math.max(6, GameData.nights.bands.reduce((s, b) => s + b.maps.length, 0));
+    const map = GameData.maps[band.maps[0]];
+    const desc = band.id === 'C' ? '빛이 꺼져 어둠에 넘어간 바깥 마을이에요' : '';
+    this.region.replaceChildren(
+      h('p', { class: 'morning__region-title' }, `${band.name}${hasBatchim(band.name) ? '을' : '를'} 발견했어요`),
+      h('p', { class: 'morning__region-line' }, `밤 ${band.fromNight}부터 이 길로 나가요${desc ? ' · ' + desc : ''}`),
+      ...(map ? [miniMap(map)] : []),
+      h('p', { class: 'morning__region-count' }, `발견한 지역 ${Progress.data.discovered.length}/${total}`),
+    );
+    this.region.dataset.band = band.id;
   }
 
   /** 하트·별가루·상점 (사면 다시) */
@@ -152,4 +177,42 @@ export class MorningSheet {
     this.shopNote.textContent = `${def.name}${hasBatchim(def.name) ? '을' : '를'} 챙겼어요`;
     this.renderRun(next);
   }
+}
+
+/** 작은 지도: 격자를 작은 사각형으로 (새 지역 카드 — 그림 region-* 가 오면 그 위에) */
+const MINI_COLOR: Record<string, string> = {
+  rock: '#6b6684',
+  house: '#c9a25c',
+  barrel: '#8a6a44',
+  hay: '#d9b25c',
+  fence: '#7a5e48',
+  river: '#3f6fa8',
+  bridge: '#9a7a54',
+  bush: '#3d6a52',
+  lamp: '#ffc857',
+};
+function miniMap(map: GridMap): HTMLCanvasElement {
+  const D = GameData.grid;
+  const k = 6;
+  const c = document.createElement('canvas');
+  c.className = 'morning__minimap';
+  c.width = D.cols * k;
+  c.height = D.rows * k;
+  c.setAttribute('aria-hidden', 'true');
+  const ctx = c.getContext('2d');
+  if (!ctx) return c;
+  ctx.fillStyle = '#232750';
+  ctx.fillRect(0, 0, c.width, c.height);
+  const p = D.plaza;
+  ctx.fillStyle = '#3a3f78';
+  ctx.fillRect(p.col0 * k, p.row0 * k, (p.col1 - p.col0 + 1) * k, (p.row1 - p.row0 + 1) * k);
+  for (const b of parseBlobs(map, D)) {
+    ctx.fillStyle = MINI_COLOR[b.kind] ?? '#555';
+    ctx.fillRect(b.col * k + 0.5, b.row * k + 0.5, b.w * k - 1, b.h * k - 1);
+  }
+  ctx.fillStyle = '#ffc857';
+  ctx.beginPath();
+  ctx.arc(((p.col0 + p.col1 + 1) / 2) * k, ((p.row0 + p.row1 + 1) / 2) * k, k * 0.9, 0, Math.PI * 2);
+  ctx.fill();
+  return c;
 }

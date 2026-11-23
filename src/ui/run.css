@@ -592,3 +592,83 @@
 :root:not([data-layout='landscape']) .hud.has-three-slots .hud-bottom__rule {
   display: none;
 }
+
+/* ---------- 새 지역 (2026-11-23): 구간에 처음 닿는 아침 — 그림 region-* 가 오면 띠로 ---------- */
+
+.morning__region {
+  grid-area: region;
+  display: grid;
+  justify-items: center;
+  gap: calc(var(--u) * 6);
+  margin: 0 0 calc(var(--u) * 12);
+  padding: calc(var(--u) * 12) calc(var(--u) * 14);
+  border: 1px solid color-mix(in srgb, var(--mint) 45%, transparent);
+  border-radius: calc(var(--u) * 18);
+  background: color-mix(in srgb, #14152e 70%, transparent);
+}
+
+.morning__region[data-band='C'] {
+  border-color: color-mix(in srgb, var(--lavender) 55%, transparent);
+}
+
+.morning__region-title {
+  margin: 0;
+  font-size: max(15px, calc(var(--u) * 22));
+  font-weight: 800;
+  color: var(--mint);
+}
+
+.morning__region-line,
+.morning__region-count {
+  margin: 0;
+  font-size: max(12px, calc(var(--u) * 14));
+  color: var(--paper-soft);
+  word-break: keep-all;
+}
+
+.morning__minimap {
+  width: min(100%, calc(var(--u) * 260));
+  height: auto;
+  border-radius: calc(var(--u) * 8);
+  image-rendering: pixelated;
+}
+
+/* 테스트 창: 밤 n 체험의 맵 고르기 */
+.test-sheet__maps {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: calc(var(--u) * 8);
+  margin-top: calc(var(--u) * 10);
+}
+
+.test-map {
+  min-height: 44px;
+  padding: 0 calc(var(--u) * 14);
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  background: color-mix(in srgb, #14152e 70%, transparent);
+  color: var(--paper);
+  font: inherit;
+  font-size: max(12px, calc(var(--u) * 14));
+  cursor: pointer;
+}
+
+.test-map[aria-pressed='true'] {
+  border-color: var(--amber);
+  color: var(--amber);
+}
+
+@container (max-height: 420px) {
+  :root[data-layout='landscape'] .morning__region {
+    grid-template-columns: auto 1fr;
+    justify-items: start;
+    align-items: center;
+    column-gap: calc(var(--u) * 14);
+    padding: calc(var(--u) * 8) calc(var(--u) * 12);
+  }
+  :root[data-layout='landscape'] .morning__minimap {
+    grid-row: 1 / span 3;
+    width: calc(var(--u) * 150);
+  }
+}

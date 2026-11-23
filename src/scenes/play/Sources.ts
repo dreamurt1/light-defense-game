@@ -32,10 +32,10 @@ export class Sources {
    * @param litAtStart 켜진 채 시작할 등불 수 (2026-11-23 런: 완전 승리한 다음 밤)
    * @param decayPerSec 켜진 등불이 초당 줄어드는 양 (아침 준비물 등불 기름, 없으면 game.json)
    */
-  constructor(scene: Phaser.Scene, rng: Rng, stationCount: number, spots?: readonly number[], litAtStart = 0, decayPerSec: number | null = null) {
+  constructor(scene: Phaser.Scene, rng: Rng, stationCount: number, spots: readonly number[] | undefined, litAtStart: number, decayPerSec: number | null, candidates: readonly { x: number; y: number }[]) {
     this.central = new CentralSource(scene, CFG.central, CFG.lightLevels.bands);
     const stationCfg = decayPerSec === null ? CFG.station : { ...CFG.station, decayPerSec };
-    this.stations = pickStations(rng, stationCount, spots).map((p, i) => new LightStation(scene, i, p, stationCfg));
+    this.stations = pickStations(rng, stationCount, candidates, spots).map((p, i) => new LightStation(scene, i, p, stationCfg));
     for (const s of this.stations.slice(0, litAtStart)) s.state.startLit();
   }
 
@@ -178,10 +178,10 @@ export class Sources {
   }
 }
 
-/** 이번 스테이지의 등불 자리: map.json 후보 중 seed로 n곳 (XMind: 위치는 랜덤, 외곽, 중앙 광원에서 너무 멀지 않게) */
-function pickStations(rng: Rng, n: number, fixed?: readonly number[]): { x: number; y: number }[] {
-  if (fixed?.length) return fixed.slice(0, n).map((i) => GameData.map.stations[i]);
-  const spots = [...GameData.map.stations];
+/** 이번 판의 등불 자리: 격자 맵의 L 4곳 중 seed로 n곳 (2026-11-23 — 옛 map.json 후보 대신, XMind: 위치는 랜덤·외곽·중앙 광원에서 너무 멀지 않게) */
+function pickStations(rng: Rng, n: number, candidates: readonly { x: number; y: number }[], fixed?: readonly number[]): { x: number; y: number }[] {
+  if (fixed?.length) return fixed.slice(0, n).map((i) => candidates[i % candidates.length]);
+  const spots = [...candidates];
   for (let i = spots.length - 1; i > 0; i--) {
     const j = rng.int(0, i);
     [spots[i], spots[j]] = [spots[j], spots[i]];

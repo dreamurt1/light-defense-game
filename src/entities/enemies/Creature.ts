@@ -193,6 +193,7 @@ export class Creature extends Enemy {
       if (!this.wanderTo || Math.hypot(this.wanderTo.x - this.base.x, this.wanderTo.y - this.base.y) < 24) this.wanderTo = ctx.roam(this.base);
       dest = this.wanderTo;
     }
+    if (ctx.paths && !this.def.flies) dest = ctx.paths.waypoint(this, dest) ?? dest; // 걷는 행렬은 A* 경로로 (2026-11-23)
     const dir = this.headingTo(dest, dt, ctx.sources);
     this.base.x += dir.x * speed * dt;
     this.base.y += dir.y * speed * dt;

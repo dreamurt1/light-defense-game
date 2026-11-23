@@ -1558,29 +1558,11 @@ interface Placement {
   flip?: boolean;
 }
 
-/** 둘레 배치: 위쪽은 집과 술통이 줄지어 서고(걷는 곳 뒤), 옆·아래는 덤불·바위·등불 기둥 띠(걷는 곳 바깥) */
+/** 둘레 배치: 옆·아래는 덤불·바위·등불 기둥 띠(걷는 곳 바깥, 격자 맵의 가장자리 칸). 위쪽 집 줄은 2026-11-23 뺌 */
 function buildPerimeter(): Placement[] {
   const rng = new Rng(5521);
   const out: Placement[] = [];
-  // 위: 집 줄 (아래 끝이 걷기 영역 윗선 근처)
-  const TOP_ROW: { key: string; y: number; w: number }[] = [
-    { key: 'house-porch', y: 0, w: 240 },
-    { key: 'barrel-banner', y: 180, w: 84 },
-    { key: 'house-side', y: 40, w: 104 },
-    { key: 'bush', y: 130, w: 128 },
-    { key: 'house-porch', y: 0, w: 240 },
-    { key: 'lamp-post', y: 130, w: 44 },
-    { key: 'house-side', y: 40, w: 104 },
-    { key: 'rock', y: 190, w: 64 },
-  ];
-  let x = -10;
-  let i = 0;
-  while (x < WW) {
-    const item = TOP_ROW[i % TOP_ROW.length];
-    out.push({ key: item.key, x, y: item.y, flip: i % 2 === 1 });
-    x += item.w + rng.range(4, 26);
-    i++;
-  }
+  // 2026-11-23 밤 나들이 v3: 위쪽 집 줄·깃발 줄은 뺐다 — 격자 맵(33×19)이 1행부터 집·바위를 직접 놓는다(NIGHT_RUN.md 13절)
   // 옆: 덤불 띠, 사이사이 바위·등불 기둥
   for (let y = INSET.top + 10; y < WH - 120; y += rng.range(95, 130)) {
     const pick = rng.int(0, 5);
@@ -1595,8 +1577,6 @@ function buildPerimeter(): Placement[] {
   }
   out.push({ key: 'tree-roots', x: -40, y: WH - 230 });
   out.push({ key: 'tree-roots', x: WW - 220, y: WH - 230, flip: true });
-  // 위쪽 집 앞 깃발 줄
-  for (let bx = 300; bx < WW - 200; bx += 700) out.push({ key: 'bunting', x: bx, y: 215 });
   return out;
 }
 
@@ -1636,13 +1616,7 @@ function buildWorldLights(): VillageLight[] {
       else lantern(x, y);
     }
   }
-  // 마을 안 등불 기둥(장애물, map.json): 밑동 사각형에서 기둥 위 매단 등불 자리로
-  for (const ob of MAP.obstacles) {
-    if (ob.kind !== 'lamp') continue;
-    const footX = ob.x + ob.w / 2;
-    const footY = ob.y + ob.h;
-    lantern(footX + LAMP_POST_LIGHT.x - LAMP_POST_FOOT.x, footY + LAMP_POST_LIGHT.y - LAMP_POST_FOOT.y);
-  }
+  // (옛 map.json 등불 기둥의 불빛은 2026-11-23 격자 맵으로 바꾸며 뺐다 — 기둥 없이 불빛만 뜨지 않게)
   return lights;
 }
 

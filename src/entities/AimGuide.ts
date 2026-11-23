@@ -18,6 +18,8 @@ const CONE_R = 512;
 const CONE_DEPTH = -800;
 
 export class AimGuide {
+  /** 막히는 거리로 원뿔을 끊는 함수 (격자 맵, PlayScene이 건다) */
+  clip: ((origin: Vec, angle: number, range: number) => number) | null = null;
   private readonly cone: Phaser.GameObjects.Image;
   private readonly ring: Phaser.GameObjects.Image;
   private readonly half: number;
@@ -41,6 +43,8 @@ export class AimGuide {
       this.cone.setVisible(false);
       return;
     }
+    // 2026-11-23 격자 맵: 가운데 줄에서 처음 막히는 거리에서 끊는다 (빛이 벽을 넘지 않음)
+    if (this.clip) range = this.clip(origin, angle, range);
     this.drawn.range = range;
     const tint = lightTint();
     if (tint === null) this.cone.clearTint();

@@ -10,6 +10,7 @@ import { RunState } from '../core/RunState';
 import { characterById, GameData, IMPLEMENTED_ENEMIES, nightConfig, traitOf, type EnemyId, type StageDef } from '../data';
 import { Hits } from './play/Hits';
 import { NightRun, stageDefFor } from './play/NightRun';
+import { GridWorld, mapIdFor } from './play/GridWorld';
 import { Items } from './play/Items';
 import { Boss } from './play/Boss';
 import { StageRules } from './play/StageRules';
@@ -71,6 +72,8 @@ export class PlayScene extends Phaser.Scene {
   private obstacles: Rect[] = [];
   private hits!: Hits;
   private night!: NightRun;
+  /** 격자 맵 (2026-11-23): 그리기·등불 자리·빛 차단·길찾기 */
+  private grid!: GridWorld;
   private paused = false;
   private ended = false;
   /** 홈의 `테스트` 판(개발 모드만): 적을 만들지 않고 시계를 돌리지 않는다 */
@@ -111,6 +114,7 @@ export class PlayScene extends Phaser.Scene {
     const keeperDef = characterById(RunState.keeperId);
     this.stageDef = stageDefFor();
     this.night = new NightRun(this.stageDef, keeperDef.id);
+    this.grid = new GridWorld(mapIdFor(this.stageDef));
     const rng = new Rng(RunState.seed);
     Object.assign(this, { paused: false, ended: false, test: RunState.test, bushIn: -1, revealLeft: 0, time_: 0 });
     freeze(this, false); // 앞 판이 어떻게 끝났든 멈춘 채 시작하지 않게 (애니메이션 멈춤은 게임 전체에 걸린다, 2026-11-13)
@@ -121,14 +125,15 @@ export class PlayScene extends Phaser.Scene {
     this.roamPoint = makeRoam(new Rng(RunState.seed + 17), WALK_AREA);
 
     // 첫 화면은 중앙 광원과 주인공을 비춘다(XMind): 루미는 광원 바로 아래에서 시작
-    this.sources = new Sources(this, rng, this.stageDef.stations, this.stageDef.stationSpots, this.night.litAtStart, this.night.prep.stationDecayPerSec);
+    this.sources = new Sources(this, rng, this.stageDef.stations, this.stageDef.stationSpots, this.night.litAtStart, this.night.prep.stationDecayPerSec, this.grid.stationSpots());
     const start = this.homeSpot;
     this.keeper = new Lightkeeper(this, keeperDef, start.x, start.y);
     this.stage = new VillageStage(this, this.keeper.pos);
-    this.props = new MapProps(this);
+    this.props = new MapProps(this, this.grid.map);
     for (const o of this.sources.occluders()) this.props.occluders.add([o.art], o.depth); // 가리면 반투명 (2026-11-13)
     this.obstacles = [...this.props.obstacles, ...this.sources.footprints];
     this.aimGuide = new AimGuide(this, CFG.light.fanDeg);
+    if (CFG.light.blockedByObstacles) this.aimGuide.clip = (o, a, r) => this.grid.clip(o, a, r);
     this.fx = new LightFx(this);
     this.edgeArrows = new EdgeArrows(this);
     // PC: 마우스를 끌다 놓으면 커서 쪽으로, 루미 중심에서 커서까지의 거리만큼 (루미 몸 위에서 놓으면 취소)
@@ -161,12 +166,14 @@ export class PlayScene extends Phaser.Scene {
     );
     this.field = new EnemyField(this, spawner, CFG.world, CFG.playfield.margin, new Rng(RunState.seed + 71));
     this.field.obstacles = this.obstacles;
+    this.field.friendSpots = this.grid.farSpots();
+    if (CFG.light.blockedByObstacles) this.light.blocked = (a, b) => this.grid.blocked(a, b);
     const sd = this.stageDef;
     this.safe = !!(sd.endless || sd.tutorial);
     if (sd.dummies) this.field.setDummies(sd.dummies); // 트라이얼: 구석에 고정된 적
     this.items = new Items(this, sd, new Rng(RunState.seed + 31), traitOf(keeperDef).itemEffect * this.night.effects.itemEffect, this.night.prep);
     this.boss = sd.boss ? new Boss(this, sd, this.field, { x: CFG.central.x, y: CFG.central.y }, new Rng(RunState.seed + 59)) : null;
-    const host = { field: this.field, items: this.items, score: this.score, combo: this.combo, keeper: () => this.keeper.pos, litCount: () => this.sources.litCount, sources: this.sources, emitScore: (g: number) => this.night.emitScore(this.score.total, g) };
+    const host = { field: this.field, items: this.items, score: this.score, combo: this.combo, keeper: () => this.keeper.pos, litCount: () => this.sources.litCount, sources: this.sources, emitScore: (g: number) => this.night.emitScore(this.score.total, g), farSpots: this.grid.farSpots() };
     this.rules = new StageRules(host, sd, new Rng(RunState.seed + 47), WALK_AREA);
     const { fx, keeper, lp, rules, score, combo, sources, boss } = this;
     this.hits = new Hits({ fx, keeper, lp, rules, score, combo, sources, boss, igniteMultiplier: traitOf(keeperDef).ignite, emitScore: (g) => this.night.emitScore(score.total, g), powerMultiplier: () => this.night.effects.lightPower });
@@ -284,6 +291,8 @@ export class PlayScene extends Phaser.Scene {
     }
 
     if (!this.stageDef.tutorial) this.field.spawn(dt, this.clock.t, this.sources.enemyTargets());
+    this.grid.paths.setWards(this.sources.enemyTargets());
+    this.grid.paths.tick(dt);
     for (const { enemy, hit } of this.field.step(dt, this.enemyContext())) this.applyHit(enemy, hit);
     this.rules.update(dt, progress, !this.hidden && !this.vitals.down);
     if (this.boss) for (const h of this.boss.update(dt, this.clock.t, this.sources.enemyTargets())) this.damageSource(h.target, h.damage, 'witch');
@@ -324,6 +333,7 @@ export class PlayScene extends Phaser.Scene {
       roamSpeed: CFG.hide.roamSpeed,
       speedMultiplier: this.items.enemySpeedMultiplier * this.rules.events.enemySpeed, // 별 목걸이 · 어둠 바람(랜덤 이벤트)
       lightRadius: CFG.aura.glowMin + (CFG.aura.glowMax - CFG.aura.glowMin) * this.lp.ratio, // 빛 속에서 느려짐 (2026-11-18)
+      paths: this.grid.paths, // 걷는 적·행렬의 길찾기 (2026-11-23)
     };
   }
 
@@ -435,7 +445,9 @@ export class PlayScene extends Phaser.Scene {
   /** 반자동 대상 방향: 사거리 안 가장 가까운 적(패시브·친구 빼고, 노월 포함). 없으면 null = 쏘지 않음 */
   private autoAngle(): number | null {
     const targets = [...this.field.active.filter((e) => e.def.kind !== 'passive' && !e.def.friend), ...(this.boss?.lightTargets() ?? [])];
-    return autoAimAngle(this.keeper.pos, targets, this.light.range);
+    // 2026-11-23 격자 맵: 벽 너머의 적은 반자동 대상에서 뺀다
+    const p = this.keeper.pos;
+    return autoAimAngle(p, CFG.light.blockedByObstacles ? targets.filter((t) => !this.grid.blocked(p, t)) : targets, this.light.range);
   }
 
   /**
@@ -452,9 +464,10 @@ export class PlayScene extends Phaser.Scene {
     this.lp.spend(CFG.lp.castCost);
     // 빛을 보내면 풀숲 속에서도 잠깐 드러난다 (브롤스타즈처럼)
     this.revealLeft = CFG.hide.revealAfterFireSec;
-    this.stage.addFan(origin, a, cast.range);
+    const shown = CFG.light.blockedByObstacles ? this.grid.clip(origin, a, cast.range) : cast.range; // 벽에서 끊어 보인다
+    this.stage.addFan(origin, a, shown);
     this.keeper.attack(a);
-    this.fx.shoot(origin, a, cast.range, CFG.light.fanDeg);
+    this.fx.shoot(origin, a, shown, CFG.light.fanDeg);
     bus.emit('light:cast', {
       x: origin.x + Math.cos(a) * cast.range,
       y: origin.y + Math.sin(a) * cast.range,

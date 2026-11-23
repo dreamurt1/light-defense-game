@@ -302,6 +302,19 @@ function arm(ctx: Ctx, sx: number, sy: number, ex: number, ey: number, hx: numbe
 }
 
 /** 노월(보스): 태양을 재운 마녀. 어두운 보랏빛 망토, 라벤더 머리, 초승달 지팡이 (기획서 색 #2B1B3D → #F4D6FF) */
+/** 노월 눈빛 (2026-11-23 두 모습: 찾아온 노월 = 라벤더, 분노한 노월 = 잔불 주황 #FF8C5A — 그림은 같다) */
+let witchEyes: string = Palette.lavender;
+
+/** 분노한 노월 (넓히는 길): 눈빛만 잔불 주황 */
+export function drawWitchAngry(ctx: Ctx, frame: number): void {
+  witchEyes = Palette.ember;
+  try {
+    drawWitch(ctx, frame);
+  } finally {
+    witchEyes = Palette.lavender;
+  }
+}
+
 export function drawWitch(ctx: Ctx, frame: number): void {
   const p = witchPose(frame);
   const sway = Math.sin(p.th);
@@ -419,7 +432,7 @@ export function drawWitch(ctx: Ctx, frame: number): void {
   } else {
     for (const d of [-1, 1]) {
       ellipse(ctx, d * 8, -2, 4.4, p.face === 'focus' ? 4.4 : 5.6);
-      ctx.fillStyle = Palette.lavender;
+      ctx.fillStyle = witchEyes;
       ctx.fill();
       ctx.fillStyle = '#FFFFFF';
       ctx.beginPath();

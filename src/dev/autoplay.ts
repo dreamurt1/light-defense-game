@@ -34,7 +34,7 @@ export function installAutoplay(game: Phaser.Game): void {
   const params = new URLSearchParams(location.search);
   if (!params.has('autoplay')) return;
   // &char=tori (캐릭터). &stage=trial이면 트라이얼(고정된 적 연습장), &stage=tutorial이면 튜토리얼.
-  // 2026-11-23 밤 나들이: 그 밖에는 정식 런 — &night=n이면 밤 n부터(기본 1), &seed=n이면 런 seed 고정
+  // 2026-11-23 밤 나들이: 그 밖에는 정식 런 — &night=n이면 밤 n부터(기본 1), &seed=n이면 런 seed 고정, &map=B1이면 그 맵(테스트 판)
   const ch = params.get('char');
   if (ch) RunState.characterId = ch as CharacterId;
   const stage = params.get('stage');
@@ -47,6 +47,12 @@ export function installAutoplay(game: Phaser.Game): void {
     RunState.test = false;
     const seed = Number(params.get('seed') ?? 0) || (Date.now() >>> 0);
     RunState.run = { ...newRunData(seed, RunState.characterId, GameData.game.stage.hearts), night: Math.max(1, Number(params.get('night') ?? 1) || 1) };
+  }
+  // &map=B1: 그 격자 맵으로 (테스트 판처럼 — 기록에 남지 않음, 2026-11-23)
+  const map = params.get('map');
+  if (map && RunState.run) {
+    RunState.test = true;
+    RunState.testMapId = map;
   }
   const stopAt = Number(params.get('autoplay') || 20);
   const idle = params.has('idle');

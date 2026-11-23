@@ -35,6 +35,8 @@ export function expandRatio(elapsed: number, expandSec: number): number {
 
 export class LightSystem {
   cooldownLeft = 0;
+  /** 빛이 장애물에 막히는가 (game.json light.blockedByObstacles, 격자 맵 — scenes/play/GridWorld.ts) */
+  blocked: ((a: Vec, b: Vec) => boolean) | null = null;
   readonly casts: LightCast[] = [];
   /** 안개 등으로 줄어드는 사거리 배율(M2) */
   rangeMultiplier = 1;
@@ -88,7 +90,8 @@ export class LightSystem {
       const radius = this.currentRadius(cast);
       for (const t of targets) {
         if (cast.hit.has(t.uid)) continue;
-        if (inFan(cast.origin, cast.angle, this.cfg.fanDeg, radius, t, t.radius)) {
+        // 2026-11-23 격자 맵: 부채꼴 안이어도 쏜 자리 → 대상 직선이 빛을 막는 칸을 지나면 맞지 않는다
+        if (inFan(cast.origin, cast.angle, this.cfg.fanDeg, radius, t, t.radius) && !this.blocked?.(cast.origin, t)) {
           cast.hit.add(t.uid);
           hits.push({ castId: cast.id, uid: t.uid });
         }

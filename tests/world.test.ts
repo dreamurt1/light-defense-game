@@ -1,50 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { GameData } from '../src/data';
-import { walkArea } from '../src/systems/movement';
-import { layoutFor } from '../src/systems/mapTheme';
+
 import { visionAt, zoneAt } from '../src/systems/zones';
 import { planEvent, resolveKind } from '../src/systems/runEvents';
 
-const { world, keeper, central, station, zones, runEvents } = GameData.game;
-const area = walkArea(world.width, world.height, keeper.walkInset);
-const stationRects = GameData.map.stations.map((p, i) => ({ x: p.x - station.footprint.w / 2, y: p.y - station.footprint.h, w: station.footprint.w, h: station.footprint.h, id: `station${i}` }));
+const { central, zones, runEvents } = GameData.game;
 
-describe('테마별 지도 모양 (2026-11-18)', () => {
-  for (const theme of ['light-village', 'border', 'dark-village']) {
-    const lay = layoutFor(GameData.map, theme);
-    const items = [...lay.bushes.map((b, i) => ({ ...b, id: `bush${i}` })), ...lay.obstacles.map((o, i) => ({ ...o, id: `${o.kind}${i}` })), ...stationRects];
-
-    it(`${theme}: 모두 걷기 영역 안, 서로 24 넘게 떨어짐(돌담끼리 L자 제외)`, () => {
-      for (const r of items) {
-        expect(r.x >= area.x && r.y >= area.y && r.x + r.w <= area.x + area.w && r.y + r.h <= area.y + area.h, r.id).toBe(true);
-      }
-      for (let i = 0; i < items.length; i++)
-        for (let j = i + 1; j < items.length; j++) {
-          const a = items[i];
-          const b = items[j];
-          if (a.id.startsWith('wall') && b.id.startsWith('wall')) continue;
-          const pad = 24;
-          const overlap = a.x < b.x + b.w + pad && b.x < a.x + a.w + pad && a.y < b.y + b.h + pad && b.y < a.y + a.h + pad;
-          expect(overlap, `${theme} ${a.id} · ${b.id}`).toBe(false);
-        }
-    });
-
-    it(`${theme}: 중앙 광원 둘레 120은 비어 있고 친구 자리는 장애물 밖`, () => {
-      for (const r of items) {
-        const dx = Math.max(r.x - central.x, 0, central.x - (r.x + r.w));
-        const dy = Math.max(r.y - central.y, 0, central.y - (r.y + r.h));
-        expect(Math.hypot(dx, dy), r.id).toBeGreaterThan(120);
-      }
-      for (const p of GameData.map.friendSpots) for (const r of lay.obstacles) expect(p.x > r.x && p.x < r.x + r.w && p.y > r.y && p.y < r.y + r.h).toBe(false);
-    });
-  }
-
-  it('빛의 마을은 기본 배치 그대로, 경계·어둠의 마을은 더 많다', () => {
-    expect(layoutFor(GameData.map, 'light-village').obstacles.length).toBe(GameData.map.obstacles.length);
-    expect(layoutFor(GameData.map, 'border').bushes.length).toBeGreaterThan(GameData.map.bushes.length);
-    expect(layoutFor(GameData.map, 'dark-village').obstacles.length).toBeGreaterThan(GameData.map.obstacles.length);
-  });
-});
+// 테마별 지도 모양(2026-11-18 map.json themes)은 2026-11-23 격자 맵으로 바뀌었다 → tests/maps.test.ts·map.test.ts
 
 describe('구획 시야 (2026-11-18)', () => {
   const c = { x: central.x, y: central.y };

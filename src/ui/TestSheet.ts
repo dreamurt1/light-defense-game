@@ -35,6 +35,9 @@ export function closeTestSheet(): boolean {
 export class TestSheet {
   readonly el: HTMLElement;
   private readonly panel: HTMLElement;
+  /** 밤 n 체험의 맵 (null = 그 밤 구간에서 자동) */
+  private mapId: string | null = null;
+  private readonly mapRow: HTMLElement;
 
   constructor() {
     // 튜토리얼 + 밤 n 체험 (그 밤의 구간·등불 수 — 친구·노월은 확률이라 표시하지 않음)
@@ -62,6 +65,17 @@ export class TestSheet {
       return card;
     });
     const cards = [tutorialCard, ...nightCards];
+    // 맵 고르기 (2026-11-23 격자 맵): 자동 = 그 밤 구간의 풀에서
+    const mapIds = Object.keys(GameData.maps);
+    const mapButtons = [null, ...mapIds].map((id) => {
+      const b = h('button', { class: 'test-map', type: 'button', 'aria-pressed': String(id === null) }, id === null ? '맵 자동' : `${id} ${GameData.maps[id].name}`);
+      b.addEventListener('click', () => {
+        this.mapId = id;
+        for (const x of mapButtons) x.setAttribute('aria-pressed', String(x === b));
+      });
+      return b;
+    });
+    this.mapRow = h('div', { class: 'test-sheet__maps', role: 'group', 'aria-label': '맵 고르기' }, ...mapButtons);
 
     // 트라이얼: 맨 위 한 줄 — 왼쪽 소개, 오른쪽 등불지기 셋(누르면 그 등불지기로 바로 시작, 2026-11-18 라이언)
     const trialDef = stageById('trial');
@@ -99,6 +113,7 @@ export class TestSheet {
       h('div', { class: 'test-sheet__trial' }, trial),
       h('p', { class: 'test-sheet__group' }, '밤 n 체험 — 그 밤의 규칙 그대로, 끝이 있어요'),
       h('div', { class: 'test-sheet__grid' }, ...cards),
+      this.mapRow,
       h('div', { class: 'sheet__actions sheet__actions--single' }, close),
     );
     this.el = h('section', { class: 'sheet sheet--test', role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 'test-title' }, this.panel);
@@ -117,7 +132,7 @@ export class TestSheet {
 
   private start(stageId: string, characterId?: CharacterId, night?: number): void {
     this.toggle(false);
-    bus.emit('ui:start-test', { stageId, characterId, night });
+    bus.emit('ui:start-test', { stageId, characterId, night, mapId: night ? this.mapId : null });
   }
 
   toggle(open: boolean): void {

@@ -20,7 +20,7 @@ import {
   drawStar,
   fanTextureHeight,
 } from './effects';
-import { BAT, FROG, WITCH, WITCH_FRAME, drawBatDark, drawBatTrue, drawFrogDark, drawFrogTrue, drawWitch, frogAnims } from './enemies';
+import { BAT, FROG, WITCH, WITCH_FRAME, drawBatDark, drawBatTrue, drawFrogDark, drawFrogTrue, drawWitch, drawWitchAngry, frogAnims } from './enemies';
 import type { Ctx } from './kit';
 import { CENTRAL, HANGING_LANTERN, LANTERN, drawCentralSource, drawHangingLantern, drawLantern } from './objects';
 import { DARK, LIT, VILLAGE_OBJECTS, drawVillage, drawWorld } from './village';
@@ -278,6 +278,29 @@ const enemies: SheetDef[] = [
     anims: [
       { key: 'witch-idle', frames: [...WITCH_FRAME.idle], frameRate: 6, repeat: -1 },
       { key: 'witch-cast', frames: [...WITCH_FRAME.cast], frameRate: 6, repeat: 0 },
+    ],
+    art: {
+      poses: ['idle'],
+      frames: [{ pose: 0 }, { pose: 0, dy: -1 }, { pose: 0, dy: -2 }, { pose: 0, dy: -1 }, { pose: 0, dy: -3 }, { pose: 0, dy: -4 }, { pose: 0 }],
+      fit: 'contain',
+      box: { x: 8, y: 6, w: 176, h: 182 },
+      align: 'feet',
+      res: 2,
+    },
+  },
+  {
+    key: 'witch-angry',
+    format: 'webp',
+    category: 'enemies',
+    label: '분노한 노월 (넓히는 길, 2026-11-23: 같은 그림, 눈빛 잔불 주황)',
+    frameWidth: WITCH.size,
+    frameHeight: WITCH.size,
+    frames: WITCH.frames,
+    draw: drawWitchAngry,
+    // 2026-11-13: 대기 0~3 반복, 시전 4~5 한 번(구슬·박쥐 부를 때), 진정 = WITCH_FRAME.calm(6) 한 칸
+    anims: [
+      { key: 'witch-angry-idle', frames: [...WITCH_FRAME.idle], frameRate: 6, repeat: -1 },
+      { key: 'witch-angry-cast', frames: [...WITCH_FRAME.cast], frameRate: 6, repeat: 0 },
     ],
     art: {
       poses: ['idle'],

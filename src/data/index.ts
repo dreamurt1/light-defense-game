@@ -9,6 +9,12 @@ import mapJson from './map.json';
 import cosmeticsJson from './cosmetics.json';
 import nightsJson from './nights.json';
 import shopJson from './shop.json';
+import obstaclesJson from './obstacles.json';
+// 격자 맵 (2026-11-23): 새 맵을 더하면 여기와 nights.json bands에 (스킬 ld-map-grid)
+import mapA1 from './maps/A1.json';
+import mapA2 from './maps/A2.json';
+import mapB1 from './maps/B1.json';
+import type { GridDict, GridMap } from '../systems/grid';
 
 export type CharacterId = 'lumi' | 'tori' | 'doto';
 export type EnemyId =
@@ -161,6 +167,8 @@ export interface GameConfig {
     expandSec: number;
     knockback: number;
     stunSec: number;
+    /** 빛이 장애물에 막힘 (2026-11-23 격자 맵: 바위·집·술통·건초·울타리, 풀숲·강·다리는 안 막음) */
+    blockedByObstacles: boolean;
   };
   combo: {
     windowSec: number;
@@ -355,7 +363,15 @@ export const GameData = {
   cosmetics: cosmeticsJson as unknown as CosmeticsDef,
   nights: nightsJson as unknown as NightsDef,
   shop: shopJson as unknown as ShopDef,
+  /** 격자 맵 사전·맵 (2026-11-23, systems/grid.ts) */
+  grid: obstaclesJson as unknown as GridDict,
+  maps: Object.fromEntries([mapA1, mapA2, mapB1].map((m) => [m.id, m as unknown as GridMap])) as Record<string, GridMap>,
 };
+
+/** 맵 id로 (없으면 A1) */
+export function gridMapById(id: string | null | undefined): GridMap {
+  return (id && GameData.maps[id]) || GameData.maps.A1;
+}
 
 /** 아침 상점 준비물 (2026-11-23, shop.json): perRun 1 = 한 런에 한 번(런 내내), 0 = 아침마다·다음 밤만 */
 export interface PrepDef {

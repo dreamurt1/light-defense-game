@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-21T11:12:40.730Z",
+  "generatedAt": "2026-11-23T08:01:31.515Z",
   "sheets": [
     {
       "key": "portrait-lumi",
@@ -912,6 +912,40 @@
         },
         {
           "key": "witch-cast",
+          "frames": [
+            4,
+            5
+          ],
+          "frameRate": 6,
+          "repeat": 0
+        }
+      ]
+    },
+    {
+      "key": "witch-angry",
+      "category": "enemies",
+      "label": "분노한 노월 (넓히는 길, 2026-11-23: 같은 그림, 눈빛 잔불 주황)",
+      "file": "enemies/witch-angry.webp",
+      "frameWidth": 192,
+      "frameHeight": 192,
+      "frames": 7,
+      "res": 1,
+      "source": "code",
+      "load": true,
+      "anims": [
+        {
+          "key": "witch-angry-idle",
+          "frames": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "frameRate": 6,
+          "repeat": -1
+        },
+        {
+          "key": "witch-angry-cast",
           "frames": [
             4,
             5

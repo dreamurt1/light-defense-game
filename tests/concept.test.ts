@@ -158,7 +158,7 @@ describe('테스트 판 (2026-11-14 라이언: 홈 테스트 → 모든 스테�
     expect(trial.boss).toBeUndefined();
   });
 
-  it('트라이얼: 연습장답게 시작 자리 가까이 모아 둔다 — 네 모서리 표적·작은 무리, 장애물·고정된 등불과 떨어짐 (2026-11-14 라이언, 브롤스타즈 훈련 동굴 참고)', () => {
+  it('트라이얼: 연습장답게 시작 자리 가까이 모아 둔다 — 네 모서리 표적·작은 무리, 장애물·고정된 등불과 떨어짐 (2026-11-14 라이언, 브롤스타즈 훈련 동굴 참고)', async () => {
     const G = GameData.game;
     const start = { x: G.central.x, y: G.central.y + G.keeper.startOffsetY };
     const trial = stageById('trial');
@@ -174,9 +174,13 @@ describe('테스트 판 (2026-11-14 라이언: 홈 테스트 → 모든 스테�
     expect(row.length).toBeGreaterThanOrEqual(4);
     // 공격하는 적과 패시브(자비 연습)가 모두 있다
     expect(list.some((d) => GameData.enemies.find((e) => e.id === d.enemyId)?.kind === 'passive')).toBe(true);
-    const lamp = GameData.map.stations[trial.stationSpots?.[0] ?? -1];
-    expect(lamp).toBeDefined();
-    const rects = [...GameData.map.obstacles, ...GameData.map.bushes];
+    // 2026-11-23: 트라이얼도 격자 맵 A1 — 고정된 등불은 A1의 L 중 stationSpots 번호
+    const { lampCells, cellCenter, collisionRects, bushRects } = await import('../src/systems/grid');
+    const A1 = GameData.maps.A1;
+    const cell = lampCells(A1, GameData.grid)[trial.stationSpots?.[0] ?? -1];
+    expect(cell).toBeDefined();
+    const lamp = cellCenter(cell.col, cell.row, GameData.grid);
+    const rects = [...collisionRects(A1, GameData.grid), ...bushRects(A1, GameData.grid)];
     for (const d of list) {
       expect(Math.hypot(d.x - lamp.x, d.y - lamp.y), d.enemyId).toBeGreaterThan(G.station.ward.maxRadius + 60);
       expect(Math.hypot(d.x - G.central.x, d.y - G.central.y), d.enemyId).toBeGreaterThan(150);

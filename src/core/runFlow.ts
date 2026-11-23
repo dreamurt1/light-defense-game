@@ -48,6 +48,8 @@ export function startNewRun(characterId: CharacterId): void {
   const run = newRunData(makeSeed(), characterId, GameData.game.stage.hearts);
   enterRun(run);
   saveRun(run);
+  // 첫 구간(빛의 마을)의 맵은 런을 시작하면 발견한 것으로 (발견한 지역 n/6, 2026-11-23)
+  Progress.discover(GameData.nights.bands[0]?.maps ?? []);
   bus.emit('ui:start-run');
 }
 
