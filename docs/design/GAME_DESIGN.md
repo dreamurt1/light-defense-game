@@ -1,5 +1,7 @@
 # LIGHT DEFENSE — Game Design Specification
 
+> **2026-11-23부터 런 구조(끝없는 연속 밤·아침 화면·행렬·두 길·빛 레벨·별가루·격자 맵)는 `NIGHT_RUN.md`가 정본이다.** 이 문서의 4스테이지 캠페인 절은 기록으로 남긴다.
+
 > 기준 자료: 라이언의 `reference/light-defense-xmind-1112.pdf` (2026-11-12).
 > 이 문서는 ChatGPT 인계 패키지(`hand-offs/light-defense-claude-handoff-chatgpt1112/docs/GAME_DESIGN.md`)를 복사해 **2026-11-12 라이언 답변과 Claude 판단을 반영**한 것이다(맨 아래 "결정 기록"). 수치는 `src/data/*.json`이 원본이고, PDF에 없는 값은 '제안'이다.
 > 우선순위: 가장 최근에 수정된 것 → 라이언 최신 지시 > 이 문서 > 옛 기획서(2026-10-28, 참고용).

@@ -5,7 +5,7 @@
 //   3) claude.ai에 올릴 docs/skill/light-defense-game.zip 을 만든다.
 // claude.ai의 원본은 라이언이 zip을 올려야 바뀐다(올리지 않으면 다음 동기화 때 이 컴퓨터 사본이 옛 내용으로 돌아갈 수 있다).
 // 사용: npm run doc:skill
-import { copyFileSync, cpSync, existsSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { copyFileSync, cpSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { deflateRawSync } from 'node:zlib';
 import { homedir } from 'node:os';
 import { dirname, join } from 'node:path';
@@ -21,6 +21,14 @@ const dataDir = join(root, 'src', 'data');
 const json = readdirSync(dataDir).filter((f) => f.endsWith('.json'));
 for (const f of json) copyFileSync(join(dataDir, f), join(SKILL, 'assets', 'data', f));
 console.log(`데이터 ${json.length}개 → assets/data (${json.join(', ')})`);
+// 격자 맵(2026-11-23): src/data/maps/*.json → assets/data/maps/
+const mapsDir = join(dataDir, 'maps');
+if (existsSync(mapsDir)) {
+  mkdirSync(join(SKILL, 'assets', 'data', 'maps'), { recursive: true });
+  const maps = readdirSync(mapsDir).filter((f) => f.endsWith('.json'));
+  for (const f of maps) copyFileSync(join(mapsDir, f), join(SKILL, 'assets', 'data', 'maps', f));
+  console.log(`격자 맵 ${maps.length}개 → assets/data/maps`);
+}
 
 // 2) 이 컴퓨터의 동기화 사본
 const targets = existsSync(SYNCED_ROOT)

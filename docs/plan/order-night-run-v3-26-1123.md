@@ -1,0 +1,360 @@
+# 지시서 — "밤 나들이" v3 개편 (2026-11-23, claude.ai 기획 세션 → Claude Code)
+
+> **라이언 지시**: 이 지시서대로 Phase 0~6을 순서대로 만든다. 목표는 **일주일 안에 전체 완성**(라이브 반영까지). 한 Phase가 끝날 때마다 짧게 보고하되 **대기하지 않고 다음 Phase로 간다**. 막히는 결정은 2절의 기본값으로 진행하고 보고에 "기본값으로 진행"이라고 적는다.
+> **정본 순서**는 CLAUDE.md 그대로: `docs/DECISION_LOG.md` > `docs/design/*` > 스킬 > 코드. 이 지시서의 결정은 DECISION_LOG에 "2026-11-23 · 기획 세션 지시서(밤 나들이 v3)"로 먼저 적고 시작한다.
+> 기획서 원문: claude.ai 기획서 v3 탭(https://claude.ai/artifact/35o1HwaFddf98UwZoqiNzz#645676c9-1681), 화면 시안: 스토리보드(https://claude.ai/artifact/NDsSSF9vRc8Ae3x6n8Jqvg). 두 링크는 라이언 계정에서만 열리므로, 필요한 내용은 이 문서에 다 옮겨 두었다.
+
+---
+
+## 0. 한 줄 요약
+
+4밤 캠페인을 **끝없는 연속 밤(런)** 으로 바꾼다. 한 밤 100초는 그대로. 아침마다 "다음 밤으로 / 집으로"를 고르고, 하트 3개는 밤 사이에 이어진다. 밤이 깊어질수록 적이 거세지고 루미는 **빛 레벨**(런 안에서만)로 강해진다. 패시브는 **맵을 가로지르는 행렬**이 되어 반격하지 않고, 비켜 주면 **지키는 길**, 쫓아내면 **넓히는 길**로 기록·보상·노월의 모습이 갈린다. **별가루**(돈)로 아침 준비물과 치장을 산다. 맵은 **33×19 격자** 3장으로 시작해 6장으로 늘린다.
+
+---
+
+## 1. 바뀌지 않는 것 (건드리지 말 것)
+
+한 밤 100초와 시간대(40%·70%), 두 스틱·반자동·연사, 중앙 광원·등불·결계·광도 4단계, HP·하트·LP, 적 9종 수치·필살기·종류별 빛 반응, 아이템 5종의 스폰 규칙, 콤보·점수, 구획 시야, 랜덤 이벤트 4종(가중치만 2절), 튜토리얼·트라이얼, 홈 화면 배치와 그림, 설정, 톤과 금지어(죽·처치·킬·실패), 모든 그림(임시 그림 포함). 자비 "주민마다 한 번"도 그대로.
+
+---
+
+## 2. 결정 사항
+
+**라이언 확정**: 결말 없는 연속 밤 · 밤을 거듭할수록 레벨·능력치 상승 · 친구를 확률로 되찾음(토리 → 도토) · 노월은 낮은 확률 이벤트 · 패시브는 싸울 뜻이 없음을 행동으로 보임 · 모든 무리를 돌려보낼 수 있고 그때의 포상은 점수 기록 · 격자 맵(Brawl Stars 참조)과 장애물 크기 규격 · 맵 3장 → 6장 서서히 해금 · 내부 화폐와 상점 아이템/스폰 아이템 구분 · 랭킹 온라인·로그인·추가 캐릭터·추가 보스·과금·광고는 보류.
+
+**이 지시서로 확정되는 기본값** (모두 JSON 값으로 두어 라이언이 바꾸기 쉽게):
+
+| 항목 | 값 | 어디에 |
+|---|---|---|
+| 런 = 하트가 이어지는 연속 밤 | `run.morningHeal: 0` (1이면 밤마다 하트 1 회복) | `game.json` |
+| 완전 승리 보상 | 하트 +1(최대 `run.maxHearts: 4`), 다음 밤 등불 1개 켜진 채 시작 | `game.json` |
+| 성장 | 런 안에서만(`growth.resetOnRunEnd: true`), 영구 성장 없음 | `game.json` |
+| 패시브 분노 반격 | **삭제**. 웅크림 → 도망만 | `enemies.json`, `game.json passive` |
+| 쫓아냄의 표현 | 패시브도 "돌려보냄". 금지어 유지 | 문구 |
+| 빛이 장애물에 막힘 | `light.blockedByObstacles: true`(풀숲·강·다리는 안 막음) | `game.json` |
+| 맵 풀 | 밤 구간별: A(1~2) · B(3~5) · C(6+). 처음 3장 = A1·A2·B1 | `nights.json` |
+| 노월 | 길에 따라 두 모습 | `game.json boss.calm / boss.angry` |
+| 별가루 이름 | "별가루"(가칭) | 문구 |
+
+---
+
+## 3. Phase 0 — 문서 (반나절)
+
+1. `docs/DECISION_LOG.md`에 2절 전체를 한 항목으로 기록(날짜 2026-11-23, 출처 "기획 세션 지시서 v3").
+2. `docs/design/NIGHT_RUN.md` 신설: 이 지시서의 3~8절을 정본 문장으로 옮긴다(수치 표 포함). `GAME_DESIGN.md`는 맨 위에 "2026-11-23부터 런 구조는 NIGHT_RUN.md가 정본, 4스테이지 절은 기록"이라고 한 줄 넣고 그대로 둔다.
+3. `docs/design/OPEN_QUESTIONS.md`: 자비 횟수·분노·장애물 빛 차단 항목을 "결정됨(2026-11-23)"으로 옮기고, 남은 결정에 "아침 하트 회복 0/1", "별가루 이름", "노월 두 모습 유지 여부"를 둔다.
+4. `docs/design/IMPLEMENTATION_PLAN.md`: Phase 7~12로 이 지시서의 Phase 1~6을 추가(표).
+5. 스킬 `docs/skill/light-defense-game/`: `SKILL.md` 한 줄 정의와 핵심 축 3번(한 스테이지 → 한 밤, 런 설명), `references/gameplay-systems.md`에 "런과 밤 생성·행렬·두 길·빛 레벨·별가루" 절 추가, `screens-and-services.md`에 아침 화면, `world-and-story.md`에 11절 문구, `tech-and-roadmap.md` 구조 트리·Phase 표·결정 표·남은 결정 갱신. `assets/data`에 새 JSON 복사. 10월 기획 때처럼 **옛 내용(4스테이지)은 "채택하지 않은 과거 안" 한 줄로**.
+6. `docs/CLAUDE.md`(루트 CLAUDE.md) §3 규칙과 §8 진행 상태를 v3 기준으로 고친다.
+
+---
+
+## 4. Phase 1 — 런 루프 (1.5일)
+
+### 4-1. 데이터 `src/data/nights.json` (새 파일, `src/data/index.ts`에 타입 추가)
+
+```jsonc
+{
+  "_notes": "밤 n 생성 규칙. stages.json의 stage-1~4는 테스트 메뉴 '밤 n 체험'에서 이 규칙으로 대체. tutorial은 stages.json 그대로",
+  "durationSec": 100,
+  "bands": [
+    { "id": "A", "name": "빛의 마을", "theme": "light-village", "fromNight": 1, "maps": ["A1", "A2"] },
+    { "id": "B", "name": "경계의 숲", "theme": "border", "fromNight": 3, "maps": ["B1"] },
+    { "id": "C", "name": "어둠이 삼킨 외곽", "theme": "dark-village", "fromNight": 6, "maps": [] }
+  ],
+  "stations": { "1": 1, "2": 2, "3": 2, "4": 3, "5": 3, "6": 4 },          // 그 밖의 n은 마지막 값
+  "spawn": {
+    "normal":  { "maxAliveStart": 3, "maxAlivePerNight": 0.8, "maxAliveCap": 10,
+                 "intervalStart": [4.0, 3.0], "intervalPerNight": 0.95, "intervalFloor": [1.2, 0.9] },
+    "climax":  { "maxAliveStart": 6, "maxAlivePerNight": 1.0, "maxAliveCap": 14,
+                 "intervalStart": [2.4, 2.0], "intervalPerNight": 0.95, "intervalFloor": [0.8, 0.6] },
+    "onlyHostileUntilSec": 6,
+    "hostileRatio": { "1": 0.75, "2": 0.6, "3": 0.55, "4": 0.5, "6": 0.6, "9": 0.65 },   // 보간 아님, 구간값
+    "roster": { "1": ["bat", "frog"], "2": ["bat", "frog", "vampire", "hedgehog"],
+                "3": ["bat", "frog", "vampire", "hedgehog", "werewolf"],
+                "4": ["bat", "frog", "vampire", "hedgehog", "werewolf", "redpanda"] }
+  },
+  "parade": { "fromNight": 2, "groupsByNight": { "2": 1, "4": 2, "9": 3 }, "sizeByNight": { "2": 2, "3": 3 },
+              "everySec": 28, "kinds": ["owl", "moth", "firefly"] },
+  "items": { "firstSec": 12, "intervalStart": 20, "intervalPerNight": -1, "intervalFloor": 12 },
+  "runEvents": { "darkWindFromNight": 2, "darkWindWeightMultiplierFromNight6": 2 },
+  "rescue": { "tori": { "fromNight": 2, "chance": 0.5, "guaranteedNight": 3 },
+              "doto": { "nightsAfterTori": 2, "chance": 0.5, "guaranteedAfter": 1 } },
+  "witch":  { "fromNight": 5, "chancePerNight": 0.12, "guaranteedNight": 10, "requiresFriends": ["tori", "doto"], "oncePerRun": true },
+  "expand": { "hostileRatioPerBanish": 0.10, "hostileRatioCap": 0.40 },
+  "testNights": [1, 3, 6, 9]
+}
+```
+
+`systems/nightRules.ts`(순수): `rulesForNight(n, run) → NightDef`(지금 `StageDef`와 같은 모양 + `band`, `mapId`, `parade`, `hostileRatio`). seed = `hash(run.seed, n)`. 같은 맵이 두 밤 연속 나오지 않게(풀에 한 장이면 그 장). Vitest: n=1·2·3·6·9·20의 값, 상한·하한, 맵 연속 금지, 밤 6에 C가 비어 있으면 B에서 고름.
+
+### 4-2. `src/core/RunState.ts` 확장
+
+`night`, `hearts`, `level`, `xp`, `mercy`, `banish`, `carriedLitStations`, `prep: string[]`, `dustEarned`, `seed`(런 seed), `pathOf(): 'keep' | 'expand' | 'mixed'`(mercy > banish → keep, banish > mercy → expand). 런 시작 = 밤 1, 하트 `stage.hearts`(3). 밤이 끝나면 `advanceNight()`.
+
+### 4-3. 밤의 끝과 아침
+
+- `systems/stageOutcome.ts`: 승리(victory/complete)는 **밤 승리**로 흐르고 `MorningSheet`로. 패배(hearts/central)는 **런 종료** → `ResultSheet`(오늘은 여기까지). 노월 진정(boss)은 밤 승리.
+- 완전 승리: `hearts = min(hearts+1, run.maxHearts)`, `carriedLitStations = 1`. 다음 밤 시작 때 등불 후보 중 하나를 켜진 상태로 둔다.
+- `ui/MorningSheet.ts`(새, DOM 오버레이, Router 화면 `morning`): 제목 "밤 {n}이 밝았어요", 부제 "아침이에요. 마을은 무사해요.", 요약 6칸(오늘 점수·자비·돌려보낸 어둠의 주민·구출한 주민·켠 등불 n/m·별가루 +k → 잔액), 하트(최대 4칸), ★레벨과 이번 밤 오른 효과 한 줄, 아침 상점(Phase 3 전까지는 비워 둔 자리), 버튼 **다음 밤으로 →**(주요) / **집으로 (기록을 남겨요)**(보조). 구출 밤이면 리본 "{친구}가 함께하게 됐어요". 새 지역 밤이면 Phase 4의 변형.
+- 집으로 → `ResultSheet` 제목 "오늘 밤들은 여기까지", 부제 "밤 {n}까지 마을을 지켰어요 · 루미가 집으로 돌아가요", 새벽빛 배경. 패배 → 제목 "오늘은 여기까지", 부제 "밤 {n} · 버틴 시간 {mm:ss} · 구출한 주민 {k}명" 또는 "밤 {n} · 중앙 광원이 잠들었어요". 둘 다 길 제목(7절)과 요약 6칸(점수·밤·최대 콤보·구출·켠 등불·별가루), "최고 기록 갱신! 밤 n · 점수", 버튼 다시 나가기 / 홈으로 / 지난 밤들에 남기기.
+- 런 점수 = 밤마다 쌓인다(밤 점수의 합). HUD 점수는 런 누적.
+
+### 4-4. 저장·이어하기·홈
+
+- 아침마다 `localStorage ld.run.v1`에 RunState를 저장, 다음 밤 시작 때 지운다. 홈에 저장된 런이 있으면 "이어서 하기 (밤 n)" 버튼이 "밤 나들이 시작" 위에 뜬다. 밤 도중에 나가면 저장 없음(그 밤을 처음부터).
+- 홈 "게임하기" → "밤 나들이 시작". 프로필에 최고 기록 "밤 n · 점수". 아래 칩 "발견한 지역 n/6"(Phase 4) · "별가루 ✦n"(Phase 3).
+- 선택 화면: 스테이지 4칸 제거. 대신 안내 칸 "오늘 밤 나들이 — 밤 1 · 빛의 마을부터 시작해요. 아침마다 다음 밤으로 갈지, 집으로 돌아갈지 고를 수 있어요. 하트 3개는 밤들 사이에 이어져요." 챙겨 갈 아이템 잠김 문구 "밤 {n}을 지나면 {아이템}이 열려요"(Phase 3에서 값).
+- 테스트 메뉴: "각 스테이지 체험" → "밤 n 체험"(`testNights`) + 맵 고르기(Phase 4). 트라이얼 그대로.
+- `Progress`(ld.progress.v1 → v2 마이그레이션): `bestNight`, `bestScore`, `dust`, `discovered: string[]`, `cosmetics`. 친구 해금은 그대로.
+- 랭킹(`services/Ranking.ts`, LocalRanking `ld.ranking.v3`로 마이그레이션): 제출 필드에 `nights`, `path`, `dust` 추가, `outcome`에 `'home'`. 정렬 점수 → 밤 수 → 버틴 시간. 지난 밤들 화면에 "밤" 열과 길 아이콘(민트 = 지키는 길, 주황 = 넓히는 길, 회색 = 중립).
+
+### 4-5. HUD
+
+위 줄 "밤 {n} · mm:ss", 끝에 `★{level}`(민트)와 `✦{dust}`(호박). 값이 바뀔 때만 갱신(기존 규칙).
+
+### 4-6. 이 Phase의 테스트
+
+`nightRules.test.ts`, `runState.test.ts`(advance·hearts·path·save/load 왕복), `stageOutcome.test.ts` 갱신(밤 승리 vs 런 종료), `ranking.test.ts`(v2 → v3 마이그레이션, 정렬). 헤드리스: 밤 1 → 아침 → 밤 2 → 집으로 → 결과 → 홈 "이어서 하기" 없음; 밤 1 → 아침 → 새로고침 → 홈 "이어서 하기 (밤 2)".
+
+---
+
+## 5. Phase 2 — 어둠의 행렬과 두 길 (1일)
+
+### 5-1. 행렬 (`scenes/play/EnemyField.ts` + 새 `systems/parade.ts`)
+
+- `nights.json parade`대로 `everySec`마다 행렬 1묶음: 맵 한 변의 바닥 칸에서 나와 반대 변의 바닥 칸으로 간다(Phase 4 전까지는 직선 + 기존 우회, Phase 4부터 A*). `size`마리가 0.5초 간격으로 줄지어 따라간다. 켜진 등불 결계는 돌아간다(기존 lampWard).
+- 행동 상태: `walk` → 빛을 맞으면 `cower`(0.6초, 제자리에서 움츠림, 말풍선) → `flee`(진행 방향으로 ×1.5, 2초) → `walk`. **반격·추적 없음.** `enemies.json`의 passive 3종에 `"behavior": "parade"`, `"hitsToBanish": 3`, `"cowerSec": 0.6`, `"fleeSec": 2`, `"fleeMultiplier": 1.5`. `game.json passive`의 `angryDamage·angrySpeedMultiplier·angerHitsPerWave·angerWaveSize·angerMaxWaves·angerSpawnDist`는 삭제하고 `banishHostileCount: 1`, `banishHostileDist: 380`으로 바꾼다. `systems/anger.ts`는 "돌려보냄 → 호스틸 1마리"만 남긴다.
+- 세 번 맞으면 **돌려보냄**: 맵 밖으로 사라짐(호스틸 퇴장 연출), `enemy:returned`(kind passive), 어둠 점수 150×콤보 배율(`score.banishPassive: 150`), 별가루 없음, 즉시 그 주민 너머 380에서 그 밤 로스터의 호스틸 1마리. 토스트는 없음(점수만 뜸).
+- 말풍선: 1번째 "싸우기 싫어..", 2번째 "우린 지나가는 거야", 3번째 "제발..". 호스틸의 "눈부셔.."는 그대로, 패시브는 쓰지 않는다. 기존 패시브 대사 4종은 걷는 중 가끔 그대로.
+- 자비: 기존 규칙(200 안 1.5초, 주민마다 한 번, 300×배율) + 별가루 1. 행렬 전체가 맵을 나가면서 한 마리도 돌려보내지 않았으면 토스트 "길을 터 줬어요 · 자비 +{n}".
+- 행렬은 패시브 스폰의 유일한 방식이 된다(떠돌기 삭제). `stages.json tutorial`에는 행렬 없음.
+
+### 5-2. 두 길
+
+- `RunState.mercy / banish` 집계. `pathOf()`.
+- 다음 밤 호스틸 비율 += `expand.hostileRatioPerBanish × max(0, banish − mercy)`(상한 cap). 지키는 길(mercy > banish)이면 그 런의 랜덤 이벤트에서 어둠 바람 제외·'작은 화해' 가중치 ×2; 넓히는 길이면 반딧불 무리 제외. 넓히는 길로 밤이 시작될 때 토스트 "어둠이 더 거세져요".
+- 결과·아침 길 제목: keep "조용한 밤을 지켰어요" / expand "빛이 멀리 뻗었어요" / mixed "빛과 어둠 사이를 걸었어요". 부제 "자비 {m} · 돌려보낸 어둠의 주민 {b}". 결과 통계의 "돌려보낸 어둠의 주민"은 호스틸 + 패시브 합.
+- 이벤트: `passive:cower`, `passive:banished`, `parade:passed`. 소리는 기존 `passive:upset`를 cower에 쓰고 banished는 `enemy:returned`.
+
+### 5-3. 테스트
+
+`parade.test.ts`(상태 전이, 3회 → 돌려보냄, 반격 없음 = 피해 0), `anger.test.ts` 갱신, `runState.test.ts`에 pathOf, `nightRules.test.ts`에 expand 가산. 헤드리스: 행렬이 결계를 돌아가는지, 패시브가 루미에게 피해를 주지 않는지(피해 0 확인).
+
+---
+
+## 6. Phase 3 — 빛 레벨 · 별가루 · 상점 (1일)
+
+### 6-1. 빛 레벨 `systems/growth.ts`(순수) + `game.json growth`
+
+```jsonc
+"growth": { "resetOnRunEnd": true, "maxLevel": 10,
+  "xp": { "rescue": 3, "returnHostile": 2, "station": 2, "mercy": 2, "banishPassive": 1 },
+  "xpToNext": [10, 15, 20, 25, 30, 35, 40, 45, 50],
+  "perLevel": { "lightPower": 0.05, "lightRange": 0.02, "lightRangeCap": 1.2, "lpMax": 5,
+                "toriMove": 0.01, "dotoItemEffect": 0.03 } }
+```
+
+`LightSystem`(위력·사거리), `lightPoints`(최대 LP), `movement`(토리), `inventory`(도토)에 배율 적용. 레벨업 토스트 "빛이 자랐어요 ★{n}", HUD ★. 런 종료 시 ★1.
+
+### 6-2. 별가루 `systems/stardust.ts` + `game.json dust`
+
+`{ "station": 2, "victory": 5, "complete": 10, "rescue": 1, "mercy": 1, "witch": 20 }`. `Progress.dust`에 누적(런이 끝나도 남음). 아침 화면 "별가루 +k → 잔액", HUD ✦, 홈 칩.
+
+### 6-3. 상점 `src/data/shop.json`(새)
+
+```jsonc
+{ "prep": [
+    { "id": "lamp_oil",   "name": "등불 기름",       "desc": "등불이 천천히 꺼져요",  "price": 12, "perRun": 1, "effect": { "stationDecayPerSec": 0.9 } },
+    { "id": "spare_heart","name": "여분 하트",       "desc": "하트 +1 (한 번만)",     "price": 20, "perRun": 1, "effect": { "hearts": 1 } },
+    { "id": "big_pouch",  "name": "큰 주머니",       "desc": "아이템 칸 2 → 3",       "price": 15, "perRun": 1, "effect": { "itemSlots": 3 } },
+    { "id": "extra_charm","name": "빛의 부적 하나 더","desc": "다음 밤 부적 2개",      "price": 8,  "perRun": 0, "effect": { "charmPerStage": 2 } } ],
+  "cosmetics": { "lightColors": { "dawn": 10, "mint": 15, "moon": 20, "star": 30 } } }
+```
+
+- 아침 화면의 상점 줄: 4칸, "✦가격", 부족하면 "별가루가 부족해요". 준비물은 `RunState.prep`에 들어가 그 런 동안만 효력(perRun 1은 한 번만 구매).
+- 홈 상점(`ShopScreen`): 빛 색을 별가루로 구매("사기 ✦n" → "쓰는 중"), `cosmetics.json`의 `unlock: "stage-n"`은 `price`로 교체(호박빛 기본). 스킨 탭 준비 중 그대로.
+- `items.json carryUnlock`: `"stage-1"` → `"night-2"`, `"stage-2"` → `"night-4"`, `"stage-3"` → `"night-6"`; 판정은 `Progress.bestNight`. 문구 "밤 {n}을 지나면 {아이템}이 열려요".
+
+### 6-4. 테스트
+
+`growth.test.ts`(XP 누적·레벨업 경계·배율·상한·리셋), `stardust.test.ts`, `shop.test.ts`(perRun, 잔액 부족, 효과 적용), 선택 화면 carryUnlock 판정.
+
+---
+
+## 7. Phase 4 — 격자 맵 (2일)
+
+### 7-1. 규격 `src/data/maps/<id>.json` + `systems/grid.ts`
+
+- 격자 **33×19칸, 한 칸 96px**, (0,0)이 왼쪽 위, 월드 좌표 = 칸×96 + 48(중심). 광장 = 열 13~19 × 행 6~12는 늘 비움. 중앙 광원 (1600, 900)은 그대로.
+- 장애물 사전 `src/data/obstacles.json`:
+
+| kind | 허용 크기(칸, w×h — 가로세로 반대도 됨) | 걸어서 통과 | 빛 차단 | 나는 적 | 비고 |
+|---|---|---|---|---|---|
+| rock | 1×1, 2×2 | ✗ | ✓ | 넘음 | |
+| house | 2×2, 3×3, 2×3 | ✗ | ✓ | 넘음 | 루미가 뒤에 가면 반투명(기존 Occluders) |
+| barrel | 1×1 | ✗ | ✓ | 넘음 | |
+| hay | 2×1, 3×1 | ✗ | ✓ | 넘음 | |
+| fence | 1×n 또는 n×1 (폭 1) | ✗ | ✓ | 넘음 | |
+| river | 1×n 또는 n×1 (폭 1) | ✗ (나는 적만) | ✗ | 넘음 | 다리 통로 필수 |
+| bridge | 1×1 | ✓ | ✗ | — | 강 위에만 |
+| bush | 2×2, 3×3 | ✓ (은신) | ✗ | — | 기존 풀숲 규칙 |
+| lamp | 1×1 | — | — | — | 등불 자리 후보(맵당 4) |
+
+- 맵 파일: `{ "id": "A1", "name": "빛의 마을 · 광장", "band": "A", "theme": "light-village", "rows": [ "33글자 × 19줄" ], "legend": {...} }`. 문자: `.` 바닥, `R` 바위, `H` 집, `W` 강, `B` 다리, `F` 울타리, `T` 술통, `G` 풀숲, `Y` 건초, `L` 등불 자리, `C` 광장. 연속한 같은 문자의 직사각형을 한 장애물로 묶는다(크기가 사전에 없으면 검사 실패).
+- `map.json`의 기존 `obstacles/bushes/stations/river/bridges/themes`는 격자 맵이 대체한다. `friendSpots`는 격자 맵의 구석 바닥 칸에서 고른다(광장에서 가장 먼 바닥 칸 4곳).
+- 그림은 지금 것(집·바위·풀숲·울타리·강·다리 코드 그림)을 격자 자리에 놓는다. 가장자리를 몇 px 불규칙하게 흔들어 격자 티를 줄인다(제안).
+
+### 7-2. 처음 3장 (ASCII 초안 — 기획 세션에서 연결성·등불 도달·광장 비움을 검사한 것. 사전 크기에 안 맞는 덩어리는 터미널이 정리)
+
+A1 빛의 마을 · 광장
+```
+.................................
+..HH.............................
+..HH......RGG...........HHH......
+...........GG...........HHH......
+...........L............HHH..T...
+.......R...............L.........
+.............CCCCCCC....G........
+......T......CCCCCCC.............
+......T......CCCCCCC.............
+.GG..........CCCCCCC......RR.....
+.GG..........CCCCCCC......RR.....
+.............CCCCCCC.............
+.............CCCCCCC.............
+...........L...........L.........
+..HHH.............YY.............
+..HHH.........GG...........HH....
+..HHH.........GG...........HH....
+...............R.................
+.................................
+```
+(행 6의 홀로 선 `G` 1×1은 빼거나 2×2로 키운다.)
+
+A2 빛의 마을 · 강과 다리
+```
+...........................W.....
+...HH.........GG...........W.....
+...HH.........GG....R......B.HH..
+...........................W.HH..
+...........L...........L...W.....
+.......Y...................W.....
+.......Y.....CCCCCCC.......W.....
+.............CCCCCCC.......W..T..
+.............CCCCCCC.......W..T..
+..RR.........CCCCCCC.......B.....
+..RR.........CCCCCCC.......W.....
+.............CCCCCCC.......W.....
+.............CCCCCCC.......W.GG..
+...........L...........L...W.GG..
+....GG.....................W.....
+....GG......HHH............W.....
+............HHH....R.......B.....
+............HHH............W.....
+...........................W.....
+```
+
+B1 경계 · 울타리 길
+```
+..........F......................
+..R.......F....GGG.......FFFFF...
+..........F....GGG...........R...
+..FFFFF........GGG...............
+...........L...........L.........
+......HH......................YY.
+......HH.....CCCCCCC.............
+.............CCCCCCC..F..........
+..GG.........CCCCCCC..F....HHH...
+..GG.........CCCCCCC..F....HHH...
+.............CCCCCCC..F....HHH...
+..T..........CCCCCCC..F..........
+..T..........CCCCCCC.......R.....
+...........L...........L.........
+.....FFFFFF.............FFFFF....
+.........................GG......
+..HHH.............R......GG......
+..HHH...GG.......................
+........GG.......................
+```
+
+다음 3장(이번 주에 시간이 남으면, 아니면 다음 주): A3 빛의 마을 · 꽃밭(A), B2 경계 · 강 건너 마을(가로 강 + 다리 둘, 등불 둘이 강 건너), C1 어둠의 마을 · 돌담 미로(바깥쪽 돌담, 풀숲 셋).
+
+### 7-3. 검사 `scripts/map-check.mjs` (+ `npm run check:maps`)
+
+맵마다: 33×19인지 · 광장 7×7이 `C`인지 · 모든 걸을 수 있는 칸이 광장에서 4방향으로 이어지는지(고립 없음) · `L`이 정확히 4개이고 모두 도달 가능한지 · 장애물 덩어리의 크기가 사전에 있는지 · 강에 다리가 1개 이상인지 · `L`이 광장 중심에서 4~8칸인지. 실패하면 어느 칸인지 출력. `tests/maps.test.ts`에서 같은 검사를 돌린다.
+
+### 7-4. 경로 탐색과 빛 차단
+
+- `systems/pathfind.ts`(순수 A*, 4방향 + 대각선은 양옆이 비었을 때만). 걷는 적(`werewolf·frog·hedgehog·redpanda`, 행렬, 잃어버린 친구는 제자리)은 목표가 바뀔 때와 1초마다 경로를 다시 받고, 경로의 다음 칸 중심을 향해 기존 steering으로 걷는다. 나는 적은 그대로 직선. 기존 `stuckSec·detour` 우회는 그대로 두되 경로가 있으면 쓰지 않는다. 성능: 한 틱에 경로 계산 최대 4마리(큐).
+- `light.blockedByObstacles: true`: 부채꼴 판정 `inFan` 뒤에 루미 중심 → 대상 중심의 직선을 격자로 따라가(브레젠험) 빛 차단 칸이 있으면 맞지 않는다. 조준 원뿔 그리기는 막히는 칸에서 잘라 보여 준다(제안: 원뿔 면을 가장 가까운 차단 칸 거리에서 끊음). 등불 점화에도 같은 규칙.
+- 등불 자리: 맵의 `L` 4곳 중 그 밤 등불 수만큼 seed로 고른다(기존 stations 후보 로직 재사용).
+
+### 7-5. 밤 구간 풀·해금·새 지역
+
+- `nightRules`가 밤 구간의 풀에서 맵을 고른다. 구간에 맵이 없으면 바로 아래 구간에서(밤 6+에 C가 비면 B).
+- 구간에 **처음 도달한 아침**에 `MorningSheet` 변형: 제목 "{구간 이름}을 발견했어요"(경계의 숲 / 어둠이 삼킨 외곽), 한 줄 설명, 지도 축소판(격자를 작은 사각형으로 그린 캔버스), "발견한 지역 n/6"(발견 = 그 구간의 맵 수를 더함), 버튼 "다음 밤으로". `Progress.discovered`에 맵 id를 넣는다.
+- 홈 칩 "발견한 지역 n/6". 테스트 메뉴에서는 모든 맵을 고를 수 있다.
+
+### 7-6. 프로젝트 스킬 `.claude/skills/ld-map-grid/`
+
+SKILL.md: 격자 규격, 장애물 사전, 문자 범례, 맵 파일 만들기 → `npm run check:maps` → 헤드리스 캡처(`scripts/shot.mjs`로 밤 n·맵 id 지정) → `nights.json bands`에 넣기 순서, 자주 틀리는 것(광장 침범, 폭 2 울타리, 다리 없는 강, 등불 거리). 기존 `ld-screen-check`와 같은 결로.
+
+### 7-7. 테스트
+
+`grid.test.ts`(칸↔월드 변환, 덩어리 묶기), `pathfind.test.ts`(미로에서 최단 경로, 막힌 목표, 대각선 규칙), `lightBlock.test.ts`(벽 너머 안 맞음, 풀숲 너머 맞음), `maps.test.ts`(3장 검사), `nightRules.test.ts`에 풀·해금. 헤드리스: B1에서 웨어울프가 울타리를 돌아 광원까지 가는지, 행렬이 통로를 따라가는지.
+
+---
+
+## 8. Phase 5 — 구출 · 노월 · 밸런스 (1일)
+
+- 구출: `nights.json rescue`대로. 밤 시작에 "이 밤이 구출 밤인지"를 seed로 정하고(천장이면 확정), 기존 30% 등장·구석 대기·"도와줘.." 연출 그대로. 되찾으면 `Progress` 해금 + 아침 리본. 고른 주인공이 그 친구면 건너뜀. 구출 밤에는 노월 없음.
+- 노월: `nights.json witch`대로 밤 시작에 판정(한 런에 한 번). 8초 등장 그대로. `game.json boss`를 `boss.calm`과 `boss.angry`로 나눈다:
+
+| | calm(찾아온 노월) | angry(분노한 노월) |
+|---|---|---|
+| 조건 | `pathOf() !== 'expand'` | `'expand'` |
+| hp | 150 | 250 |
+| summonCount / summonCap | 2 / 6 | 3 / 8 |
+| orbEverySec / orbDamage | 4.5 / 6 | 3.5 / 8 |
+| 점수 | 1000 | 2000 |
+| 등장 말풍선 | …이 빛, 생각보다 따뜻하네 | 빛이 너무 멀리까지 왔구나 |
+| 눈빛 | 라벤더 | 잔불 주황 `#FF8C5A` |
+
+  진정 = "노월이 마음을 열었어요", 바로 아침(밤 승리). 그림은 같고 눈빛 색과 소환 수만 다르다.
+- 밸런스: `dev/autoplay`에 `?autoplay=run&skill=0.25|0.5|1` 추가 — 런을 끝까지(패배까지, 상한 밤 15) 돌려 밤 수·점수·길을 기록. 실력 0.5가 평균 밤 5~8, 1.0이 밤 10~12에서 끝나도록 `nights.json spawn`만 조정(적 수치는 손대지 않음). 결과를 보고에 표로.
+
+---
+
+## 9. Phase 6 — 마무리 (1일)
+
+- `docs/design/ACCEPTANCE_CRITERIA.md`에 I절 "런" 추가: 아침 화면 흐름 · 하트 이어짐 · 저장/이어하기 · 행렬 피해 0 · 세 번 맞으면 돌려보냄 · 두 길 제목 · 별가루 잔액 · 준비물 효력 · 빛 레벨 리셋 · 맵 3장 검사 통과 · 빛 차단 · 새 지역 · 구출 천장 · 노월 두 모습. `scripts/acceptance.mjs`에 헤드리스 항목 추가.
+- 화면 7종 캡처(`ld-screen-check`): 홈(이어서 하기 있음/없음), 아침, 새 지역, 결과 둘, 밤 4 B1. 휴대폰 세로·가로에서 아침 화면이 넘치지 않는지.
+- `npm run check:acceptance` · `npx tsc --noEmit` · `npx vitest run` · 빌드 · 배포(`ld-ship`). 스킬 동기화와 zip, 보고 맨 위 "zip 다시 올리기 필요".
+
+---
+
+## 10. 문구 (모두 "~요", 금지어 없음, `world-and-story.md` 표에 추가)
+
+| 자리 | 문구 |
+|---|---|
+| 홈 | 밤 나들이 시작 / 이어서 하기 (밤 {n}) / 발견한 지역 {n}/6 |
+| 선택 | 오늘 밤 나들이 · 밤 1 · 빛의 마을부터 시작해요. 아침마다 다음 밤으로 갈지, 집으로 돌아갈지 고를 수 있어요. 하트 3개는 밤들 사이에 이어져요. / 밤 {n}을 지나면 {아이템}이 열려요 |
+| 이야기 카드(추가 2장) | 광원이 꺼진 밤, 마을은 제 모습을 잃어요. 빛의 주민은 빛 속에서만 제 모습을 지켜요. / 빛을 더 멀리 심자는 도토, 그들도 집이 있다는 토리. 루미는 아직 정하지 않았어요. |
+| 행렬 말풍선 | 싸우기 싫어.. / 우린 지나가는 거야 / 제발.. |
+| 토스트 | 길을 터 줬어요 · 자비 +{n} / 빛이 자랐어요 ★{n} / 어둠이 더 거세져요 |
+| 아침 | 밤 {n}이 밝았어요 / 아침이에요. 마을은 무사해요. / 아침 상점 · 이번 나들이 동안만 / 다음 밤으로 / 집으로 (기록을 남겨요) / 별가루가 부족해요 / {친구}가 함께하게 됐어요 |
+| 새 지역 | 경계의 숲을 발견했어요 · 밤 3부터 이 길로 나가요 / 어둠이 삼킨 외곽을 발견했어요 · 밤 6부터 이 길로 나가요 |
+| 노월 | …이 빛, 생각보다 따뜻하네 / 빛이 너무 멀리까지 왔구나 / 노월이 마음을 열었어요 |
+| 결과 | 오늘 밤들은 여기까지 / 밤 {n}까지 마을을 지켰어요 · 루미가 집으로 돌아가요 / 오늘은 여기까지 / 밤 {n} · 버틴 시간 {mm:ss} · 구출한 주민 {k}명 / 밤 {n} · 중앙 광원이 잠들었어요 / 조용한 밤을 지켰어요 / 빛이 멀리 뻗었어요 / 빛과 어둠 사이를 걸었어요 / 자비 {m} · 돌려보낸 어둠의 주민 {b} / 최고 기록 갱신! 밤 {n} · {점수}점 / 다시 나가기 |
+| 상점 | 사기 ✦{n} / 쓰는 중 / 별가루가 부족해요 |
+| 테마 설명 | 어둠이 삼킨 외곽 — 빛이 꺼져 어둠에 넘어간 바깥 마을이에요 |
+
+---
+
+## 11. 보고 형식
+
+Phase마다 한국어로: 바꾼 것 · 동작 · 테스트/빌드 결과(개수) · 남은 문제 · 수동 확인 방법 · "제안" 값 · 새 문구 · 기본값으로 진행한 결정. 마지막 보고에 자동 플레이 밸런스 표(실력별 평균 밤·점수·길)와 라이브 주소, 맨 위에 "zip 다시 올리기 필요".
+
+## 12. 하지 말 것
+
+적 9종·아이템 5종·콤보·광원·등불의 수치 변경(밸런스는 `nights.json spawn`만) · 그림 교체나 삭제 · 금지어 사용 · 영구 능력치 저장 · 장착물 복귀 · 랭킹 온라인·로그인·광고·과금 작업 · 새 캐릭터 · 아침 화면 없이 바로 다음 밤으로 넘기기 · 4스테이지 코드를 지우지 말고 테스트 메뉴 "밤 n 체험"으로 흡수(옛 stage-1~4 정의는 지워도 됨, tutorial은 유지).

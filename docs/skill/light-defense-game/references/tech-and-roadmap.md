@@ -26,12 +26,14 @@ light_defense_game/
 ├─ firebase.json  .firebaserc  firestore.rules  .env.example   # 설정은 .env.local의 VITE_FIREBASE_*
 ├─ src/
 │  ├─ main.ts  config.ts  style.css
-│  ├─ core/        RunState.ts(characterId·stageId·seed·test·trialCharacterId → keeperId)  Progress.ts(ld.progress.v1)
+│  ├─ core/        RunState.ts(+ 런: night·hearts·level·mercy/banish·prep·dust)  runSave.ts(ld.run.v1)  Progress.ts(ld.progress.v2)
 │  │               Settings.ts  rng.ts(난수는 여기만)  events.ts(이벤트 이름 + payload 타입)  layout.ts  TextureKeys.ts
-│  ├─ data/        game.json characters.json enemies.json items.json map.json stages.json + index.ts(타입, GameData)
+│  ├─ data/        game.json nights.json stages.json(튜토리얼·트라이얼) characters.json enemies.json items.json shop.json
+│  │               cosmetics.json obstacles.json maps/*.json(33×19 격자) + index.ts(타입, GameData)
 │  ├─ scenes/      BootScene  PreloadScene(manifest.json으로 시트 불러오기)  PlayScene(조립만, 600줄 아래)
 │  │  └─ play/     EnemyField(스폰·적 이동·트라이얼 고정 적)  Sources(중앙 광원·등불·맵 광도)  Boss(노월)
 │  │               Items(아이템)  StageRules(자비·은신·친구·튜토리얼)  Aiming(겨눔·마우스·반자동)  sceneKit
+│  │               Hits(빛 맞히기)  NightRun(런·아침 연결)  Parade(어둠의 행렬)
 │  ├─ entities/    Lightkeeper(등불지기)  CentralSource  LightStation  SourceGauge  AimGuide  LightFx
 │  │               VillageStage  MapProps  Occluders  EdgeArrows  Bubble
 │  │  └─ enemies/  Enemy(공통 AI·몸박치기·트라이얼 고정)  Creature(데이터 구동 9종·친구)  Bat  Frog
@@ -39,20 +41,21 @@ light_defense_game/
 │  │               LightSystem ComboSystem NightClock Spawner ScoreCalculator stageOutcome
 │  │               vitals lightPoints lightLevel centralSource lightStation villageMood mercy inventory
 │  │               tutorial keeperMotion facing critterView
+│  │               nightRules parade growth stardust shop grid pathfind (2026-11-23)
 │  ├─ input/       DesktopControls(WASD·방향키·마우스 끌기·스페이스)
 │  ├─ ui/          Router  HistoryNav  PullRefresh  Splash  Hud  Sticks  BossBar  Toast  Story  TestSheet
-│  │               PauseSheet  ResultSheet  SettingsSheet  layout  icons  dom
+│  │               PauseSheet  ResultSheet  MorningSheet  SettingsSheet  layout  icons  dom
 │  │  └─ screens/  HomeScreen  SelectScreen  ShopScreen  RankingScreen  common
 │  ├─ audio/       AudioEngine  Bgm  Sound  Haptics
 │  ├─ art/         registry(시트 규격)  friendSheet(토리·도토 팩)  lumiSheet·lumiCompose(루미 팩)  cutout(배경 지우기)
 │  │               characters creatures enemies friends objects items effects village …(임시 코드 그림)
-│  ├─ services/    Ranking(인터페이스)  LocalRanking(ld.ranking.v2)
+│  ├─ services/    Ranking(인터페이스)  LocalRanking(ld.ranking.v3)
 │  └─ dev/         autoplay(?autoplay=…)  preview  assetExport  lumiExtract
 ├─ reference/      ChatGPT 팩·컨셉 원본(Lumi·Tori·Doto 8방향, Home_Art_Pack …)
 ├─ art-src/        게임에 넣을 원본 PNG
 ├─ public/assets/  npm run assets 결과 + manifest.json
 ├─ tests/          *.test.ts (순수 로직·조작·지도·스테이지·랭킹 …)
-├─ scripts/        acceptance  art-check  screens  station  ship  shot  sync-skill  notify.ps1 …
+├─ scripts/        acceptance  art-check  map-check  balance-run  screens  station  ship  shot  sync-skill  notify.ps1 …
 └─ docs/           DECISION_LOG.md  design/  skill/  archive/
 ```
 
@@ -106,6 +109,12 @@ export interface CharacterDef {
 | 4 | 아이템 5종·점수·콤보·완전 승리·결과 요약 | 시연판 + 시작 전 아이템 고르기(2026-11-18) |
 | 5 | 테마 3종·스테이지 1~4(등불 1→4)·토리·도토 구출 해금·노월 | 시연판 + 테마별 지도 모양·랜덤 이벤트(2026-11-18) |
 | 6 | 튜토리얼·설정·사운드·모바일 마무리·배포 | 시연판(이야기·필수 튜토리얼·트라이얼·스틱 좌우·합성 사운드·라이브). 상점 = 빛 색(2026-11-18), 음량 슬라이더·휴대폰 방향 고정·녹음 음원 자리(2026-11-19) |
+| 7 | 런 루프: 밤 생성·아침 화면·저장/이어하기·진행 v2·랭킹 v3·HUD 밤/★/✦ | 2026-11-23 지시서 v3 |
+| 8 | 어둠의 행렬·두 길 | 〃 |
+| 9 | 빛 레벨·별가루·상점 | 〃 |
+| 10 | 33×19 격자 맵 3장·A* 길찾기·빛 차단·새 지역 | 〃 |
+| 11 | 친구 구출 확률·노월 두 모습·자동 플레이 밸런스 | 〃 |
+| 12 | 완료 기준 I절 '런'·화면 점검·배포 | 〃 |
 
 2026-11-18 점검: 자동 플레이로 1~4스테이지 완전 승리, 노월 진정, 패배 흐름, 토리 구출 해금을 확인했다(콘솔 오류 0).
 
@@ -131,9 +140,12 @@ export interface CharacterDef {
 | 화면 | 짧은 변 540, 휴대폰은 기기 방향, PC는 가로 기본(설정에서 세로). 마을 3200×1800 |
 | 그림·역할 | 실제 그림 = ChatGPT, 기획·개발 정본 = Claude Code. 받은 그림은 기준과 대조한 뒤 넣는다 |
 | 서버 | Firebase(Hosting, 나중에 Auth·Firestore 서울) |
-| 노월 | 진정시키면 1000점 + 바로 아침 |
+| 노월 | 진정시키면 바로 아침. 밤 5부터 낮은 확률(밤 10이면 반드시, 한 런에 한 번), 길에 따라 찾아온 노월(1000점)·분노한 노월(2000점) |
+| 구조 (2026-11-23) | **밤 나들이**: 끝없는 연속 밤(런), 아침마다 다음 밤으로 / 집으로, 하트는 밤 사이에 이어짐, 빛 레벨은 런 안에서만, 별가루로 아침 준비물·빛 색, 격자 맵 3장 → 6장 |
+| 패시브 (2026-11-23) | 어둠의 행렬 — 반격 없음(웅크림·도망), 세 번 맞으면 돌려보냄, 두 길(지키기·넓히기) |
+| 빛 차단 (2026-11-23) | 바위·집·술통·건초·울타리는 빛을 막는다. 풀숲·강·다리는 안 막음 |
 
-채택하지 않은 과거 안은 `docs/archive/`에 남아 있다: 하룻밤 120초, 손에 든 등불(불꽃 5개), 등불지기 5종, 장착물·시너지·대광원, 방해 요소(안개·달그림자), 옛 적 명단, 콤보 절반 감소, 탭 하나 조작, 자체 서버.
+채택하지 않은 과거 안은 `docs/archive/`에 남아 있다: 4스테이지 캠페인(첫 번째 밤·경계의 밤·어둠의 마을·노월의 밤, 2026-11-23 런으로 바뀜), 패시브 분노(쫓아와 들이받음·호스틸 몰려옴), 하룻밤 120초, 손에 든 등불(불꽃 5개), 등불지기 5종, 장착물·시너지·대광원, 방해 요소(안개·달그림자), 옛 적 명단, 콤보 절반 감소, 탭 하나 조작, 자체 서버.
 
 ## 남은 결정 (라이언이 정할 것)
 
@@ -142,7 +154,8 @@ export interface CharacterDef {
 1. 랭킹을 계속 이 기기에만 둘지, 온라인으로 할지 (기본: 지금은 로컬)
 2. 보상형 광고 이어하기 판의 랭킹 처리 (기본: 등록은 되되 `continued` 아이콘 표시)
 3. 캐릭터 목소리·배경음을 실제 녹음할지 (기본: 합성음)
-4. 장애물이 빛을 막는지 (기본: 막지 않음)
+4. 아침 하트 회복 (기본: 0 — `game.json run.morningHeal`)
+8. 돈 이름 (기본: 별가루, 가칭) · 노월 두 모습을 계속 둘지 (기본: 둔다)
 5. 조작 수치 — 이동 스틱 데드존 0.18, 빛 스틱 겨눔 문턱 0.35, 반자동 기다림 0.12초, PC 마우스 취소 반경 48, 발 판정 반지름 26 (기본: 그대로, 휴대폰 체감 후 조정)
 6. 풀숲 수치 — 알아채는 거리 140, 들킴 4초, 빛을 쏘면 1초 드러남, 반투명 0.45 (기본: 그대로)
 7. 버벅임 재검증·사람 감각의 밸런스 확인 (라이언이 해 보고 알려 줌)
