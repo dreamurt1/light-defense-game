@@ -105,6 +105,18 @@
 .morning__actions {
   grid-template-columns: 1fr;
   margin-top: calc(var(--u) * 18);
+  /* 버튼 줄은 판 아래에 붙여 늘 보이게 (2026-11-24): 새 지역 카드·준비물 설명 때문에 판이 넘쳐도(16:10·태블릿·작은 폰·PC 세로)
+     '다음 밤으로'·'집으로'는 첫 화면에, 넘친 통계·상점만 판 안에서 위아래로 */
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+  padding-top: calc(var(--u) * 10);
+}
+
+/* 판이 넘칠 때만(MorningSheet.syncScroll) 버튼 줄 뒤에 판 아래 색 — 넘치지 않으면 띠가 보이지 않게 */
+.morning__panel.is-scroll .morning__actions {
+  background: linear-gradient(to bottom, transparent, #232750 calc(var(--u) * 10));
+  box-shadow: 0 calc(var(--u) * 20) 0 #232750;
 }
 
 /* 가로: 가운데 판, 통계 두 열 */
@@ -664,6 +676,20 @@
   color: var(--amber);
 }
 
+/* 가로에서 새 지역 카드가 뜬 아침(2026-11-24): PC 풀 1920×1080처럼 키가 큰 가로는 위의 '낮은 가로' 접기가 안 걸려
+   '다음 밤으로'·'집으로'가 판 아래에 잘렸다 → 카드가 아침 인사를 대신하니 부제를 접고, 작은 지도를 줄인다 */
+:root[data-layout='landscape'] .morning__panel:has(.morning__region:not([hidden])) > .sheet__subtitle {
+  display: none;
+}
+
+:root[data-layout='landscape'] .morning__minimap {
+  width: calc(var(--u) * 110);
+}
+
+:root[data-layout='landscape'] .morning__region {
+  margin-bottom: calc(var(--u) * 6);
+}
+
 /* 낮은 가로의 새 지역 카드 납작한 배치는 2026-11-23부터 모든 크기의 기본 (.morning__region) */
 /* 아주 낮은 가로(갤럭시 가로 732×300 등): 새 지역은 제목·발견한 지역 한 줄로 — '다음 밤으로'가 첫 화면에 들게 */
 @container (max-height: 330px) {
@@ -675,5 +701,27 @@
     grid-template-columns: 1fr auto;
     margin-bottom: calc(var(--u) * 6);
     padding: calc(var(--u) * 5) calc(var(--u) * 12);
+  }
+}
+
+/* 폭이 좁은 가로(16:10·태블릿 4:3 — 화면 비 1.65 아래, 2026-11-24): 상점 칸에서 값이 이름 옆을 차지해 '등불 / 기름'처럼 접혔다
+   → 값을 이름·설명 아래로 내려 글에 칸 폭을 다 준다 */
+@container (max-aspect-ratio: 33/20) {
+  :root[data-layout='landscape'] .prep-card {
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-areas:
+      'icon text'
+      'icon price';
+    row-gap: calc(var(--u) * 2);
+  }
+  :root[data-layout='landscape'] .prep-card__icon {
+    grid-area: icon;
+  }
+  :root[data-layout='landscape'] .prep-card__text {
+    grid-area: text;
+  }
+  :root[data-layout='landscape'] .prep-card__price {
+    grid-area: price;
+    text-align: left;
   }
 }

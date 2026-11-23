@@ -116,6 +116,25 @@ async function cutPoses(src: { single: string } | { poses: string[] }, count: nu
   });
 }
 
+/**
+ * 다른 시트의 생성 그림 축척(이 시트의 res 기준) — ArtSpec.scaleFrom (2026-11-24).
+ * 그 시트에 생성 그림이 없거나 contain이 아니면 null(제 축척을 쓴다)
+ */
+async function borrowedScale(key: string, res: number): Promise<number | null> {
+  const ref = SHEETS.find((d) => d.key === key);
+  const spec = ref?.art;
+  if (!ref || !spec || spec.fit !== 'contain') return null;
+  const src = sourcesFor(ref, spec);
+  if (!src) return null;
+  const poses = await cutPoses(src, spec.poses.length);
+  const box = spec.box ?? { x: 0, y: 0, w: ref.frameWidth, h: ref.frameHeight };
+  const k = containScale(
+    poses.map((p) => ({ w: p.width, h: p.height })),
+    { w: box.w * spec.res, h: box.h * spec.res },
+  );
+  return (k * res) / spec.res;
+}
+
 /** 생성 그림으로 시트를 만든다. 그림이 없으면 null (코드 그림을 쓴다) */
 async function artSheet(s: SheetDef): Promise<HTMLCanvasElement | null> {
   const spec = s.art;
@@ -157,10 +176,12 @@ async function artSheet(s: SheetDef): Promise<HTMLCanvasElement | null> {
 
   const poses = await cutPoses(src, spec.poses.length);
   const box = spec.box ?? { x: 0, y: 0, w: s.frameWidth, h: s.frameHeight };
-  const k = containScale(
+  const own = containScale(
     poses.map((p) => ({ w: p.width, h: p.height })),
     { w: box.w * res, h: box.h * res },
   );
+  const borrowed = spec.scaleFrom ? await borrowedScale(spec.scaleFrom, res) : null;
+  const k = borrowed ?? own;
   const feet = (spec.align ?? 'feet') === 'feet';
   spec.frames.forEach((f, i) => {
     const pose = poses[f.pose];

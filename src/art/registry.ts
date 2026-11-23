@@ -67,6 +67,11 @@ export interface ArtSpec {
   res: number;
   /** 그림이 없을 때 다른 키의 그림을 바꿔 써서 만든다 (예: 빛 받은 마을 = 어두운 마을을 밝고 따뜻하게) */
   derive?: { from: string; filter: string; warm?: string };
+  /**
+   * 이 시트의 축척을 다른 시트(같은 칸·상자)의 생성 그림에서 빌린다 (2026-11-24). 포즈를 보이는 부분만 잘라 상자에 맞추므로
+   * 웅크린 그림만 있는 시트는 혼자 맞추면 커져 보인다 → 그 종 걷기 시트의 축척을 쓴다. 빌릴 시트에 생성 그림이 없으면 제 축척
+   */
+  scaleFrom?: string;
 }
 
 export interface SheetDef {
@@ -326,6 +331,7 @@ const enemies: SheetDef[] = [
       box: { x: 8, y: 6, w: 176, h: 182 },
       align: 'feet',
       res: 2,
+      scaleFrom: 'witch', // 같은 사람 — 로브·박쥐 실루엣이 넓어도 찾아온 노월과 같은 크기로
     },
   },
   // 2026-11-13 컨셉 시연판: 새 종 (호스틸 2·잃어버린 주민 2·패시브 3, 임시 코드 그림 src/art/creatures.ts)
@@ -370,7 +376,7 @@ const enemies: SheetDef[] = [
           frameHeight: c.size,
           frames: 1,
           draw: (ctx) => drawCreature(ctx, id, 'plain', creatureFrame('side', 0)),
-          art: { poses: ['cower'], frames: still(1), fit: 'contain', box, align, res: 2 },
+          art: { poses: ['cower'], frames: still(1), fit: 'contain', box, align, res: 2, scaleFrom: creatureKey(id, 'plain') },
         },
         {
           key: paradePoseKey(id, 'flee'),
@@ -381,7 +387,7 @@ const enemies: SheetDef[] = [
           frames: 2,
           draw: (ctx, f) => drawCreature(ctx, id, 'plain', creatureFrame('side', f * 2)),
           anims: [{ key: paradeFleeAnim(id), frames: [0, 1], frameRate: Math.max(4, Math.round(c.fps * 0.75)), repeat: -1 }],
-          art: { poses: ['f01', 'f02'], frames: [{ pose: 0 }, { pose: 1 }], fit: 'contain', box, align, res: 2 },
+          art: { poses: ['f01', 'f02'], frames: [{ pose: 0 }, { pose: 1 }], fit: 'contain', box, align, res: 2, scaleFrom: creatureKey(id, 'plain') },
         },
       ];
     }),

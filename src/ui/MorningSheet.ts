@@ -81,12 +81,20 @@ export class MorningSheet {
     bus.on('run:morning', (e) => this.render(e.result, e.before, e.run));
     // 아침에 '집으로' → 런의 끝 결과는 새벽 하늘 위에 혼자 뜬다(아침 판과 겹치면 세로에서 결과 버튼이 화면 밖으로 밀림, 2026-11-23)
     bus.on('run:end', () => (this.panel.hidden = true));
+    // 판이 넘치는지(버튼 줄 뒤에 배경을 깔지) — 크기가 바뀌면 다시 (2026-11-24)
+    window.addEventListener('resize', () => this.syncScroll());
+  }
+
+  /** 판이 넘치면 is-scroll: 아래에 붙은 버튼 줄 뒤에 판 색 배경을 깔아 스크롤되는 상점이 비치지 않게 (넘치지 않으면 배경 없음) */
+  private syncScroll(): void {
+    requestAnimationFrame(() => this.panel.classList.toggle('is-scroll', this.panel.scrollHeight > this.panel.clientHeight + 1));
   }
 
   /** 화면에 들어올 때 */
   show(): void {
     this.panel.scrollTop = 0;
     this.panel.focus({ preventScroll: true });
+    this.syncScroll();
   }
 
   private render(r: RunResult, before: RunData, run: RunData): void {
@@ -148,6 +156,7 @@ export class MorningSheet {
     this.hearts.forEach((el, i) => el.classList.toggle('is-empty', i >= run.hearts));
     this.hearts[0]?.parentElement?.setAttribute('aria-label', `하트 ${run.hearts}개`);
     this.shopGrid.replaceChildren(...GameData.shop.prep.map((def) => this.prepCard(def, run)));
+    this.syncScroll();
   }
 
   private prepCard(def: PrepDef, run: RunData): HTMLElement {
