@@ -79,6 +79,8 @@ export class MorningSheet {
     );
     this.el = screenShell('morning', h('div', { class: 'morning__sky', 'aria-hidden': 'true' }), h('div', { class: 'morning__wrap' }, this.panel));
     bus.on('run:morning', (e) => this.render(e.result, e.before, e.run));
+    // 아침에 '집으로' → 런의 끝 결과는 새벽 하늘 위에 혼자 뜬다(아침 판과 겹치면 세로에서 결과 버튼이 화면 밖으로 밀림, 2026-11-23)
+    bus.on('run:end', () => (this.panel.hidden = true));
   }
 
   /** 화면에 들어올 때 */
@@ -89,6 +91,7 @@ export class MorningSheet {
 
   private render(r: RunResult, before: RunData, run: RunData): void {
     this.result = r;
+    this.panel.hidden = false;
     this.shopNote.textContent = '';
     const n = r.night ?? before.night;
     this.title.textContent = `${nightSubject(n)} 밝았어요`;

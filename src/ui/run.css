@@ -595,13 +595,17 @@
 
 /* ---------- 새 지역 (2026-11-23): 구간에 처음 닿는 아침 — 그림 region-* 가 오면 띠로 ---------- */
 
+/* 작은 지도 왼쪽 + 글 오른쪽으로 납작하게 (모든 크기 — 카드가 크면 PC 풀·PC 세로·낮은 가로에서 '다음 밤으로'가 첫 화면 밖으로 밀림, 2026-11-23) */
 .morning__region {
   grid-area: region;
   display: grid;
-  justify-items: center;
-  gap: calc(var(--u) * 6);
-  margin: 0 0 calc(var(--u) * 12);
-  padding: calc(var(--u) * 12) calc(var(--u) * 14);
+  grid-template-columns: auto 1fr;
+  justify-items: start;
+  align-items: center;
+  column-gap: calc(var(--u) * 14);
+  row-gap: calc(var(--u) * 4);
+  margin: 0 0 calc(var(--u) * 10);
+  padding: calc(var(--u) * 8) calc(var(--u) * 12);
   border: 1px solid color-mix(in srgb, var(--mint) 45%, transparent);
   border-radius: calc(var(--u) * 18);
   background: color-mix(in srgb, #14152e 70%, transparent);
@@ -627,7 +631,8 @@
 }
 
 .morning__minimap {
-  width: min(100%, calc(var(--u) * 260));
+  grid-row: 1 / span 3;
+  width: calc(var(--u) * 150);
   height: auto;
   border-radius: calc(var(--u) * 8);
   image-rendering: pixelated;
@@ -659,16 +664,16 @@
   color: var(--amber);
 }
 
-@container (max-height: 420px) {
-  :root[data-layout='landscape'] .morning__region {
-    grid-template-columns: auto 1fr;
-    justify-items: start;
-    align-items: center;
-    column-gap: calc(var(--u) * 14);
-    padding: calc(var(--u) * 8) calc(var(--u) * 12);
+/* 낮은 가로의 새 지역 카드 납작한 배치는 2026-11-23부터 모든 크기의 기본 (.morning__region) */
+/* 아주 낮은 가로(갤럭시 가로 732×300 등): 새 지역은 제목·발견한 지역 한 줄로 — '다음 밤으로'가 첫 화면에 들게 */
+@container (max-height: 330px) {
+  .morning__minimap,
+  .morning__region-line {
+    display: none;
   }
-  :root[data-layout='landscape'] .morning__minimap {
-    grid-row: 1 / span 3;
-    width: calc(var(--u) * 150);
+  .morning__region {
+    grid-template-columns: 1fr auto;
+    margin-bottom: calc(var(--u) * 6);
+    padding: calc(var(--u) * 5) calc(var(--u) * 12);
   }
 }

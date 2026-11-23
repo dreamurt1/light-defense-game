@@ -4,7 +4,9 @@
 //
 // 사용: node scripts/acceptance.mjs [--skip-long] [--out <결과 json>]
 //   --skip-long: 한 판 끝까지(약 2분) 도는 F 항목을 건너뛴다.
+// 2026-11-23 밤 나들이 v3: 옛 1~4스테이지 대신 밤 런(&night=n)·격자 맵 A1(&map=A1 = 테스트 판), I절 '런' 항목
 import { writeFileSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
 import { openPage, sleep } from './lib/chrome.mjs';
 
 const BASE = 'http://localhost:5173/';
@@ -20,15 +22,17 @@ const record = (id, ok, detail) => {
 };
 const SC = "window.__game.scene.getScene('Play')";
 const errorsOf = (page) => page.logs.filter((l) => /^(EXCEPTION|ERROR)/.test(l));
-/** 장애물에서 200 넘게 떨어진 트인 자리(map.json 기준) — 이동 점검용 */
-const SPOT = { x: 1520, y: 1330 };
+/** 사방 두 칸(192)이 트인 자리 — 격자 맵 A1의 16열 4행 칸 중심 (이동 점검용, 2026-11-23) */
+const SPOT = { x: 1584, y: 432 };
+/** 점검용 판: 밤 1 · 맵 A1 · seed 고정 (맵을 고르면 테스트 판 — 기록에 남지 않음) */
+const NIGHT1 = 'night=1&map=A1&seed=7';
 const place = `s.keeper.pos.x = ${SPOT.x}; s.keeper.pos.y = ${SPOT.y};`;
 const wait = 'const wait = (ms) => new Promise((r) => setTimeout(r, ms));';
 
 /** 판 하나 (자동 조작 없이 서 있음) + 이벤트 기록 */
-async function playPage(stage = 'stage-1', opts = {}) {
+async function playPage(q = NIGHT1, opts = {}) {
   const page = await openPage({ width: 960, height: 540, scale: 1, ...opts });
-  await page.navigate(`${BASE}?autoplay=300&stage=${stage}&idle`);
+  await page.navigate(`${BASE}?autoplay=300&${q}&idle`);
   await sleep(4500);
   await page.evaluate(`(async () => { const { bus } = await import('/src/core/events.ts'); window.__bus = bus;
     window.__ev = { cast: 0, last: null, returned: [] };
@@ -40,9 +44,9 @@ async function playPage(stage = 'stage-1', opts = {}) {
 const keepEnemiesAway = `(() => { const s = ${SC}; const f = s.field; const away = (e) => { e.x = 80; e.y = 80; if (e.base) { e.base.x = 80; e.base.y = 80; } }; if (!f.__create) { f.__create = f.create.bind(f); f.create = (id, x, y) => (window.__allowSpawn ? f.__create(id, x, y) : f.__create(id, 80, 80)); }
   clearInterval(window.__away); window.__away = setInterval(() => { for (const e of f.enemies) if (!e.__keep) away(e); }, 100); for (const e of f.enemies) away(e); })()`;
 
-// ── A2 콘솔 오류: 메뉴 화면 넷 + 2스테이지 20초 (동시에)
+// ── A2 콘솔 오류: 메뉴 화면 넷 + 밤 2 20초 (동시에)
 {
-  const qs = ['?screen=home', '?screen=select', '?screen=shop', '?screen=ranking', '?autoplay=20&stage=stage-2'];
+  const qs = ['?screen=home', '?screen=select', '?screen=shop', '?screen=ranking', '?autoplay=20&night=2&seed=7'];
   const errs = (
     await Promise.all(
       qs.map(async (q) => {
@@ -55,7 +59,7 @@ const keepEnemiesAway = `(() => { const s = ${SC}; const f = s.field; const away
       }),
     )
   ).flat();
-  record('A2 콘솔 오류', errs.length === 0, errs.length ? errs.slice(0, 5) : '홈·선택·상점·지난 밤들·2스테이지 20초 — 오류 0');
+  record('A2 콘솔 오류', errs.length === 0, errs.length ? errs.slice(0, 5) : '홈·선택·상점·지난 밤들·밤 2 20초 — 오류 0');
 }
 
 // ── A4 가로·세로 화면에서 버튼이 잘리지 않음: 라이언 지정 4종 × 화면 다섯(홈·선택·상점·지난 밤들·판 HUD)
@@ -66,7 +70,7 @@ const keepEnemiesAway = `(() => { const s = ${SC}; const f = s.field; const away
     ['모바일 세로', 390, 844, true, 'landscape'],
     ['모바일 가로', 844, 390, true, 'landscape'],
   ];
-  const screens = ['?screen=home', '?screen=select', '?screen=shop', '?screen=ranking', '?autoplay=300&stage=stage-1&idle'];
+  const screens = ['?screen=home', '?screen=select', '?screen=shop', '?screen=ranking', `?autoplay=300&${NIGHT1}&idle`];
   const clipped = [];
   await Promise.all(
     sizes.map(async ([name, w, h, phone, orient]) => {
@@ -95,7 +99,7 @@ const keepEnemiesAway = `(() => { const s = ${SC}; const f = s.field; const away
 
 // ── 판 하나로 A3·A5·B·C·E5
 {
-  const page = await playPage('stage-1');
+  const page = await playPage();
   const size = () => page.evaluate(`({ layout: document.documentElement.dataset.layout, w: window.__game.scale.gameSize.width, h: window.__game.scale.gameSize.height })`);
   // A3 창 크기 변경
   const before = await size();
@@ -221,31 +225,34 @@ const keepEnemiesAway = `(() => { const s = ${SC}; const f = s.field; const away
   page.close();
 }
 
-// ── F: 한 판 끝까지 (1스테이지 · 4스테이지 노월, 동시에)
+// ── F: 한 판 끝까지 (밤 1 A1 · 밤 10 노월 — 토리·도토가 함께라 반드시 나옴, 동시에)
 if (!skipLong) {
   const run = async (stage) => {
     const page = await openPage({ width: 960, height: 540, scale: 1 });
-    await page.navigate(`${BASE}?autoplay=160&stage=${stage}&lamp&skill=1`);
+    await page.navigate(`${BASE}?autoplay=160&${stage}&lamp&skill=1`);
     await sleep(3500);
     await page.evaluate(`(async () => { const { bus } = await import('/src/core/events.ts'); window.__end = null; window.__kinds = [];
       bus.on('enemy:returned', (e) => window.__kinds.push(e.kind));
-      bus.on('game:clear', (e) => (window.__end = e.result)); bus.on('game:over', (e) => (window.__end = e.result)); })()`);
+      bus.on('game:clear', (e) => (window.__end = e.result)); bus.on('game:over', (e) => (window.__end = e.result));
+      // 노월 판(밤 10)은 ★1로 바로 시작해 거세므로 중앙 광원·루미를 지켜 둔다 — 이 판은 '노월을 진정시키면 아침' 규칙만 본다 (2026-11-23)
+      if (${JSON.stringify(stage)}.includes('friends')) setInterval(() => { const s = window.__game.scene.getScene('Play'); if (s?.sources) { s.sources.central.state.hp = s.sources.central.state.maxHp; s.vitals.invulnLeft = 9; } }, 200); })()`);
     const t0 = Date.now();
     let end = null;
     while (Date.now() - t0 < 150000 && !(end = await page.evaluate('window.__end'))) await sleep(2000);
     await sleep(2500);
-    const sheet = await page.evaluate(`(() => { const q = (s) => document.querySelector(s)?.textContent?.trim() ?? null;
-      const rows = [...document.querySelectorAll('.result__row')].filter((r) => !r.hidden).map((r) => [r.querySelector('dt')?.textContent, r.querySelector('dd')?.textContent]);
+    // 결과 화면에는 런 요약·한 밤 두 묶음이 있어 보이는 것만 읽는다
+    const sheet = await page.evaluate(`(() => { const shown = (e) => !!e && e.closest('[hidden]') === null && e.getBoundingClientRect().width > 0; const q = (s) => [...document.querySelectorAll(s)].find(shown)?.textContent?.trim() ?? null;
+      const rows = [...document.querySelectorAll('.result__row')].filter(shown).map((r) => [r.querySelector('dt')?.textContent, r.querySelector('dd')?.textContent]);
       return { score: q('.result__score'), rows }; })()`);
     const kinds = await page.evaluate('window.__kinds');
     const errs = errorsOf(page);
     page.close();
     return { stage, end, sheet, kinds, errs };
   };
-  const [s1, s4] = await Promise.all([run('stage-1'), run('stage-4')]);
+  const [s1, s4] = await Promise.all([run(NIGHT1), run('night=10&friends&seed=7')]);
   const e1 = s1.end;
   record('F1 타이머대로 끝남(100초)', !!e1 && e1.reason === 'time' && Math.abs(e1.survivedSec - 100) < 1, e1 ? { reason: e1.reason, sec: e1.survivedSec, outcome: e1.outcome } : '끝나지 않음');
-  record('F5 보스 스테이지 규칙(노월 진정 = 아침)', !!s4.end && s4.end.reason === 'boss' && s4.end.bossCalmed, s4.end ? { reason: s4.end.reason, calmed: s4.end.bossCalmed, sec: s4.end.survivedSec } : '끝나지 않음');
+  record('F5 노월 진정 = 아침', !!s4.end && s4.end.reason === 'boss' && s4.end.bossCalmed, s4.end ? { reason: s4.end.reason, calmed: s4.end.bossCalmed, sec: s4.end.survivedSec } : '끝나지 않음');
   const fmt = (n) => Math.round(n).toLocaleString('ko-KR');
   const rowOf = (name) => s1.sheet.rows.find((r) => r[0] === name)?.[1];
   const sheetOk = !!e1 && s1.sheet.score === fmt(e1.score) && rowOf('최대 콤보') === `×${e1.maxCombo}` && (e1.mercy > 0 ? rowOf('자비') === `${e1.mercy}번` : true);
@@ -254,6 +261,155 @@ if (!skipLong) {
   const hostile = s1.kinds.filter((k) => k === 'hostile').length;
   record('E1·E2 구출(잃어버린 주민)·돌려보냄(호스틸)', lost > 0 && hostile > 0, { rescued: lost, retreated: hostile });
   record('F 판 중 콘솔 오류', s1.errs.length + s4.errs.length === 0, [...s1.errs, ...s4.errs].slice(0, 5));
+}
+
+// ── I: 런 (2026-11-23 밤 나들이 v3, NIGHT_RUN.md) — 두 길 제목·별가루 잔액·준비물 효력·빛 레벨 리셋은 단위 테스트(nightRun·growth·shop·stardust)
+{
+  const waitFor = async (page, expr, ms = 20000) => {
+    const end = Date.now() + ms;
+    while (Date.now() < end) {
+      if (await page.evaluate(expr)) return true;
+      await sleep(200);
+    }
+    return false;
+  };
+  const text = (page, sel) => page.evaluate(`(document.querySelector(${JSON.stringify(sel)})?.textContent ?? '').trim()`);
+  const shown = (page, sel) => page.evaluate(`(() => { const e = document.querySelector(${JSON.stringify(sel)}); return !!e && !e.closest('[hidden]') && e.getBoundingClientRect().width > 0; })()`);
+  const click = (page, sel) => page.evaluate(`(document.querySelector(${JSON.stringify(sel)})?.click(), 1)`);
+
+  // I1~I4 흐름: 밤 2(빛의 마을 끝) → 아침(새 지역 경계의 숲·저장 밤 3·하트 이어짐) → 새로고침 → 이어서 하기 (밤 3) → 밤 3 → 아침 → 집으로 → 결과 → 저장 지움
+  const flow = await (async () => {
+    const page = await openPage({ width: 960, height: 540, scale: 1 });
+    const r = {};
+    try {
+      await page.navigate(`${BASE}?screen=home`);
+      await sleep(800);
+      await page.evaluate(`localStorage.clear(); localStorage.setItem('ld.progress.v2', JSON.stringify({ tutorialDone: true })); 1`);
+      // 밤 2 정식 런을 아침 직전으로 (&preview=dawn — 서서 버팀)
+      await page.navigate(`${BASE}?autoplay=9999&night=2&seed=7&idle&preview=dawn`);
+      r.morning1 = await waitFor(page, `document.documentElement.dataset.screen === 'morning'`, 40000);
+      await sleep(700);
+      r.title1 = await text(page, '#morning-title');
+      r.region = (await shown(page, '.morning__region')) ? await text(page, '.morning__region-title') : null;
+      const save = await page.evaluate(`JSON.parse(localStorage.getItem('ld.run.v1') || 'null')`);
+      r.saveNight = save?.night ?? null;
+      r.saveHearts = save?.hearts ?? null;
+      await page.navigate(BASE);
+      await waitFor(page, `document.documentElement.dataset.screen === 'home'`);
+      await sleep(1500);
+      r.cont = (await shown(page, '.home__continue')) ? await text(page, '.home__continue') : null;
+      await click(page, '.home__continue');
+      r.night3 = await waitFor(page, `document.documentElement.dataset.screen === 'play'`, 10000);
+      await sleep(1200);
+      r.hud3 = await text(page, '.night-clock__label');
+      r.hearts3 = await page.evaluate(`window.__game.scene.getScene('Play')?.vitals?.hearts ?? null`);
+      // 밤 3을 아침으로: 시계를 끝 가까이 (루미는 무적)
+      await page.evaluate(`(() => { const s = window.__game.scene.getScene('Play'); s.vitals.invulnLeft = 9999; s.clock.t = s.stageDef.durationSec - 1; return 1; })()`);
+      r.morning2 = await waitFor(page, `document.documentElement.dataset.screen === 'morning'`, 15000);
+      await sleep(600);
+      await click(page, '.morning__home');
+      await sleep(900);
+      r.result = await text(page, '#result-title');
+      r.saveCleared = (await page.evaluate(`localStorage.getItem('ld.run.v1')`)) === null;
+      r.errs = errorsOf(page).slice(0, 3);
+    } finally {
+      page.close();
+    }
+    return r;
+  })();
+  record('I1 아침 화면 흐름(밤 → 아침 → 다음 밤 → 집으로 → 결과)', flow.morning1 && flow.title1 === '밤 2가 밝았어요' && flow.night3 && flow.hud3 === '밤 3' && flow.morning2 && flow.result === '오늘 밤들은 여기까지', flow);
+  record('I2 하트가 밤 사이에 이어짐', flow.saveHearts !== null && flow.hearts3 === flow.saveHearts, { saved: flow.saveHearts, night3: flow.hearts3 });
+  record('I3 저장·이어서 하기 (런이 끝나면 지움)', flow.saveNight === 3 && flow.cont === '이어서 하기 (밤 3)' && flow.saveCleared, { saveNight: flow.saveNight, cont: flow.cont, cleared: flow.saveCleared });
+  record('I4 새 지역(구간에 처음 닿는 아침)', flow.region === '경계의 숲을 발견했어요', flow.region);
+
+  // I5·I6 행렬: 밤 2, 28초에 등장 — 피해 0, 세 번 맞히면 돌려보냄(150×)
+  const parade = await (async () => {
+    const page = await openPage({ width: 960, height: 540, scale: 1 });
+    const S = SC;
+    const ev = (js) => page.evaluate(`(() => { const s = ${S}; ${js} })()`);
+    const r = {};
+    try {
+      await page.navigate(`${BASE}?autoplay=9999&night=2&map=A1&seed=7&idle`);
+      await waitFor(page, `!!${S}?.clock`, 25000);
+      await sleep(1200);
+      await ev(`window.__hurtBy = []; const orig = s.applyHit.bind(s); s.applyHit = (e, hit) => { if (hit.target === 'player') window.__hurtBy.push(e.def.kind); orig(e, hit); }; s.vitals.invulnLeft = 9999; s.clock.t = 26; return 1;`);
+      r.appeared = await waitFor(page, `${S}.field.enemies.some((e) => e.def.kind === 'passive')`, 8000);
+      await sleep(1500);
+      const before = await ev('return s.score.total;');
+      for (let k = 0; k < 3; k++) {
+        await ev(`const t = s.field.enemies.find((e) => e.def.kind === 'passive' && e.targetable && !e.leaving && (window.__t === undefined || e.uid === window.__t)); if (!t) return 0; window.__t = t.uid;
+          s.keeper.pos.x = t.x - 120; s.keeper.pos.y = t.y; s.keeper.moveTo(t.x - 120, t.y, { x: 0, y: 0 }, 0); s.light.cooldownLeft = 0; s.fire(0, 200); return 1;`);
+        await sleep(700);
+      }
+      r.banish = await ev('return s.rules.banishCount;');
+      r.gained = (await ev('return s.score.total;')) - before;
+      // 패시브 곁에 10초 서 있기(피해가 있는지)
+      await ev(`const t = s.field.enemies.find((e) => e.def.kind === 'passive' && e.targetable); if (t) { s.keeper.pos.x = t.x; s.keeper.pos.y = t.y + 40; } return 1;`);
+      await sleep(4000);
+      r.hurtBy = await page.evaluate('window.__hurtBy');
+      r.errs = errorsOf(page).slice(0, 3);
+    } finally {
+      page.close();
+    }
+    return r;
+  })();
+  record('I5 행렬이 준 피해 0', parade.appeared && !parade.hurtBy.includes('passive'), { appeared: parade.appeared, hurtBy: parade.hurtBy });
+  record('I6 세 번 맞히면 돌려보냄(150 × 배율)', parade.banish >= 1 && parade.gained >= 150 * parade.banish, { banish: parade.banish, gained: parade.gained });
+
+  // I7 맵 3장 검사 (npm run check:maps)
+  const mc = spawnSync(process.execPath, ['scripts/map-check.mjs'], { encoding: 'utf8' });
+  record('I7 격자 맵 검사 통과', mc.status === 0, (mc.stdout + mc.stderr).trim().split('\n').slice(-4).join(' / '));
+
+  // I8 빛 차단 (B1: 집 너머 막힘 · 풀숲 너머·광장은 안 막힘)
+  {
+    const page = await openPage({ width: 960, height: 540, scale: 1 });
+    await page.navigate(`${BASE}?autoplay=9999&night=4&map=B1&seed=5&idle`);
+    await waitFor(page, `!!${SC}?.grid`, 25000);
+    const blk = await page.evaluate(`(() => { const g = ${SC}.grid; return { house: g.blocked({ x: 2500, y: 912 }, { x: 2950, y: 912 }), bush: g.blocked({ x: 2300, y: 1680 }, { x: 2600, y: 1680 }), plaza: g.blocked({ x: 1600, y: 1030 }, { x: 1600, y: 700 }) }; })()`);
+    record('I8 빛 차단(집 너머 막힘 · 풀숲 너머 맞음)', blk.house && !blk.bush && !blk.plaza, blk);
+    page.close();
+  }
+
+  // I9 구출 천장(밤 3 토리) · I10 노월 두 모습 — 빨리 감기 자동 런
+  const rescue = await (async () => {
+    const page = await openPage({ width: 960, height: 540, scale: 1 });
+    const r = {};
+    try {
+      await page.navigate(`${BASE}?autoplay=run&night=3&seed=5&skill=1&speed=4&cap=3`);
+      await waitFor(page, `!!${SC}?.clock`, 25000);
+      r.seenAt = null;
+      const end = Date.now() + 40000;
+      while (Date.now() < end && r.seenAt === null) {
+        r.seenAt = await page.evaluate(`(() => { const s = ${SC}; return s?.field?.enemies?.some((e) => e.def.friend) ? Math.round(s.clock.t) : null; })()`);
+        await sleep(150);
+      }
+      await waitFor(page, 'window.__runLog?.done === true', 90000);
+      r.night = await page.evaluate('window.__runLog?.nights?.[0] ?? null');
+    } finally {
+      page.close();
+    }
+    return r;
+  })();
+  record('I9 구출 천장(밤 3에 토리가 진행 30%에 나오고 되찾음)', rescue.seenAt !== null && Math.abs(rescue.seenAt - 30) <= 3 && !!rescue.night?.friends?.includes('tori'), { seenAt: rescue.seenAt, friends: rescue.night?.friends, outcome: rescue.night?.outcome });
+  const forms = await Promise.all(
+    [
+      ['banish=3', 'angry', 250],
+      ['mercy=3', 'calm', 150],
+    ].map(async ([q, form, hp]) => {
+      const page = await openPage({ width: 960, height: 540, scale: 1 });
+      try {
+        await page.navigate(`${BASE}?autoplay=9999&night=10&friends&${q}&seed=11&idle`);
+        await waitFor(page, `${SC}?.boss?.active === true`, 30000);
+        await sleep(1500);
+        const got = await page.evaluate(`(() => { const b = ${SC}.boss; const bar = document.querySelector('.boss-bar'); return { form: b.form, hp: b.maxHp, tex: b.sprite?.list[1]?.texture?.key, bar: bar?.dataset.form }; })()`);
+        return { want: form, ok: got.form === form && got.hp === hp && got.bar === form && got.tex === (form === 'angry' ? 'witch-angry' : 'witch'), ...got };
+      } finally {
+        page.close();
+      }
+    }),
+  );
+  record('I10 노월 두 모습(넓히는 길 = 분노한 노월)', forms.every((f) => f.ok), forms);
+  record('I 런 점검 중 콘솔 오류', flow.errs.length + parade.errs.length === 0, [...flow.errs, ...parade.errs]);
 }
 
 // ── H4 배포 주소: 열고 → 새로고침해도 정상
@@ -273,7 +429,7 @@ if (!skipLong) {
 // ── H5 휴대폰 흉내(터치·세로)로 판 15초
 {
   const page = await openPage({ width: 390, height: 844, scale: 2, phone: true });
-  await page.navigate(`${BASE}?autoplay=15&stage=stage-1`);
+  await page.navigate(`${BASE}?autoplay=15&night=1&seed=7`);
   await sleep(15000);
   const st = await page.evaluate(`({ layout: document.documentElement.dataset.layout, sticks: !!document.querySelector('.sticks, .stick'), screen: document.querySelector('.stage__ui')?.dataset.screen ?? null })`);
   const errs = errorsOf(page);

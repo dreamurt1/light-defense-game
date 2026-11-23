@@ -376,3 +376,18 @@ SKILL.md: 격자 규격, 장애물 사전, 문자 범례, 맵 파일 만들기 �
 ### 그림 자리 (ChatGPT v3 비주얼 브리프 `hand-offs/chatgpt-v3-visual-26-1123-1526/`의 파일 이름)
 
 그림이 오기 전에는 임시 코드 그림·CSS로 동작하고, 받으면 같은 이름으로 바꿔 끼운다: 아침 배경 `morning`·`morning-wide`(없으면 새벽 그라데이션 `#3A3F78` → `#F2B880`), 새 지역 카드 `region-border`·`region-dark`(없으면 색 띠 + 게임이 그리는 지도 축소판), 이야기 카드 2장(6장 중 2번째·4번째), 아이콘 `icon-stardust`·`icon-level`·`icon-prep-*`·`icon-path-keep`·`icon-path-expand`, 패시브 웅크림·도망, 노월 `witch` 두 모습(분노 = 눈 `#FF8C5A`), 격자 소품 `prop-*`. 길 색: 지키는 길 민트 `#9ED9B5` · 넓히는 길 잔불 주황 `#FF8C5A` · 중립 `#8A8FA8`.
+
+**그림 자리 대조(2026-11-23 Phase 6 — v3 비주얼 브리프 `hand-offs/chatgpt-v3-visual-26-1123-1526/`의 파일 이름 ↔ 게임 자리)**. 받으면 `ld-art-intake`로 이 표의 자리에 넣는다.
+
+| 브리프 이름 | 게임 자리(지금) | 받으면 |
+|---|---|---|
+| `morning.png`·`morning-wide.png` | 아침 화면 배경 CSS 변수 `--morning-art`(`ui/run.css`, 지금 새벽 그라데이션) | WebP로 `public/assets/ui/`에 두고 변수에 연결 |
+| `region-border.png`·`region-dark.png` | 새 지역 카드 `.morning__region`(`ui/MorningSheet.ts`, 지금 색 띠 + 작은 지도 캔버스) | 카드 배경으로, 작은 지도는 그 위에 |
+| `story-02-source.png`·`story-04-voices.png` | 이야기 카드 2번째 `art: 'source'`·4번째 `'voices'`(`ui/Story.ts`, 지금 초상·토템 도형) — 순서 맞음 | `.story__art--source`·`--voices` 배경 |
+| `icon-stardust.png`·`icon-level.png` | HUD·아침의 ✦·★는 지금 **글자**(아이콘 자리 아님) | `ui/icons.ts`에 이 이름으로 더하고 글자 대신 |
+| `icon-prep-lamp-oil.png` 등 | `ui/icons.ts prepIcons` — **키는 shop.json id(`lamp_oil`, 밑줄)**, 브리프는 붙임표(`lamp-oil`) | 붙임표 → 밑줄로 맞춰 넣기 |
+| `icon-path-keep.png`·`icon-path-expand.png` | 결과·지난 밤들의 길 점(CSS 원, 민트·잔불 주황) | 점 대신 아이콘 |
+| `witch_idle_calm`·`witch_cast_calm`·`witch_calmed`·`witch_idle_angry.png` | **게임은 한 장 시트** `witch`·`witch-angry`(192×192 7칸, `art/enemies.ts WITCH_FRAME` 대기·시전·진정 순) — 브리프는 칸마다 낱장 | 받은 낱장을 WITCH_FRAME 순서로 시트에 이어 붙임(`npm run assets`) |
+| `owl_cower`·`owl_flee_f01`·`owl_walk_090_right_f01.png` 등 | **아직 텍스처 자리 없음** — 웅크림·도망은 기존 그림을 눌러 납작하게 + 색조(`entities/enemies/Creature.ts`) | 받으면 시트 키를 새로 만들고 Creature의 행렬 상태에 연결 |
+| `prop-house-2x2`·`prop-fence-h`·`prop-river-straight`·`prop-bridge.png` | `entities/MapProps.ts`가 종류(house·fence·river·bridge…)마다 기존 코드 그림을 칸에 맞춰 늘려 씀, 건초는 임시 | 종류별 텍스처를 이 이름으로 바꿔 끼움 |
+
