@@ -9,13 +9,13 @@
 // 그림은 Claude 임시 코드 그림(src/art/creatures.ts, 친구는 초상).
 import Phaser from 'phaser';
 import { TextureKeys } from '../../core/TextureKeys';
-import { texScale } from '../../core/textureRes';
+import { isArtTexture, texScale } from '../../core/textureRes';
 import { GameData, type EnemyDef } from '../../data';
 import type { Rng } from '../../core/rng';
-import { CREATURES, creatureAnim, creatureKey, isCreature, type CreatureArt, type CreatureLook } from '../../art/creatures';
+import { CREATURES, creatureAnim, creatureKey, isCreature, paradeFleeAnim, paradePoseKey, type CreatureArt, type CreatureLook } from '../../art/creatures';
 import { critterView, type CritterView } from '../../systems/critterView';
 import { Enemy, type EnemyContext, type EnemyStep, type ReturnContext } from './Enemy';
-import { ParadeState } from '../../systems/parade';
+import { ParadeState, type ParadeMode } from '../../systems/parade';
 import type { Vec } from '../../systems/fan';
 import { sayAbove } from '../Bubble';
 
@@ -52,6 +52,9 @@ export class Creature extends Enemy {
   private guardLeft = 0;
   private eyesSaid = false;
   private look: CreatureLook = 'dark';
+  /** 행렬 자세(웅크림·도망)와, 그 생성 그림을 지금 끼우고 있는지 */
+  private poseMode: ParadeMode = 'walk';
+  private poseArt = false;
 
   /** @param rng 대사 타이밍·대사 고르기·첫 동작 칸 (판 seed에서, 같은 seed면 같은 밤) */
   constructor(scene: Phaser.Scene, def: EnemyDef, x: number, y: number, private readonly rng: Rng) {
@@ -75,7 +78,7 @@ export class Creature extends Enemy {
       if (this.art.flies) this.shadow.setPosition(0, this.art.size * 0.35);
     } else {
       // 빛을 잃은 친구: 초상 그림을 작게 (임시)
-      const key = `portrait-${def.friend ?? 'tori'}-lost`;
+      const key = `friend-${def.friend ?? 'tori'}-lost`; // 컨셉 그림 실루엣 (2026-11-24)
       this.sprite = scene.add.sprite(0, 0, key, 0).setOrigin(0.5, 0.95);
       this.sprite.setScale((FRIEND_SIZE / Math.max(1, this.sprite.width)) * 1);
       this.underGlow.setScale(130 / 256).setAlpha(0.45);
@@ -110,6 +113,11 @@ export class Creature extends Enemy {
   /** 걷는 종: 이동 방향에 따라 옆·앞·뒤 걸음, 옆이면 좌우 뒤집기 / 나는 종: 좌우만 */
   protected override face(dir: { x: number; y: number }): void {
     const walker = this.art && !this.art.flies && isCreature(this.def.id);
+    if (this.poseArt) {
+      // 웅크림·도망 생성 그림을 낀 동안은 좌우만 (그림은 옆모습)
+      if (Math.abs(dir.x) > 0.15) this.sprite.setFlipX(dir.x < 0);
+      return;
+    }
     if (walker && isCreature(this.def.id)) {
       const view = critterView(dir, this.view);
       if (view !== this.view) {
@@ -137,8 +145,11 @@ export class Creature extends Enemy {
       sayAbove(this.scene, this, this.parade.line, -((this.art?.size ?? FRIEND_SIZE) * 0.9));
       if (r === 'banished') return super.hitByLight(this.hp + 1, 0, stunSec, ctx);
       this.playHit();
-      const cower = (this.def.cowerSec ?? 0.6) * 1000;
-      this.scene.tweens.add({ targets: this, scaleX: 1.1, scaleY: 0.8, duration: 120, yoyo: true, hold: Math.max(0, cower - 240), ease: 'Quad.easeOut' });
+      this.showParadePose('cower');
+      if (!this.poseArt) {
+        const cower = (this.def.cowerSec ?? 0.6) * 1000;
+        this.scene.tweens.add({ targets: this, scaleX: 1.1, scaleY: 0.8, duration: 120, yoyo: true, hold: Math.max(0, cower - 240), ease: 'Quad.easeOut' });
+      }
       return false;
     }
     const p = this.def.behaviorParams;
@@ -179,7 +190,9 @@ export class Creature extends Enemy {
     const parade = this.parade as ParadeState;
     this.age += dt;
     this.animate();
-    if (parade.update(dt) === 'walk') this.talk(dt, ctx, PASSIVE_LINES);
+    const mode = parade.update(dt);
+    this.showParadePose(mode);
+    if (mode === 'walk') this.talk(dt, ctx, PASSIVE_LINES);
     let speed = this.def.speed * ctx.speedMultiplier * parade.speedMultiplier;
     if (speed <= 0) return { hit: null };
     let dest: Vec;
@@ -201,6 +214,30 @@ export class Creature extends Enemy {
     this.face(dir);
     this.setDepth(this.y);
     return { hit: null };
+  }
+
+  /**
+   * 행렬의 웅크림·도망 자세: 생성 그림(art-src)이 있을 때만 그 그림으로 바꿔 끼우고, 걸음으로 돌아오면 원래 걸음 그림으로 (2026-11-24 그림 자리).
+   * 코드 대체 그림뿐이면 아무것도 바꾸지 않는다 — 웅크림은 납작해지는 움직임, 도망은 빨라지는 걸음 그대로
+   */
+  private showParadePose(mode: ParadeMode): void {
+    if (mode === this.poseMode || !isCreature(this.def.id)) return;
+    this.poseMode = mode;
+    const id = this.def.id;
+    const key = mode === 'walk' ? '' : paradePoseKey(id, mode);
+    if (key && isArtTexture(key) && this.scene.textures.exists(key)) {
+      this.poseArt = true;
+      this.sprite.anims.stop(); // 걷기 애니가 돌면 다음 프레임에 걷기 그림으로 되덮는다
+      this.sprite.setTexture(key, 0).setScale(texScale(key));
+      if (mode === 'flee' && this.scene.anims.exists(paradeFleeAnim(id))) this.sprite.play(paradeFleeAnim(id));
+      return;
+    }
+    if (!this.poseArt) return;
+    this.poseArt = false;
+    const walk = creatureKey(id, this.look);
+    this.sprite.setTexture(walk, 0).setScale(texScale(walk));
+    const anim = creatureAnim(id, this.look, this.art?.flies ? 'side' : this.view);
+    if (this.scene.anims.exists(anim)) this.sprite.play(anim);
   }
 
   /** 행렬이 맵을 다 지나감(또는 길을 못 찾음): 점수 없이 조용히 사라진다 */
@@ -231,7 +268,8 @@ export class Creature extends Enemy {
     this.talkLeft = TALK_EVERY + this.rng.range(0, 3);
     const p = ctx.player;
     if (!p || Math.hypot(p.x - this.x, p.y - this.y) > 520) return;
-    sayAbove(this.scene, this, this.rng.pick(lines), -((this.art?.size ?? FRIEND_SIZE) * 0.9));
+    // 빛을 잃은 친구는 실루엣 귀 끝까지 보이게 조금 더 위에 (2026-11-24)
+    sayAbove(this.scene, this, this.rng.pick(lines), -(this.art ? this.art.size * 0.9 : FRIEND_SIZE * 1.15));
   }
 
   protected playReturn(ctx: ReturnContext): void {

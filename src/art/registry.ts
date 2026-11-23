@@ -5,7 +5,7 @@
 import { GameData, type CharacterId } from '../data';
 import { KEEPER_SPRITE, PORTRAIT, drawKeeperFrame, drawPortrait } from './characters';
 import { drawFriendPortrait } from './friends';
-import { SHADE_RES, composeLockedShade, drawShadeFallback } from './lockedShade';
+import { SHADE_RES, composeLockedShade, composeLostShade, drawShadeFallback } from './lockedShade';
 import {
   FAN_TEXTURE_RADIUS,
   GLOW_SIZE,
@@ -26,7 +26,7 @@ import { CENTRAL, HANGING_LANTERN, LANTERN, drawCentralSource, drawHangingLanter
 import { DARK, LIT, VILLAGE_OBJECTS, drawVillage, drawWorld } from './village';
 import { LUMI_COLUMNS, LUMI_ROWS, composeLumi, lumiAnims } from './lumiCompose';
 import { DIRS } from '../systems/facing';
-import { CREATURES, creatureAnims, creatureKey, drawCreature, type CreatureId } from './creatures';
+import { CREATURES, creatureAnims, creatureArtPoses, creatureFrame, creatureKey, drawCreature, paradeFleeAnim, paradePoseKey, type CreatureId } from './creatures';
 import { DARK_ORB, ITEM_ICON, ITEM_IDS, ITEM_LABEL, drawDarkOrb, drawItemIcon, itemKey } from './items';
 import { buildKeeperSheet, drawKeeperSpriteFrame } from './keeperSprites';
 import { FRIEND_PACKS, composeFriend, friendAnims } from './friendSheet';
@@ -139,19 +139,34 @@ const characters: SheetDef[] = [
       art: { poses: ['sit'], frames: still(1), fit: 'contain', box: { x: 10, y: 8, w: 172, h: 180 }, align: 'feet', res: 3 },
     }),
   ),
-  // 잠긴 친구(2026-11-12): 빛을 잃은 모습 — 검은 털 + 보랏빛 눈 (구출하면 제 모습 초상으로)
-  ...(['tori', 'doto'] as const).map(
-    (id): SheetDef => ({
+  // 빛을 잃은 친구(이야기 카드 · 구출 직전 판 위): 2026-11-24 라이언 — 옛 코드 그림 대신 잠긴 칸처럼 컨셉 그림의 실루엣을 짙은 면으로,
+  // 밤 지도 위에서도 모양이 읽히게 라벤더 테두리 빛을 구워 넣음 (src/art/lockedShade.ts composeLostShade). 컨셉 그림이 없으면 코드 초상 모양을 같은 면색으로.
+  // 이야기 카드(DOM) = portrait-<id>-lost 576, 판 위(Phaser, 92px로 줄임) = friend-<id>-lost 192·테두리 굵게
+  ...(['tori', 'doto'] as const).flatMap((id): SheetDef[] => [
+    {
       key: `portrait-${id}-lost`,
       category: 'characters',
-      label: `${GameData.characters.find((c) => c.id === id)?.name ?? id} 초상 (빛을 잃은 모습)`,
+      label: `${GameData.characters.find((c) => c.id === id)?.name ?? id} 빛을 잃은 모습 — 이야기 카드 (컨셉 그림 실루엣 + 라벤더 테두리)`,
       frameWidth: PORTRAIT.size,
       frameHeight: PORTRAIT.size,
       frames: 1,
-      draw: (ctx) => drawFriendPortrait(ctx, id, 'lost'),
-      art: { poses: ['sit'], frames: still(1), fit: 'contain', box: { x: 10, y: 8, w: 172, h: 180 }, align: 'feet', res: 3 },
-    }),
-  ),
+      draw: (ctx) => drawShadeFallback(ctx, id),
+      build: () => composeLostShade(id),
+      buildRes: SHADE_RES,
+      load: false,
+    },
+    {
+      key: `friend-${id}-lost`,
+      category: 'characters',
+      label: `${GameData.characters.find((c) => c.id === id)?.name ?? id} 빛을 잃은 모습 — 판 위 구출 전 (컨셉 그림 실루엣 + 굵은 라벤더 테두리)`,
+      frameWidth: PORTRAIT.size,
+      frameHeight: PORTRAIT.size,
+      frames: 1,
+      draw: (ctx) => drawShadeFallback(ctx, id),
+      build: () => composeLostShade(id, 1, 2),
+      buildRes: 1,
+    },
+  ]),
   // 선택 화면의 잠긴 친구 칸(2026-11-20 라이언): reference 컨셉 그림의 실루엣만 짙은 면색으로 (src/art/lockedShade.ts) — 화면(DOM)에서만 쓴다
   ...(['tori', 'doto'] as const).map(
     (id): SheetDef => ({
@@ -279,9 +294,10 @@ const enemies: SheetDef[] = [
       { key: 'witch-idle', frames: [...WITCH_FRAME.idle], frameRate: 6, repeat: -1 },
       { key: 'witch-cast', frames: [...WITCH_FRAME.cast], frameRate: 6, repeat: 0 },
     ],
+    // 2026-11-24 v3 브리프의 노월 3자세: art-src/enemies/<키>.idle.png · .cast.png · .calmed.png (3장 모두 있어야 쓰고, 한 장짜리 <키>.png면 그 한 장을 모든 칸에)
     art: {
-      poses: ['idle'],
-      frames: [{ pose: 0 }, { pose: 0, dy: -1 }, { pose: 0, dy: -2 }, { pose: 0, dy: -1 }, { pose: 0, dy: -3 }, { pose: 0, dy: -4 }, { pose: 0 }],
+      poses: ['idle', 'cast', 'calmed'],
+      frames: [{ pose: 0 }, { pose: 0, dy: -1 }, { pose: 0, dy: -2 }, { pose: 0, dy: -1 }, { pose: 1, dy: -1 }, { pose: 1, dy: -2 }, { pose: 2 }],
       fit: 'contain',
       box: { x: 8, y: 6, w: 176, h: 182 },
       align: 'feet',
@@ -302,9 +318,10 @@ const enemies: SheetDef[] = [
       { key: 'witch-angry-idle', frames: [...WITCH_FRAME.idle], frameRate: 6, repeat: -1 },
       { key: 'witch-angry-cast', frames: [...WITCH_FRAME.cast], frameRate: 6, repeat: 0 },
     ],
+    // 2026-11-24 v3 브리프의 노월 3자세: art-src/enemies/<키>.idle.png · .cast.png · .calmed.png (3장 모두 있어야 쓰고, 한 장짜리 <키>.png면 그 한 장을 모든 칸에)
     art: {
-      poses: ['idle'],
-      frames: [{ pose: 0 }, { pose: 0, dy: -1 }, { pose: 0, dy: -2 }, { pose: 0, dy: -1 }, { pose: 0, dy: -3 }, { pose: 0, dy: -4 }, { pose: 0 }],
+      poses: ['idle', 'cast', 'calmed'],
+      frames: [{ pose: 0 }, { pose: 0, dy: -1 }, { pose: 0, dy: -2 }, { pose: 0, dy: -1 }, { pose: 1, dy: -1 }, { pose: 1, dy: -2 }, { pose: 2 }],
       fit: 'contain',
       box: { x: 8, y: 6, w: 176, h: 182 },
       align: 'feet',
@@ -324,9 +341,50 @@ const enemies: SheetDef[] = [
         draw: (ctx, f) => drawCreature(ctx, id, look, f),
         // 걷는 종 = 옆·앞·뒤 × 4칸 (`-move` · `-move-front` · `-move-back`), 나는 종 = 옆 4칸 (`-move`)
         anims: creatureAnims(id, look),
+        // 2026-11-24 생성 그림 자리(v3 브리프 이름): art-src/enemies/<키>.walk_090_right_f01~04 · walk_000_front_… · walk_180_back_….png (나는 종은 옆만) — 모두 있어야 쓴다
+        art: {
+          poses: creatureArtPoses(id),
+          frames: creatureArtPoses(id).map((_, pose) => ({ pose })),
+          fit: 'contain',
+          box: CREATURES[id].flies ? { x: 4, y: 4, w: CREATURES[id].size - 8, h: CREATURES[id].size - 8 } : { x: 4, y: 4, w: CREATURES[id].size - 8, h: CREATURES[id].cy - 4 },
+          align: CREATURES[id].flies ? 'center' : 'feet',
+          res: 2,
+        },
       }),
     ),
   ),
+  // 2026-11-24 행렬 패시브의 웅크림·도망 그림 자리: 생성 그림이 없으면 옆 걸음 그림 그대로(지금 화면과 같음 — 웅크림은 Creature가 납작하게),
+  // 생성 그림(art-src/enemies/<id>-cower.cower.png · <id>-flee.f01~f02.png, 브리프 "웅크림 1장 · 도망 2칸")이 오면 npm run assets → Creature가 그 그림으로 바꿔 낀다
+  ...(Object.keys(CREATURES) as CreatureId[])
+    .filter((id) => CREATURES[id].looks.includes('plain'))
+    .flatMap((id): SheetDef[] => {
+      const c = CREATURES[id];
+      const box = c.flies ? { x: 4, y: 4, w: c.size - 8, h: c.size - 8 } : { x: 4, y: 4, w: c.size - 8, h: c.cy - 4 };
+      const align = c.flies ? 'center' : 'feet';
+      return [
+        {
+          key: paradePoseKey(id, 'cower'),
+          category: 'enemies',
+          label: `${id} — 행렬 웅크림 (그림 자리)`,
+          frameWidth: c.size,
+          frameHeight: c.size,
+          frames: 1,
+          draw: (ctx) => drawCreature(ctx, id, 'plain', creatureFrame('side', 0)),
+          art: { poses: ['cower'], frames: still(1), fit: 'contain', box, align, res: 2 },
+        },
+        {
+          key: paradePoseKey(id, 'flee'),
+          category: 'enemies',
+          label: `${id} — 행렬 도망 2칸 (그림 자리)`,
+          frameWidth: c.size,
+          frameHeight: c.size,
+          frames: 2,
+          draw: (ctx, f) => drawCreature(ctx, id, 'plain', creatureFrame('side', f * 2)),
+          anims: [{ key: paradeFleeAnim(id), frames: [0, 1], frameRate: Math.max(4, Math.round(c.fps * 0.75)), repeat: -1 }],
+          art: { poses: ['f01', 'f02'], frames: [{ pose: 0 }, { pose: 1 }], fit: 'contain', box, align, res: 2 },
+        },
+      ];
+    }),
 ];
 
 // 2026-11-13 컨셉 시연판: 아이템 아이콘 (HUD DOM이 assets/items/item-<id>.png로도 쓴다)

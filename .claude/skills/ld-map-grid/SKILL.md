@@ -34,7 +34,9 @@ description: 라이트 디펜스 격자 맵(33×19칸, 한 칸 96px)을 새로 �
 2. `src/data/index.ts`에 `import map<id> from './maps/<id>.json'`을 더하고 `GameData.maps` 목록에 넣는다.
 3. `npm run check:maps` → 통과할 때까지(실패하면 어느 칸인지 나옴). `npx vitest run tests/maps.test.ts tests/map.test.ts`.
 4. 헤드리스로 본다: `http://localhost:5173/?autoplay=9999&night=4&map=<id>&idle` (테스트 판처럼 기록에 남지 않음). 카메라를 멀리 빼 통째로 찍는 예: `cam.setZoom(cam.width / 3300); cam.centerOn(1600, 900)`.
-5. `src/data/nights.json` `bands[].maps`에 넣는다(구간 A 밤 1~2 · B 3~5 · C 6+). 같은 맵은 두 밤 연속 나오지 않는다.
+5. `src/data/nights.json` `bands[].maps`에 넣는다(구간 A 밤 1~2 · B 3~5 · C 6+). 같은 맵은 두 밤 연속 나오지 않는다. 맵이 한 장인 구간은 첫 밤 뒤 바로 아래 구간 맵도 섞는다(`nightRules.mapPoolFor`, 2026-11-24). 지금 6장: A1·A2·A3 · B1·B2 · C1.
+   - 배치를 손으로 33글자씩 치지 말고 `[문자, 열, 행, 폭, 높이]` 목록에서 줄을 만들어 `checkMap`으로 검사하는 작은 스크립트로(2026-11-24 A3·B2·C1을 이렇게 만듦 — 겹치면 바로 알려 줌).
+   - 그림 이름이 아직 없는 장애물(꽃밭·돌담)은 가장 가까운 종류로(꽃밭 = 풀숲 `G`, 돌담 = 울타리 `F`) 두고 맵 `_notes`에 적는다.
 6. 기록: `docs/DECISION_LOG.md` 한 줄, 스킬 문서 동기화 `npm run doc:skill`(맵 JSON도 복사됨).
 
 ## 4. 자주 틀리는 것

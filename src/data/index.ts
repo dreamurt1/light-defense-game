@@ -14,6 +14,9 @@ import obstaclesJson from './obstacles.json';
 import mapA1 from './maps/A1.json';
 import mapA2 from './maps/A2.json';
 import mapB1 from './maps/B1.json';
+import mapA3 from './maps/A3.json';
+import mapB2 from './maps/B2.json';
+import mapC1 from './maps/C1.json';
 import type { GridDict, GridMap } from '../systems/grid';
 
 export type CharacterId = 'lumi' | 'tori' | 'doto';
@@ -381,7 +384,7 @@ export const GameData = {
   shop: shopJson as unknown as ShopDef,
   /** 격자 맵 사전·맵 (2026-11-23, systems/grid.ts) */
   grid: obstaclesJson as unknown as GridDict,
-  maps: Object.fromEntries([mapA1, mapA2, mapB1].map((m) => [m.id, m as unknown as GridMap])) as Record<string, GridMap>,
+  maps: Object.fromEntries([mapA1, mapA2, mapA3, mapB1, mapB2, mapC1].map((m) => [m.id, m as unknown as GridMap])) as Record<string, GridMap>,
 };
 
 /** 맵 id로 (없으면 A1) */

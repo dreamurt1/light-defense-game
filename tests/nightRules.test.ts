@@ -5,6 +5,7 @@ import {
   eventModsFor,
   firstNightOfBand,
   hostileRatioFor,
+  mapPoolFor,
   nightSeed,
   pathOf,
   rescueFriendFor,
@@ -61,19 +62,19 @@ describe('rulesForNight — 밤 1·2·3·6·9·20', () => {
     expect(d.parade).toEqual({ groups: 1, size: 2, everySec: 28, kinds: ['owl', 'moth', 'firefly'] });
     expect(d.spawn.normal.maxAlive).toBe(Math.round(N.spawn.normal.maxAliveStart + N.spawn.normal.maxAlivePerNight));
   });
-  it('밤 3: 경계의 숲(B1), 웨어울프 합류, 행렬 3마리', () => {
+  it('밤 3: 경계의 숲(B1·B2 중 하나), 웨어울프 합류, 행렬 3마리', () => {
     const d = rulesForNight(3, run());
     expect(d.band).toBe('B');
-    expect(d.mapId).toBe('B1');
+    expect(['B1', 'B2']).toContain(d.mapId);
     expect(d.theme).toBe('border');
     expect(d.spawn.normal.weights.werewolf).toBeGreaterThan(0);
     expect(d.parade?.size).toBe(3);
   });
-  it('밤 6: C가 비어 있으면 B에서 고름, 등불 4, 호스틸 0.6', () => {
+  it('밤 6: 어둠이 삼킨 외곽의 첫 밤은 C1, 등불 4, 호스틸 0.6', () => {
     const d = rulesForNight(6, run());
-    expect(N.bands.find((b) => b.id === 'C')!.maps).toEqual([]);
-    expect(d.band).toBe('B');
-    expect(d.mapId).toBe('B1');
+    expect(d.band).toBe('C');
+    expect(d.theme).toBe('dark-village');
+    expect(d.mapId).toBe('C1');
     expect(d.stations).toBe(4);
     expect(d.hostileRatio).toBe(0.6);
   });
@@ -107,8 +108,28 @@ describe('rulesForNight — 밤 1·2·3·6·9·20', () => {
       const second = rulesForNight(2, run({ seed, lastMapId: first.mapId }));
       expect(second.mapId).not.toBe(first.mapId);
     }
-    // 풀에 한 장이면 그 장
-    expect(rulesForNight(4, run({ lastMapId: 'B1' })).mapId).toBe('B1');
+    // 풀에 한 장이면 그 구간의 첫 밤은 그 장
+    const onlyB1: NightsDef = { ...N, bands: N.bands.map((b) => (b.id === 'B' ? { ...b, maps: ['B1'] } : b.id === 'C' ? { ...b, maps: [] } : b)) };
+    expect(rulesForNight(3, run({ lastMapId: 'B1' }), {}, onlyB1).mapId).toBe('B1');
+  });
+  it('맵이 한 장인 구간(C = C1)은 첫 밤이 지나면 바로 아래 구간(B) 맵도 섞고, 같은 맵은 연속으로 안 나옴', () => {
+    const C = N.bands.find((b) => b.id === 'C')!;
+    expect(mapPoolFor(6, C)).toEqual(['C1']);
+    expect(mapPoolFor(7, C)).toEqual(['C1', 'B1', 'B2']);
+    const A = N.bands.find((b) => b.id === 'A')!;
+    expect(mapPoolFor(2, A)).toEqual(['A1', 'A2', 'A3']);
+    const seen = new Set<string>();
+    for (let seed = 1; seed < 40; seed++) {
+      let last: string | null = 'C1';
+      for (let n = 7; n <= 12; n++) {
+        const d = rulesForNight(n, run({ seed, lastMapId: last }));
+        expect(d.band).toBe('C');
+        expect(d.mapId).not.toBe(last);
+        seen.add(d.mapId!);
+        last = d.mapId;
+      }
+    }
+    expect([...seen].sort()).toEqual(['B1', 'B2', 'C1']);
   });
   it('테스트 메뉴에서 고른 맵을 쓴다', () => {
     expect(rulesForNight(1, run(), { mapId: 'B1' }).mapId).toBe('B1');
@@ -117,14 +138,15 @@ describe('rulesForNight — 밤 1·2·3·6·9·20', () => {
 
 describe('구간·새 지역', () => {
   it('맵이 있는 가장 깊은 구간', () => {
-    expect([1, 2, 3, 5, 6, 40].map((n) => bandFor(n).id)).toEqual(['A', 'A', 'B', 'B', 'B', 'B']);
-    const withC: NightsDef = { ...N, bands: N.bands.map((b) => (b.id === 'C' ? { ...b, maps: ['C1'] } : b)) };
-    expect(bandFor(6, withC).id).toBe('C');
+    expect([1, 2, 3, 5, 6, 40].map((n) => bandFor(n).id)).toEqual(['A', 'A', 'B', 'B', 'C', 'C']);
+    const noC: NightsDef = { ...N, bands: N.bands.map((b) => (b.id === 'C' ? { ...b, maps: [] } : b)) };
+    expect(bandFor(6, noC).id).toBe('B');
   });
   it('구간에 처음 닿는 밤', () => {
     expect(firstNightOfBand(3)?.id).toBe('B');
     expect(firstNightOfBand(4)).toBeNull();
-    expect(firstNightOfBand(6)).toBeNull(); // C에 맵이 없으면 새 지역 아님
+    expect(firstNightOfBand(6)?.id).toBe('C');
+    expect(firstNightOfBand(7)).toBeNull();
   });
 });
 

@@ -9,7 +9,7 @@ import { writeFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { openPage, sleep } from './lib/chrome.mjs';
 
-const BASE = 'http://localhost:5173/';
+const BASE = process.env.LD_BASE ?? 'http://localhost:5173/'; // 다른 포트의 dev 서버면 LD_BASE=http://localhost:5174/
 const LIVE = 'https://light-defense-game.web.app/';
 const skipLong = process.argv.includes('--skip-long');
 const outIdx = process.argv.indexOf('--out');

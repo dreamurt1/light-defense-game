@@ -1,6 +1,6 @@
 // 창 없는(헤드리스) 크롬을 DevTools 프로토콜로 다루는 작은 도구. 의존성 없음(Node 내장 WebSocket).
 import { spawn } from 'node:child_process';
-import { mkdtempSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -10,13 +10,16 @@ export const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // phone: 휴대폰 흉내(터치 → pointer: coarse, 모바일 화면, 가로·세로 방향) — 휴대폰 가로 화면 확인용 (2026-11-06)
 export async function openPage({ width = 390, height = 844, scale = 2, phone = false } = {}) {
-  const port = 9300 + Math.floor(Math.random() * 500);
+  // 2026-11-24: 디버그 포트를 9300~9799에서 무작위로 고르면 여러 창을 한꺼번에 열 때 같은 포트가 걸려
+  // 두 작업이 한 창을 함께 몰았다(밸런스 측정에서 두 seed가 같은 런·같은 점수, 다섯 창 화면이 겹쳐 찍힘).
+  // → 포트 0(크롬이 빈 포트를 고름) + 프로필 폴더의 DevToolsActivePort 첫 줄에서 실제 포트를 읽는다
+  const profile = mkdtempSync(join(tmpdir(), 'ld-chrome-'));
   const chrome = spawn(
     CHROME,
     [
       '--headless=new',
-      `--remote-debugging-port=${port}`,
-      `--user-data-dir=${mkdtempSync(join(tmpdir(), 'ld-chrome-'))}`,
+      '--remote-debugging-port=0',
+      `--user-data-dir=${profile}`,
       '--no-first-run',
       '--hide-scrollbars',
       '--autoplay-policy=no-user-gesture-required',
@@ -26,8 +29,16 @@ export async function openPage({ width = 390, height = 844, scale = 2, phone = f
     { stdio: 'ignore' },
   );
 
+  let port = 0;
+  const portFile = join(profile, 'DevToolsActivePort');
+  for (let i = 0; i < 100 && !port; i++) {
+    try {
+      if (existsSync(portFile)) port = Number(readFileSync(portFile, 'utf8').split(/\r?\n/)[0]) || 0;
+    } catch {}
+    if (!port) await sleep(100);
+  }
   let wsUrl = null;
-  for (let i = 0; i < 50 && !wsUrl; i++) {
+  for (let i = 0; i < 50 && !wsUrl && port; i++) {
     try {
       const list = await (await fetch(`http://127.0.0.1:${port}/json`)).json();
       wsUrl = list.find((t) => t.type === 'page')?.webSocketDebuggerUrl ?? null;

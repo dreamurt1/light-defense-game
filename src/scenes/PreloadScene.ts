@@ -25,7 +25,7 @@ export class PreloadScene extends Phaser.Scene {
       for (const s of data.sheets) {
         if (s.load === false) continue;
         const res = s.res ?? 1;
-        setTextureRes(s.key, res);
+        setTextureRes(s.key, res, s.source);
         this.load.spritesheet(s.key, `assets/${s.file}`, { frameWidth: Math.round(s.frameWidth * res), frameHeight: Math.round(s.frameHeight * res) });
       }
     });

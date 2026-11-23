@@ -40,6 +40,7 @@ description: 라이트 디펜스에서 ChatGPT가 만든 그림(캐릭터 대기
 | 초상 | 대기 45°를 `art-src/characters/portrait-<char>.png`로 복사 |
 | 홈·배경·제목 | 원본 `reference/Home_Art_Pack/`, 다듬은 판 `art-src/backgrounds/<키>.png` (`src/art/registry.ts` 키) |
 | 받은 zip | 바탕화면 station 해당 묶음의 `received/`로 옮김 |
+| v3 브리프 그림(아침·새 지역 카드·이야기 카드 2장·아이콘·노월 낱장·패시브 웅크림/도망·격자 소품) | `docs/design/NIGHT_RUN.md` 13절 끝 **그림 이름 ↔ 게임 자리 대조표**대로 — 패시브 = `art-src/enemies/<id>-cower.cower.png`·`<id>-flee.f01~f04.png`(2026-11-24 자리 있음), 노월 낱장은 `WITCH_FRAME` 순서로 시트에, 준비물 아이콘 붙임표 → 밑줄 |
 - 각도·이름: 000_front · 045_front_right · 090_right · 135_back_right · 180_back · 225_back_left · 270_left · 315_front_left.
 
 ## 6. 적용·확인

@@ -71,6 +71,19 @@ export const creatureKey = (id: CreatureId, look: CreatureLook): string => (look
 export const creatureAnim = (id: CreatureId, look: CreatureLook, view: CritterView = 'side'): string =>
   view === 'side' ? `${creatureKey(id, look)}-move` : `${creatureKey(id, look)}-move-${view}`;
 export const isCreature = (id: string): id is CreatureId => id in CREATURES;
+/**
+ * 행렬 패시브의 웅크림·도망 그림 자리 (2026-11-24, v3 비주얼 브리프 `owl_cower.png`·`owl_flee_f01~f04.png`).
+ * 텍스처 키 `<id>-cower`(1칸)·`<id>-flee`(2칸 — 브리프 "도망 2칸", 애니 `<id>-flee-run`), 생성 그림 = art-src/enemies/<id>-cower.cower.png · <id>-flee.f01~f02.png
+ */
+export const paradePoseKey = (id: CreatureId, pose: 'cower' | 'flee'): string => `${id}-${pose}`;
+export const paradeFleeAnim = (id: CreatureId): string => `${id}-flee-run`;
+/** 걷기 그림 방향 이름 (v3 브리프·친구 팩과 같은 각도 이름 — 옆 = 오른쪽을 봄) */
+const VIEW_NAME: Record<CritterView, string> = { side: '090_right', front: '000_front', back: '180_back' };
+/**
+ * 생물 걷기 시트의 생성 그림 포즈 이름: 방향(옆·앞·뒤, 나는 종은 옆만) × 4장 = `walk_090_right_f01` …
+ * 파일 = art-src/enemies/<시트 키>.<포즈>.png (ChatGPT 이름 `owl_walk_090_right_f01.png` → `owl.walk_090_right_f01.png`, 호스틸은 `werewolf-dark.…`)
+ */
+export const creatureArtPoses = (id: CreatureId): string[] => creatureViews(id).flatMap((v) => [1, 2, 3, 4].map((f) => `walk_${VIEW_NAME[v]}_f0${f}`));
 /** 이 종의 시트에 들어 있는 방향 (나는 종은 옆만) */
 export const creatureViews = (id: CreatureId): readonly CritterView[] => (CREATURES[id].flies ? ['side'] : CRITTER_VIEWS);
 /** 방향·걸음 칸 → 시트 칸 번호 */

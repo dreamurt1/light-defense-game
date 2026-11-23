@@ -61,8 +61,8 @@ function paintShade(ctx: Ctx, w: number, h: number): void {
   ctx.putImageData(image, 0, 0);
 }
 
-/** 컨셉 그림 → 576×576 실루엣. 컨셉 그림이 없으면 null(코드 초상으로 대신) */
-export async function composeLockedShade(id: FriendId): Promise<HTMLCanvasElement | null> {
+/** 컨셉 그림 → (192 × res)² 실루엣(기본 576×576). 컨셉 그림이 없으면 null(코드 초상으로 대신) */
+export async function composeLockedShade(id: FriendId, res: number = SHADE_RES): Promise<HTMLCanvasElement | null> {
   const img = await loadImage(CONCEPT_URL[id]);
   if (!img) return null;
   const src = document.createElement('canvas');
@@ -74,19 +74,55 @@ export async function composeLockedShade(id: FriendId): Promise<HTMLCanvasElemen
   const r = alphaBounds({ data: px.data, width: src.width, height: src.height }, 24);
   if (!r) return null;
 
-  const size = PORTRAIT.size * SHADE_RES;
+  const size = PORTRAIT.size * res;
   const out = document.createElement('canvas');
   out.width = size;
   out.height = size;
   const ctx = out.getContext('2d', { willReadFrequently: true }) as CanvasRenderingContext2D;
   ctx.imageSmoothingQuality = 'high';
-  const k = Math.min((SHADE_BOX.w * SHADE_RES) / r.w, (SHADE_BOX.h * SHADE_RES) / r.h);
+  const k = Math.min((SHADE_BOX.w * res) / r.w, (SHADE_BOX.h * res) / r.h);
   const w = r.w * k;
   const h = r.h * k;
-  const cx = (SHADE_BOX.x + SHADE_BOX.w / 2) * SHADE_RES;
-  const feet = (SHADE_BOX.y + SHADE_BOX.h) * SHADE_RES;
+  const cx = (SHADE_BOX.x + SHADE_BOX.w / 2) * res;
+  const feet = (SHADE_BOX.y + SHADE_BOX.h) * res;
   ctx.drawImage(src, r.x, r.y, r.w, r.h, cx - w / 2, feet - h, w, h);
   paintShade(ctx, size, size);
+  return out;
+}
+
+/** 라벤더 테두리 빛 #A89CD9 */
+const RIM = '#A89CD9';
+
+/**
+ * 빛을 잃은 친구 (2026-11-24 라이언 — 이야기 카드·구출 직전 판 위): 잠긴 칸과 같은 실루엣에
+ * 라벤더 테두리(선 rim px)와 옅은 번짐(rim × 2px, 192 기준)을 구워 어두운 밤 지도 위에서도 모양이 읽히게. 컨셉 그림이 없으면 null.
+ * 화면(이야기 카드)용 = res 3·rim 1, 판 위용 = res 1·rim 2 (576을 92px로 줄이면 얇은 테두리가 점선처럼 끊겨서)
+ */
+export async function composeLostShade(id: FriendId, res: number = SHADE_RES, rim = 1): Promise<HTMLCanvasElement | null> {
+  const shade = await composeLockedShade(id, res);
+  if (!shade) return null;
+  const size = shade.width;
+  const tint = document.createElement('canvas');
+  tint.width = size;
+  tint.height = size;
+  const t = tint.getContext('2d') as CanvasRenderingContext2D;
+  t.drawImage(shade, 0, 0);
+  t.globalCompositeOperation = 'source-in';
+  t.fillStyle = RIM;
+  t.fillRect(0, 0, size, size);
+  const out = document.createElement('canvas');
+  out.width = size;
+  out.height = size;
+  const ctx = out.getContext('2d') as CanvasRenderingContext2D;
+  const px = res * rim; // 192 기준 rim px
+  ctx.filter = `blur(${px * 2}px)`;
+  ctx.globalAlpha = 0.55;
+  ctx.drawImage(tint, 0, 0);
+  ctx.filter = 'none';
+  ctx.globalAlpha = 0.85;
+  for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1], [-0.7, -0.7], [0.7, -0.7], [-0.7, 0.7], [0.7, 0.7]]) ctx.drawImage(tint, dx * px, dy * px);
+  ctx.globalAlpha = 1;
+  ctx.drawImage(shade, 0, 0);
   return out;
 }
 

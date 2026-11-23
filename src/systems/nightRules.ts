@@ -85,10 +85,20 @@ export function bandFor(n: number, nights: NightsDef = GameData.nights): NightBa
   return reached[0] ?? nights.bands[0];
 }
 
+/**
+ * 밤 n에 고를 맵 풀: 그 구간의 맵. 단 맵이 한 장뿐인 구간은 첫 밤이 지나면 바로 아래 구간 맵도 섞는다
+ * (2026-11-24 기본값 — C가 C1 한 장이라 밤 6부터 늘 같은 맵이 되지 않게, 첫 밤은 새 지역 카드대로 그 구간 맵)
+ */
+export function mapPoolFor(n: number, band: NightBand, nights: NightsDef = GameData.nights): string[] {
+  if (band.maps.length !== 1 || n <= band.fromNight) return band.maps;
+  const below = nights.bands.filter((b) => b.fromNight < band.fromNight && b.maps.length > 0).sort((a, b) => b.fromNight - a.fromNight)[0];
+  return below ? [...band.maps, ...below.maps] : band.maps;
+}
+
 /** 같은 맵이 두 밤 연속 나오지 않게 (풀에 한 장이면 그 장) */
-export function pickMap(band: NightBand, lastMapId: string | null, rng: Rng): string | null {
-  const pool = band.maps.length > 1 ? band.maps.filter((m) => m !== lastMapId) : band.maps;
-  return pool.length ? rng.pick(pool) : null;
+export function pickMap(pool: readonly string[], lastMapId: string | null, rng: Rng): string | null {
+  const choices = pool.length > 1 ? pool.filter((m) => m !== lastMapId) : pool;
+  return choices.length ? rng.pick(choices) : null;
 }
 
 /** 로스터를 호스틸 비중대로 나눈 가중치 (호스틸끼리·잃어버린 주민끼리 같은 몫) */
@@ -175,7 +185,7 @@ export function rulesForNight(n: number, run: RunInfo, opts: NightOptions = {}, 
   const night = Math.max(1, Math.floor(n));
   const band = bandFor(night, nights);
   const path = pathOf(run);
-  const mapId = opts.mapId !== undefined ? opts.mapId : pickMap(band, run.lastMapId, new Rng(nightSeed(run.seed, night, 1)));
+  const mapId = opts.mapId !== undefined ? opts.mapId : pickMap(mapPoolFor(night, band, nights), run.lastMapId, new Rng(nightSeed(run.seed, night, 1)));
   const hostileRatio = hostileRatioFor(night, run, nights);
   const weights = rosterWeights(stepValue(nights.spawn.roster, night), hostileRatio);
   const friend = rescueFriendFor(night, run, nights);
