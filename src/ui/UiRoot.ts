@@ -2,6 +2,7 @@
 import type Phaser from 'phaser';
 import { LocalRanking } from '../services/LocalRanking';
 import { installHistoryNav } from './HistoryNav';
+import { MorningSheet } from './MorningSheet';
 import { BossBar } from './BossBar';
 import { Hud } from './Hud';
 import { PauseSheet } from './PauseSheet';
@@ -24,6 +25,8 @@ export function mountUi(root: HTMLElement, game: Phaser.Game): Router {
   const select = new SelectScreen();
   const shop = new ShopScreen();
   const rankingScreen = new RankingScreen(ranking);
+  // 런의 아침 화면 (2026-11-23 밤 나들이)
+  const morning = new MorningSheet();
   const hud = new Hud();
   hud.el.querySelector('.hud-top')?.append(new BossBar().el);
   // 두 스틱은 아래 띠 바로 위에 (2026-11-04 브롤스타즈식 조작)
@@ -34,6 +37,7 @@ export function mountUi(root: HTMLElement, game: Phaser.Game): Router {
     select.el,
     shop.el,
     rankingScreen.el,
+    morning.el,
     hud.el,
     new Toast().el,
     new PauseSheet().el,
@@ -42,7 +46,7 @@ export function mountUi(root: HTMLElement, game: Phaser.Game): Router {
     new TestSheet().el,
     createTurnHint(),
   );
-  const router = new Router(game, root, { home, select, ranking: rankingScreen });
+  const router = new Router(game, root, { home, select, ranking: rankingScreen, morning });
   // 휴대폰 뒤로가기·앞으로가기 → 앱 안의 단계 이동 (2026-11-13 라이언, 게임 중 제외·앞으로가기로 게임에 들어가지 않음)
   installHistoryNav(router, root);
   return router;

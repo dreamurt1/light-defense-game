@@ -52,7 +52,9 @@ export function toggleFullscreen(): void {
 /** 세로 화면에서 안내를 홈 '게임하기' 바로 위(가운데 맞춤)에 둔다(2026-11-21 라이언: 세로 기준).
  *  가로이거나 '게임하기'가 보이지 않으면(판 중 등) 원래 자리 — 접속 안내 = 화면 아래 가운데, 해제 안내 = 가운데 */
 function placeAboveStart(el: HTMLElement): void {
-  const start = document.querySelector<HTMLElement>('.home__start');
+  // 2026-11-23: 저장된 런이 있으면 '밤 나들이 시작' 위에 '이어서 하기'가 있다 → 보이는 버튼 중 맨 위 것의 위에
+  const cont = document.querySelector<HTMLElement>('.home__continue');
+  const start = cont && !cont.hidden && !cont.closest('[hidden]') ? cont : document.querySelector<HTMLElement>('.home__start');
   const r = start?.getBoundingClientRect();
   const root = document.documentElement;
   const visible = !!r && r.width > 0 && r.height > 0 && root.dataset.screen === 'home' && root.dataset.layout !== 'landscape';

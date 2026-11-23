@@ -1,0 +1,324 @@
+/* ===================================================================
+   아침 화면 (2026-11-23 밤 나들이 v3, ui/MorningSheet.ts) — 새벽 하늘 위에 결과 판과 같은 남색 판.
+   세로 = 아래에서 올라온 판, 가로 = 가운데 판(통계 두 열). 판이 넘치면 판 안에서 위아래로.
+   두 길 색: 지키는 길 민트 #9ED9B5 · 넓히는 길 잔불 주황 #FF8C5A · 중립 #8A8FA8 (ChatGPT v3 비주얼 브리프 3절)
+   =================================================================== */
+
+.stage__ui[data-screen='morning'] .screen--morning {
+  display: flex;
+  animation: screen-in 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.screen--morning {
+  padding: 0;
+  overflow: hidden;
+}
+
+/* 새벽 하늘: 위는 초저녁 남색, 아래로 살구. 그림이 오면 --morning-art (morning.webp / morning-wide.webp) */
+.morning__sky {
+  position: absolute;
+  inset: 0;
+  background:
+    var(--morning-art, none) center / cover no-repeat,
+    radial-gradient(120% 60% at 50% 100%, color-mix(in srgb, var(--dawn) 70%, transparent), transparent 70%),
+    linear-gradient(to bottom, #3a3f78 0%, #5a5487 45%, #c99a8a 80%, var(--dawn) 100%);
+}
+
+.morning__wrap {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: max(calc(var(--u) * 18), env(safe-area-inset-top, 0px)) calc(var(--u) * 24) max(calc(var(--u) * 24), env(safe-area-inset-bottom, 0px));
+}
+
+.morning__panel {
+  max-height: 100%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border-bottom: 1px solid color-mix(in srgb, var(--dawn) 60%, transparent);
+  border-color: color-mix(in srgb, var(--dawn) 60%, transparent);
+  border-radius: calc(var(--u) * 28);
+  padding: calc(var(--u) * 28) calc(var(--u) * 30) calc(var(--u) * 20);
+  text-align: center;
+  background: linear-gradient(to bottom, color-mix(in srgb, #232750 72%, var(--dawn)), #232750);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--paper) 10%, transparent),
+    0 calc(var(--u) * 14) calc(var(--u) * 40) var(--shadow);
+  animation: sheet-rise 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.morning__ribbon {
+  margin: 0 0 calc(var(--u) * 8);
+}
+
+.morning__path {
+  margin: calc(var(--u) * 10) 0 0;
+  font-size: calc(var(--u) * 16);
+  font-weight: 700;
+  color: var(--ash);
+}
+
+.morning__path[data-path='keep'] {
+  color: var(--mint);
+}
+
+.morning__path[data-path='expand'] {
+  color: var(--ember);
+}
+
+/* 하트(최대 4칸) + 빛 레벨 */
+.morning__run {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: calc(var(--u) * 10) calc(var(--u) * 20);
+  margin-top: calc(var(--u) * 14);
+}
+
+.morning__hearts {
+  display: flex;
+  gap: calc(var(--u) * 6);
+}
+
+.morning__hearts svg {
+  width: max(22px, calc(var(--u) * 28));
+  height: max(22px, calc(var(--u) * 28));
+  color: var(--ember);
+  fill: currentColor;
+}
+
+.morning__hearts svg.is-empty {
+  color: color-mix(in srgb, var(--paper) 22%, transparent);
+}
+
+.morning__level {
+  margin: 0;
+  font-size: calc(var(--u) * 17);
+  font-weight: 800;
+  color: var(--mint);
+}
+
+.morning__actions {
+  grid-template-columns: 1fr;
+  margin-top: calc(var(--u) * 18);
+}
+
+/* 가로: 가운데 판, 통계 두 열 */
+:root[data-layout='landscape'] .morning__wrap {
+  justify-content: center;
+  align-items: center;
+  padding: max(calc(var(--u) * 14), env(safe-area-inset-top, 0px)) max(calc(var(--u) * 40), env(safe-area-inset-right, 0px)) max(calc(var(--u) * 14), env(safe-area-inset-bottom, 0px))
+    max(calc(var(--u) * 40), env(safe-area-inset-left, 0px));
+}
+
+:root[data-layout='landscape'] .morning__panel {
+  width: min(100%, calc(var(--u) * 640));
+  padding-top: calc(var(--u) * 20);
+  padding-bottom: calc(var(--u) * 14);
+}
+
+:root[data-layout='landscape'] .morning__panel .sheet__title {
+  font-size: calc(var(--u) * 32);
+}
+
+:root[data-layout='landscape'] .morning__stats {
+  grid-template-columns: 1fr 1fr;
+  column-gap: calc(var(--u) * 24);
+  margin-top: calc(var(--u) * 12);
+}
+
+:root[data-layout='landscape'] .morning__stats .result__row {
+  min-height: calc(var(--u) * 34);
+  border-bottom: 1px solid var(--hairline);
+}
+
+:root[data-layout='landscape'] .morning__stats .result__row--score {
+  grid-column: 1 / -1;
+  min-height: calc(var(--u) * 44);
+}
+
+:root[data-layout='landscape'] .morning__actions {
+  grid-template-columns: 1fr 1fr;
+  margin-top: calc(var(--u) * 14);
+}
+
+/* 결과 판의 길 제목 (런의 끝, ui/ResultSheet.ts) — 같은 색 */
+.result__path {
+  margin: calc(var(--u) * 10) 0 0;
+  font-size: calc(var(--u) * 16);
+  font-weight: 700;
+  color: var(--ash);
+}
+
+.result__path[data-path='keep'] {
+  color: var(--mint);
+}
+
+.result__path[data-path='expand'] {
+  color: var(--ember);
+}
+
+.result__best {
+  margin: calc(var(--u) * 10) 0 0;
+  font-size: calc(var(--u) * 17);
+  font-weight: 800;
+  color: var(--amber);
+}
+
+/* 집으로 = 새벽빛 판 (오늘 밤들은 여기까지) */
+.sheet--result[data-mode='run'][data-outcome='clear'] {
+  background: linear-gradient(to bottom, rgba(58, 63, 120, 0.55), rgba(242, 184, 128, 0.45));
+}
+
+/* ---------- 홈 (2026-11-23): 이어서 하기 · 최고 기록 · 칩 ---------- */
+
+.profile__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.2;
+}
+
+.profile__best {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: max(12px, calc(var(--u) * 13));
+  font-weight: 700;
+  color: var(--amber);
+}
+
+.home__chips {
+  position: absolute;
+  left: calc(var(--u) * 22);
+  top: calc(max(calc(var(--u) * 18), env(safe-area-inset-top, 0px)) + var(--u) * 68);
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--u) * 6);
+  max-width: calc(var(--u) * 300);
+}
+
+:root[data-layout='landscape'] .home__chips {
+  left: max(calc(var(--u) * 26), env(safe-area-inset-left, 0px));
+}
+
+.home-chip {
+  padding: calc(var(--u) * 4) calc(var(--u) * 12);
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  background: color-mix(in srgb, #14152e 88%, transparent);
+  font-size: max(12px, calc(var(--u) * 14));
+  font-weight: 700;
+  color: var(--paper);
+  font-variant-numeric: tabular-nums;
+}
+
+.home-chip--dust {
+  color: var(--amber);
+}
+
+/* 이어서 하기 (밤 n): '밤 나들이 시작' 바로 위, 같은 폭 */
+:root:not([data-layout='landscape']) .home__continue {
+  position: absolute;
+  left: 50%;
+  top: calc(var(--anchor) * 100cqh + (0.735 - var(--anchor)) * var(--scene-h));
+  transform: translate(-50%, calc(-100% - var(--u) * 10));
+  width: min(calc(100% - calc(var(--u) * 44)), calc(var(--u) * 340));
+}
+
+:root[data-layout='landscape'] .home__continue {
+  position: absolute;
+  right: var(--side);
+  bottom: calc(max(7%, env(safe-area-inset-bottom, 0px)) + max(48px, calc(var(--u) * 60)) + var(--u) * 10);
+  width: var(--start-w);
+}
+
+/* ---------- HUD (2026-11-23): ★빛 레벨(민트) · ✦별가루(호박), 런의 밤에만 ---------- */
+
+.stat--level,
+.stat--dust {
+  gap: calc(var(--u) * 3);
+  font-weight: 800;
+}
+
+.stat--level {
+  color: var(--mint);
+}
+
+.stat--dust {
+  color: var(--amber);
+}
+
+.stat__mark {
+  font-size: 0.9em;
+}
+
+/* ---------- 지난 밤들 (2026-11-23): 밤 열 · 길 점 ---------- */
+
+.rank-row__nights {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  color: var(--dawn);
+  white-space: nowrap;
+}
+
+.rank-row__path {
+  flex: none;
+  display: inline-block;
+  width: calc(var(--u) * 10);
+  height: calc(var(--u) * 10);
+  min-width: 8px;
+  min-height: 8px;
+  margin-right: calc(var(--u) * 8);
+  border-radius: 50%;
+  background: var(--ash);
+  vertical-align: middle;
+}
+
+.rank-row__path[data-path='keep'] {
+  background: var(--mint);
+}
+
+.rank-row__path[data-path='expand'] {
+  background: var(--ember);
+}
+
+/* ---------- 선택 (2026-11-23): 스테이지 4칸 대신 '오늘 밤 나들이' 안내 ---------- */
+
+.select__label--run {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: calc(var(--u) * 6);
+}
+
+.select__label--run svg {
+  width: max(14px, calc(var(--u) * 16));
+  height: max(14px, calc(var(--u) * 16));
+}
+
+.select__run-line {
+  word-break: keep-all;
+  max-width: 30em;
+  margin-inline: auto;
+  line-height: 1.45;
+  color: var(--paper-soft);
+}
+
+/* 낮은 가로에서도 안내는 남긴다 (옛 밤 안내 줄은 접혔음 — 스테이지 칸이 빠져 자리가 있음) */
+@container (max-height: 430px) {
+  :root[data-layout='landscape'] .select__run-line {
+    display: block;
+    font-size: max(12px, calc(var(--u) * 13));
+    line-height: 1.35;
+  }
+}
+
+/* 가로: '이어서 하기'가 있으면 둥근 버튼 넷을 조금 위로 (휴대폰 가로 844×390에서 오른쪽 아래 버튼과 닿던 것, 양쪽 열 함께 — 대칭 유지) */
+:root[data-layout='landscape'] .screen--home.has-continue .home-badge {
+  margin-top: calc(var(--u) * -36);
+}

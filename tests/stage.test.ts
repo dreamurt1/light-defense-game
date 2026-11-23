@@ -161,7 +161,7 @@ describe('등불 스테이션 (2026-11-14 라이언: 켜면 HP 가득, 켜진 �
     }
     expect(r).toBe('out');
     expect(s.mode).toBe('off');
-    expect(t).toBeLessThan(GameData.stages.find((x) => x.id === 'stage-1')!.durationSec);
+    expect(t).toBeLessThan(GameData.nights.durationSec);
     expect(t).toBeGreaterThan(20); // 켜자마자 꺼지지는 않게
   });
 
@@ -219,13 +219,15 @@ describe('주인공 특성 (2026-11-17 라이언: 토리 = 빠른 발)', () => {
   });
 
   it('고른 주인공이 구출할 친구 자신이면 구출 친구가 나오지 않는다', () => {
-    const s2 = stageById('stage-2');
-    const s3 = stageById('stage-3');
+    // 2026-11-23: 구출은 밤 규칙이 정한다 — 여기서는 구출 친구가 든 판을 직접 만든다
+    const base = stageById('tutorial');
+    const s2 = { ...base, rescue: { enemyId: 'tori-lost' as const, atProgress: 0.3 } };
+    const s3 = { ...base, rescue: { enemyId: 'doto-lost' as const, atProgress: 0.3 } };
     expect(rescueFor(s2, 'lumi')?.enemyId).toBe('tori-lost');
     expect(rescueFor(s2, 'tori')).toBeNull();
     expect(rescueFor(s2, 'doto')?.enemyId).toBe('tori-lost');
     expect(rescueFor(s3, 'doto')).toBeNull();
     expect(rescueFor(s3, 'tori')?.enemyId).toBe('doto-lost');
-    expect(rescueFor(stageById('stage-1'), 'lumi')).toBeNull();
+    expect(rescueFor(base, 'lumi')).toBeNull();
   });
 });

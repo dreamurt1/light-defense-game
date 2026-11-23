@@ -8,71 +8,23 @@
     "tutorial": true,
     "blurb": "걷고, 빛을 보내고, 등불을 켜 봐요.",
     "spawn": {
-      "normal": { "maxAlive": 0, "intervalStart": 99, "intervalEnd": 99, "weights": { "bat": 1 } },
-      "climax": { "maxAlive": 0, "intervalStart": 99, "intervalEnd": 99, "weights": { "bat": 1 } }
+      "normal": {
+        "maxAlive": 0,
+        "intervalStart": 99,
+        "intervalEnd": 99,
+        "weights": {
+          "bat": 1
+        }
+      },
+      "climax": {
+        "maxAlive": 0,
+        "intervalStart": 99,
+        "intervalEnd": 99,
+        "weights": {
+          "bat": 1
+        }
+      }
     }
-  },
-  {
-    "id": "stage-1",
-    "name": "첫 번째 밤",
-    "theme": "light-village",
-    "durationSec": 100,
-    "stations": 1,
-    "blurb": "빛의 마을. 등불 하나를 켜고 아침까지 지켜요.",
-    "spawn": {
-      "onlyHostileUntilSec": 6,
-      "normal": { "maxAlive": 3, "intervalStart": 4.0, "intervalEnd": 3.0, "weights": { "bat": 3, "frog": 1 } },
-      "climax": { "maxAlive": 6, "intervalStart": 2.4, "intervalEnd": 2.0, "weights": { "bat": 3, "frog": 2 } }
-    },
-    "items": { "intervalSec": 20, "firstSec": 12 }
-  },
-  {
-    "id": "stage-2",
-    "name": "경계의 밤",
-    "theme": "border",
-    "durationSec": 100,
-    "stations": 2,
-    "blurb": "빛과 어둠의 경계. 어딘가에 토리가 있어요.",
-    "spawn": {
-      "onlyHostileUntilSec": 5,
-      "normal": { "maxAlive": 5, "intervalStart": 3.0, "intervalEnd": 2.4, "weights": { "bat": 3, "vampire": 1, "frog": 1, "hedgehog": 1 } },
-      "climax": { "maxAlive": 8, "intervalStart": 1.8, "intervalEnd": 1.5, "weights": { "bat": 3, "vampire": 2, "frog": 2, "hedgehog": 1 } }
-    },
-    "passive": { "intervalSec": 12, "maxAlive": 2, "weights": { "owl": 1, "moth": 1 } },
-    "rescue": { "enemyId": "tori-lost", "atProgress": 0.3 },
-    "items": { "intervalSec": 16, "firstSec": 10 }
-  },
-  {
-    "id": "stage-3",
-    "name": "어둠의 마을",
-    "theme": "dark-village",
-    "durationSec": 100,
-    "stations": 3,
-    "blurb": "어둠의 주민들이 사는 곳. 도토를 찾아요.",
-    "spawn": {
-      "onlyHostileUntilSec": 5,
-      "normal": { "maxAlive": 7, "intervalStart": 2.4, "intervalEnd": 1.8, "weights": { "bat": 2, "vampire": 1, "werewolf": 1, "redpanda": 1, "hedgehog": 1, "frog": 1 } },
-      "climax": { "maxAlive": 10, "intervalStart": 1.5, "intervalEnd": 1.2, "weights": { "bat": 2, "vampire": 2, "werewolf": 2, "redpanda": 1, "hedgehog": 1, "frog": 1 } }
-    },
-    "passive": { "intervalSec": 12, "maxAlive": 2, "weights": { "firefly": 1, "owl": 1 } },
-    "rescue": { "enemyId": "doto-lost", "atProgress": 0.3 },
-    "items": { "intervalSec": 15, "firstSec": 10 }
-  },
-  {
-    "id": "stage-4",
-    "name": "노월의 밤",
-    "theme": "dark-village",
-    "durationSec": 100,
-    "stations": 4,
-    "blurb": "마녀 노월이 찾아와요. 빛으로 마음을 열어요.",
-    "spawn": {
-      "onlyHostileUntilSec": 5,
-      "normal": { "maxAlive": 5, "intervalStart": 3.0, "intervalEnd": 2.4, "weights": { "bat": 2, "vampire": 1, "werewolf": 1, "frog": 1 } },
-      "climax": { "maxAlive": 9, "intervalStart": 1.7, "intervalEnd": 1.4, "weights": { "bat": 2, "vampire": 1, "werewolf": 2, "frog": 1 } }
-    },
-    "passive": { "intervalSec": 16, "maxAlive": 1, "weights": { "moth": 1, "firefly": 1 } },
-    "boss": { "enemyId": "witch", "atSec": 8 },
-    "items": { "intervalSec": 14, "firstSec": 6 }
   },
   {
     "id": "trial",
@@ -80,30 +32,97 @@
     "theme": "light-village",
     "durationSec": 100,
     "stations": 1,
-    "stationSpots": [0],
+    "stationSpots": [
+      0
+    ],
     "endless": true,
     "blurb": "시작 자리 둘레에 적들이 제자리에 서 있어요. 너무 가까이 가면 공격해요.",
     "spawn": {
-      "normal": { "maxAlive": 0, "intervalStart": 99, "intervalEnd": 99, "weights": { "bat": 1 } },
-      "climax": { "maxAlive": 0, "intervalStart": 99, "intervalEnd": 99, "weights": { "bat": 1 } }
+      "normal": {
+        "maxAlive": 0,
+        "intervalStart": 99,
+        "intervalEnd": 99,
+        "weights": {
+          "bat": 1
+        }
+      },
+      "climax": {
+        "maxAlive": 0,
+        "intervalStart": 99,
+        "intervalEnd": 99,
+        "weights": {
+          "bat": 1
+        }
+      }
     },
     "dummies": {
       "respawnSec": 2.5,
       "list": [
-        { "enemyId": "bat", "x": 1430, "y": 920 },
-        { "enemyId": "frog", "x": 1770, "y": 920 },
-        { "enemyId": "hedgehog", "x": 1430, "y": 1150 },
-        { "enemyId": "redpanda", "x": 1770, "y": 1150 },
-        { "enemyId": "werewolf", "x": 1900, "y": 760 },
-        { "enemyId": "vampire", "x": 1950, "y": 1030 },
-        { "enemyId": "owl", "x": 1320, "y": 1280 },
-        { "enemyId": "bat", "x": 1480, "y": 600 },
-        { "enemyId": "bat", "x": 1540, "y": 600 },
-        { "enemyId": "bat", "x": 1600, "y": 600 },
-        { "enemyId": "bat", "x": 1660, "y": 600 },
-        { "enemyId": "bat", "x": 1720, "y": 600 }
+        {
+          "enemyId": "bat",
+          "x": 1430,
+          "y": 920
+        },
+        {
+          "enemyId": "frog",
+          "x": 1770,
+          "y": 920
+        },
+        {
+          "enemyId": "hedgehog",
+          "x": 1430,
+          "y": 1150
+        },
+        {
+          "enemyId": "redpanda",
+          "x": 1770,
+          "y": 1150
+        },
+        {
+          "enemyId": "werewolf",
+          "x": 1900,
+          "y": 760
+        },
+        {
+          "enemyId": "vampire",
+          "x": 1950,
+          "y": 1030
+        },
+        {
+          "enemyId": "owl",
+          "x": 1320,
+          "y": 1280
+        },
+        {
+          "enemyId": "bat",
+          "x": 1480,
+          "y": 600
+        },
+        {
+          "enemyId": "bat",
+          "x": 1540,
+          "y": 600
+        },
+        {
+          "enemyId": "bat",
+          "x": 1600,
+          "y": 600
+        },
+        {
+          "enemyId": "bat",
+          "x": 1660,
+          "y": 600
+        },
+        {
+          "enemyId": "bat",
+          "x": 1720,
+          "y": 600
+        }
       ]
     },
-    "items": { "intervalSec": 8, "firstSec": 3 }
+    "items": {
+      "intervalSec": 8,
+      "firstSec": 3
+    }
   }
 ]

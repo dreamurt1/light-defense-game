@@ -8,16 +8,15 @@
 //  - 테스트 판은 진행(깬 스테이지·튜토리얼·구출한 친구)과 지난 밤들에 남지 않는다(core/Progress, ResultSheet, 제안).
 //  - 트라이얼 줄에 루미·토리·도토 칸 (2026-11-18 라이언): 누른 등불지기로 바로 시작. 잠긴 친구도 고를 수 있다(테스트라서).
 //    고른 등불지기는 그 테스트 판에서만 쓰이고 선택 화면의 등불지기는 그대로(RunState.trialCharacterId).
+//  - 2026-11-23 밤 나들이 v3: 각 스테이지 체험 → '밤 n 체험'(nights.json testNights 1·3·6·9 — 그 밤의 규칙 그대로, 끝이 있음). 맵 고르기는 격자 맵(Phase 10)부터.
 //  - 모양은 선택 화면의 스테이지 카드(.stage-card)를 그대로 쓴다. 뒤로가기·ESC·바깥 누르기로 닫힌다(HistoryNav).
 import { bus } from '../core/events';
-import { GameData, STAGE_ORDER, enemyById, stageById, type CharacterId } from '../data';
+import { NIGHT_STAGE } from '../core/RunState';
+import { GameData, stageById, type CharacterId } from '../data';
+import { rulesForNight } from '../systems/nightRules';
 import { h, svg } from './dom';
 import { lampIcon, moonIcon, pawIcon, tutorialIcon } from './icons';
 import { portraitUrl } from './screens/common';
-import { rescueFriend } from './screens/SelectScreen';
-
-/** 스테이지 카드 순서 (트라이얼은 맨 위 한 줄에 따로) */
-const ORDER = ['tutorial', ...STAGE_ORDER] as const;
 
 let sheet: TestSheet | null = null;
 
@@ -38,29 +37,31 @@ export class TestSheet {
   private readonly panel: HTMLElement;
 
   constructor() {
-    const cards = ORDER.map((id, i) => {
-      const def = stageById(id);
-      const friend = rescueFriend(def);
-      const num = def.tutorial ? '처음' : String(i);
-      const meta = def.tutorial
-        ? h('span', { class: 'stage-card__meta' }, svg(tutorialIcon), '튜토리얼')
-        : h('span', { class: 'stage-card__meta' }, svg(lampIcon), `등불 ${def.stations}`);
-      const tag = def.boss
-        ? h('span', { class: 'stage-card__tag stage-card__tag--boss' }, svg(moonIcon), enemyById(def.boss.enemyId).name)
-        : friend
-          ? h('span', { class: 'stage-card__tag stage-card__tag--friend' }, svg(pawIcon), friend.name)
-          : null;
+    // 튜토리얼 + 밤 n 체험 (그 밤의 구간·등불 수 — 친구·노월은 확률이라 표시하지 않음)
+    const tutorial = stageById('tutorial');
+    const tutorialCard = h(
+      'button',
+      { class: 'stage-card', type: 'button', 'data-theme': tutorial.theme, 'aria-label': `${tutorial.name} 테스트` },
+      h('span', { class: 'stage-card__num' }, '처음'),
+      h('span', { class: 'stage-card__name' }, tutorial.name),
+      h('span', { class: 'stage-card__meta' }, svg(tutorialIcon), '튜토리얼'),
+    );
+    tutorialCard.addEventListener('click', () => this.start('tutorial'));
+    const probe = { seed: 1, keeperId: 'lumi' as CharacterId, friendNights: {}, witchSeen: false, lastMapId: null, mercy: 0, banish: 0 };
+    const nightCards = GameData.nights.testNights.map((n) => {
+      const def = rulesForNight(n, probe);
       const card = h(
         'button',
-        { class: 'stage-card', type: 'button', 'data-theme': def.theme, 'aria-label': `${def.name} 테스트` },
-        h('span', { class: 'stage-card__num' }, num),
-        h('span', { class: 'stage-card__name' }, def.name),
-        meta,
-        ...(tag ? [tag] : []),
+        { class: 'stage-card', type: 'button', 'data-theme': def.theme, 'aria-label': `밤 ${n} 체험 — ${def.bandName}, 등불 ${def.stations}` },
+        h('span', { class: 'stage-card__num' }, String(n)),
+        h('span', { class: 'stage-card__name' }, `밤 ${n} 체험`),
+        h('span', { class: 'stage-card__meta' }, svg(lampIcon), `등불 ${def.stations}`),
+        h('span', { class: 'stage-card__tag stage-card__tag--none' }, svg(moonIcon), def.bandName),
       );
-      card.addEventListener('click', () => this.start(id));
+      card.addEventListener('click', () => this.start(NIGHT_STAGE, undefined, n));
       return card;
     });
+    const cards = [tutorialCard, ...nightCards];
 
     // 트라이얼: 맨 위 한 줄 — 왼쪽 소개, 오른쪽 등불지기 셋(누르면 그 등불지기로 바로 시작, 2026-11-18 라이언)
     const trialDef = stageById('trial');
@@ -96,7 +97,7 @@ export class TestSheet {
       h('h2', { class: 'sheet__title', id: 'test-title' }, '테스트할 밤을 골라요'),
       h('p', { class: 'test-sheet__note' }, '바로 시작해요 · 진행과 지난 밤들에는 남지 않아요'),
       h('div', { class: 'test-sheet__trial' }, trial),
-      h('p', { class: 'test-sheet__group' }, '각 스테이지 체험 — 실제 판 그대로, 끝이 있어요'),
+      h('p', { class: 'test-sheet__group' }, '밤 n 체험 — 그 밤의 규칙 그대로, 끝이 있어요'),
       h('div', { class: 'test-sheet__grid' }, ...cards),
       h('div', { class: 'sheet__actions sheet__actions--single' }, close),
     );
@@ -114,9 +115,9 @@ export class TestSheet {
     sheet = this;
   }
 
-  private start(stageId: string, characterId?: CharacterId): void {
+  private start(stageId: string, characterId?: CharacterId, night?: number): void {
     this.toggle(false);
-    bus.emit('ui:start-test', { stageId, characterId });
+    bus.emit('ui:start-test', { stageId, characterId, night });
   }
 
   toggle(open: boolean): void {

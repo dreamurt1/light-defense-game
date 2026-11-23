@@ -43,6 +43,13 @@ export class StationState {
     return this.mode === 'on' ? this.ratio * 100 : 0;
   }
 
+  /** 켜진 채 시작 (2026-11-23 런: 완전 승리한 다음 밤 — 점화 연출·중앙 광원 회복 없이 HP 가득) */
+  startLit(): void {
+    this.mode = 'on';
+    this.hp = this.cfg.maxHp;
+    this.igniteLeft = 0;
+  }
+
   /** 빛을 맞음. 꺼져 있었으면 점화를 시작하고 true (켜진 동안은 아무 일도 없음). timeMultiplier = 주인공 점화 배율 */
   ignite(timeMultiplier = 1): boolean {
     if (this.mode !== 'off') return false;

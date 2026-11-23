@@ -1,5 +1,5 @@
 // 상점: 기획서대로 겉모습만 판다. 능력치·아이템은 팔지 않는다.
-// 2026-11-18: 재화가 기획에 없어 '밤을 지나면 열림'으로 연다(제안).
+// 2026-11-18: 재화가 기획에 없어 '밤을 지나면 열림'으로 열었다 → 2026-11-23 밤 나들이 v3: 별가루로 산다(cosmetics.json price, '사기 ✦n' → '쓰는 중').
 //  - 빛 색(cosmetics.json): 빛을 보낼 때의 별·휘두름 궤적·조준 원뿔 색. 호박빛(기본) · 새벽빛 · 민트빛 · 달빛 · 별빛
 //  - 스킨: 등불지기 외형은 ChatGPT 그림이 와야 해서 아직 '준비 중'
 // 배치는 UI Screen Sheet(위 가게 그림 + 탭 + 카드 그리드).
@@ -7,11 +7,8 @@ import { bus } from '../../core/events';
 import { Progress } from '../../core/Progress';
 import { loadSettings, saveSettings } from '../../core/Settings';
 import { GameData } from '../../data';
-import { isUnlocked } from '../../systems/unlocks';
-import { h, svg } from '../dom';
-import { lockIcon } from '../icons';
+import { h } from '../dom';
 import { portraitUrl, screenBar, screenShell } from './common';
-import { unlockLine } from './SelectScreen';
 
 type Tab = 'light' | 'skin';
 
@@ -28,6 +25,8 @@ export class ShopScreen {
   private readonly note: HTMLElement;
   private readonly tabs: HTMLButtonElement[];
   private tab: Tab = 'light';
+  /** 별가루가 모자라 못 산 색 (잠깐 안내) */
+  private short: string | null = null;
 
   constructor() {
     this.grid = h('div', { class: 'shop__grid' });
@@ -72,30 +71,37 @@ export class ShopScreen {
   }
 
   private renderLight(): void {
-    const { cleared, demo } = Progress.data;
+    const colors = GameData.cosmetics.lightColors;
     const chosen = loadSettings().lightColor;
-    const cards = GameData.cosmetics.lightColors.map((c) => {
-      const open = isUnlocked(c.unlock, cleared, demo);
-      const on = open && (c.id === chosen || (c.unlock === 'start' && !GameData.cosmetics.lightColors.some((x) => x.id === chosen && isUnlocked(x.unlock, cleared, demo))));
+    const chosenOwned = colors.some((x) => x.id === chosen && Progress.owns(x.id, x.price));
+    const cards = colors.map((c) => {
+      const owned = Progress.owns(c.id, c.price);
+      const on = owned && (c.id === chosen || (c.price <= 0 && !chosenOwned));
       const swatch = h('span', { class: 'shop-card__swatch', 'aria-hidden': 'true' });
       swatch.style.setProperty('--swatch', c.color);
-      const tag = on ? '쓰는 중' : open ? '고르기' : unlockLine(c.unlock, c.name);
+      const tag = on ? '쓰는 중' : owned ? '고르기' : this.short === c.id ? '별가루가 부족해요' : `사기 ✦${c.price}`;
       const card = h(
         'button',
-        { class: `shop-card shop-card--light${on ? ' is-equipped' : ''}${open ? '' : ' is-locked'}`, type: 'button', 'aria-pressed': String(on) },
+        { class: `shop-card shop-card--light${on ? ' is-equipped' : ''}${owned ? '' : ' is-locked'}`, type: 'button', 'aria-pressed': String(on) },
         swatch,
         h('strong', {}, c.name),
-        h('span', { class: 'shop-card__tag' }, ...(open ? [] : [svg(lockIcon)]), tag),
+        h('span', { class: 'shop-card__tag' }, tag),
       );
       card.addEventListener('click', () => {
-        if (!open) return;
+        // 사면 바로 쓴다. 모자라면 그 칸에 '별가루가 부족해요'
+        if (!owned && !Progress.buyColor(c.id, c.price)) {
+          this.short = c.id;
+          this.renderLight();
+          return;
+        }
+        this.short = null;
         saveSettings({ ...loadSettings(), lightColor: c.id });
         this.renderLight();
       });
       return card;
     });
     this.grid.replaceChildren(...cards);
-    this.note.textContent = '겉모습만 바뀌어요. 밤을 지날 때마다 새 빛 색이 열려요.';
+    this.note.textContent = `별가루 ✦${Progress.data.dust} · 겉모습만 바뀌어요. 별가루는 밤을 지키면 모여요.`;
   }
 
   private renderSkin(): void {

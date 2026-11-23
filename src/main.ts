@@ -4,12 +4,14 @@ import './ui/screens.css';
 import './ui/sticks.css';
 import './ui/finish.css';
 import './ui/story.css';
+import './ui/run.css';
 import Phaser from 'phaser';
 import { gameConfig } from './config';
 import { mountUi } from './ui/UiRoot';
 import { runSplash } from './ui/Splash';
 import { applyLayout, watchLayout } from './ui/layout';
 import { watchProgress } from './core/Progress';
+import { installRunFlow } from './core/runFlow';
 import { installAudio } from './audio/Sound';
 import { installPullRefresh } from './ui/PullRefresh';
 import { installAutoFullscreen } from './ui/fullscreen';
@@ -30,6 +32,8 @@ game.events.once(Phaser.Core.Events.READY, () => {
   installDebugOverlay(game);
 });
 watchProgress();
+// 런: 밤의 끝 → 아침 화면 / 런의 끝 (2026-11-23 밤 나들이)
+installRunFlow();
 installAudio();
 installPullRefresh();
 // 휴대폰은 첫 탭에서 전체 화면 (2026-11-20)

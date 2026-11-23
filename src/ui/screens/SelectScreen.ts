@@ -1,16 +1,19 @@
-// 선택 화면 (2026-11-12 새 기획 → 2026-11-13 컨셉 시연판): 등불지기(루미·토리·도토) + 스테이지(밤 4개).
+// 선택 화면 (2026-11-12 새 기획 → 2026-11-13 컨셉 시연판): 등불지기(루미·토리·도토) + 챙겨 갈 아이템.
+// 2026-11-23 밤 나들이 v3: 스테이지 4칸 대신 안내 칸 '오늘 밤 나들이' — 시작하면 새 런(밤 1부터, core/runFlow.ts).
 // 배치는 UI Screen Sheet(아치 속 큰 초상 + 좌우 화살표 + 이름·한 줄 소개 + 아래 칸 + 주 버튼) 아래에 '밤을 골라요' 줄을 더했다.
 //  - 친구 잠금은 진행 저장(Progress.isFriendOpen): 구출 스테이지에서 되찾으면 열린다. 잠긴 동안은 초상 실루엣(짙은 면색) + 물음표 (2026-11-20)
-//  - 스테이지는 앞 밤을 지나면 열린다(Progress.isStageOpen). 처음 들어오면 Progress.nextStage가 골라져 있다
+//  - 챙겨 갈 아이템은 런에서 아침을 맞은 최고 밤 수로 열린다(Progress.bestNight, items.json carryUnlock 'night-n')
 //  - 구석의 '시연: 모두 열기'(팀 시연용)는 Progress.unlockAll
 import { bus } from '../../core/events';
 import { Progress } from '../../core/Progress';
 import { RunState } from '../../core/RunState';
-import { GameData, STAGE_ORDER, characterById, enemyById, stageById, type CharacterDef, type ItemDef, type StageDef } from '../../data';
+import { GameData, type CharacterDef, type ItemDef } from '../../data';
+import { startNewRun } from '../../core/runFlow';
+import { nightObject, hasBatchim } from '../runText';
 import { loadSettings, saveSettings } from '../../core/Settings';
-import { carryItemIds, carryOrDefault, isUnlocked } from '../../systems/unlocks';
+import { carryItemIds, carryOrDefault, isUnlocked, unlockNight } from '../../systems/unlocks';
 import { h, svg } from '../dom';
-import { badgeStarIcon, chevronLeftIcon, chevronRightIcon, lampIcon, lockIcon, moonIcon, pawIcon, playIcon } from '../icons';
+import { chevronLeftIcon, chevronRightIcon, lockIcon, moonIcon, playIcon } from '../icons';
 import { lockedShade, portraitUrl, screenBar, screenShell, setLockedShade } from './common';
 import { startTutorial } from '../Story';
 
@@ -31,26 +34,9 @@ function objectJosa(word: string): string {
   return code >= 0 && code <= 11171 && code % 28 !== 0 ? '을' : '를';
 }
 
-/** 이 스테이지에서 되찾는 친구 */
-/** 이 스테이지에서 구출하는 친구 (테스트 판 고르기도 씀) */
-export function rescueFriend(s: StageDef): CharacterDef | null {
-  const id = s.rescue ? enemyById(s.rescue.enemyId).friend : undefined;
-  return id ? characterById(id) : null;
-}
-
-interface StageCard {
-  def: StageDef;
-  el: HTMLButtonElement;
-  /** 구출할 친구 표시 (그 친구로 플레이하면 숨김, 2026-11-17) */
-  friendTag?: { el: HTMLElement; id: string };
-}
-
 export class SelectScreen {
   readonly el: HTMLElement;
   private index = 0;
-  private stageId: string = STAGE_ORDER[0];
-  /** 한 번 보여 준 뒤에는 직전 스테이지(RunState.stageId)를 기본으로 */
-  private shownOnce = false;
   private readonly portrait: HTMLImageElement;
   /** 잠긴 친구일 때 초상 대신 보이는 실루엣 + 물음표 */
   private readonly shade: HTMLElement;
@@ -60,8 +46,6 @@ export class SelectScreen {
   private readonly stats: HTMLElement;
   private readonly lock: HTMLElement;
   private readonly roster: HTMLButtonElement[];
-  private readonly stages: StageCard[];
-  private readonly stageLine: HTMLElement;
   private readonly carry: { id: string; def: ItemDef; el: HTMLButtonElement }[];
   private readonly carryRow: HTMLElement;
   private readonly carryLine: HTMLElement;
@@ -90,28 +74,6 @@ export class SelectScreen {
       return b;
     });
 
-    this.stages = STAGE_ORDER.map((id, i) => {
-      const def = stageById(id);
-      const friend = rescueFriend(def);
-      const tag = def.boss
-        ? h('span', { class: 'stage-card__tag stage-card__tag--boss' }, svg(moonIcon), enemyById(def.boss.enemyId).name)
-        : friend
-          ? h('span', { class: 'stage-card__tag stage-card__tag--friend' }, svg(pawIcon), friend.name)
-          : h('span', { class: 'stage-card__tag stage-card__tag--none' });
-      const el = h(
-        'button',
-        { class: 'stage-card', type: 'button', 'data-theme': def.theme },
-        h('span', { class: 'stage-card__num' }, String(i + 1)),
-        h('span', { class: 'stage-card__name' }, def.name),
-        h('span', { class: 'stage-card__meta' }, svg(lampIcon), `등불 ${def.stations}`),
-        tag,
-        h('span', { class: 'stage-card__badge stage-card__badge--clear' }, svg(badgeStarIcon)),
-        h('span', { class: 'stage-card__badge stage-card__badge--lock' }, svg(lockIcon)),
-      );
-      el.addEventListener('click', () => this.pickStage(id));
-      return { def, el, friendTag: friend && !def.boss ? { el: tag, id: friend.id } : undefined };
-    });
-    this.stageLine = h('p', { class: 'select__stage-line' });
     // 판 시작 전에 챙겨 갈 아이템 (2026-11-18): 빛의 부적은 늘 함께, 하나 더 고른다. 밤을 지나면 하나씩 열린다
     this.carry = carryItemIds(GameData.items).map((id) => {
       const def = GameData.items.find((i) => i.id === id) as ItemDef;
@@ -148,9 +110,8 @@ export class SelectScreen {
       h('h4', { class: 'select__label select__label--carry' }, '챙겨 갈 아이템'),
       this.carryRow,
       this.carryLine,
-      h('h4', { class: 'select__label' }, '밤을 골라요'),
-      h('div', { class: 'select__nights', role: 'group', 'aria-label': '밤' }, ...this.stages.map((s) => s.el)),
-      this.stageLine,
+      h('h4', { class: 'select__label select__label--run' }, svg(moonIcon), '오늘 밤 나들이'),
+      h('p', { class: 'select__stage-line select__run-line' }, '밤 1 · 빛의 마을부터 시작해요. 아침마다 다음 밤으로 갈지, 집으로 돌아갈지 고를 수 있어요. 하트 3개는 밤들 사이에 이어져요.'),
       this.go,
       this.demo,
     );
@@ -161,16 +122,11 @@ export class SelectScreen {
   show(): void {
     // 직전 선택을 기본값으로
     this.index = Math.max(0, GameData.characters.findIndex((c) => c.id === RunState.characterId));
-    const prev = RunState.stageId;
-    const order = STAGE_ORDER as readonly string[];
-    this.stageId = this.shownOnce && order.includes(prev) && Progress.isStageOpen(prev) ? prev : defaultStage();
-    this.shownOnce = true;
     this.render();
   }
 
   private render(): void {
     this.view(this.index);
-    this.pickStage(this.stageId);
     this.renderCarry();
     this.demo.disabled = Progress.data.demo;
     this.demo.textContent = Progress.data.demo ? '시연: 모두 열렸어요' : '시연: 모두 열기';
@@ -208,39 +164,13 @@ export class SelectScreen {
       b.classList.toggle('is-current', k === this.index);
       b.setAttribute('aria-label', `${def.name}${off ? ' (잠김)' : ''}`);
     });
-    // 고른 주인공이 그 밤의 구출 친구 자신이면 그 친구는 나오지 않는다 (2026-11-17)
-    for (const st of this.stages) if (st.friendTag) st.friendTag.el.style.visibility = st.friendTag.id === c.id ? 'hidden' : '';
-    this.updateGo();
-  }
-
-  private pickStage(id: string): void {
-    this.stageId = id;
-    const cleared = Progress.data.cleared;
-    for (const s of this.stages) {
-      const open = Progress.isStageOpen(s.def.id);
-      const done = cleared.includes(s.def.id);
-      s.el.classList.toggle('is-locked', !open);
-      s.el.classList.toggle('is-cleared', done && open);
-      s.el.classList.toggle('is-current', s.def.id === id);
-      s.el.setAttribute('aria-pressed', String(s.def.id === id));
-      s.el.setAttribute('aria-label', `${s.def.name}, 등불 ${s.def.stations}개${!open ? ' (잠김)' : done ? ' (지나 온 밤)' : ''}`);
-    }
-    const def = stageById(id);
-    if (Progress.isStageOpen(id)) {
-      this.stageLine.textContent = def.blurb ?? '';
-    } else {
-      const i = (STAGE_ORDER as readonly string[]).indexOf(id);
-      const before = i <= 0 ? stageById('tutorial').name : stageById(STAGE_ORDER[i - 1]).name;
-      this.stageLine.textContent = `${before}${objectJosa(before)} 지나면 열려요`;
-    }
-    this.stageLine.classList.toggle('is-locked', !Progress.isStageOpen(id));
     this.updateGo();
   }
 
   /** 챙겨 갈 아이템을 고른다 (다시 누르면 안 챙김). 잠긴 것은 안내만 */
   private pickCarry(id: string): void {
     const c = this.carry.find((x) => x.id === id);
-    if (!c || !isUnlocked(String(c.def.carryUnlock), Progress.data.cleared, Progress.data.demo)) {
+    if (!c || !isUnlocked(String(c.def.carryUnlock), Progress.data.bestNight, Progress.data.demo)) {
       if (c) this.carryLine.textContent = unlockLine(String(c.def.carryUnlock), c.def.name);
       return;
     }
@@ -250,10 +180,10 @@ export class SelectScreen {
   }
 
   private renderCarry(): void {
-    const { cleared, demo } = Progress.data;
-    const chosen = carryOrDefault(loadSettings().carryItem, GameData.items, cleared, demo);
+    const { bestNight, demo } = Progress.data;
+    const chosen = carryOrDefault(loadSettings().carryItem, GameData.items, bestNight, demo);
     for (const c of this.carry) {
-      const open = isUnlocked(String(c.def.carryUnlock), cleared, demo);
+      const open = isUnlocked(String(c.def.carryUnlock), bestNight, demo);
       c.el.classList.toggle('is-locked', !open);
       c.el.classList.toggle('is-current', c.id === chosen);
       c.el.setAttribute('aria-pressed', String(c.id === chosen));
@@ -263,39 +193,27 @@ export class SelectScreen {
     this.carryLine.textContent = name ? `빛의 부적과 ${name}${objectJosa(name)} 챙겨 가요` : '빛의 부적만 챙겨 가요';
   }
 
-  /** 주 버튼: 친구·스테이지가 모두 열려 있어야 시작. 아직 처음 밤(튜토리얼)을 안 했으면 그리로 안내 */
+  /** 주 버튼: 고른 친구가 열려 있어야 시작. 아직 처음 밤(튜토리얼)을 안 했으면 그리로 안내 */
   private updateGo(): void {
     const charLocked = isLocked(GameData.characters[this.index]);
-    const stageOpen = Progress.isStageOpen(this.stageId);
-    const toTutorial = !stageOpen && !Progress.tutorialDone && this.stageId === STAGE_ORDER[0];
-    this.go.disabled = charLocked || (!stageOpen && !toTutorial);
-    this.goLabel.textContent = charLocked || (!stageOpen && !toTutorial) ? '아직 잠겨 있어요' : toTutorial ? '처음 밤부터 해요' : '빛을 밝혀요';
+    this.go.disabled = charLocked;
+    this.goLabel.textContent = charLocked ? '아직 잠겨 있어요' : !Progress.tutorialDone ? '처음 밤부터 해요' : '빛을 밝혀요';
   }
 
   private start(): void {
     const def = GameData.characters[this.index];
     if (isLocked(def)) return;
-    const open = Progress.isStageOpen(this.stageId);
-    if (!open && Progress.tutorialDone) return;
     RunState.characterId = def.id;
     // 아직 처음 밤(튜토리얼)을 안 했으면 튜토리얼로 — 간추린 이야기부터 (2026-11-13 라이언)
-    if (!open) return startTutorial();
-    RunState.stageId = this.stageId;
-    bus.emit('ui:start-run');
+    if (!Progress.tutorialDone) return startTutorial();
+    // 새 런: 밤 1부터 (저장된 런이 있었으면 새 런으로 바뀜)
+    startNewRun(def.id);
   }
 }
 
-/** 잠긴 아이템·빛 색 안내: '경계의 밤을 지나면 열려요' */
+/** 잠긴 아이템 안내: '밤 4를 지나면 별 목걸이가 열려요' */
 export function unlockLine(unlock: string, name: string): string {
-  if (unlock === 'start') return '';
-  const night = stageById(unlock).name;
-  return `${night}${objectJosa(night)} 지나면 ${name}${name.endsWith('빛') ? '이' : objectJosa(name) === '을' ? '이' : '가'} 열려요`;
-}
-
-/** 처음 고르는 밤: 아직 안 지난 가장 앞 밤(열려 있으면), 아니면 열린 밤 중 마지막 */
-function defaultStage(): string {
-  const next = Progress.nextStage;
-  if (Progress.isStageOpen(next)) return next;
-  const open = STAGE_ORDER.filter((s) => Progress.isStageOpen(s));
-  return open[open.length - 1] ?? STAGE_ORDER[0];
+  const n = unlockNight(unlock);
+  if (!n) return '';
+  return `${nightObject(n)} 지나면 ${name}${hasBatchim(name) ? '이' : '가'} 열려요`;
 }

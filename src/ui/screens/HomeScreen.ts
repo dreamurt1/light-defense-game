@@ -8,12 +8,16 @@
 // 배경은 그림 비율 그대로 화면을 덮는 장면 상자(.home__scene)에 깐다.
 // 제목·버튼·프로필은 화면 기준으로 놓아 비율이 달라도 잘리지 않는다. 세로·가로 배치는 screens.css 홈 절.
 // 메뉴 동작은 그대로: 처음 하는 유저의 '게임하기' = 이야기 → 튜토리얼(2026-11-13), 튜토리얼 버튼은 언제든 다시, 테스트 = 고르기 창.
+// 2026-11-23 밤 나들이 v3: '게임하기' → '밤 나들이 시작', 저장된 런이 있으면 그 위에 '이어서 하기 (밤 n)'(그 밤을 처음부터),
+// 프로필에 최고 기록 '밤 n · 점수', 아래 칩 '별가루 ✦n'·'발견한 지역 n/6'(값이 있을 때만).
 import { bus } from '../../core/events';
 import { Progress } from '../../core/Progress';
 import { RunState } from '../../core/RunState';
+import { continueRun, savedRun } from '../../core/runFlow';
+import { GameData } from '../../data';
 import { startTutorial } from '../Story';
 import { openTestSheet } from '../TestSheet';
-import { h, svg } from '../dom';
+import { formatScore, h, svg } from '../dom';
 import { gearIcon, pawIcon, playIcon, podiumIcon, shopIcon, tutorialIcon } from '../icons';
 import { portraitUrl, screenShell } from './common';
 
@@ -33,12 +37,18 @@ export class HomeScreen {
   readonly el: HTMLElement;
   private readonly name: HTMLElement;
   private readonly avatar: HTMLImageElement;
+  private readonly best = h('span', { class: 'profile__best' });
+  private readonly chips = h('div', { class: 'home__chips' });
+  private readonly continueBtn: HTMLButtonElement;
+  private readonly continueLabel = h('span', {});
 
   constructor() {
     const settings = h('button', { class: 'icon-button home__settings', type: 'button', 'aria-label': '설정' }, svg(gearIcon));
     settings.addEventListener('click', () => bus.emit('ui:open-settings'));
 
-    const start = h('button', { class: 'pill pill--primary home__start', type: 'button' }, svg(playIcon), '게임하기');
+    const start = h('button', { class: 'pill pill--primary home__start', type: 'button' }, svg(playIcon), '밤 나들이 시작');
+    this.continueBtn = h('button', { class: 'pill pill--secondary home__continue', type: 'button' }, svg(playIcon), this.continueLabel) as HTMLButtonElement;
+    this.continueBtn.addEventListener('click', () => continueRun());
     start.addEventListener('click', () => {
       if (Progress.tutorialDone) bus.emit('ui:navigate', { to: 'select' });
       else startTutorial();
@@ -46,6 +56,7 @@ export class HomeScreen {
 
     this.avatar = h('img', { class: 'profile__avatar', src: portraitUrl(RunState.characterId), alt: '', width: 40, height: 40 }) as HTMLImageElement;
     this.name = h('span', { class: 'profile__name' }, RunState.nickname);
+    bus.on('progress:change', () => this.renderRecord());
     this.el = screenShell(
       'home',
       h('div', { class: 'home__scene', 'aria-hidden': 'true' }),
@@ -73,16 +84,37 @@ export class HomeScreen {
           // 2026-11-14 라이언: 연습장(트라이얼)·튜토리얼·모든 스테이지 중 골라 바로 플레이(TestSheet). 항상 보인다
           badge('테스트', pawIcon, () => openTestSheet(), '테스트: 트라이얼이나 스테이지를 골라 바로 해 봐요'),
         ),
+        this.continueBtn,
         start,
       ),
-      h('div', { class: 'profile' }, this.avatar, this.name),
+      h('div', { class: 'profile' }, this.avatar, h('span', { class: 'profile__text' }, this.name, this.best)),
+      this.chips,
     );
+    this.renderRecord();
   }
 
-  /** 화면에 들어올 때마다 닉네임과 프로필 사진(고른 등불지기)을 새로 읽는다 */
+  /** 화면에 들어올 때마다 닉네임·프로필 사진(고른 등불지기)·저장된 런·기록을 새로 읽는다 */
   show(): void {
     this.name.textContent = RunState.nickname;
     const src = portraitUrl(RunState.characterId);
     if (!this.avatar.src.endsWith(src)) this.avatar.src = src;
+    const saved = Progress.tutorialDone ? savedRun() : null;
+    this.continueBtn.hidden = !saved;
+    this.el.classList.toggle('has-continue', !!saved);
+    this.continueLabel.textContent = saved ? `이어서 하기 (밤 ${saved.night})` : '';
+    this.renderRecord();
+  }
+
+  /** 최고 기록 '밤 n · 점수'와 칩(별가루 · 발견한 지역) */
+  private renderRecord(): void {
+    const d = Progress.data;
+    this.best.hidden = d.bestNight <= 0 && d.bestScore <= 0;
+    this.best.textContent = `최고 기록 밤 ${d.bestNight} · ${formatScore(d.bestScore)}점`;
+    const maps = GameData.nights.bands.reduce((n, b) => n + b.maps.length, 0);
+    const chips: HTMLElement[] = [];
+    if (d.dust > 0) chips.push(h('span', { class: 'home-chip home-chip--dust' }, `별가루 ✦${d.dust}`));
+    if (d.discovered.length > 0) chips.push(h('span', { class: 'home-chip' }, `발견한 지역 ${d.discovered.length}/${Math.max(6, maps)}`));
+    this.chips.replaceChildren(...chips);
+    this.chips.hidden = chips.length === 0;
   }
 }

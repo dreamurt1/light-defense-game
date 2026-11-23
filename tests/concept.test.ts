@@ -3,7 +3,11 @@ import { MercyTracker } from '../src/systems/mercy';
 import { Stealth } from '../src/systems/stealth';
 import { Effects, Inventory } from '../src/systems/inventory';
 import { TutorialScript } from '../src/systems/tutorial';
-import { GameData, STAGE_ORDER, stageById } from '../src/data';
+import { GameData, stageById } from '../src/data';
+import { rulesForNight } from '../src/systems/nightRules';
+
+const PROBE = { seed: 1, keeperId: 'lumi' as const, friendNights: {}, witchSeen: false, lastMapId: null, mercy: 0, banish: 0 };
+const night = (n: number) => rulesForNight(n, PROBE);
 
 describe('자비 (패시브 주민)', () => {
   it('곁에 dwellSec 머물면 한 번만', () => {
@@ -71,12 +75,12 @@ describe('튜토리얼', () => {
   });
 });
 
-describe('스테이지 진행 (컨셉 시연판)', () => {
-  it('등불 1 → 4, 1스테이지는 등불 1개', () => {
-    expect(STAGE_ORDER.map((id) => stageById(id).stations)).toEqual([1, 2, 3, 4]);
+describe('밤 진행 (2026-11-23 밤 나들이: 옛 1~4스테이지 → 밤 n)', () => {
+  it('등불: 밤 1 하나 → 밤 6부터 넷', () => {
+    expect([1, 2, 3, 4, 5, 6, 12].map((n) => night(n).stations)).toEqual([1, 2, 2, 3, 3, 4, 4]);
   });
   it('스폰 표의 적은 모두 데이터에 있고 구현됨', () => {
-    for (const s of GameData.stages) {
+    for (const s of [...GameData.stages, ...[1, 2, 3, 4, 6, 9, 20].map(night)]) {
       const ids = [...Object.keys(s.spawn.normal.weights), ...Object.keys(s.spawn.climax.weights), ...Object.keys(s.passive?.weights ?? {})];
       for (const id of ids) expect(GameData.enemies.find((e) => e.id === id)?.implemented, `${s.id}:${id}`).toBe(true);
     }
@@ -99,10 +103,10 @@ describe('생명체 모습 방향 (2026-11-13)', () => {
   });
 });
 
-describe('밸런스 안전장치 (2026-11-13 라이언: 첫 스테이지는 쉽게, 등불은 스테이지가 오를수록 많이)', () => {
-  it('1스테이지 적의 초당 피해·동시 최대 상한', async () => {
+describe('밸런스 안전장치 (2026-11-13 라이언: 첫 밤은 쉽게, 밤이 깊을수록 거세게)', () => {
+  it('밤 1 적의 초당 피해·동시 최대 상한', async () => {
     const { enemyById } = await import('../src/data');
-    const s1 = stageById('stage-1');
+    const s1 = night(1);
     const ids = new Set([...Object.keys(s1.spawn.normal.weights), ...Object.keys(s1.spawn.climax.weights)]);
     for (const id of ids) {
       const e = enemyById(id as Parameters<typeof enemyById>[0]);
@@ -110,16 +114,21 @@ describe('밸런스 안전장치 (2026-11-13 라이언: 첫 스테이지는 쉽�
     }
     expect(s1.spawn.normal.maxAlive).toBeLessThanOrEqual(3);
   });
-  it('1스테이지: 평소 동시 최대의 적이 모두 중앙 광원을 쳐도 20초 넘게 버틴다 (2026-11-14 광원 피해 상향의 상한, 제안)', async () => {
+  it('밤 1: 평소 동시 최대의 적이 모두 중앙 광원을 쳐도 20초 넘게 버틴다 (2026-11-14 광원 피해 상향의 상한, 제안)', async () => {
     const { enemyById } = await import('../src/data');
-    const s1 = stageById('stage-1');
+    const s1 = night(1);
     const ids = Object.keys(s1.spawn.normal.weights) as Parameters<typeof enemyById>[0][];
     const worstPerSec = Math.max(...ids.map((id) => enemyById(id).sourceDamage / enemyById(id).damageTickSec));
     expect(worstPerSec * s1.spawn.normal.maxAlive * 20).toBeLessThan(GameData.game.central.maxHp);
   });
-  it('1~3스테이지는 오를수록 클라이맥스 동시 최대가 줄지 않는다 (4스테이지는 노월 소환이 따로 더해짐)', () => {
-    const climax = STAGE_ORDER.map((id) => stageById(id).spawn.climax.maxAlive);
-    for (let i = 1; i < climax.length - 1; i++) expect(climax[i]).toBeGreaterThanOrEqual(climax[i - 1]);
+  it('밤이 깊을수록 동시 최대는 줄지 않고 간격은 늘지 않는다 (상한·하한 안)', () => {
+    const nights = Array.from({ length: 20 }, (_, i) => night(i + 1));
+    for (let i = 1; i < nights.length; i++) {
+      for (const k of ['normal', 'climax'] as const) {
+        expect(nights[i].spawn[k].maxAlive).toBeGreaterThanOrEqual(nights[i - 1].spawn[k].maxAlive);
+        expect(nights[i].spawn[k].intervalStart).toBeLessThanOrEqual(nights[i - 1].spawn[k].intervalStart);
+      }
+    }
   });
 });
 
@@ -178,22 +187,24 @@ describe('테스트 판 (2026-11-14 라이언: 홈 테스트 → 모든 스테�
     }
   });
 
-  it('테스트 판의 깬 스테이지·구출한 친구는 진행에 남지 않고, 정식 판은 남는다', async () => {
+  it('테스트 판의 튜토리얼·구출한 친구는 진행에 남지 않고, 정식 판은 남는다', async () => {
     const { Progress, watchProgress } = await import('../src/core/Progress');
     const { RunState } = await import('../src/core/RunState');
     const { bus } = await import('../src/core/events');
     type Clear = Parameters<typeof bus.emit<'game:clear'>>[1];
-    const clear = (stageId: string) => ({ result: { stageId, reason: 'time', outcome: 'victory' } }) as unknown as Clear;
+    const tutorial = { result: { stageId: 'tutorial', reason: 'tutorial', outcome: 'victory' } } as unknown as Clear;
     Progress.reset();
     watchProgress();
     RunState.test = true;
-    bus.emit('game:clear', clear('stage-2'));
+    bus.emit('game:clear', tutorial);
     bus.emit('friend:rescued', { characterId: 'tori' });
-    expect(Progress.data.cleared).toEqual([]);
+    expect(Progress.data.tutorialDone).toBe(false);
     expect(Progress.data.friends).toEqual([]);
     RunState.test = false;
-    bus.emit('game:clear', clear('stage-2'));
-    expect(Progress.data.cleared).toContain('stage-2');
+    bus.emit('game:clear', tutorial);
+    bus.emit('friend:rescued', { characterId: 'tori' });
+    expect(Progress.data.tutorialDone).toBe(true);
+    expect(Progress.data.friends).toEqual(['tori']);
     Progress.reset();
   });
 });

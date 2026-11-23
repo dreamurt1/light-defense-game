@@ -60,10 +60,10 @@ export class RunEvents {
       this.host.sources.extraPools = [{ x: spot.x, y: spot.y, radius: CFG.fireflies.radius, alpha: 0.9, beacon: true }];
       this.swarmLeft = CFG.fireflies.durationSec;
       bus.emit('run:event', { kind, x: spot.x, y: spot.y });
-    } else if (kind === 'parade') {
+    } else if (kind === 'lostParade') {
       const lost = Object.keys(this.stage.spawn.normal.weights).filter((id) => enemyById(id as EnemyId).kind === 'lost') as EnemyId[];
       const spot = this.farSpot(p);
-      for (let i = 0; i < CFG.parade.count; i++) {
+      for (let i = 0; i < CFG.lostParade.count; i++) {
         const id = lost.length ? lost[i % lost.length] : 'frog';
         this.host.field.spawnAt(id, spot.x + (i - 1) * 60, spot.y + (i % 2) * 40);
       }

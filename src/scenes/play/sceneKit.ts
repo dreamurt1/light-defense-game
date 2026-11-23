@@ -56,7 +56,7 @@ export class HudFeed {
     const hp = Math.ceil(vitals.hp);
     if (force || hp !== this.shown.hp) {
       this.shown.hp = hp;
-      bus.emit('player:vitals', { hp, maxHp: vitals.maxHp, hearts: vitals.hearts, maxHearts: CFG.stage.hearts });
+      bus.emit('player:vitals', { hp, maxHp: vitals.maxHp, hearts: vitals.hearts, maxHearts: vitals.maxHearts });
     }
     const v = Math.round(lp.value);
     if (force || v !== this.shown.lp) {

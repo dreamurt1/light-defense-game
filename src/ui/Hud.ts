@@ -1,5 +1,6 @@
 // 플레이 중 HUD. 레퍼런스(reference/ChatGPT-Images)의 분위기를 따른다:
 //   위 한 줄 = 달 · "밤 mm:ss" · 민트 진행 바(클라이맥스 눈금) · 점수 · 콤보
+//   2026-11-23 밤 나들이 v3: "밤 {n} · mm:ss", 점수 = 런 누적, 끝에 ★빛 레벨(민트)·✦별가루(호박) — 런의 밤에만. 하트는 최대 4칸
 //   아래 = 하트 3개 + HP 바 · LP(빛) 바 · 중앙 광원 HP(2026-11-14, 광도 = HP 비례) · 켠 등불 수 · 일시정지  (2026-11-12 새 기획)
 // 매 프레임이 아니라 이벤트가 올 때만 DOM을 고친다.
 import { bus, type RunResult } from '../core/events';
@@ -26,6 +27,11 @@ function meter(cls: string, label: string, icon: string, short?: string): { el: 
 export class Hud {
   readonly el: HTMLElement;
   private readonly clock: HTMLElement;
+  private readonly nightLabel = h('span', { class: 'night-clock__label' }, '밤');
+  private readonly levelValue = h('span', { class: 'stat__value' });
+  private readonly level: HTMLElement;
+  private readonly dustValue = h('span', { class: 'stat__value' });
+  private readonly dust: HTMLElement;
   private readonly bar: HTMLElement;
   private readonly score: HTMLOutputElement;
   private readonly combo: HTMLElement;
@@ -64,6 +70,8 @@ export class Hud {
     this.score = h('output', { class: 'stat__value' }, '0');
     this.comboCount = h('span', { class: 'stat__value' });
     this.combo = h('div', { class: 'stat stat--combo' }, h('span', { class: 'stat__label' }, '콤보'), this.comboCount);
+    this.level = h('div', { class: 'stat stat--level', 'aria-label': '빛 레벨' }, h('span', { class: 'stat__mark', 'aria-hidden': 'true' }, '★'), this.levelValue);
+    this.dust = h('div', { class: 'stat stat--dust', 'aria-label': '별가루' }, h('span', { class: 'stat__mark', 'aria-hidden': 'true' }, '✦'), this.dustValue);
 
     const top = h(
       'header',
@@ -71,16 +79,18 @@ export class Hud {
       h(
         'div',
         { class: 'hud-top__row' },
-        h('div', { class: 'night-clock' }, svg(moonIcon), h('span', { class: 'night-clock__label' }, '밤'), this.clock),
+        h('div', { class: 'night-clock' }, svg(moonIcon), this.nightLabel, this.clock),
         this.bar,
         h('div', { class: 'stat stat--score' }, h('span', { class: 'stat__label' }, '점수'), this.score),
         h('span', { class: 'hud-top__rule', 'aria-hidden': 'true' }),
         this.combo,
+        this.level,
+        this.dust,
       ),
     );
 
     // 루미: 하트 + HP
-    this.hearts = Array.from({ length: G.stage.hearts }, () => svg(heartIcon));
+    this.hearts = Array.from({ length: Math.max(G.stage.hearts, G.run.maxHearts) }, () => svg(heartIcon));
     this.hp = h('span', { class: 'vitals__hp-fill' });
     this.heartsBox = h('div', { class: 'vitals__hearts' }, ...this.hearts);
     const hpRow = h('div', { class: 'vitals__hp-row' }, h('span', { class: 'gauge-label', 'aria-hidden': 'true' }, 'HP'), h('span', { class: 'vitals__hp', role: 'img', 'aria-label': 'HP' }, this.hp));
@@ -159,13 +169,20 @@ export class Hud {
       this.setNight(0, e.durationSec);
       this.combo.classList.add('is-empty');
       this.score.textContent = '0';
+      // 런의 밤: '밤 n', ★빛 레벨·✦별가루
+      const night = e.night !== undefined;
+      this.nightLabel.textContent = night ? `밤 ${e.night}` : '밤';
+      this.level.hidden = !night;
+      this.dust.hidden = !night;
+      this.levelValue.textContent = String(e.level ?? 1);
+      this.dustValue.textContent = String(e.dust ?? 0);
     });
     bus.on('night:tick', (e) => this.setNight(e.t, e.durationSec));
     bus.on('item:slots', (e) => this.setSlots(e.slots));
     bus.on('night:phase', (e) => (this.el.dataset.phase = e.phase));
     bus.on('score:change', (e) => (this.score.textContent = formatScore(e.score)));
     bus.on('combo:change', (e) => this.setCombo(e.combo, e.reason, e.windowSec));
-    bus.on('player:vitals', (e) => this.setVitals(e.hp, e.maxHp, e.hearts));
+    bus.on('player:vitals', (e) => this.setVitals(e.hp, e.maxHp, e.hearts, e.maxHearts));
     bus.on('player:hurt', () => replay(this.edge, 'is-hit'));
     bus.on('player:down', () => {
       this.el.classList.add('is-down');
@@ -226,8 +243,11 @@ export class Hud {
     replay(this.burst, 'is-on');
   }
 
-  private setVitals(hp: number, maxHp: number, hearts: number): void {
-    this.hearts.forEach((el, i) => el.classList.toggle('is-empty', i >= hearts));
+  private setVitals(hp: number, maxHp: number, hearts: number, maxHearts: number): void {
+    this.hearts.forEach((el, i) => {
+      el.classList.toggle('is-empty', i >= hearts);
+      el.style.display = i >= maxHearts ? 'none' : '';
+    });
     this.hp.style.setProperty('--p', String(Math.max(0, Math.min(1, hp / maxHp))));
     const low = hp / maxHp <= G.player.lowHpRatio && hp > 0;
     this.el.classList.toggle('is-low', low);

@@ -27,10 +27,14 @@ export class Sources {
   /** 랜덤 이벤트가 만든 빛 고임 (반딧불 무리 등, 2026-11-18): 마을을 드러내고, 곁에서 LP가 등불 곁처럼 차오르고, 노란 화살표가 가리킨다 */
   extraPools: (LightPool & { beacon?: boolean })[] = [];
 
-  /** @param spots 등불 자리를 고정할 map.json stations 번호 (트라이얼, 없으면 seed로) */
-  constructor(scene: Phaser.Scene, rng: Rng, stationCount: number, spots?: readonly number[]) {
+  /**
+   * @param spots 등불 자리를 고정할 map.json stations 번호 (트라이얼, 없으면 seed로)
+   * @param litAtStart 켜진 채 시작할 등불 수 (2026-11-23 런: 완전 승리한 다음 밤)
+   */
+  constructor(scene: Phaser.Scene, rng: Rng, stationCount: number, spots?: readonly number[], litAtStart = 0) {
     this.central = new CentralSource(scene, CFG.central, CFG.lightLevels.bands);
     this.stations = pickStations(rng, stationCount, spots).map((p, i) => new LightStation(scene, i, p, CFG.station));
+    for (const s of this.stations.slice(0, litAtStart)) s.state.startLit();
   }
 
   /** 지나갈 수 없는 받침·밑동 */

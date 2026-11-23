@@ -1,10 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { Rng } from '../src/core/rng';
-import { GameData, type EnemyId, stageById } from '../src/data';
+import { GameData, type EnemyId } from '../src/data';
+import { rulesForNight } from '../src/systems/nightRules';
 import { Spawner } from '../src/systems/Spawner';
 
 const area = { width: 540, height: 960, margin: 16 };
-const stage = stageById('stage-1');
+// 2026-11-23: 옛 1스테이지 대신 런의 밤 1 (박쥐 3 : 개구리 1, 평소 3 / 클라이맥스 6)
+const stage = rulesForNight(1, { seed: 1, keeperId: 'lumi' as const, friendNights: {}, witchSeen: false, lastMapId: null, mercy: 0, banish: 0 });
 const climaxAt = GameData.game.stage.climaxAt;
 const climaxSec = stage.durationSec * climaxAt;
 

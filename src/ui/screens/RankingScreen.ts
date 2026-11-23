@@ -1,11 +1,14 @@
 // 지난 밤들(랭킹): 오늘 / 이번 주 / 전체, 최대 100줄, 내 최고 기록은 아래에 고정 (기획서).
 // M5 전까지는 이 기기의 기록(LocalRanking).
+// 2026-11-23 밤 나들이 v3: '밤' 열(아침을 맞은 밤 수)과 길 점(민트 = 지키는 길, 주황 = 넓히는 길, 회색 = 중립), 정렬은 점수 → 밤 수 → 버틴 시간.
 import { RunState } from '../../core/RunState';
 import { localPlayerId } from '../../services/LocalRanking';
 import type { Ranking, RankingPeriod, RankingRow } from '../../services/Ranking';
 import { formatScore, formatTime, h, svg } from '../dom';
 import { starIcon } from '../icons';
 import { screenBar, screenShell } from './common';
+
+const PATH_NAME = { keep: '지키는 길', expand: '넓히는 길', mixed: '빛과 어둠 사이' } as const;
 
 const PERIODS: { id: RankingPeriod; label: string }[] = [
   { id: 'day', label: '오늘' },
@@ -18,7 +21,8 @@ function row(r: RankingRow, mine = false): HTMLElement {
     'li',
     { class: `rank-row${mine ? ' rank-row--me' : ''}${r.rank <= 3 ? ' rank-row--top' : ''}` },
     h('span', { class: 'rank-row__rank' }, mine ? '나' : String(r.rank)),
-    h('span', { class: 'rank-row__name' }, r.nickname, r.outcome !== 'over' ? h('span', { class: 'rank-row__dawn', title: '아침까지' }, svg(starIcon)) : ''),
+    h('span', { class: 'rank-row__name' }, h('span', { class: 'rank-row__path', 'data-path': r.path, title: PATH_NAME[r.path], 'aria-label': PATH_NAME[r.path] }), r.nickname, r.outcome !== 'over' ? h('span', { class: 'rank-row__dawn', title: '아침까지' }, svg(starIcon)) : ''),
+    h('span', { class: 'rank-row__nights' }, r.nights > 0 ? `밤 ${r.nights}` : '–'),
     h('span', { class: 'rank-row__time' }, formatTime(r.survivedSec)),
     h('span', { class: 'rank-row__score' }, formatScore(r.score)),
   );

@@ -11,8 +11,9 @@
 import Phaser from 'phaser';
 import { bus } from '../core/events';
 import { Rng } from '../core/rng';
-import { RunState } from '../core/RunState';
-import type { CharacterId } from '../data';
+import { NIGHT_STAGE, RunState } from '../core/RunState';
+import { GameData, type CharacterId } from '../data';
+import { newRunData } from '../systems/nightRun';
 import { COMBO_MILESTONES } from '../systems/ComboSystem';
 
 interface PlayHandle {
@@ -32,14 +33,21 @@ const REACH = 300;
 export function installAutoplay(game: Phaser.Game): void {
   const params = new URLSearchParams(location.search);
   if (!params.has('autoplay')) return;
-  // 2026-11-13: &stage=stage-2 (스테이지), &char=tori (캐릭터), stage=trial이면 트라이얼(고정된 적 연습장, 2026-11-14)
-  const stage = params.get('stage');
-  if (stage) {
-    RunState.stageId = stage;
-    RunState.test = stage === 'trial';
-  }
+  // &char=tori (캐릭터). &stage=trial이면 트라이얼(고정된 적 연습장), &stage=tutorial이면 튜토리얼.
+  // 2026-11-23 밤 나들이: 그 밖에는 정식 런 — &night=n이면 밤 n부터(기본 1), &seed=n이면 런 seed 고정
   const ch = params.get('char');
   if (ch) RunState.characterId = ch as CharacterId;
+  const stage = params.get('stage');
+  if (stage === 'trial' || stage === 'tutorial') {
+    RunState.stageId = stage;
+    RunState.test = stage === 'trial';
+    RunState.run = null;
+  } else {
+    RunState.stageId = NIGHT_STAGE;
+    RunState.test = false;
+    const seed = Number(params.get('seed') ?? 0) || (Date.now() >>> 0);
+    RunState.run = { ...newRunData(seed, RunState.characterId, GameData.game.stage.hearts), night: Math.max(1, Number(params.get('night') ?? 1) || 1) };
+  }
   const stopAt = Number(params.get('autoplay') || 20);
   const idle = params.has('idle');
   const pause = params.has('pause');

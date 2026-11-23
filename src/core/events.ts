@@ -2,6 +2,8 @@
 // 2026-11-12 새 기획(XMind 1112): 손 등불 HP·시너지 이벤트를 걷어 내고 주인공 HP·하트·LP·중앙 광원·등불 이벤트를 더했다.
 import type { CharacterId, EnemyId, EnemyKind, NightPhase } from '../data';
 import type { EndReason, StageOutcome } from '../systems/stageOutcome';
+import type { RunEventKind } from '../systems/runEvents';
+import type { RunData, RunSummary } from '../systems/nightRun';
 import { reportError } from './errorLog';
 
 export type Outcome = StageOutcome;
@@ -28,6 +30,15 @@ export interface RunResult {
   mercy: number;
   itemsUsed: number;
   bossCalmed: boolean;
+  /** 런의 밤이면 (2026-11-23 밤 나들이) — 밤 번호·맵·되찾은 친구·노월·돌려보낸 패시브·별가루·빛 레벨 */
+  night?: number;
+  mapId?: string | null;
+  friends?: CharacterId[];
+  witch?: boolean;
+  banish?: number;
+  dust?: number;
+  xp?: number;
+  level?: number;
 }
 
 export type ComboReason = 'gain' | 'timeout';
@@ -67,8 +78,8 @@ export interface GameEvents {
   'mercy:gain': { enemyId: EnemyId; x: number; y: number; score: number };
   /** 패시브 주민이 빛에 맞아 화남 */
   'passive:upset': { enemyId: EnemyId; x: number; y: number };
-  /** 랜덤 이벤트가 일어남 (2026-11-18, scenes/play/RunEvents.ts): fireflies · parade · gift · darkWind */
-  'run:event': { kind: 'fireflies' | 'parade' | 'gift' | 'darkWind'; x: number; y: number };
+  /** 랜덤 이벤트가 일어남 (2026-11-18, scenes/play/RunEvents.ts): fireflies · lostParade(길 잃은 주민 행렬) · gift · darkWind */
+  'run:event': { kind: RunEventKind; x: number; y: number };
   /** 패시브를 여러 번 맞혀 호스틸 무리가 몰려옴 (2026-11-18, systems/anger.ts) */
   'passive:anger': { wave: number; x: number; y: number };
   /** 빛을 잃은 친구(토리·도토)를 되찾음 → 해금 */
@@ -86,9 +97,13 @@ export interface GameEvents {
   'witch:returned': undefined;
   'game:over': { result: RunResult };
   'game:clear': { result: RunResult };
+  /** 런: 밤을 이겨 아침이 됨 (core/runFlow.ts — 저장 뒤). before = 그 밤을 시작할 때, run = 아침 뒤(다음 밤) */
+  'run:morning': { result: RunResult; before: RunData; run: RunData };
+  /** 런의 끝: 패배 또는 아침에 집으로. best = 최고 기록 갱신 */
+  'run:end': { summary: RunSummary; best: boolean };
 
   // DOM HUD가 매 프레임 폴링하지 않도록 필요한 최소 이벤트
-  'run:start': { seed: number; characterId: CharacterId; stageId: string; durationSec: number; /** 홈의 테스트 판 */ test: boolean };
+  'run:start': { seed: number; characterId: CharacterId; stageId: string; durationSec: number; /** 홈의 테스트 판 */ test: boolean; /** 런의 밤 번호·빛 레벨·별가루 잔액 (2026-11-23) */ night?: number; level?: number; dust?: number };
   'run:pause': { paused: boolean };
   'night:tick': { t: number; durationSec: number };
   'score:change': { score: number; gained: number };
@@ -109,7 +124,8 @@ export interface GameEvents {
   /** 홈의 `테스트`: 같은 마을, 이웃 없음, 시간 제한 없음 (2026-11-06 라이언 지시) */
   /** 2026-11-14: 테스트할 스테이지를 골라 바로 (진행·지난 밤들에 남지 않음) */
   /** characterId: 트라이얼에서 고른 등불지기(2026-11-18, 없으면 선택 화면의 등불지기) */
-  'ui:start-test': { stageId: string; characterId?: CharacterId };
+  /** night = 밤 n 체험(stageId 'night'), mapId = 고른 맵 (2026-11-23) */
+  'ui:start-test': { stageId: string; characterId?: CharacterId; night?: number; mapId?: string | null };
   /** 화면 방식이 바뀜 (세로 ↔ 가로, 2026-11-06) */
   'ui:layout': { layout: 'portrait' | 'landscape' };
   'ui:open-settings': undefined;
@@ -130,7 +146,8 @@ export interface GameEvents {
   'input:fire': { angle: number | null; power?: number };
 }
 
-export type ScreenId = 'home' | 'select' | 'shop' | 'ranking' | 'play';
+/** morning = 런의 아침 화면 (2026-11-23, ui/MorningSheet.ts) */
+export type ScreenId = 'home' | 'select' | 'shop' | 'ranking' | 'play' | 'morning';
 
 type Handler<T> = (payload: T) => void;
 

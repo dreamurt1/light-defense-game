@@ -7,6 +7,7 @@ import itemsJson from './items.json';
 import stagesJson from './stages.json';
 import mapJson from './map.json';
 import cosmeticsJson from './cosmetics.json';
+import nightsJson from './nights.json';
 
 export type CharacterId = 'lumi' | 'tori' | 'doto';
 export type EnemyId =
@@ -60,6 +61,8 @@ export interface GameConfig {
   controls: { deadzone: number; mouseCancelRadius: number; autoHoldDelaySec: number; aimDeadzone: number };
   /** 스테이지 공통: 클라이맥스 시작 비율, 하트 수, 하늘빛 시간대(비율) */
   stage: { climaxAt: number; hearts: number; phases: Record<PhaseId, [number, number]> };
+  /** 런(밤 나들이, 2026-11-23): 아침 하트 회복, 하트 최대, 완전 승리면 다음 밤에 켜진 채 시작하는 등불 수 */
+  run: { morningHeal: number; maxHearts: number; completeLitStations: number };
   player: {
     maxHp: number;
     respawnDelaySec: number;
@@ -199,10 +202,9 @@ export interface GameConfig {
   runEvents: {
     atMin: number;
     atMax: number;
-    weights: { fireflies: number; parade: number; gift: number; darkWind: number };
-    calmStages: string[];
+    weights: { fireflies: number; lostParade: number; gift: number; darkWind: number };
     fireflies: { durationSec: number; radius: number };
-    parade: { count: number };
+    lostParade: { count: number };
     darkWind: { durationSec: number; enemySpeed: number };
   };
   /** 노월 (2026-11-13, scenes/play/Boss.ts) */
@@ -341,14 +343,64 @@ export const GameData = {
   stages: stagesJson as unknown as StageDef[],
   map: mapJson as unknown as MapDef,
   cosmetics: cosmeticsJson as unknown as CosmeticsDef,
+  nights: nightsJson as unknown as NightsDef,
 };
 
-/** 상점의 겉모습 (2026-11-18): 빛 색. unlock = 'start' 또는 그 스테이지를 깬 뒤 */
+/** 밤 구간 (2026-11-23 밤 나들이): A 빛의 마을 · B 경계의 숲 · C 어둠이 삼킨 외곽 */
+export type BandId = 'A' | 'B' | 'C';
+export interface NightBand {
+  id: BandId;
+  name: string;
+  theme: StageDef['theme'];
+  fromNight: number;
+  /** 이 구간의 격자 맵 id (src/data/maps/) */
+  maps: string[];
+}
+/** 밤마다 늘어나는 적 표 하나 (평소 / 클라이맥스) */
+export interface NightSpawnCurve {
+  maxAliveStart: number;
+  maxAlivePerNight: number;
+  maxAliveCap: number;
+  /** 밤 1의 [시작, 끝] 생성 간격(초) */
+  intervalStart: [number, number];
+  /** 밤마다 간격에 곱함 */
+  intervalPerNight: number;
+  intervalFloor: [number, number];
+}
+/** 구간값 표: 밤 n 이하에서 가장 큰 키의 값 */
+export type NightTable<T> = Record<string, T>;
+/** nights.json — 밤 n의 규칙을 만드는 표 (systems/nightRules.ts) */
+export interface NightsDef {
+  durationSec: number;
+  bands: NightBand[];
+  stations: NightTable<number>;
+  spawn: {
+    normal: NightSpawnCurve;
+    climax: NightSpawnCurve;
+    onlyHostileUntilSec: number;
+    hostileRatio: NightTable<number>;
+    roster: NightTable<EnemyId[]>;
+  };
+  parade: { fromNight: number; groupsByNight: NightTable<number>; sizeByNight: NightTable<number>; everySec: number; kinds: EnemyId[] };
+  items: { firstSec: number; intervalStart: number; intervalPerNight: number; intervalFloor: number };
+  runEvents: { darkWindFromNight: number; darkWindWeightMultiplierFromNight6: number };
+  rescue: {
+    /** 빛을 잃은 친구가 나타나는 진행 (옛 스테이지와 같은 30%) */
+    atProgress: number;
+    tori: { fromNight: number; chance: number; guaranteedNight: number };
+    doto: { nightsAfterTori: number; chance: number; guaranteedAfter: number };
+  };
+  witch: { atSec: number; fromNight: number; chancePerNight: number; guaranteedNight: number; requiresFriends: CharacterId[]; oncePerRun: boolean };
+  expand: { hostileRatioPerBanish: number; hostileRatioCap: number };
+  testNights: number[];
+}
+
+/** 상점의 겉모습 (2026-11-18): 빛 색. 2026-11-23부터 별가루로 산다 — price 0 = 처음부터(호박빛) */
 export interface LightColorDef {
   id: string;
   name: string;
   color: string;
-  unlock: string;
+  price: number;
 }
 export interface CosmeticsDef {
   lightColors: LightColorDef[];
@@ -433,9 +485,6 @@ export function rescueFor(stage: StageDef, characterId: CharacterId): StageDef['
 }
 
 /** 지금 게임에 나오는 적 */
-/** 스테이지 순서 (선택 화면·진행) */
-export const STAGE_ORDER = ['stage-1', 'stage-2', 'stage-3', 'stage-4'] as const;
-
 export const IMPLEMENTED_ENEMIES: readonly EnemyId[] = GameData.enemies.filter((e) => e.implemented).map((e) => e.id);
 
 /** 스테이지 길이로 하늘빛 시간대를 초 단위로 (NightClock 설정) */

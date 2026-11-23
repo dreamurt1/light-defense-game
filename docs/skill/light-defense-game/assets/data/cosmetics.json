@@ -1,35 +1,35 @@
 {
-  "_notes": "2026-11-18 상점: 겉모습만(능력치·아이템은 팔지 않음). 재화가 기획에 없어 밤을 지나면 열린다(제안). 빛 색 = 빛을 보낼 때의 별·휘두름 궤적·조준 원뿔 색. 마을을 드러내는 빛은 그대로",
+  "_notes": "2026-11-18 상점: 겉모습만(능력치·아이템은 팔지 않음). 재화가 기획에 없어 밤을 지나면 열린다(제안). 빛 색 = 빛을 보낼 때의 별·휘두름 궤적·조준 원뿔 색. 마을을 드러내는 빛은 그대로 2026-11-23: 스테이지를 깨면 열림 → 별가루로 산다(price, 0 = 처음부터).",
   "lightColors": [
     {
       "id": "amber",
       "name": "호박빛",
       "color": "#FFC857",
-      "unlock": "start"
+      "price": 0
     },
     {
       "id": "dawn",
       "name": "새벽빛",
       "color": "#F2B880",
-      "unlock": "stage-1"
+      "price": 10
     },
     {
       "id": "mint",
       "name": "민트빛",
       "color": "#9ED9B5",
-      "unlock": "stage-2"
+      "price": 15
     },
     {
       "id": "moon",
       "name": "달빛",
       "color": "#A89CD9",
-      "unlock": "stage-3"
+      "price": 20
     },
     {
       "id": "star",
       "name": "별빛",
       "color": "#F6F1E7",
-      "unlock": "stage-4"
+      "price": 30
     }
   ]
 }

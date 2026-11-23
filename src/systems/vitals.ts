@@ -18,12 +18,17 @@ export class Vitals {
   respawnLeft = 0;
   private sinceHurt = Infinity;
 
+  /** HUD 하트 칸 수: 밤을 시작할 때의 하트와 기본 하트 중 큰 값 (2026-11-23 런 — 하트가 밤 사이에 이어지고 최대 4) */
+  readonly maxHearts: number;
+
   constructor(
     private readonly cfg: PlayerCfg,
     hearts: number,
+    baseHearts = hearts,
   ) {
     this.hp = cfg.maxHp;
     this.hearts = hearts;
+    this.maxHearts = Math.max(hearts, baseHearts);
   }
 
   get maxHp(): number {

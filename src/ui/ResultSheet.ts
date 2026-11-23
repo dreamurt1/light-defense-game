@@ -1,12 +1,16 @@
 // 결과 = 오늘 전투 개요 (2026-11-12 새 기획): 기본 승리(아침) / 완전 승리(모든 등불이 밝음) / 오늘은 여기까지(하트 소진·중앙 광원 꺼짐).
 // 2026-11-13 컨셉 시연판: 노월을 진정시킴(boss) · 튜토리얼 마침(tutorial) 문구, 자비·쓴 아이템 통계, 되찾은 친구 한 줄, '다음 밤으로'.
 // 배치는 UI Screen Sheet(마을 위 가운데 패널, 통계 줄, 버튼). UI에서 죽·처치·킬·실패는 쓰지 않는다.
-// `다음 밤으로` → 다음 스테이지 바로 시작(승리이고 다음 밤이 있을 때), `다시 한 번` → 선택 화면(직전 선택이 기본값),
-// `홈으로` → 홈, `지난 밤들에 남기기` → 이 기기 랭킹에 등록. 튜토리얼은 `첫 번째 밤으로` + `홈으로`만.
+// 2026-11-23 밤 나들이 v3: 정식 런은 밤의 결과가 아니라 '런의 끝'(run:end)을 보여 준다 — 패배 = 오늘은 여기까지, 아침에 집으로 = 오늘 밤들은 여기까지(새벽빛).
+//   길 제목 + 요약 6칸(점수·밤·최대 콤보·구출·켠 등불·별가루) + 최고 기록 갱신, 버튼 = 다시 나가기 / 홈으로 / 지난 밤들에 남기기.
+// 튜토리얼·테스트(트라이얼·밤 n 체험)는 그 판의 결과(game:*). 튜토리얼 = `밤 나들이 시작` + `홈으로`, 테스트는 `다시 한 번`·다음 밤 체험.
 import { bus, type RunResult } from '../core/events';
-import { RunState } from '../core/RunState';
+import { NIGHT_STAGE, RunState } from '../core/RunState';
 import { seedLabel } from '../core/rng';
-import { GameData, STAGE_ORDER, characterById, type CharacterId } from '../data';
+import { startNewRun } from '../core/runFlow';
+import { GameData, characterById, type CharacterId } from '../data';
+import type { RunSummary } from '../systems/nightRun';
+import { PATH_TITLE, pathLine } from './runText';
 import type { Ranking } from '../services/Ranking';
 import { localPlayerId } from '../services/LocalRanking';
 import { formatScore, formatTime, h, prefersReducedMotion, svg } from './dom';
@@ -28,7 +32,7 @@ function title(r: RunResult): string {
 
 function subtitle(r: RunResult): string {
   const complete = `점수 ×${GameData.game.score.completeMultiplier}`;
-  if (r.reason === 'tutorial') return '이제 첫 번째 밤으로 가요';
+  if (r.reason === 'tutorial') return '이제 밤 나들이를 떠나요';
   if (r.reason === 'boss' && r.outcome !== 'over') {
     return `빛이 어둠에게도 닿았어요 · ${r.outcome === 'complete' ? complete : `남은 하트 ${r.heartsLeft}개`}`;
   }
@@ -38,11 +42,15 @@ function subtitle(r: RunResult): string {
   return `버틴 시간 ${formatTime(r.survivedSec)} · 구출한 주민 ${r.rescued}명`;
 }
 
-/** 승리한 판의 다음 밤 (마지막 밤이면 없음) */
-function nextStageOf(r: RunResult): string | null {
-  if (r.outcome === 'over' || r.reason === 'tutorial') return null;
-  const i = (STAGE_ORDER as readonly string[]).indexOf(r.stageId);
-  return i >= 0 && i + 1 < STAGE_ORDER.length ? STAGE_ORDER[i + 1] : null;
+/** 런의 끝 제목·부제 */
+function runTitle(s: RunSummary): string {
+  return s.outcome === 'home' ? '오늘 밤들은 여기까지' : '오늘은 여기까지';
+}
+
+function runSubtitle(s: RunSummary): string {
+  if (s.outcome === 'home') return `밤 ${s.night}까지 마을을 지켰어요 · ${characterById(s.characterId).name}가 집으로 돌아가요`;
+  if (s.reason === 'central') return `밤 ${s.night} · 중앙 광원이 잠들었어요`;
+  return `밤 ${s.night} · 버틴 시간 ${formatTime(s.lastSurvivedSec)} · 구출한 주민 ${s.stats.rescued}명`;
 }
 
 function statRow(label: string, value: HTMLElement): HTMLElement {
@@ -66,15 +74,25 @@ export class ResultSheet {
   private readonly mercy = h('span');
   private readonly mercyRow: HTMLElement;
   private readonly items = h('span');
+  private readonly nights = h('span');
+  private readonly dust = h('span');
+  private readonly path = h('p', { class: 'result__path' });
+  private readonly best = h('p', { class: 'result__best' });
+  private readonly runRows: HTMLElement[];
+  private readonly nightRows: HTMLElement[];
+  private readonly scoreLabel = h('dt', {}, '오늘 점수');
+  /** 런의 끝 (정식 런) */
+  private summary: RunSummary | null = null;
   private readonly seed: HTMLElement;
   private readonly next: HTMLButtonElement;
   private readonly nextLabel: HTMLElement;
   private readonly again: HTMLButtonElement;
+  private readonly againLabel: HTMLElement;
   private readonly save: HTMLButtonElement;
   private readonly saveLabel: HTMLElement;
   private result: RunResult | null = null;
-  /** 다음 버튼이 시작할 스테이지 (튜토리얼이면 stage-1) */
-  private nextStage: string | null = null;
+  /** 다음 버튼: 튜토리얼 뒤 = 밤 나들이, 테스트 = 다음 밤 체험 */
+  private nextNight: number | null = null;
   /** 이번 판에 되찾은 친구 (run:start에서 비우고 friend:rescued로 채운다) */
   private friends: CharacterId[] = [];
   private countFrame = 0;
@@ -89,10 +107,12 @@ export class ResultSheet {
     this.nextLabel = h('span', {}, '다음 밤으로');
     this.next = h('button', { class: 'pill pill--primary result__next', type: 'button' }, svg(playIcon), this.nextLabel);
     this.next.addEventListener('click', () => this.startNext());
-    this.again = h('button', { class: 'pill pill--primary result__again', type: 'button' }, svg(playIcon), '다시 한 번');
-    // 테스트 판이면 같은 스테이지를 다시 테스트로 (2026-11-14), 아니면 선택 화면으로
+    this.againLabel = h('span', {}, '다시 한 번');
+    this.again = h('button', { class: 'pill pill--primary result__again', type: 'button' }, svg(playIcon), this.againLabel);
+    // 테스트 판이면 같은 판을 다시 테스트로 (2026-11-14), 아니면(런의 끝 '다시 나가기') 선택 화면으로
     this.again.addEventListener('click', () => {
-      if (RunState.test && this.result) bus.emit('ui:start-test', { stageId: this.result.stageId });
+      const r = this.result;
+      if (RunState.test && r) bus.emit('ui:start-test', r.night ? { stageId: NIGHT_STAGE, night: r.night, mapId: RunState.testMapId } : { stageId: RunState.stageId });
       else bus.emit('ui:navigate', { to: 'select' });
     });
     const village = h('button', { class: 'pill pill--secondary', type: 'button' }, svg(homeIcon), '홈으로');
@@ -102,16 +122,24 @@ export class ResultSheet {
     this.save.addEventListener('click', () => void this.submit());
 
     this.mercyRow = statRow('자비', this.mercy);
+    const nightsRow = statRow('밤', this.nights);
+    const dustRow = statRow('별가루', this.dust);
+    const retreatedRow = statRow('돌려보낸 어둠의 주민', this.retreated);
+    const itemsRow = statRow('쓴 아이템', this.items);
+    this.runRows = [nightsRow, dustRow];
+    this.nightRows = [retreatedRow, this.mercyRow, itemsRow];
     this.statList = h(
       'dl',
       { class: 'result__stats' },
-      h('div', { class: 'result__row result__row--score' }, h('dt', {}, '오늘 점수'), h('dd', {}, this.score)),
+      h('div', { class: 'result__row result__row--score' }, this.scoreLabel, h('dd', {}, this.score)),
+      nightsRow,
       statRow('최대 콤보', this.combo),
       statRow('구출한 주민', this.rescued),
-      statRow('돌려보낸 어둠의 주민', this.retreated),
+      retreatedRow,
       statRow('켠 등불', this.stations),
       this.mercyRow,
-      statRow('쓴 아이템', this.items),
+      itemsRow,
+      dustRow,
     );
 
     // 시트를 열면 버튼이 아니라 패널에 포커스를 둔다: 탭 사용자에게 포커스 링을 띄우지 않고, 키보드는 Tab으로 버튼에 간다
@@ -120,6 +148,8 @@ export class ResultSheet {
       { class: 'sheet__panel', tabindex: -1 },
       this.title,
       this.subtitle,
+      this.path,
+      this.best,
       this.friendLine,
       this.testNote,
       this.statList,
@@ -129,8 +159,10 @@ export class ResultSheet {
     this.el = h('section', { class: 'sheet sheet--result', role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 'result-title' }, this.panel);
     this.el.hidden = true;
 
-    bus.on('game:over', (e) => this.open(e.result));
-    bus.on('game:clear', (e) => this.open(e.result));
+    // 정식 런의 밤은 아침 화면·런의 끝(run:end)으로 (core/runFlow.ts)
+    bus.on('game:over', (e) => !RunState.isRealRun && this.open(e.result));
+    bus.on('game:clear', (e) => !RunState.isRealRun && this.open(e.result));
+    bus.on('run:end', (e) => this.openRun(e.summary, e.best));
     bus.on('run:start', () => {
       this.friends = [];
       this.close();
@@ -143,6 +175,14 @@ export class ResultSheet {
 
   private open(result: RunResult): void {
     this.result = result;
+    this.summary = null;
+    this.el.dataset.mode = 'night';
+    this.scoreLabel.textContent = '오늘 점수';
+    this.path.hidden = true;
+    this.best.hidden = true;
+    for (const r of this.runRows) r.hidden = true;
+    for (const r of this.nightRows) r.hidden = false;
+    this.againLabel.textContent = '다시 한 번';
     const tutorial = result.reason === 'tutorial';
     // CSS 톤: clear(아침빛) / over
     this.el.dataset.outcome = result.outcome === 'over' ? 'over' : 'clear';
@@ -167,10 +207,10 @@ export class ResultSheet {
     this.items.textContent = `${result.itemsUsed ?? 0}개`;
     this.seed.textContent = `#${seedLabel(result.seed)}`;
 
-    // 버튼: 튜토리얼 = 첫 번째 밤으로 + 홈으로 / 승리이고 다음 밤이 있으면 다음 밤으로 + 다시 한 번 + 홈으로 / 그 밖 = 다시 한 번 + 홈으로
-    this.nextStage = tutorial ? STAGE_ORDER[0] : nextStageOf(result);
-    this.next.hidden = this.nextStage === null;
-    this.nextLabel.textContent = tutorial ? '첫 번째 밤으로' : '다음 밤으로';
+    // 버튼: 튜토리얼 = 밤 나들이 시작 + 홈으로 / 이긴 밤 n 체험 = 다음 밤 체험 + 다시 한 번 + 홈으로 / 그 밖 = 다시 한 번 + 홈으로
+    this.nextNight = tutorial ? 1 : RunState.test && result.night && result.outcome !== 'over' ? result.night + 1 : null;
+    this.next.hidden = this.nextNight === null;
+    this.nextLabel.textContent = tutorial ? '밤 나들이 시작' : '다음 밤으로';
     this.again.hidden = tutorial;
     // 다음 밤이 있으면 '다시 한 번'은 보조 버튼으로 내린다
     this.again.classList.toggle('pill--primary', this.next.hidden);
@@ -185,23 +225,62 @@ export class ResultSheet {
     this.panel.focus({ preventScroll: true });
   }
 
+  /** 런의 끝: 패배 또는 아침에 집으로 */
+  private openRun(s: RunSummary, best: boolean): void {
+    this.summary = s;
+    this.result = null;
+    this.el.dataset.mode = 'run';
+    this.el.dataset.outcome = s.outcome === 'home' ? 'clear' : 'over';
+    this.title.textContent = runTitle(s);
+    this.subtitle.textContent = runSubtitle(s);
+    const banished = s.stats.retreated + s.banish;
+    this.path.hidden = false;
+    this.path.dataset.path = s.path;
+    this.path.textContent = `${PATH_TITLE[s.path]} · ${pathLine(s.mercy, banished)}`;
+    this.best.hidden = !best;
+    this.best.textContent = `최고 기록 갱신! 밤 ${s.nights} · ${formatScore(s.score)}점`;
+    this.friendLine.hidden = true;
+    this.testNote.hidden = true;
+    this.statList.hidden = false;
+    this.scoreLabel.textContent = '점수';
+    for (const r of this.runRows) r.hidden = false;
+    for (const r of this.nightRows) r.hidden = true;
+    this.nights.textContent = `${s.nights}밤`;
+    this.combo.textContent = `×${s.stats.maxCombo}`;
+    this.rescued.textContent = `${s.stats.rescued}명`;
+    this.stations.textContent = `${s.stats.stationsLit}개`;
+    this.dust.textContent = `✦${s.dust}`;
+    this.seed.textContent = `#${seedLabel(s.seed)}`;
+    this.nextNight = null;
+    this.next.hidden = true;
+    this.again.hidden = false;
+    this.againLabel.textContent = '다시 나가기';
+    this.again.classList.add('pill--primary');
+    this.again.classList.remove('pill--secondary');
+    this.save.hidden = false;
+    this.save.disabled = false;
+    this.saveLabel.textContent = '지난 밤들에 남기기';
+    this.el.dataset.next = 'no';
+    this.el.hidden = false;
+    this.countUp(s.score);
+    this.panel.focus({ preventScroll: true });
+  }
+
   private close(): void {
     cancelAnimationFrame(this.countFrame);
     this.el.hidden = true;
     this.result = null;
+    this.summary = null;
   }
 
-  /** 다음 밤(또는 튜토리얼 뒤 첫 번째 밤)을 바로 시작 */
+  /** 튜토리얼 뒤 = 밤 나들이 시작(고른 등불지기), 테스트 = 다음 밤 체험 */
   private startNext(): void {
-    if (!this.nextStage) return;
-    // 테스트 판이면 다음 밤도 테스트로 (2026-11-14)
+    if (this.nextNight === null) return;
     if (RunState.test) {
-      bus.emit('ui:start-test', { stageId: this.nextStage });
+      bus.emit('ui:start-test', { stageId: NIGHT_STAGE, night: this.nextNight, mapId: null });
       return;
     }
-    RunState.stageId = this.nextStage;
-    RunState.test = false;
-    bus.emit('ui:start-run');
+    startNewRun(RunState.characterId);
   }
 
   private countUp(target: number): void {
@@ -219,22 +298,26 @@ export class ResultSheet {
     this.countFrame = requestAnimationFrame(step);
   }
 
+  /** 런의 끝만 지난 밤들에 남긴다 (튜토리얼·테스트는 버튼이 없음) */
   private async submit(): Promise<void> {
-    const r = this.result;
-    if (!r || this.save.disabled) return;
+    const s = this.summary;
+    if (!s || this.save.disabled) return;
     this.save.disabled = true;
     const { rank } = await this.ranking.submit({
       playerId: localPlayerId(localStorage),
       nickname: RunState.nickname,
-      score: r.score,
-      survivedSec: r.survivedSec,
-      characterId: r.characterId,
-      stageId: r.stageId,
-      maxCombo: r.maxCombo,
-      seed: r.seed,
+      score: s.score,
+      survivedSec: s.stats.survivedSec,
+      characterId: s.characterId,
+      stageId: NIGHT_STAGE,
+      nights: s.nights,
+      path: s.path,
+      dust: s.dust,
+      maxCombo: s.stats.maxCombo,
+      seed: s.seed,
       clientVersion: __APP_VERSION__,
-      outcome: r.outcome,
-      continued: r.continued,
+      outcome: s.outcome,
+      continued: false,
     });
     this.saveLabel.textContent = `지난 밤들에 남겼어요 · ${rank}위`;
   }

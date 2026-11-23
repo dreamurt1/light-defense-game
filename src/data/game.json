@@ -59,6 +59,12 @@
       ]
     }
   },
+  "run": {
+    "_note": "2026-11-23 밤 나들이 v3: 런 = 하트가 이어지는 연속 밤. morningHeal = 아침마다 하트 회복(0 = 없음, 1이면 밤마다 하트 1), 완전 승리 = 하트 +1(최대 maxHearts) + 다음 밤 등불 하나 켜진 채",
+    "morningHeal": 0,
+    "maxHearts": 4,
+    "completeLitStations": 1
+  },
   "player": {
     "maxHp": 100,
     "respawnDelaySec": 1.5,
@@ -279,23 +285,20 @@
     }
   },
   "runEvents": {
-    "_note": "2026-11-18 랜덤 이벤트(제안): 정식 스테이지에서 한 판에 한 번, 진행 atMin~atMax 사이(seed). 어둠 바람은 calmStages에서 고르지 않음",
+    "_note": "2026-11-18 랜덤 이벤트(제안): 정식 밤마다 한 번, 진행 atMin~atMax 사이(seed). 2026-11-23: 어둠 바람은 nights.json runEvents(밤 2부터, 밤 6부터 ×2)와 길(지키는 길이면 없음)이 정함. lostParade = 길 잃은 주민 행렬(옛 키 parade — 어둠의 행렬과 이름이 겹쳐 바꿈)",
     "atMin": 0.35,
     "atMax": 0.6,
     "weights": {
       "fireflies": 3,
-      "parade": 3,
+      "lostParade": 3,
       "gift": 2,
       "darkWind": 2
     },
-    "calmStages": [
-      "stage-1"
-    ],
     "fireflies": {
       "durationSec": 15,
       "radius": 170
     },
-    "parade": {
+    "lostParade": {
       "count": 3
     },
     "darkWind": {

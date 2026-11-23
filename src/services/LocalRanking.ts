@@ -1,8 +1,10 @@
-// localStorage 랭킹. 최대 100행, 점수 → 버틴 시간 → 먼저 등록한 순.
+// localStorage 랭킹. 최대 100행, 점수 → 아침을 맞은 밤 수 → 버틴 시간 → 먼저 등록한 순.
+// 2026-11-23 밤 나들이 v3: 'ld.ranking.v3'(밤 수·길·별가루). 처음 읽을 때 v2 기록을 옮긴다 — 한 판 = 한 밤(승리면 1, 아니면 0), 길은 중립.
 import type { Ranking, RankingPeriod, RankingRow, ScoreSubmission } from './Ranking';
 
-/** 2026-11-12 새 기획으로 점수 체계가 바뀌어 새 칸에 쌓는다(옛 기록은 v1에 그대로 남음) */
-const STORAGE_KEY = 'ld.ranking.v2';
+/** 2026-11-12 새 기획으로 점수 체계가 바뀌어 새 칸에 쌓는다(옛 기록은 v1에 그대로 남음). 2026-11-23 v3 */
+const STORAGE_KEY = 'ld.ranking.v3';
+const V2_KEY = 'ld.ranking.v2';
 const PLAYER_KEY = 'ld.player.v1';
 export const MAX_ROWS = 100;
 
@@ -21,8 +23,13 @@ export function periodStart(period: RankingPeriod, now: Date): number {
   return d.getTime();
 }
 
-function compareRows(a: StoredRow, b: StoredRow): number {
-  return b.score - a.score || b.survivedSec - a.survivedSec || a.createdAt - b.createdAt;
+export function compareRows(a: Pick<StoredRow, 'score' | 'nights' | 'survivedSec' | 'createdAt'>, b: Pick<StoredRow, 'score' | 'nights' | 'survivedSec' | 'createdAt'>): number {
+  return b.score - a.score || (b.nights ?? 0) - (a.nights ?? 0) || b.survivedSec - a.survivedSec || a.createdAt - b.createdAt;
+}
+
+/** v2 한 줄 → v3 (한 판 = 한 밤) */
+export function migrateRowV2(r: Omit<StoredRow, 'nights' | 'path' | 'dust'> & Partial<StoredRow>): StoredRow {
+  return { ...r, nights: r.nights ?? (r.outcome === 'over' ? 0 : 1), path: r.path ?? 'mixed', dust: r.dust ?? 0 };
 }
 
 export class LocalRanking implements Ranking {
@@ -59,8 +66,22 @@ export class LocalRanking implements Ranking {
   private read(): StoredRow[] {
     try {
       const raw = this.storage.getItem(STORAGE_KEY);
-      const parsed: unknown = raw ? JSON.parse(raw) : [];
+      if (raw === null) return this.migrate();
+      const parsed: unknown = JSON.parse(raw);
       return Array.isArray(parsed) ? (parsed as StoredRow[]) : [];
+    } catch {
+      return [];
+    }
+  }
+
+  /** v3가 아직 없으면 v2 기록을 옮겨 v3로 쓴다 (한 번) */
+  private migrate(): StoredRow[] {
+    try {
+      const old = this.storage.getItem(V2_KEY);
+      const parsed: unknown = old ? JSON.parse(old) : [];
+      const rows = Array.isArray(parsed) ? (parsed as StoredRow[]).map(migrateRowV2).sort(compareRows).slice(0, MAX_ROWS) : [];
+      this.write(rows);
+      return rows;
     } catch {
       return [];
     }
@@ -85,6 +106,8 @@ function toRow(r: StoredRow, i: number): RankingRow {
     outcome: r.outcome,
     continued: r.continued ?? false,
     createdAt: r.createdAt,
+    nights: r.nights ?? 0,
+    path: r.path ?? 'mixed',
   };
 }
 

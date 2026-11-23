@@ -18,7 +18,7 @@ import { RunState } from '../core/RunState';
 import { closeTestSheet, openTestSheet } from './TestSheet';
 
 /** 기록 한 칸 = 메뉴 화면 하나. 'exit' = 바탕(여기서 뒤로가면 사이트를 나감) */
-type Step = Exclude<ScreenId, 'play'> | 'exit';
+type Step = Exclude<ScreenId, 'play' | 'morning'> | 'exit';
 interface NavState {
   ld: 'nav';
   i: number;
@@ -43,6 +43,8 @@ export function installHistoryNav(router: Router, root: HTMLElement): void {
   bus.on('game:clear', () => (runEnded = true));
   bus.on('run:start', () => (runEnded = false));
   bus.on('ui:navigate', () => (runEnded = false));
+  // 런의 끝(아침에 집으로 — 결과가 아침 화면 위에 뜸, 2026-11-23)
+  bus.on('run:end', () => (runEnded = true));
 
   const hint = h('div', { class: 'back-hint', role: 'status', 'aria-live': 'polite' }, '한 번 더 누르면 나가요');
   hint.hidden = true;
@@ -58,7 +60,7 @@ export function installHistoryNav(router: Router, root: HTMLElement): void {
   /** 지금 메뉴 화면 (게임 중이면 판에 들어오기 전 화면) */
   const menuScreen = (): Step => {
     const s = router.screen;
-    return !s || s === 'play' ? (router.cameFrom as Step) : s;
+    return !s || s === 'play' || s === 'morning' ? (router.cameFrom as Step) : s;
   };
   const push = (s: Step): void => {
     steps.length = pos + 1;
@@ -101,7 +103,7 @@ export function installHistoryNav(router: Router, root: HTMLElement): void {
 
   // 앱이 화면을 옮김(버튼) → 기록에 반영
   bus.on('ui:screen', ({ to }) => {
-    if (applying || !activated || to === 'play' || pos === 0) return;
+    if (applying || !activated || to === 'play' || to === 'morning' || pos === 0) return;
     if (steps[pos] === to) return;
     if (pos >= 2 && steps[pos - 1] === to) {
       pos--;
@@ -125,6 +127,12 @@ export function installHistoryNav(router: Router, root: HTMLElement): void {
     if (!dir) return;
     if (dir < 0 && closeOverlay()) {
       shift(pos - i);
+      return;
+    }
+    // 아침 화면(2026-11-23): 뒤로·앞으로는 아무 일도 하지 않는다(다음 밤으로 / 집으로를 고름). 결과가 떠 있으면 판에 들어오기 전 화면으로
+    if (router.screen === 'morning') {
+      shift(pos - i);
+      if (dir < 0 && runEnded) show(menuScreen());
       return;
     }
     if (router.screen === 'play') {

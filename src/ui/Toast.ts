@@ -4,6 +4,7 @@
 import { bus } from '../core/events';
 import { GameData, characterById, stageById } from '../data';
 import { h } from './dom';
+import type { RunEventKind } from '../systems/runEvents';
 
 /** 튜토리얼을 마친 뒤 안내 띠가 남는 시간 */
 const DONE_HOLD_MS = 2000;
@@ -18,9 +19,9 @@ function objectParticle(word: string): string {
 }
 
 /** 랜덤 이벤트 안내 (2026-11-18) */
-const EVENT_LINES: Record<'fireflies' | 'parade' | 'gift' | 'darkWind', string> = {
+const EVENT_LINES: Record<RunEventKind, string> = {
   fireflies: '반딧불이가 모였어요 · 곁에 가면 빛이 차올라요',
-  parade: '길 잃은 주민들이 빛을 찾아와요',
+  lostParade: '길 잃은 주민들이 빛을 찾아와요',
   gift: '지나쳐 준 주민이 작은 선물을 두고 갔어요',
   darkWind: '어둠 바람이 불어요 · 잠깐 적이 빨라져요',
 };

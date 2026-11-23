@@ -5,8 +5,8 @@ import Phaser from 'phaser';
 import { bus } from '../core/events';
 import { AnimKeys, TextureKeys } from '../core/TextureKeys';
 import { texScale } from '../core/textureRes';
-import { GameData, stageById } from '../data';
-import { RunState } from '../core/RunState';
+import { GameData } from '../data';
+import { stageDefFor } from '../scenes/play/NightRun';
 
 export function installPreview(game: Phaser.Game): void {
   const preview = new URLSearchParams(location.search).get('preview');
@@ -29,7 +29,7 @@ export function installPreview(game: Phaser.Game): void {
     }
     if (preview === 'dawn') {
       setTimeout(() => {
-        if (play.clock) play.clock.t = stageById(RunState.stageId).durationSec - 3;
+        if (play.clock) play.clock.t = stageDefFor().durationSec - 3;
       }, 50);
     }
   });

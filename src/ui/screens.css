@@ -955,7 +955,8 @@
 
 .rank-row {
   display: grid;
-  grid-template-columns: calc(var(--u) * 40) 1fr auto auto;
+  /* 순위 · 이름(길 점) · 밤 · 버틴 시간 · 점수 (2026-11-23 밤 열) */
+  grid-template-columns: calc(var(--u) * 40) 1fr auto auto auto;
   align-items: center;
   gap: calc(var(--u) * 12);
   min-height: calc(var(--u) * 58);
