@@ -10,6 +10,8 @@ export type LpZone = 'central' | 'station' | 'field';
 
 export class LightPoints {
   value: number;
+  /** 최대 LP에 더함 (빛 레벨 ★, 2026-11-23) */
+  bonusMax = 0;
 
   constructor(private readonly cfg: LpCfg) {
     this.value = cfg.start;
@@ -20,12 +22,12 @@ export class LightPoints {
   }
 
   get max(): number {
-    return this.cfg.max;
+    return this.cfg.max + this.bonusMax;
   }
 
   /** 0(최소) ~ 1(가득) */
   get ratio(): number {
-    return (this.value - this.cfg.min) / (this.cfg.max - this.cfg.min);
+    return (this.value - this.cfg.min) / (this.max - this.cfg.min);
   }
 
   /** 사거리·위력 배율: 가득 차면 1, 최소면 weakest */
@@ -38,7 +40,7 @@ export class LightPoints {
   }
 
   restore(amount: number): void {
-    this.value = Math.min(this.cfg.max, this.value + amount);
+    this.value = Math.min(this.max, this.value + amount);
   }
 
   update(dt: number, zone: LpZone): void {

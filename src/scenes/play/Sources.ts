@@ -30,10 +30,12 @@ export class Sources {
   /**
    * @param spots 등불 자리를 고정할 map.json stations 번호 (트라이얼, 없으면 seed로)
    * @param litAtStart 켜진 채 시작할 등불 수 (2026-11-23 런: 완전 승리한 다음 밤)
+   * @param decayPerSec 켜진 등불이 초당 줄어드는 양 (아침 준비물 등불 기름, 없으면 game.json)
    */
-  constructor(scene: Phaser.Scene, rng: Rng, stationCount: number, spots?: readonly number[], litAtStart = 0) {
+  constructor(scene: Phaser.Scene, rng: Rng, stationCount: number, spots?: readonly number[], litAtStart = 0, decayPerSec: number | null = null) {
     this.central = new CentralSource(scene, CFG.central, CFG.lightLevels.bands);
-    this.stations = pickStations(rng, stationCount, spots).map((p, i) => new LightStation(scene, i, p, CFG.station));
+    const stationCfg = decayPerSec === null ? CFG.station : { ...CFG.station, decayPerSec };
+    this.stations = pickStations(rng, stationCount, spots).map((p, i) => new LightStation(scene, i, p, stationCfg));
     for (const s of this.stations.slice(0, litAtStart)) s.state.startLit();
   }
 

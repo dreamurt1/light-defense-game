@@ -99,8 +99,9 @@ export class Hud {
     this.source = meter('meter--source', '중앙 광원 HP', crystalIcon); // 글자 없이 결정 아이콘 (2026-11-13 라이언: HUD 글자는 HP·LP로 충분)
     this.stationsCount = h('span', { class: 'stations__count' }, '0/0');
     this.stations = h('div', { class: 'stations', role: 'img', 'aria-label': '켠 등불' }, svg(lampIcon), this.stationsCount);
-    this.slots = [0, 1].map((i) => {
-      const b = h('button', { class: 'item-slot', type: 'button', 'aria-label': `아이템 칸 ${i + 1}`, 'data-key': i === 0 ? 'Q' : 'E' }) as HTMLButtonElement;
+    // 칸 2개, 아침 준비물 큰 주머니면 3개 (PC Q·E·R, 2026-11-23)
+    this.slots = [0, 1, 2].map((i) => {
+      const b = h('button', { class: 'item-slot', type: 'button', 'aria-label': `아이템 칸 ${i + 1}`, 'data-key': ['Q', 'E', 'R'][i] }) as HTMLButtonElement;
       // 2026-11-13 라이언: 이동 중엔 아이템이 안 눌림. 휴대폰은 이동 스틱을 누른 손가락이 있으면 두 번째 손가락에 click을 보내지 않으므로
       // 누르는 순간(pointerdown)에 쓴다. 키보드(Enter·Space)로 누른 click(detail 0)만 따로 받는다
       b.addEventListener('pointerdown', (e) => {
@@ -147,7 +148,10 @@ export class Hud {
   }
 
   private setSlots(slots: (string | null)[]): void {
+    // 큰 주머니면 세 칸 — 세로 화면에서 막대 폭을 남기려고 간격을 줄인다 (run.css)
+    this.el.classList.toggle('has-three-slots', slots.length >= 3);
     this.slots.forEach((b, i) => {
+      b.hidden = i >= slots.length;
       const id = slots[i] ?? null;
       b.replaceChildren();
       b.classList.toggle('is-empty', !id);
@@ -178,6 +182,15 @@ export class Hud {
       this.dustValue.textContent = String(e.dust ?? 0);
     });
     bus.on('night:tick', (e) => this.setNight(e.t, e.durationSec));
+    // 빛 레벨·별가루는 밤 도중에도 바뀐다 (2026-11-23)
+    bus.on('growth:change', (e) => {
+      this.levelValue.textContent = String(e.level);
+      if (e.ups > 0) replay(this.level, 'is-bump');
+    });
+    bus.on('dust:change', (e) => {
+      this.dustValue.textContent = String(e.dust);
+      replay(this.dust, 'is-bump');
+    });
     bus.on('item:slots', (e) => this.setSlots(e.slots));
     bus.on('night:phase', (e) => (this.el.dataset.phase = e.phase));
     bus.on('score:change', (e) => (this.score.textContent = formatScore(e.score)));
@@ -244,6 +257,8 @@ export class Hud {
   }
 
   private setVitals(hp: number, maxHp: number, hearts: number, maxHearts: number): void {
+    // 하트 4칸(완전 승리·여분 하트)이면 하트를 조금 작게 — 하트 상자 폭은 그대로
+    this.heartsBox.classList.toggle('is-four', maxHearts >= 4);
     this.hearts.forEach((el, i) => {
       el.classList.toggle('is-empty', i >= hearts);
       el.style.display = i >= maxHearts ? 'none' : '';

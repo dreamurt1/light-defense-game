@@ -150,3 +150,31 @@ export const crystalIcon = `
   <path d="M12 2.2 10.6 11.6 12 21.8" stroke="#FFF6DA" stroke-width="1.1" fill="none" opacity=".7"/>
   <path d="M4 15.2 5.4 12.8 6.8 15.2 5.4 18.4Z M18.6 13.4 19.8 11.6 21 13.4 19.8 15.8Z" fill="currentColor" opacity=".7"/>
 </svg>`;
+
+/**
+ * 아침 상점 준비물 아이콘 (2026-11-23 밤 나들이 v3) — 둥근 배지 규칙의 굵고 끝이 둥근 선(연한 종이색).
+ * ChatGPT v3 브리프의 icon-prep-*(lamp-oil·spare-heart·big-pouch·extra-charm)이 오면 그 그림으로 바꾼다
+ */
+export const prepIcons: Record<string, string> = {
+  lamp_oil: `
+<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M10 3h4M10.5 3v3.2L7 10.5V19a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-8.5l-3.5-4.3V3"/>
+  <path d="M12 12.2c1.2 1.3 1.8 2.3 1.8 3.2a1.8 1.8 0 0 1-3.6 0c0-.9.6-1.9 1.8-3.2Z"/>
+</svg>`,
+  spare_heart: `
+<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M12 20s-7-4.4-7-9.6A4 4 0 0 1 12 8a4 4 0 0 1 7 2.4c0 1-.3 2-.8 2.9"/>
+  <path d="M18 15v6M15 18h6"/>
+</svg>`,
+  big_pouch: `
+<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M9 4h6l-1.5 3h-3Z"/>
+  <path d="M10.5 7C6.5 9 4.5 12.5 4.5 15.5 4.5 19 7.5 21 12 21s7.5-2 7.5-5.5c0-3-2-6.5-6-8.5"/>
+  <path d="M9 14h6"/>
+</svg>`,
+  extra_charm: `
+<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M8 3h8v14l-4 4-4-4Z"/>
+  <path d="M12 7.5l.9 1.9 2 .3-1.5 1.4.4 2-1.8-1-1.8 1 .4-2-1.5-1.4 2-.3Z"/>
+</svg>`,
+};

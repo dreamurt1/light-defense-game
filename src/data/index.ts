@@ -8,6 +8,7 @@ import stagesJson from './stages.json';
 import mapJson from './map.json';
 import cosmeticsJson from './cosmetics.json';
 import nightsJson from './nights.json';
+import shopJson from './shop.json';
 
 export type CharacterId = 'lumi' | 'tori' | 'doto';
 export type EnemyId =
@@ -63,6 +64,16 @@ export interface GameConfig {
   stage: { climaxAt: number; hearts: number; phases: Record<PhaseId, [number, number]> };
   /** 런(밤 나들이, 2026-11-23): 아침 하트 회복, 하트 최대, 완전 승리면 다음 밤에 켜진 채 시작하는 등불 수 */
   run: { morningHeal: number; maxHearts: number; completeLitStations: number };
+  /** 빛 레벨 ★ (2026-11-23, systems/growth.ts) */
+  growth: {
+    resetOnRunEnd: boolean;
+    maxLevel: number;
+    xp: { rescue: number; returnHostile: number; station: number; mercy: number; banishPassive: number };
+    xpToNext: number[];
+    perLevel: { lightPower: number; lightRange: number; lightRangeCap: number; lpMax: number; toriMove: number; dotoItemEffect: number };
+  };
+  /** 별가루 ✦ (2026-11-23, systems/stardust.ts) */
+  dust: { station: number; victory: number; complete: number; rescue: number; mercy: number; witch: number };
   player: {
     maxHp: number;
     respawnDelaySec: number;
@@ -343,7 +354,21 @@ export const GameData = {
   map: mapJson as unknown as MapDef,
   cosmetics: cosmeticsJson as unknown as CosmeticsDef,
   nights: nightsJson as unknown as NightsDef,
+  shop: shopJson as unknown as ShopDef,
 };
+
+/** 아침 상점 준비물 (2026-11-23, shop.json): perRun 1 = 한 런에 한 번(런 내내), 0 = 아침마다·다음 밤만 */
+export interface PrepDef {
+  id: string;
+  name: string;
+  desc: string;
+  price: number;
+  perRun: 0 | 1;
+  effect: { stationDecayPerSec?: number; hearts?: number; itemSlots?: number; charmPerStage?: number };
+}
+export interface ShopDef {
+  prep: PrepDef[];
+}
 
 /** 밤 구간 (2026-11-23 밤 나들이): A 빛의 마을 · B 경계의 숲 · C 어둠이 삼킨 외곽 */
 export type BandId = 'A' | 'B' | 'C';

@@ -110,7 +110,7 @@ export class PlayScene extends Phaser.Scene {
   create(): void {
     const keeperDef = characterById(RunState.keeperId);
     this.stageDef = stageDefFor();
-    this.night = new NightRun(this.stageDef);
+    this.night = new NightRun(this.stageDef, keeperDef.id);
     const rng = new Rng(RunState.seed);
     Object.assign(this, { paused: false, ended: false, test: RunState.test, bushIn: -1, revealLeft: 0, time_: 0 });
     freeze(this, false); // 앞 판이 어떻게 끝났든 멈춘 채 시작하지 않게 (애니메이션 멈춤은 게임 전체에 걸린다, 2026-11-13)
@@ -121,7 +121,7 @@ export class PlayScene extends Phaser.Scene {
     this.roamPoint = makeRoam(new Rng(RunState.seed + 17), WALK_AREA);
 
     // 첫 화면은 중앙 광원과 주인공을 비춘다(XMind): 루미는 광원 바로 아래에서 시작
-    this.sources = new Sources(this, rng, this.stageDef.stations, this.stageDef.stationSpots, this.night.litAtStart);
+    this.sources = new Sources(this, rng, this.stageDef.stations, this.stageDef.stationSpots, this.night.litAtStart, this.night.prep.stationDecayPerSec);
     const start = this.homeSpot;
     this.keeper = new Lightkeeper(this, keeperDef, start.x, start.y);
     this.stage = new VillageStage(this, this.keeper.pos);
@@ -144,6 +144,8 @@ export class PlayScene extends Phaser.Scene {
 
     this.vitals = new Vitals(CFG.player, this.night.hearts, CFG.stage.hearts);
     this.lp = new LightPoints(CFG.lp);
+    this.lp.bonusMax = this.night.effects.lpMax; // 빛 레벨 ★ (런 안에서만, 2026-11-23)
+    this.lp.value = this.lp.max;
     this.combo = new ComboSystem(CFG.combo, bus);
     this.clock = new NightClock(nightConfig(this.stageDef), bus);
     this.score = new ScoreCalculator(CFG.combo, CFG.score);
@@ -162,15 +164,21 @@ export class PlayScene extends Phaser.Scene {
     const sd = this.stageDef;
     this.safe = !!(sd.endless || sd.tutorial);
     if (sd.dummies) this.field.setDummies(sd.dummies); // 트라이얼: 구석에 고정된 적
-    this.items = new Items(this, sd, new Rng(RunState.seed + 31), traitOf(keeperDef).itemEffect);
+    this.items = new Items(this, sd, new Rng(RunState.seed + 31), traitOf(keeperDef).itemEffect * this.night.effects.itemEffect, this.night.prep);
     this.boss = sd.boss ? new Boss(this, sd, this.field, { x: CFG.central.x, y: CFG.central.y }, new Rng(RunState.seed + 59)) : null;
     const host = { field: this.field, items: this.items, score: this.score, combo: this.combo, keeper: () => this.keeper.pos, litCount: () => this.sources.litCount, sources: this.sources, emitScore: (g: number) => this.night.emitScore(this.score.total, g) };
     this.rules = new StageRules(host, sd, new Rng(RunState.seed + 47), WALK_AREA);
     const { fx, keeper, lp, rules, score, combo, sources, boss } = this;
-    this.hits = new Hits({ fx, keeper, lp, rules, score, combo, sources, boss, igniteMultiplier: traitOf(keeperDef).ignite, emitScore: (g) => this.night.emitScore(score.total, g) });
+    this.hits = new Hits({ fx, keeper, lp, rules, score, combo, sources, boss, igniteMultiplier: traitOf(keeperDef).ignite, emitScore: (g) => this.night.emitScore(score.total, g), powerMultiplier: () => this.night.effects.lightPower });
+    // 빛 레벨이 오르면 최대 LP·도토 아이템 배율을 바로 (사거리·위력·이동은 매 프레임 읽음)
+    this.night.onGrowth = () => {
+      this.lp.bonusMax = this.night.effects.lpMax;
+      this.items.boost = traitOf(keeperDef).itemEffect * this.night.effects.itemEffect;
+    };
     this.stage.setTheme(sd.theme);
     this.input.keyboard?.on('keydown-Q', () => this.useItem(0));
     this.input.keyboard?.on('keydown-E', () => this.useItem(1));
+    this.input.keyboard?.on('keydown-R', () => this.useItem(2)); // 큰 주머니(아침 준비물)의 세 번째 칸
 
     // 설정이 열려 있으면 ESC는 설정만 닫는다(SettingsSheet가 먼저 받아 preventDefault). 그때는 일시정지를 풀지 않는다
     this.input.keyboard?.on('keydown-ESC', (e: KeyboardEvent) => {
@@ -256,7 +264,7 @@ export class PlayScene extends Phaser.Scene {
       const nearStation = this.sources.nearLit(this.keeper.pos); // 켜진 등불 곁·이벤트 빛 고임(반딧불 무리) 안
       this.lp.update(dt, nearCentral ? 'central' : nearStation ? 'station' : 'field');
     }
-    this.light.rangeMultiplier = this.lp.effectiveness;
+    this.light.rangeMultiplier = this.lp.effectiveness * this.night.effects.lightRange;
     if (this.safe) keepSafe(this.vitals, central.state);
     this.emitVitals();
 
@@ -406,7 +414,7 @@ export class PlayScene extends Phaser.Scene {
     const k = follow(dt, MOVE_TAU);
     this.moveVec = { x: this.moveVec.x + (raw.x - this.moveVec.x) * k, y: this.moveVec.y + (raw.y - this.moveVec.y) * k };
     const input = this.moveVec;
-    const stepped = stepMove(this.keeper.pos, input, CFG.keeper.moveSpeed * this.items.speedMultiplier * this.slow.multiplier * traitOf(this.keeper.def).move, dt, WALK_AREA);
+    const stepped = stepMove(this.keeper.pos, input, CFG.keeper.moveSpeed * this.items.speedMultiplier * this.slow.multiplier * traitOf(this.keeper.def).move * this.night.effects.move, dt, WALK_AREA);
     const feet = pushOut({ x: stepped.x, y: stepped.y + FEET_Y }, CFG.keeper.radius, this.obstacles);
     const next = { x: feet.x, y: feet.y - FEET_Y };
     this.revealLeft = Math.max(0, this.revealLeft - dt);
@@ -550,7 +558,7 @@ export class PlayScene extends Phaser.Scene {
       mercy: this.rules.mercyCount,
       itemsUsed: this.items.used,
       bossCalmed: !!this.boss?.calmed,
-      ...this.night.extras(),
+      ...this.night.extras(outcome),
       banish: this.rules.banishCount,
     };
     RunState.lastResult = result;

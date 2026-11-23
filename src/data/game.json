@@ -65,6 +65,46 @@
     "maxHearts": 4,
     "completeLitStations": 1
   },
+  "growth": {
+    "_note": "2026-11-23 빛 레벨 ★ (systems/growth.ts): 런 안에서만(영구 성장 없음). xp = 처리마다 얻는 경험치, xpToNext[L-1] = ★L → ★L+1, perLevel = 레벨마다 더하는 배율(빛 위력·사거리(상한)·최대 LP·토리 이동·도토 아이템)",
+    "resetOnRunEnd": true,
+    "maxLevel": 10,
+    "xp": {
+      "rescue": 3,
+      "returnHostile": 2,
+      "station": 2,
+      "mercy": 2,
+      "banishPassive": 1
+    },
+    "xpToNext": [
+      10,
+      15,
+      20,
+      25,
+      30,
+      35,
+      40,
+      45,
+      50
+    ],
+    "perLevel": {
+      "lightPower": 0.05,
+      "lightRange": 0.02,
+      "lightRangeCap": 1.2,
+      "lpMax": 5,
+      "toriMove": 0.01,
+      "dotoItemEffect": 0.03
+    }
+  },
+  "dust": {
+    "_note": "2026-11-23 별가루 ✦ (systems/stardust.ts): 등불 켜기·밤 승리·완전 승리·구출·자비·노월 진정. 아침(또는 런 끝)에 Progress.dust에 쌓여 런이 끝나도 남는다",
+    "station": 2,
+    "victory": 5,
+    "complete": 10,
+    "rescue": 1,
+    "mercy": 1,
+    "witch": 20
+  },
   "player": {
     "maxHp": 100,
     "respawnDelaySec": 1.5,

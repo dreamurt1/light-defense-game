@@ -30,6 +30,8 @@ export interface HitHost {
   igniteMultiplier: number;
   /** 점수가 바뀜 → HUD (런 누적은 NightRun) */
   emitScore(gained: number): void;
+  /** 빛 위력 배율 (빛 레벨 ★, 2026-11-23) */
+  powerMultiplier(): number;
 }
 
 export class Hits {
@@ -42,7 +44,7 @@ export class Hits {
 
   /** 지금 빛의 위력 */
   get power(): number {
-    return this.h.keeper.def.lightPower * this.h.lp.effectiveness;
+    return this.h.keeper.def.lightPower * this.h.lp.effectiveness * this.h.powerMultiplier();
   }
 
   /** 빛이 적에게 닿음 */

@@ -90,6 +90,8 @@ export function installRunFlow(): void {
     if (!RunState.isRealRun || !before || e.result.reason === 'tutorial') return;
     const run = morningAfter(before, outcomeOf(e.result), GameData.game.run);
     RunState.run = run;
+    // 별가루는 아침에 잔액으로 (런이 끝나도 남는다) — 저장보다 먼저: 새로고침해도 잃지 않게
+    Progress.addDust(e.result.dust ?? 0);
     saveRun(run);
     bus.emit('run:morning', { result: e.result, before, run });
     // game:clear는 판의 프레임 안(시간 예약)에서 온다: 그 자리에서 씬을 멈추면 남은 프레임이 사라진 카메라를 읽는다 → 프레임이 끝난 뒤에
@@ -100,6 +102,8 @@ export function installRunFlow(): void {
     if (!RunState.isRealRun || !before) return;
     const run = recordNight(before, outcomeOf(e.result));
     RunState.run = run;
+    // 진 밤에 모은 별가루도 남긴다 (승리 보너스만 없음)
+    Progress.addDust(e.result.dust ?? 0);
     finish(summarize(run, 'over', e.result.reason, e.result.survivedSec));
   });
 }

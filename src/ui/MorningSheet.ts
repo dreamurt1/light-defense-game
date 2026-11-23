@@ -8,11 +8,15 @@
 import { bus, type RunResult } from '../core/events';
 import { Progress } from '../core/Progress';
 import { goHome, nextNight } from '../core/runFlow';
-import { GameData, characterById } from '../data';
+import { NIGHT_STAGE, RunState } from '../core/RunState';
+import { saveRun } from '../core/runSave';
+import { GameData, characterById, type PrepDef } from '../data';
 import { runPath, type RunData } from '../systems/nightRun';
+import { growthLine } from '../systems/growth';
+import { buyPrep, canBuy } from '../systems/shop';
 import { formatScore, h, svg } from './dom';
-import { heartIcon, homeIcon, playIcon } from './icons';
-import { PATH_TITLE, nightSubject, pathLine } from './runText';
+import { heartIcon, homeIcon, playIcon, prepIcons } from './icons';
+import { PATH_TITLE, hasBatchim, nightSubject, pathLine } from './runText';
 import { screenShell } from './screens/common';
 
 function row(label: string, value: HTMLElement, cls = ''): HTMLElement {
@@ -34,8 +38,11 @@ export class MorningSheet {
   private readonly dust = h('span');
   private readonly hearts: SVGSVGElement[];
   private readonly level = h('p', { class: 'morning__level' });
-  /** 아침 상점 (Phase 9가 채운다) */
-  readonly shop = h('section', { class: 'morning__shop', 'aria-label': '아침 상점' });
+  /** 아침 상점 (2026-11-23): 별가루로 이번 나들이 동안만 쓰는 준비물 */
+  private readonly shop = h('section', { class: 'morning__shop', 'aria-labelledby': 'morning-shop-title' });
+  private readonly shopGrid = h('div', { class: 'morning__shop-grid' });
+  private readonly shopNote = h('p', { class: 'morning__shop-note', 'aria-live': 'polite' });
+  private result: RunResult | null = null;
 
   constructor() {
     this.hearts = Array.from({ length: GameData.game.run.maxHearts }, () => svg(heartIcon));
@@ -44,7 +51,7 @@ export class MorningSheet {
     const home = h('button', { class: 'pill pill--secondary morning__home', type: 'button' }, svg(homeIcon), '집으로 (기록을 남겨요)');
     home.addEventListener('click', () => goHome());
     this.region.hidden = true;
-    this.shop.hidden = true;
+    this.shop.append(h('h3', { class: 'morning__shop-title', id: 'morning-shop-title' }, '아침 상점 · 이번 나들이 동안만'), this.shopGrid, this.shopNote);
 
     this.panel = h(
       'div',
@@ -79,6 +86,8 @@ export class MorningSheet {
   }
 
   private render(r: RunResult, before: RunData, run: RunData): void {
+    this.result = r;
+    this.shopNote.textContent = '';
     const n = r.night ?? before.night;
     this.title.textContent = `${nightSubject(n)} 밝았어요`;
     const friends = (r.friends ?? []).map((id) => characterById(id).name);
@@ -99,9 +108,48 @@ export class MorningSheet {
     this.stations.textContent = `${r.stationsLit} / ${r.stationsTotal}`;
     this.dust.textContent = `✦+${r.dust ?? 0} → ✦${Progress.data.dust}`;
 
+    this.renderRun(run);
+    const up = growthLine(before.level, run.level, run.characterId, GameData.game.growth);
+    this.level.textContent = up ? `빛 레벨 ★${run.level} · 이번 밤 ${up}` : `빛 레벨 ★${run.level}`;
+  }
+
+  /** 하트·별가루·상점 (사면 다시) */
+  private renderRun(run: RunData): void {
+    const r = this.result;
+    this.dust.textContent = `✦+${r?.dust ?? 0} → ✦${Progress.data.dust}`;
     this.hearts.forEach((el, i) => el.classList.toggle('is-empty', i >= run.hearts));
     this.hearts[0]?.parentElement?.setAttribute('aria-label', `하트 ${run.hearts}개`);
-    this.level.hidden = run.level <= 1;
-    this.level.textContent = `빛 레벨 ★${run.level}`;
+    this.shopGrid.replaceChildren(...GameData.shop.prep.map((def) => this.prepCard(def, run)));
+  }
+
+  private prepCard(def: PrepDef, run: RunData): HTMLElement {
+    const state = canBuy(def, run, Progress.data.dust);
+    const tag = state === 'owned' ? '챙겼어요' : `✦${def.price}`;
+    const b = h(
+      'button',
+      { class: `prep-card${state === 'owned' ? ' is-owned' : ''}${state === 'short' ? ' is-short' : ''}`, type: 'button', 'aria-label': `${def.name} — ${def.desc}, ${tag}` },
+      h('span', { class: 'prep-card__icon' }, svg(prepIcons[def.id] ?? prepIcons.extra_charm)),
+      h('span', { class: 'prep-card__text' }, h('strong', {}, def.name), h('small', {}, def.desc)),
+      h('span', { class: 'prep-card__price' }, tag),
+    );
+    b.addEventListener('click', () => this.buy(def));
+    return b;
+  }
+
+  /** 사기: 별가루가 모자라면 '별가루가 부족해요', 사면 런을 고치고 저장 */
+  private buy(def: PrepDef): void {
+    const run = RunState.run;
+    if (!run || RunState.stageId !== NIGHT_STAGE || RunState.test) return;
+    const state = canBuy(def, run, Progress.data.dust);
+    if (state === 'owned') return;
+    if (state === 'short' || !Progress.spendDust(def.price)) {
+      this.shopNote.textContent = '별가루가 부족해요';
+      return;
+    }
+    const next = buyPrep(def, run, GameData.game.run.maxHearts);
+    RunState.run = next;
+    saveRun(next);
+    this.shopNote.textContent = `${def.name}${hasBatchim(def.name) ? '을' : '를'} 챙겼어요`;
+    this.renderRun(next);
   }
 }

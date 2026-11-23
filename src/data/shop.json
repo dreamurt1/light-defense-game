@@ -1,0 +1,9 @@
+{
+  "_notes": "2026-11-23 밤 나들이 v3 아침 상점 (systems/shop.ts, ui/MorningSheet.ts): 별가루로 사는 준비물 — 이번 나들이(런) 동안만. perRun 1 = 한 런에 한 번(그 런 내내 효력), 0 = 아침마다 살 수 있고 다음 밤만. 빛 색 값은 cosmetics.json price(홈 상점)",
+  "prep": [
+    { "id": "lamp_oil", "name": "등불 기름", "desc": "등불이 천천히 꺼져요", "price": 12, "perRun": 1, "effect": { "stationDecayPerSec": 0.9 } },
+    { "id": "spare_heart", "name": "여분 하트", "desc": "하트 +1 (한 번만)", "price": 20, "perRun": 1, "effect": { "hearts": 1 } },
+    { "id": "big_pouch", "name": "큰 주머니", "desc": "아이템 칸 2 → 3", "price": 15, "perRun": 1, "effect": { "itemSlots": 3 } },
+    { "id": "extra_charm", "name": "빛의 부적 하나 더", "desc": "다음 밤 부적 2개", "price": 8, "perRun": 0, "effect": { "charmPerStage": 2 } }
+  ]
+}

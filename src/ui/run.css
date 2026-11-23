@@ -359,3 +359,236 @@
   width: calc(var(--u) * 150);
   height: calc(var(--u) * 150);
 }
+
+/* ---------- 아침 상점 (2026-11-23): 별가루로 이번 나들이 동안만 — 세로 2×2, 가로 한 줄 4칸 ---------- */
+
+.morning__shop {
+  margin-top: calc(var(--u) * 14);
+  text-align: left;
+}
+
+.morning__shop-title {
+  margin: 0 0 calc(var(--u) * 8);
+  text-align: center;
+  font-size: max(12px, calc(var(--u) * 14));
+  font-weight: 800;
+  color: var(--dawn);
+}
+
+.morning__shop-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: calc(var(--u) * 8);
+}
+
+.prep-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: calc(var(--u) * 8);
+  min-height: max(44px, calc(var(--u) * 56));
+  padding: calc(var(--u) * 6) calc(var(--u) * 10);
+  border: 1px solid var(--hairline);
+  border-radius: calc(var(--u) * 16);
+  background: color-mix(in srgb, #14152e 70%, transparent);
+  color: var(--paper);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    transform 0.12s ease-out,
+    border-color 0.2s;
+}
+
+.prep-card:active {
+  transform: scale(0.97);
+}
+
+.prep-card__icon svg {
+  display: block;
+  width: max(20px, calc(var(--u) * 26));
+  height: max(20px, calc(var(--u) * 26));
+}
+
+.prep-card__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.25;
+  word-break: keep-all;
+}
+
+.prep-card__text strong {
+  font-size: max(12px, calc(var(--u) * 14));
+}
+
+.prep-card__text small {
+  font-size: max(11px, calc(var(--u) * 12));
+  color: var(--paper-soft);
+}
+
+.prep-card__price {
+  white-space: nowrap;
+  font-size: max(12px, calc(var(--u) * 14));
+  font-weight: 800;
+  color: var(--amber);
+  font-variant-numeric: tabular-nums;
+}
+
+.prep-card.is-owned {
+  border-color: color-mix(in srgb, var(--mint) 55%, transparent);
+}
+
+.prep-card.is-owned .prep-card__price {
+  color: var(--mint);
+}
+
+.prep-card.is-short .prep-card__price {
+  color: var(--ash);
+}
+
+.morning__shop-note {
+  min-height: 1.2em;
+  margin: calc(var(--u) * 6) 0 0;
+  text-align: center;
+  font-size: max(12px, calc(var(--u) * 13));
+  color: var(--dawn);
+}
+
+:root[data-layout='landscape'] .morning__shop-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+:root[data-layout='landscape'] .prep-card {
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-areas: 'icon text' 'price price';
+  row-gap: calc(var(--u) * 2);
+}
+
+:root[data-layout='landscape'] .prep-card__icon {
+  grid-area: icon;
+}
+
+:root[data-layout='landscape'] .prep-card__text {
+  grid-area: text;
+}
+
+:root[data-layout='landscape'] .prep-card__price {
+  grid-area: price;
+  text-align: right;
+}
+
+/* 키가 낮은 가로(휴대폰): 부제를 접고 줄을 낮춰 판이 화면 안에 들게 */
+@container (max-height: 420px) {
+  :root[data-layout='landscape'] .morning__panel .sheet__subtitle,
+  :root[data-layout='landscape'] .prep-card__text small {
+    display: none;
+  }
+  :root[data-layout='landscape'] .morning__stats .result__row {
+    min-height: calc(var(--u) * 30);
+  }
+  :root[data-layout='landscape'] .morning__run {
+    margin-top: calc(var(--u) * 8);
+  }
+  :root[data-layout='landscape'] .morning__shop {
+    margin-top: calc(var(--u) * 8);
+  }
+}
+
+/* 가로 아침: 넓은 판을 두 칸으로 — 왼쪽 제목·통계, 오른쪽 하트·레벨·상점, 아래 버튼 한 줄 (732×300에서도 버튼이 첫 화면에, 2026-11-23) */
+:root[data-layout='landscape'] .morning__panel {
+  width: min(100%, calc(var(--u) * 880));
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-areas:
+    'region region'
+    'ribbon ribbon'
+    'title title'
+    'sub sub'
+    'path path'
+    'stats run'
+    'stats shop'
+    'actions actions';
+  grid-template-rows: auto auto auto auto auto auto 1fr auto;
+  column-gap: calc(var(--u) * 28);
+  align-content: start;
+}
+
+:root[data-layout='landscape'] .morning__region {
+  grid-area: region;
+}
+
+:root[data-layout='landscape'] .morning__ribbon {
+  grid-area: ribbon;
+}
+
+:root[data-layout='landscape'] .morning__panel > .sheet__title {
+  grid-area: title;
+}
+
+:root[data-layout='landscape'] .morning__panel > .sheet__subtitle {
+  grid-area: sub;
+}
+
+:root[data-layout='landscape'] .morning__path {
+  grid-area: path;
+}
+
+:root[data-layout='landscape'] .morning__stats {
+  grid-area: stats;
+  grid-template-columns: 1fr;
+  align-self: start;
+}
+
+:root[data-layout='landscape'] .morning__run {
+  grid-area: run;
+  align-self: end;
+}
+
+:root[data-layout='landscape'] .morning__shop {
+  grid-area: shop;
+}
+
+:root[data-layout='landscape'] .morning__actions {
+  grid-area: actions;
+}
+
+/* 오른쪽 칸의 상점은 2×2 (한 줄 4칸은 이름이 세 줄로 접혔음) */
+:root[data-layout='landscape'] .morning__shop-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+:root[data-layout='landscape'] .prep-card {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas: none;
+  min-height: max(40px, calc(var(--u) * 50));
+}
+
+:root[data-layout='landscape'] .prep-card__icon,
+:root[data-layout='landscape'] .prep-card__text,
+:root[data-layout='landscape'] .prep-card__price {
+  grid-area: auto;
+}
+
+/* ---------- HUD (2026-11-23): 하트 4칸 · 아이템 칸 3개 — 막대 폭을 남긴다 ---------- */
+
+.vitals__hearts.is-four {
+  gap: calc(var(--u) * 3);
+}
+
+.vitals__hearts.is-four .heart {
+  width: calc(var(--u) * 20);
+  height: calc(var(--u) * 20);
+}
+
+:root:not([data-layout='landscape']) .hud.has-three-slots .hud-bottom__row {
+  gap: calc(var(--u) * 7);
+}
+
+:root:not([data-layout='landscape']) .hud.has-three-slots .item-slots {
+  gap: calc(var(--u) * 3);
+}
+
+:root:not([data-layout='landscape']) .hud.has-three-slots .hud-bottom__rule {
+  display: none;
+}

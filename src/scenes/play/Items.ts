@@ -49,7 +49,8 @@ export interface ItemHost {
 }
 
 export class Items {
-  readonly inventory = new Inventory(CFG.slots);
+  /** 칸 2개, 아침 준비물 큰 주머니면 3개 (2026-11-23) */
+  readonly inventory: Inventory;
   readonly effects = new Effects();
   used = 0;
   private ground: Ground[] = [];
@@ -64,11 +65,14 @@ export class Items {
     private readonly scene: Phaser.Scene,
     private readonly stage: StageDef,
     private readonly rng: Rng,
-    /** 도토 볼주머니 ×1.5 */
-    private readonly boost: number,
+    /** 도토 볼주머니 ×1.5 (× 빛 레벨, 레벨이 오르면 판이 다시 건다) */
+    public boost: number,
+    /** 아침 준비물: 칸 수·밤을 시작할 때 갖는 빛의 부적 수 (2026-11-23) */
+    prep: { itemSlots: number; charms: number } = { itemSlots: CFG.slots, charms: 1 },
   ) {
+    this.inventory = new Inventory(Math.max(CFG.slots, prep.itemSlots));
     this.spawnLeft = stage.items?.firstSec ?? Infinity;
-    if (!stage.tutorial) this.inventory.add('light_charm');
+    if (!stage.tutorial) for (let i = 0; i < prep.charms; i++) this.inventory.add('light_charm');
     // 판 시작 전에 챙긴 아이템 (2026-11-18, 선택 화면) — 잠긴 것을 골라 두었으면 열린 첫 아이템으로
     const carry = stage.tutorial ? '' : carryOrDefault(loadSettings().carryItem, GameData.items, Progress.data.bestNight, Progress.data.demo);
     if (carry) this.inventory.add(carry);

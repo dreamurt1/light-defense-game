@@ -113,6 +113,8 @@ export class Toast {
     // 2026-11-18 랜덤 이벤트
     bus.on('run:event', (e) => this.show(EVENT_LINES[e.kind]));
     bus.on('witch:spawn', () => this.show('노월이 나타났어요'));
+    // 빛 레벨 ★ (2026-11-23)
+    bus.on('growth:change', (e) => e.ups > 0 && this.show(`빛이 자랐어요 ★${e.level}`));
     bus.on('item:pickup', (e) => {
       const name = GameData.items.find((i) => i.id === e.itemId)?.name;
       if (name) this.show(`${name}${objectParticle(name)} 주웠어요`);

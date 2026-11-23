@@ -85,6 +85,10 @@ export interface GameEvents {
   'passive:cower': { enemyId: EnemyId; x: number; y: number; hits: number };
   'passive:banished': { enemyId: EnemyId; x: number; y: number };
   'parade:passed': { enemyId: EnemyId; size: number; banished: number; mercy: number };
+  /** 빛 레벨 ★ (2026-11-23): 경험치가 쌓임(ups = 이번에 오른 레벨 수, need = 다음 레벨까지) */
+  'growth:change': { level: number; xp: number; need: number; ups: number };
+  /** 별가루 ✦ (HUD에 보일 값: 정식 런이면 잔액 + 이번 밤) */
+  'dust:change': { dust: number };
   /** 빛을 잃은 친구(토리·도토)를 되찾음 → 해금 */
   'friend:rescued': { characterId: CharacterId };
   /** 노월이 어둠 구슬을 던지거나 박쥐를 부름 */
