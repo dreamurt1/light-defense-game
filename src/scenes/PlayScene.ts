@@ -164,7 +164,7 @@ export class PlayScene extends Phaser.Scene {
     if (sd.dummies) this.field.setDummies(sd.dummies); // 트라이얼: 구석에 고정된 적
     this.items = new Items(this, sd, new Rng(RunState.seed + 31), traitOf(keeperDef).itemEffect);
     this.boss = sd.boss ? new Boss(this, sd, this.field, { x: CFG.central.x, y: CFG.central.y }, new Rng(RunState.seed + 59)) : null;
-    const host = { field: this.field, items: this.items, score: this.score, combo: this.combo, keeper: () => this.keeper.pos, litCount: () => this.sources.litCount, sources: this.sources };
+    const host = { field: this.field, items: this.items, score: this.score, combo: this.combo, keeper: () => this.keeper.pos, litCount: () => this.sources.litCount, sources: this.sources, emitScore: (g: number) => this.night.emitScore(this.score.total, g) };
     this.rules = new StageRules(host, sd, new Rng(RunState.seed + 47), WALK_AREA);
     const { fx, keeper, lp, rules, score, combo, sources, boss } = this;
     this.hits = new Hits({ fx, keeper, lp, rules, score, combo, sources, boss, igniteMultiplier: traitOf(keeperDef).ignite, emitScore: (g) => this.night.emitScore(score.total, g) });

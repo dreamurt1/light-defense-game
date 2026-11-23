@@ -32,6 +32,8 @@ export interface RulesHost {
   keeper: () => Vec;
   litCount: () => number;
   sources: Sources;
+  /** 점수가 바뀜 → HUD (런이면 누적, scenes/play/NightRun.ts) */
+  emitScore(gained: number): void;
 }
 
 export class StageRules {
@@ -78,7 +80,7 @@ export class StageRules {
       this.mercyCount += 1;
       const gained = h.score.addMercy(h.combo.combo);
       bus.emit('mercy:gain', { enemyId: c.def.id, x: c.x, y: c.y, score: gained });
-      bus.emit('score:change', { score: h.score.total, gained });
+      h.emitScore(gained);
       this.signal('mercy');
     }
   }
