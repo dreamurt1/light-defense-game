@@ -32,6 +32,23 @@ export type EnemyId =
   | 'tori-lost'
   | 'doto-lost';
 /** 적 무리: 어둠의 호스틸 / 잃어버린 빛의 주민(호스틸, 구출) / 어둠의 패시브 / 보스 */
+/** 노월의 한 모습 (game.json boss.calm / boss.angry) */
+export interface WitchFormDef {
+  hp: number;
+  summonCount: number;
+  summonCap: number;
+  orbEverySec: number;
+  orbDamage: number;
+  score: number;
+  /** 나타나 자리를 잡을 때 말풍선 */
+  enterLine: string;
+  /** 진정될 때 말풍선 */
+  calmLine: string;
+  /** 눈빛·몸 둘레 빛 색 */
+  eye: string;
+}
+export type WitchForm = 'calm' | 'angry';
+
 export type EnemyKind = 'hostile' | 'lost' | 'passive' | 'boss';
 /** 하늘빛 시간대(연출용). predawn = 클라이맥스(진행 70%부터) */
 export type PhaseId = 'dusk' | 'midnight' | 'predawn';
@@ -228,12 +245,11 @@ export interface GameConfig {
     enterSec: number;
     hitRadius: number;
     summonEverySec: number;
-    summonCount: number;
-    summonCap: number;
-    orbEverySec: number;
     orbSpeed: number;
-    orbDamage: number;
     orbRadius: number;
+    /** 두 모습 (2026-11-23 밤 나들이 v3): 지키는 길·중립 = 찾아온 노월, 넓히는 길 = 분노한 노월 */
+    calm: WitchFormDef;
+    angry: WitchFormDef;
   };
   tutorial: { walkGoal: number };
   /** 연습장·튜토리얼(끝나지 않는 판) */

@@ -18,7 +18,10 @@ export class BossBar {
     );
     this.el.hidden = true;
 
-    bus.on('witch:spawn', () => (this.el.hidden = false));
+    bus.on('witch:spawn', (e) => {
+      this.el.hidden = false;
+      this.el.dataset.form = e.form;
+    });
     bus.on('witch:returned', () => (this.el.hidden = true));
     bus.on('run:start', () => (this.el.hidden = true));
     bus.on('boss:hp', (e) => {

@@ -100,7 +100,7 @@ export interface GameEvents {
   'progress:change': undefined;
   'tutorial:step': { step: number; total: number; text: string; done: boolean };
   'night:phase': { phase: NightPhase; t: number };
-  'witch:spawn': undefined;
+  'witch:spawn': { form: 'calm' | 'angry' };
   'witch:returned': undefined;
   'game:over': { result: RunResult };
   'game:clear': { result: RunResult };

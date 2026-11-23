@@ -23,8 +23,8 @@ export function installPreview(game: Phaser.Game): void {
         .setScale(0.9 * texScale(TextureKeys.witch))
         .play(AnimKeys.witchIdle);
       setTimeout(() => {
-        bus.emit('witch:spawn');
-        bus.emit('boss:hp', { hp: 140, maxHp: GameData.enemies.find((e) => e.id === 'witch')?.hp ?? 200 });
+        bus.emit('witch:spawn', { form: 'calm' });
+        bus.emit('boss:hp', { hp: 100, maxHp: GameData.game.boss.calm.hp });
       }, 50);
     }
     if (preview === 'dawn') {

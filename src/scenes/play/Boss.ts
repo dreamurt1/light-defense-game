@@ -1,12 +1,13 @@
-// 노월 보스 (2026-11-13 컨셉 시연판, Phase 5). 4스테이지 시작 몇 초 뒤 나타나 중앙 광원 둘레를 천천히 돈다.
-//  - 7초마다 박쥐 둘을 부르고, 4.5초마다 어둠 구슬을 중앙 광원이나 켜진 등불로 던진다(빛을 맞히면 구슬이 사라짐)
-//  - 빛을 맞아 마음(HP)이 다 풀리면 "…이 빛, 생각보다 따뜻하네" 하고 물러난다 = 진정 → 바로 아침(승리)
-//  - 수치는 모두 제안, 원본은 game.json boss
+// 노월 보스 (2026-11-13 컨셉 시연판, Phase 5 → 2026-11-23 밤 나들이 v3 두 모습). 밤 시작 몇 초 뒤 나타나 중앙 광원 둘레를 천천히 돈다.
+//  - 6초마다 박쥐를 부르고, 몇 초마다 어둠 구슬을 중앙 광원이나 켜진 등불로 던진다(빛을 맞히면 구슬이 사라짐)
+//  - 두 모습(game.json boss.calm / boss.angry): 넓히는 길이면 분노한 노월(HP·소환·구슬이 거셈, 눈빛 잔불 주황),
+//    아니면 찾아온 노월(라벤더). 그림은 같고 눈빛 색과 수치만 다르다 (NIGHT_RUN.md 8절)
+//  - 빛을 맞아 마음(HP)이 다 풀리면 말풍선을 남기고 물러난다 = 진정 → 바로 아침(승리)
 import Phaser from 'phaser';
 import { bus } from '../../core/events';
 import { TextureKeys } from '../../core/TextureKeys';
 import { texScale } from '../../core/textureRes';
-import { enemyById, GameData, type StageDef } from '../../data';
+import { GameData, type StageDef, type WitchForm, type WitchFormDef } from '../../data';
 import { sayAbove } from '../../entities/Bubble';
 import { WITCH_FRAME } from '../../art/enemies';
 import type { EnemyTarget } from '../../entities/enemies/Enemy';
@@ -14,6 +15,7 @@ import type { Vec } from '../../systems/fan';
 import type { LightTarget } from '../../systems/LightSystem';
 import type { EnemyField } from './EnemyField';
 import type { Rng } from '../../core/rng';
+import { witchFormOf, type RunPath } from '../../systems/nightRules';
 
 const B = GameData.game.boss;
 const ENTER_MS = B.enterSec * 1000;
@@ -35,8 +37,11 @@ export class Boss {
   calmed = false;
   private sprite: Phaser.GameObjects.Container | null = null;
   private angle = -Math.PI / 2;
+  /** 이번 밤의 모습 */
+  readonly form: WitchForm;
+  private readonly F: WitchFormDef;
   private summonLeft = B.summonEverySec;
-  private orbLeft = B.orbEverySec;
+  private orbLeft: number;
   private orbs: Orb[] = [];
   private entering = true;
   private appeared = false;
@@ -48,8 +53,10 @@ export class Boss {
     private readonly center: Vec,
     private readonly rng: Rng,
   ) {
-    const def = enemyById(stage.boss?.enemyId ?? 'witch');
-    this.hp = this.maxHp = def.hp;
+    this.form = witchFormFor(stage);
+    this.F = B[this.form];
+    this.hp = this.maxHp = this.F.hp;
+    this.orbLeft = this.F.orbEverySec;
   }
 
   get active(): boolean {
@@ -75,9 +82,9 @@ export class Boss {
         this.summonLeft = B.summonEverySec;
         // 마을에 박쥐가 summonCap 이상이면 쉰다 (방치하면 끝없이 쌓이지 않게)
         const bats = this.field.enemies.filter((e) => e.def.id === 'bat' && e.targetable).length;
-        if (bats < B.summonCap) {
-          for (let i = 0; i < B.summonCount; i++) {
-            const dx = (i - (B.summonCount - 1) / 2) * SUMMON_GAP;
+        if (bats < this.F.summonCap) {
+          for (let i = 0; i < this.F.summonCount; i++) {
+            const dx = (i - (this.F.summonCount - 1) / 2) * SUMMON_GAP;
             this.field.spawnAt('bat', this.sprite.x + dx, this.sprite.y + 20, true);
           }
           bus.emit('boss:attack', { kind: 'summon' });
@@ -86,7 +93,7 @@ export class Boss {
       }
       this.orbLeft -= dt;
       if (this.orbLeft <= 0 && targets.length > 0) {
-        this.orbLeft = B.orbEverySec;
+        this.orbLeft = this.F.orbEverySec;
         const target = this.rng.pick(targets);
         this.throwOrb(target);
       }
@@ -126,9 +133,10 @@ export class Boss {
   private appear(): void {
     this.appeared = true;
     const s = this.scene;
-    const glow = s.add.image(0, -40, TextureKeys.glow).setTint(0xa89cd9).setBlendMode(Phaser.BlendModes.ADD).setAlpha(0.5).setScale(220 / 256);
-    const img = s.add.sprite(0, 0, TextureKeys.witch, 0).setOrigin(0.5, 0.95).setScale(texScale(TextureKeys.witch) * 0.75);
-    if (s.anims.exists('witch-idle')) img.play('witch-idle');
+    const eye = Phaser.Display.Color.HexStringToColor(this.F.eye).color;
+    const glow = s.add.image(0, -40, TextureKeys.glow).setTint(eye).setBlendMode(Phaser.BlendModes.ADD).setAlpha(0.5).setScale(220 / 256);
+    const img = s.add.sprite(0, 0, this.tex, 0).setOrigin(0.5, 0.95).setScale(texScale(this.tex) * 0.75);
+    if (s.anims.exists(this.anim('idle'))) img.play(this.anim('idle'));
     const startX = this.center.x;
     const startY = this.center.y - B.orbitRy - 260;
     this.sprite = s.add.container(startX, startY, [glow, img]).setDepth(startY);
@@ -136,9 +144,9 @@ export class Boss {
     const ty = this.center.y + Math.sin(this.angle) * B.orbitRy;
     s.tweens.add({ targets: this.sprite, x: tx, y: ty, duration: ENTER_MS, ease: 'Sine.easeOut', onComplete: () => (this.entering = false) });
     s.tweens.add({ targets: img, y: -8, duration: 900, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
-    bus.emit('witch:spawn');
+    bus.emit('witch:spawn', { form: this.form });
     bus.emit('boss:hp', { hp: this.hp, maxHp: this.maxHp });
-    s.time.delayedCall(ENTER_MS, () => this.sprite && sayAbove(s, this.sprite, '빛이 너무 멀리까지 왔구나', -150, 2600));
+    s.time.delayedCall(ENTER_MS, () => this.sprite && sayAbove(s, this.sprite, this.F.enterLine, -150, 2600));
   }
 
   private calm(): void {
@@ -146,7 +154,7 @@ export class Boss {
     const s = this.scene;
     const box = this.sprite;
     if (!box) return;
-    sayAbove(s, box, '…이 빛, 생각보다 따뜻하네', -150, 2400);
+    sayAbove(s, box, this.F.calmLine, -150, 2400);
     // 눈을 감고 미소 짓는 진정 칸에서 멈춘다
     this.witch?.stop().setFrame(WITCH_FRAME.calm);
     for (let i = this.orbs.length - 1; i >= 0; i--) this.popOrb(i);
@@ -173,11 +181,25 @@ export class Boss {
   /** 지팡이를 들어 시전한 뒤 대기로 돌아간다 */
   private cast(): void {
     const w = this.witch;
-    if (!w || this.calmed || !this.scene.anims.exists('witch-cast')) return;
-    w.play('witch-cast');
+    if (!w || this.calmed || !this.scene.anims.exists(this.anim('cast'))) return;
+    w.play(this.anim('cast'));
     w.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
-      if (!this.calmed && w.active) w.play('witch-idle');
+      if (!this.calmed && w.active) w.play(this.anim('idle'));
     });
+  }
+
+  /** 진정될 때 점수 (모습마다) */
+  get score(): number {
+    return this.F.score;
+  }
+
+  /** 모습의 그림 (분노 = 눈빛 잔불 주황 witch-angry, 없으면 기본 그림) */
+  private get tex(): string {
+    return this.form === 'angry' && this.scene.textures.exists(TextureKeys.witchAngry) ? TextureKeys.witchAngry : TextureKeys.witch;
+  }
+
+  private anim(kind: 'idle' | 'cast'): string {
+    return `${this.tex}-${kind}`;
   }
 
   private moveOrbs(dt: number, hits: { target: string; damage: number }[], alive: readonly EnemyTarget[]): { target: string; damage: number }[] {
@@ -192,7 +214,7 @@ export class Boss {
       const dy = o.target.y - o.img.y;
       const d = Math.hypot(dx, dy);
       if (d <= o.target.radius) {
-        hits.push({ target: o.target.id, damage: B.orbDamage });
+        hits.push({ target: o.target.id, damage: this.F.orbDamage });
         this.popOrb(i);
         continue;
       }
@@ -209,4 +231,9 @@ export class Boss {
     this.orbs.splice(i, 1);
   }
 
+}
+
+/** 이번 밤의 노월 모습: 넓히는 길(밤 규칙의 path)이면 분노한 노월, 아니면 찾아온 노월 */
+export function witchFormFor(stage: StageDef): WitchForm {
+  return witchFormOf((stage as StageDef & { path?: RunPath }).path);
 }

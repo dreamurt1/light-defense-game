@@ -18,6 +18,11 @@ export function pathOf(r: { mercy: number; banish: number }): RunPath {
   return 'mixed';
 }
 
+/** 노월의 모습 (NIGHT_RUN.md 8절): 넓히는 길 = 분노한 노월, 지키는 길·중립 = 찾아온 노월 */
+export function witchFormOf(path: RunPath | undefined): 'calm' | 'angry' {
+  return path === 'expand' ? 'angry' : 'calm';
+}
+
 /** 밤 규칙에 필요한 런의 상태 */
 export interface RunInfo {
   seed: number;

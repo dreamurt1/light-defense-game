@@ -3,7 +3,7 @@
 //  - 노월·어둠 구슬
 //  - 꺼진 등불: 남은 LP와 상관없이 켜지고, 쏜 뒤 LP가 준다(XMind)
 import { bus } from '../../core/events';
-import { GameData, enemyById } from '../../data';
+import { GameData } from '../../data';
 import type { Enemy } from '../../entities/enemies/Enemy';
 import type { LightFx } from '../../entities/LightFx';
 import type { Lightkeeper } from '../../entities/Lightkeeper';
@@ -82,7 +82,7 @@ export class Hits {
     if (!r) return;
     if (p && r !== 'orb') h.fx.impact(p.x, p.y - 40);
     if (r === 'hit') return;
-    const points = r === 'orb' ? CFG.score.orbPop : enemyById('witch').score;
+    const points = r === 'orb' ? CFG.score.orbPop : (h.boss?.score ?? 1000);
     h.emitScore(h.score.addReturn(points, r === 'calmed' ? h.combo.registerReturn() : h.combo.combo));
   }
 

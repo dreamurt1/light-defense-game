@@ -274,12 +274,30 @@
     "enterSec": 1.6,
     "hitRadius": 46,
     "summonEverySec": 6,
-    "summonCount": 2,
-    "summonCap": 6,
-    "orbEverySec": 4.5,
     "orbSpeed": 170,
-    "orbDamage": 6,
-    "orbRadius": 22
+    "orbRadius": 22,
+    "calm": {
+      "hp": 150,
+      "summonCount": 2,
+      "summonCap": 6,
+      "orbEverySec": 4.5,
+      "orbDamage": 6,
+      "score": 1000,
+      "enterLine": "…이 빛, 생각보다 따뜻하네",
+      "calmLine": "…조금은 믿어 볼게",
+      "eye": "#A89CD9"
+    },
+    "angry": {
+      "hp": 250,
+      "summonCount": 3,
+      "summonCap": 8,
+      "orbEverySec": 3.5,
+      "orbDamage": 8,
+      "score": 2000,
+      "enterLine": "빛이 너무 멀리까지 왔구나",
+      "calmLine": "…이 빛, 생각보다 따뜻하네",
+      "eye": "#FF8C5A"
+    }
   },
   "tutorial": {
     "walkGoal": 260

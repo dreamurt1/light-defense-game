@@ -112,7 +112,9 @@ export class Toast {
     });
     // 2026-11-18 랜덤 이벤트
     bus.on('run:event', (e) => this.show(EVENT_LINES[e.kind]));
-    bus.on('witch:spawn', () => this.show('노월이 나타났어요'));
+    // 노월 두 모습 (2026-11-23): 찾아온 노월 / 분노한 노월, 진정되면 마음을 엶
+    bus.on('witch:spawn', (e) => this.show(e.form === 'angry' ? '분노한 노월이 나타났어요' : '노월이 찾아왔어요'));
+    bus.on('witch:returned', () => this.show('노월이 마음을 열었어요'));
     // 빛 레벨 ★ (2026-11-23)
     bus.on('growth:change', (e) => e.ups > 0 && this.show(`빛이 자랐어요 ★${e.level}`));
     bus.on('item:pickup', (e) => {

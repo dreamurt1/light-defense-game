@@ -12,6 +12,7 @@ import {
   rulesForNight,
   stepValue,
   witchComesOn,
+  witchFormOf,
   type RunInfo,
 } from '../src/systems/nightRules';
 
@@ -33,7 +34,7 @@ describe('구간값 표·seed', () => {
 });
 
 describe('rulesForNight — 밤 1·2·3·6·9·20', () => {
-  it('밤 1: 빛의 마을, 등불 1, 박쥐 3 : 개구리 1, 평소 3 / 클라이맥스 6, 행렬 없음', () => {
+  it('밤 1: 빛의 마을, 등불 1, 박쥐 3 : 개구리 1, 적 표 = spawn 곡선의 첫 값(2026-11-23 밸런스 뒤 보통 2 / 클라이맥스 3), 행렬 없음', () => {
     const d = rulesForNight(1, run());
     expect(d.id).toBe('night-1');
     expect(d.name).toBe('밤 1');
@@ -41,8 +42,10 @@ describe('rulesForNight — 밤 1·2·3·6·9·20', () => {
     expect(d.theme).toBe('light-village');
     expect(d.stations).toBe(1);
     expect(d.durationSec).toBe(100);
-    expect(d.spawn.normal).toMatchObject({ maxAlive: 3, intervalStart: 4, intervalEnd: 3 });
-    expect(d.spawn.climax).toMatchObject({ maxAlive: 6, intervalStart: 2.4, intervalEnd: 2 });
+    const sp = N.spawn;
+    expect(d.spawn.normal).toMatchObject({ maxAlive: Math.round(sp.normal.maxAliveStart), intervalStart: sp.normal.intervalStart[0], intervalEnd: sp.normal.intervalStart[1] });
+    expect(d.spawn.climax).toMatchObject({ maxAlive: Math.round(sp.climax.maxAliveStart), intervalStart: sp.climax.intervalStart[0], intervalEnd: sp.climax.intervalStart[1] });
+    expect(d.spawn.normal.maxAlive).toBeLessThan(d.spawn.climax.maxAlive);
     expect(d.spawn.normal.weights.bat! / d.spawn.normal.weights.frog!).toBeCloseTo(3);
     expect(d.spawn.onlyHostileUntilSec).toBe(6);
     expect(d.parade).toBeNull();
@@ -56,7 +59,7 @@ describe('rulesForNight — 밤 1·2·3·6·9·20', () => {
     expect(Object.keys(d.spawn.normal.weights).sort()).toEqual(['bat', 'frog', 'hedgehog', 'vampire']);
     expect(d.hostileRatio).toBe(0.6);
     expect(d.parade).toEqual({ groups: 1, size: 2, everySec: 28, kinds: ['owl', 'moth', 'firefly'] });
-    expect(d.spawn.normal.maxAlive).toBe(4); // 3 + 0.8
+    expect(d.spawn.normal.maxAlive).toBe(Math.round(N.spawn.normal.maxAliveStart + N.spawn.normal.maxAlivePerNight));
   });
   it('밤 3: 경계의 숲(B1), 웨어울프 합류, 행렬 3마리', () => {
     const d = rulesForNight(3, run());
@@ -79,16 +82,24 @@ describe('rulesForNight — 밤 1·2·3·6·9·20', () => {
     expect(d.parade?.groups).toBe(3);
     expect(d.hostileRatio).toBe(0.65);
   });
-  it('밤 20: 동시 최대는 상한(10 / 14)·아이템 간격 하한 12, 밤 30: 간격 하한 (×0.95씩이라 하한은 밤 25쯤)', () => {
+  it('밤이 깊으면 동시 최대는 상한, 간격은 하한까지 줄고(nights.json spawn — 밸런스로 바뀌어도 규칙대로), 아이템 간격 하한 12', () => {
+    const sp = N.spawn;
     const d20 = rulesForNight(20, run());
-    expect(d20.spawn.normal.intervalStart).toBeCloseTo(1.509, 3);
+    expect(d20.spawn.normal.intervalStart).toBeCloseTo(Math.max(sp.normal.intervalFloor[0], sp.normal.intervalStart[0] * sp.normal.intervalPerNight ** 19), 3);
     expect(d20.items?.intervalSec).toBe(12);
-    const d = rulesForNight(30, run());
-    expect(d.spawn.normal.maxAlive).toBe(10);
-    expect(d.spawn.climax.maxAlive).toBe(14);
-    expect([d.spawn.normal.intervalStart, d.spawn.normal.intervalEnd]).toEqual([1.2, 0.9]);
-    expect([d.spawn.climax.intervalStart, d.spawn.climax.intervalEnd]).toEqual([0.8, 0.6]);
+    const d = rulesForNight(60, run());
+    expect(d.spawn.normal.maxAlive).toBe(sp.normal.maxAliveCap);
+    expect(d.spawn.climax.maxAlive).toBe(sp.climax.maxAliveCap);
+    expect([d.spawn.normal.intervalStart, d.spawn.normal.intervalEnd]).toEqual(sp.normal.intervalFloor);
+    expect([d.spawn.climax.intervalStart, d.spawn.climax.intervalEnd]).toEqual(sp.climax.intervalFloor);
     expect(d.items?.intervalSec).toBe(12);
+    // 밤이 깊을수록 거세진다(줄지 않음)
+    for (let n = 1; n < 20; n++) {
+      const a = rulesForNight(n, run()).spawn.climax;
+      const b = rulesForNight(n + 1, run()).spawn.climax;
+      expect(b.maxAlive).toBeGreaterThanOrEqual(a.maxAlive);
+      expect(b.intervalStart).toBeLessThanOrEqual(a.intervalStart);
+    }
   });
   it('같은 맵이 두 밤 연속 나오지 않는다 (풀에 두 장 이상일 때)', () => {
     for (let seed = 1; seed < 60; seed++) {
@@ -182,5 +193,18 @@ describe('친구 구출·노월', () => {
     const hits = Array.from({ length: 400 }, (_, seed) => witchComesOn(5, { ...both, seed }, false)).filter(Boolean).length / 400;
     expect(hits).toBeGreaterThan(0.05);
     expect(hits).toBeLessThan(0.2);
+  });
+  it('노월 두 모습: 넓히는 길이면 분노한 노월(HP·소환·구슬·점수가 거셈, 눈빛 잔불 주황), 아니면 찾아온 노월', () => {
+    expect(witchFormOf('expand')).toBe('angry');
+    expect(witchFormOf('keep')).toBe('calm');
+    expect(witchFormOf('mixed')).toBe('calm');
+    expect(witchFormOf(undefined)).toBe('calm');
+    expect(rulesForNight(10, run({ friendNights: { tori: 2, doto: 4 }, banish: 3 })).path).toBe('expand');
+    const { calm, angry } = GameData.game.boss;
+    expect([calm.hp, calm.summonCount, calm.summonCap, calm.orbEverySec, calm.orbDamage, calm.score]).toEqual([150, 2, 6, 4.5, 6, 1000]);
+    expect([angry.hp, angry.summonCount, angry.summonCap, angry.orbEverySec, angry.orbDamage, angry.score]).toEqual([250, 3, 8, 3.5, 8, 2000]);
+    expect(angry.eye.toUpperCase()).toBe('#FF8C5A');
+    expect(calm.enterLine).toBe('…이 빛, 생각보다 따뜻하네');
+    expect(angry.enterLine).toBe('빛이 너무 멀리까지 왔구나');
   });
 });
