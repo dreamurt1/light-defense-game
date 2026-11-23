@@ -262,6 +262,22 @@ export abstract class Enemy extends Phaser.GameObjects.Container {
   }
 
   /** 옆 흔들림(접근 방향에 수직) */
+  /**
+   * 목적지 쪽으로 가는 방향 (2026-11-23 어둠의 행렬도 씀): 막혀 돌아가는 중이면 우회 지점으로, 켜진 등불의 결계는 둘레로 비켜 간다
+   */
+  protected headingTo(dest: Vec, dt: number, sources: readonly EnemyTarget[]): Vec {
+    let d = dest;
+    if (this.detourLeft > 0) {
+      this.detourLeft -= dt;
+      d = this.detour;
+    }
+    const len = Math.hypot(d.x - this.base.x, d.y - this.base.y) || 1;
+    let dir: Vec = { x: (d.x - this.base.x) / len, y: (d.y - this.base.y) / len };
+    if (!this.wardFree) dir = steerAround(this.base, dir, this.radius, d, this.wardsToAvoid(sources), WARD.steerBuffer);
+    this.lastDir = { x: dir.x, y: dir.y };
+    return dir;
+  }
+
   protected abstract lateralOffset(t: number): number;
   protected abstract animate(dt: number): void;
   /** 퇴장 연출. 끝나면 스스로 destroy */

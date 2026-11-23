@@ -1,8 +1,10 @@
 // 데이터로 움직이는 적·주민 (2026-11-13 컨셉 시연판, Phase 3). 박쥐·개구리 밖의 모든 종을 이 클래스 하나로 만든다.
 //  - 호스틸(웨어울프·뱀파이어): 역할대로 목표를 고르고(Enemy), HP 0이면 맵 밖으로 물러난다
 //  - 잃어버린 주민(고슴도치·레서판다): HP 0이면 제 모습으로 돌아와 중앙 쪽으로 뛰어가며 사라진다 = 구출
-//  - 패시브(올빼미·나방·반딧불이): 공격하지 않고 떠돌며 빛을 피한다. 곁을 그냥 지나가 주면 자비(PlayScene + systems/mercy).
-//    빛에 맞으면 화가 나서(분노) 눈이 보랏빛이 되고 주인공을 쫓아 작은 피해를 준다. 다시 맞으면 점수 없이 물러난다
+//  - 패시브(올빼미·나방·반딧불이) = 어둠의 행렬 (2026-11-23 밤 나들이 v3, systems/parade.ts): 맵 한 변에서 맞은편으로 줄지어 지나간다.
+//    빛을 맞으면 웅크렸다(말풍선 '싸우기 싫어..' → '우린 지나가는 거야' → '제발..') 진행 방향으로 종종걸음 도망 — 반격·추적 없음.
+//    세 번 맞으면 맵 밖으로 돌려보내진다. 곁을 그냥 지나가 주면 자비(고마워하고 계속 걸어감). 길이 없는 패시브(튜토리얼)는 떠돌며 살짝 피한다.
+//    옛 '분노'(쫓아와 들이받음)는 없앴다
 //  - 빛을 잃은 친구(토리·도토): 가만히 도움을 기다린다. 되찾으면 해금(friend:rescued)
 // 그림은 Claude 임시 코드 그림(src/art/creatures.ts, 친구는 초상).
 import Phaser from 'phaser';
@@ -13,24 +15,28 @@ import type { Rng } from '../../core/rng';
 import { CREATURES, creatureAnim, creatureKey, isCreature, type CreatureArt, type CreatureLook } from '../../art/creatures';
 import { critterView, type CritterView } from '../../systems/critterView';
 import { Enemy, type EnemyContext, type EnemyStep, type ReturnContext } from './Enemy';
+import { ParadeState } from '../../systems/parade';
+import type { Vec } from '../../systems/fan';
 import { sayAbove } from '../Bubble';
 
-// 수치 원본은 game.json passive(피하기·분노), 아래는 연출 값
+// 수치 원본은 game.json passive(길 없는 패시브의 피하기)·enemies.json(행렬), 아래는 연출 값
 const P = GameData.game.passive;
 const RUN_AWAY = 320;
 const RUN_MS = 1400;
-/** 화난 패시브의 눈빛 */
-const ANGRY_TINT = 0xc8b8ff;
 /** 패시브 대사 (CLAUDE.md 2절) */
 export const PASSIVE_LINES = ['너무 밝아..', '싸우기 싫어..', '저 빛이 무서워', '우리도 여기서 살고 있어'];
 const TALK_EVERY = 6.5;
 const FRIEND_SIZE = 92;
 
 export class Creature extends Enemy {
-  /** 빛에 맞아 화남 (패시브) */
-  upset = false;
-  /** 자비를 주고 떠나는 중 (패시브) */
+  /** 자비를 주고 떠나는 중 (길 없는 패시브) */
   leaving = false;
+  /** 어둠의 행렬 (패시브): 웅크림·도망·세 번이면 돌려보냄 */
+  readonly parade: ParadeState | null;
+  /** 행렬이 갈 곳(맵 밖). 없으면 그 자리 둘레를 떠돈다(튜토리얼·트라이얼) */
+  route: Vec | null = null;
+  /** 자비를 이미 줌 — 행렬은 고마워하고 계속 걸어간다 */
+  thanked = false;
   private readonly sprite: Phaser.GameObjects.Sprite;
   private readonly shadow: Phaser.GameObjects.Image;
   private readonly underGlow: Phaser.GameObjects.Image;
@@ -53,6 +59,8 @@ export class Creature extends Enemy {
     this.talkLeft = rng.range(1.2, 3.2);
     this.amplitude = Number(def.behaviorParams?.amplitude ?? 0);
     this.period = Number(def.behaviorParams?.periodSec ?? 1);
+    this.parade =
+      def.kind === 'passive' ? new ParadeState({ hitsToBanish: def.hitsToBanish ?? 3, cowerSec: def.cowerSec ?? 0.6, fleeSec: def.fleeSec ?? 2, fleeMultiplier: def.fleeMultiplier ?? 1.5 }) : null;
     this.art = isCreature(def.id) ? CREATURES[def.id] : null;
     this.shadow = scene.add.image(0, 4, TextureKeys.footShadow).setScale(1, 1.1);
     const glowTint = def.kind === 'passive' ? 0x9ed9b5 : def.friend ? 0xffc857 : 0xa89cd9;
@@ -79,13 +87,14 @@ export class Creature extends Enemy {
     return this.def.kind === 'passive';
   }
 
-  /** 자비를 줄 수 있는 상태 */
-  get calm(): boolean {
-    return this.passive && !this.upset && !this.leaving && this.targetable;
+  /** 빛을 한 번이라도 맞음 (자비를 주지 않음) */
+  get upset(): boolean {
+    return (this.parade?.hits ?? 0) > 0;
   }
 
-  protected override get attackDamage(): number {
-    return this.upset ? P.angryDamage : this.def.damage;
+  /** 자비를 줄 수 있는 상태 */
+  get calm(): boolean {
+    return this.passive && !this.upset && !this.thanked && !this.leaving && this.targetable;
   }
 
   protected lateralOffset(t: number): number {
@@ -118,18 +127,19 @@ export class Creature extends Enemy {
 
   protected playHit(): void {
     this.sprite.setTint(0xffe0a8);
-    this.scene.time.delayedCall(120, () => (this.upset ? this.sprite.setTint(ANGRY_TINT) : this.sprite.clearTint()));
+    this.scene.time.delayedCall(120, () => this.sprite.clearTint());
   }
 
   override hitByLight(power: number, knockback: number, stunSec: number, ctx: ReturnContext): boolean {
-    // 차분한 패시브는 맞아도 물러나지 않고 화가 난다 (분노)
-    if (this.calm && power > 0) {
-      this.upset = true;
-      this.playerOnly = true;
-      this.sprite.setTint(ANGRY_TINT);
-      this.underGlow.setTint(0xa89cd9);
-      sayAbove(this.scene, this, '아야.. 왜 그래');
-      return super.hitByLight(0, knockback, stunSec, ctx);
+    // 어둠의 행렬: 되받아치지 않고 웅크렸다 도망, 세 번째면 맵 밖으로 돌려보내진다 (2026-11-23)
+    if (this.parade && power > 0 && this.targetable && !this.leaving) {
+      const r = this.parade.hit();
+      sayAbove(this.scene, this, this.parade.line, -((this.art?.size ?? FRIEND_SIZE) * 0.9));
+      if (r === 'banished') return super.hitByLight(this.hp + 1, 0, stunSec, ctx);
+      this.playHit();
+      const cower = (this.def.cowerSec ?? 0.6) * 1000;
+      this.scene.tweens.add({ targets: this, scaleX: 1.1, scaleY: 0.8, duration: 120, yoyo: true, hold: Math.max(0, cower - 240), ease: 'Quad.easeOut' });
+      return false;
     }
     const p = this.def.behaviorParams;
     // 방어(고슴도치, 필살기): 몸을 말아 빛 위력을 줄인다 — guardCooldownSec마다 한 번 (systems/specials.ts 설명)
@@ -159,39 +169,54 @@ export class Creature extends Enemy {
       this.talk(dt, ctx, ['도와줘..', '여기 있어..']);
       return { hit: null };
     }
-    if (!this.calm || this.mode === 'stunned') {
-      if (this.upset) return super.step(dt, { ...ctx, speedMultiplier: ctx.speedMultiplier * P.angrySpeedMultiplier });
-      if (!this.leaving) return super.step(dt, ctx);
-      return { hit: null };
-    }
-    // 차분한 패시브: 천천히 떠돌고, 루미가 너무 가까우면 살짝 피한다. 공격하지 않는다
+    if (this.parade) return this.leaving || !this.targetable ? { hit: null } : this.walkParade(dt, ctx);
+    if (this.mode === 'stunned' || !this.leaving) return super.step(dt, ctx);
+    return { hit: null };
+  }
+
+  /** 어둠의 행렬: 길을 따라 걷고(결계는 둘레로, 막히면 옆으로), 웅크림이면 제자리, 도망이면 빠르게. 공격하지 않는다 */
+  private walkParade(dt: number, ctx: EnemyContext): EnemyStep {
+    const parade = this.parade as ParadeState;
     this.age += dt;
     this.animate();
-    this.talk(dt, ctx, PASSIVE_LINES);
+    if (parade.update(dt) === 'walk') this.talk(dt, ctx, PASSIVE_LINES);
+    let speed = this.def.speed * ctx.speedMultiplier * parade.speedMultiplier;
+    if (speed <= 0) return { hit: null };
+    let dest: Vec;
     const p = ctx.player;
-    let vx = 0;
-    let vy = 0;
-    let speed = this.def.speed * ctx.speedMultiplier;
-    if (p && Math.hypot(p.x - this.x, p.y - this.y) < P.shyDist) {
-      vx = this.x - p.x;
-      vy = this.y - p.y;
+    if (this.route) dest = this.route;
+    else if (p && Math.hypot(p.x - this.x, p.y - this.y) < P.shyDist) {
+      // 길 없는 패시브(튜토리얼): 루미가 너무 가까우면 살짝 피한다
+      dest = { x: this.base.x + (this.x - p.x), y: this.base.y + (this.y - p.y) };
       speed *= P.shySpeedMultiplier;
     } else {
       if (!this.wanderTo || Math.hypot(this.wanderTo.x - this.base.x, this.wanderTo.y - this.base.y) < 24) this.wanderTo = ctx.roam(this.base);
-      vx = this.wanderTo.x - this.base.x;
-      vy = this.wanderTo.y - this.base.y;
+      dest = this.wanderTo;
     }
-    const len = Math.hypot(vx, vy) || 1;
-    this.base.x += (vx / len) * speed * dt;
-    this.base.y += (vy / len) * speed * dt;
+    const dir = this.headingTo(dest, dt, ctx.sources);
+    this.base.x += dir.x * speed * dt;
+    this.base.y += dir.y * speed * dt;
     this.setPosition(this.base.x, this.base.y);
-    this.face({ x: vx / len, y: vy / len });
+    this.face(dir);
     this.setDepth(this.y);
     return { hit: null };
   }
 
-  /** 자비: 고마워하며 마을 밖으로 천천히 떠난다 */
+  /** 행렬이 맵을 다 지나감(또는 길을 못 찾음): 점수 없이 조용히 사라진다 */
+  leaveQuietly(): void {
+    if (this.leaving) return;
+    this.leaving = true;
+    this.mode = 'returning';
+    this.scene.tweens.add({ targets: this, alpha: 0, duration: 600, onComplete: () => this.destroy() });
+  }
+
+  /** 자비: 고마워한다. 행렬이면 계속 걸어가고, 길 없는 패시브는 마을 밖으로 천천히 떠난다 */
   thank(): void {
+    if (this.route) {
+      this.thanked = true;
+      sayAbove(this.scene, this, '고마워..');
+      return;
+    }
     this.leaving = true;
     this.mode = 'returning';
     sayAbove(this.scene, this, '고마워..');

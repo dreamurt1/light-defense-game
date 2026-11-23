@@ -158,7 +158,7 @@ export interface GameConfig {
     multiplierPerStep: number;
     maxMultiplier: number;
   };
-  score: { station: number; mercy: number; itemPickup: number; clearBase: number; completeMultiplier: number; orbPop: number };
+  score: { station: number; mercy: number; banishPassive: number; itemPickup: number; clearBase: number; completeMultiplier: number; orbPop: number };
   playfield: { margin: number };
   items: {
     lifetimeSec: number;
@@ -177,18 +177,12 @@ export interface GameConfig {
     dangerHpRatio: number;
     dangerSoonSec: number;
   };
-  /** 패시브 주민 (2026-11-13): 나타나는 거리·피하기·분노 */
+  /** 패시브 = 어둠의 행렬 (2026-11-23): 돌려보내면 그 너머의 호스틸, 길 없는 패시브의 피하기 */
   passive: {
-    spawnMinDist: number;
     shyDist: number;
     shySpeedMultiplier: number;
-    angryDamage: number;
-    angrySpeedMultiplier: number;
-    /** 분노 → 호스틸 증가 (2026-11-18 라이언): 패시브가 맞은 횟수 angerHitsPerWave마다 호스틸 angerWaveSize마리가 그 주민 너머 angerSpawnDist에서 몰려옴, angerMaxWaves번까지 (제안) */
-    angerHitsPerWave: number;
-    angerWaveSize: number;
-    angerMaxWaves: number;
-    angerSpawnDist: number;
+    banishHostileCount: number;
+    banishHostileDist: number;
   };
   /** 구획 시야 (2026-11-18, systems/zones.ts) */
   zones: {
@@ -288,6 +282,11 @@ export interface EnemyDef {
   group?: EnemyGroup;
   /** 빛을 잃은 친구: 되찾으면 이 캐릭터가 해금 */
   friend?: CharacterId;
+  /** 어둠의 행렬 (패시브, 2026-11-23): 몇 번 맞으면 돌려보냄 · 웅크림·도망 시간 · 도망 빠르기 */
+  hitsToBanish?: number;
+  cowerSec?: number;
+  fleeSec?: number;
+  fleeMultiplier?: number;
 }
 
 export interface SpawnTable {

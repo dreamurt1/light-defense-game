@@ -3,8 +3,11 @@ import Phaser from 'phaser';
 
 const DEPTH = 7000;
 const PAD = { x: 10, y: 6 };
+/** 대상마다 지금 떠 있는 말풍선 — 새 말이 오면 앞 말은 바로 지운다 (2026-11-23: 행렬이 연달아 맞으면 두 말이 겹쳐 읽히던 것) */
+const current = new WeakMap<Phaser.GameObjects.Container, () => void>();
 
 export function sayAbove(scene: Phaser.Scene, target: Phaser.GameObjects.Container, text: string, offsetY = -64, ms = 2200): void {
+  current.get(target)?.();
   const label = scene.add
     .text(0, 0, text, { fontFamily: 'Pretendard Variable, Pretendard, "Noto Sans KR", sans-serif', fontSize: '15px', color: '#1B1F3B', fontStyle: '600' })
     .setOrigin(0.5);
@@ -22,17 +25,24 @@ export function sayAbove(scene: Phaser.Scene, target: Phaser.GameObjects.Contain
   const stop = () => scene.events.off(Phaser.Scenes.Events.UPDATE, follow);
   // 다시 시작해도 scene.events 구독은 남으므로 씬이 끝날 때 꼭 뗀다 (코드 리뷰 2026-11-13)
   scene.events.once(Phaser.Scenes.Events.SHUTDOWN, stop);
+  let gone = false;
+  const remove = () => {
+    if (gone) return;
+    gone = true;
+    stop();
+    scene.events.off(Phaser.Scenes.Events.SHUTDOWN, stop);
+    box.destroy();
+    if (current.get(target) === remove) current.delete(target);
+  };
+  current.set(target, remove);
   scene.tweens.add({ targets: box, alpha: 1, y: '-=6', duration: 180 });
   scene.time.delayedCall(ms, () => {
+    if (gone) return;
     scene.tweens.add({
       targets: box,
       alpha: 0,
       duration: 240,
-      onComplete: () => {
-        stop();
-        scene.events.off(Phaser.Scenes.Events.SHUTDOWN, stop);
-        box.destroy();
-      },
+      onComplete: remove,
     });
   });
 }

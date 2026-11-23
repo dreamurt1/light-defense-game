@@ -1,4 +1,4 @@
-// 이야기 소개 (2026-11-13 컨셉 시연판, 1·2절 세계관): 카드 4장, 한 장에 1~2문장, '다음'·'건너뛰기'.
+// 이야기 소개 (2026-11-13 컨셉 시연판, 1·2절 세계관): 카드 4장 → 2026-11-23 밤 나들이 v3: 6장(2번째 '광원이 꺼진 밤'·4번째 '두 목소리' — 그림은 ChatGPT v3 브리프 story-02·story-04가 오기 전까지 초상·도형), 한 장에 1~2문장, '다음'·'건너뛰기'.
 // 2026-11-13 라이언: 튜토리얼은 언제 시작하든(처음·다시) 이 간추린 이야기부터. '건너뛰기'는 남은 카드를 모두 건너뛰고 바로 튜토리얼 판으로.
 // 처음 '게임하기'를 누르면 이야기 → 튜토리얼 판으로 이어지고(HomeScreen), 설정의 '이야기 다시 보기'로 다시 볼 수 있다.
 // 그림은 기존 에셋: 홈 배경, 중앙 광원 토템(3칸 시트의 첫 칸 = 밝음), 루미 초상, 빛을 잃은 토리 초상.
@@ -9,13 +9,15 @@ import { h } from './dom';
 
 interface Card {
   /** 그림 구성 */
-  art: 'villages' | 'lost' | 'shard' | 'dawn';
+  art: 'villages' | 'source' | 'lost' | 'voices' | 'shard' | 'dawn';
   lines: string[];
 }
 
 const CARDS: Card[] = [
   { art: 'villages', lines: ['숲 너머에 빛의 마을과 어둠의 마을이 있었어요.', '서로 다른 밤을 살며 조용히 지냈지요.'] },
+  { art: 'source', lines: ['광원이 꺼진 밤, 마을은 제 모습을 잃어요.', '빛의 주민은 빛 속에서만 제 모습을 지켜요.'] },
   { art: 'lost', lines: ['빛의 마을이 넓어지자, 터전을 잃을까 겁난 어둠의 주민들이 외곽 등불을 꺼뜨렸어요.', '빛을 잃은 친구들은 제 모습을 잃었어요. 루미의 단짝 토리도요.'] },
+  { art: 'voices', lines: ['빛을 더 멀리 심자는 도토, 그들도 집이 있다는 토리.', '루미는 아직 정하지 않았어요.'] },
   { art: 'shard', lines: ['루미는 마을의 수호 토템, 중앙 광원의 파편에서 빛을 보내는 힘을 얻었어요.'] },
   { art: 'dawn', lines: ['아침이 올 때까지 중앙 광원을 지키고, 꺼진 등불을 다시 켜요.', '빛은 공격이 아니라, 잃어버린 모습을 되찾아 주는 힘이에요.'] },
 ];
@@ -33,6 +35,20 @@ function artFor(kind: Card['art']): HTMLElement {
     art.append(h('span', { class: 'story__orb story__orb--light' }), h('span', { class: 'story__orb story__orb--dark' }));
   } else if (kind === 'lost') {
     art.append(h('img', { class: 'story__portrait story__portrait--lost', src: 'assets/characters/portrait-tori-lost.png', alt: '', width: 192, height: 192 }));
+  } else if (kind === 'source') {
+    // 꺼진 광원 곁에서 빛을 잃어 가는 주민 (2026-11-23)
+    art.append(
+      h('span', { class: 'story__totem story__totem--out' }),
+      h('img', { class: 'story__portrait story__portrait--lost story__portrait--left', src: 'assets/characters/portrait-doto-lost.png', alt: '', width: 192, height: 192 }),
+      h('img', { class: 'story__portrait story__portrait--lost story__portrait--right', src: 'assets/characters/portrait-tori-lost.png', alt: '', width: 192, height: 192 }),
+    );
+  } else if (kind === 'voices') {
+    // 두 목소리: 도토(씨앗)와 토리(달) 사이의 루미(별) (2026-11-23)
+    art.append(
+      h('img', { class: 'story__portrait story__portrait--side story__portrait--left', src: 'assets/characters/portrait-doto.webp', alt: '', width: 192, height: 192 }),
+      h('img', { class: 'story__portrait story__portrait--side story__portrait--right', src: 'assets/characters/portrait-tori.webp', alt: '', width: 192, height: 192 }),
+      h('img', { class: 'story__portrait story__portrait--center', src: 'assets/characters/portrait-lumi.webp', alt: '', width: 192, height: 192 }),
+    );
   } else if (kind === 'shard') {
     art.append(h('span', { class: 'story__totem' }), h('img', { class: 'story__portrait story__portrait--small', src: 'assets/characters/portrait-lumi.webp', alt: '', width: 192, height: 192 }));
   } else {

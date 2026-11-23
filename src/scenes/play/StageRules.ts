@@ -1,4 +1,4 @@
-// 스테이지 규칙 조각 (2026-11-13 컨셉 시연판): 패시브 주민 줄·자비, 빛을 잃은 친구, 풀숲 은신 시간, 튜토리얼 단계.
+// 스테이지 규칙 조각 (2026-11-13 컨셉 시연판): 어둠의 행렬·자비·돌려보냄(2026-11-23), 빛을 잃은 친구, 풀숲 은신 시간, 튜토리얼 단계.
 // PlayScene을 600줄 아래로 유지하려고 떼어 낸 조립 조각이다(판정은 systems/mercy·stealth·tutorial).
 import { bus } from '../../core/events';
 import type { Rng } from '../../core/rng';
@@ -7,7 +7,8 @@ import { Creature } from '../../entities/enemies/Creature';
 import type { ComboSystem } from '../../systems/ComboSystem';
 import type { Vec } from '../../systems/fan';
 import { MercyTracker } from '../../systems/mercy';
-import { AngerMeter } from '../../systems/anger';
+import { beyondSpots } from '../../systems/anger';
+import { Parade } from './Parade';
 import type { Enemy } from '../../entities/enemies/Enemy';
 import { enemyById, type EnemyId } from '../../data';
 import type { Rect } from '../../systems/obstacles';
@@ -43,7 +44,10 @@ export class StageRules {
   /** 빛을 잃은 친구 (나타난 뒤 구출 전) */
   friend: Creature | null = null;
   private readonly mercy = new MercyTracker(CFG.mercy);
-  private readonly anger = new AngerMeter({ hitsPerWave: CFG.passive.angerHitsPerWave, maxWaves: CFG.passive.angerMaxWaves });
+  /** 세 번 맞혀 돌려보낸 패시브 수 (두 길, 2026-11-23) */
+  banishCount = 0;
+  /** 어둠의 행렬 (2026-11-23) */
+  readonly parade: Parade;
   private walked = 0;
   /** 랜덤 이벤트 (2026-11-18, scenes/play/RunEvents.ts) */
   readonly events: RunEvents;
@@ -55,6 +59,7 @@ export class StageRules {
     private readonly area: Rect,
   ) {
     this.tutorial = stage.tutorial ? new TutorialScript() : null;
+    this.parade = new Parade(host.field, stage, rng, area);
     this.events = new RunEvents({ field: host.field, items: host.items, sources: host.sources, keeper: host.keeper, mercyCount: () => this.mercyCount }, stage, rng);
   }
 
@@ -62,11 +67,11 @@ export class StageRules {
     if (this.tutorial) this.enterStep();
   }
 
-  /** 패시브 줄·친구·자비 */
+  /** 행렬·친구·자비 */
   update(dt: number, progress: number, playerVisible: boolean): void {
     const h = this.host;
     const p = h.keeper();
-    if (!this.tutorial) h.field.spawnPassives(dt, this.stage, this.rng, p, this.area);
+    this.parade.update(progress * this.stage.durationSec);
     this.events.update(dt, progress);
     const f = h.field.spawnFriend(progress, this.stage, p);
     if (f) this.friend = f;
@@ -77,6 +82,7 @@ export class StageRules {
       const c = calm.find((e) => e.uid === uid);
       if (!c) continue;
       c.thank();
+      this.parade.noteMercy(c);
       this.mercyCount += 1;
       const gained = h.score.addMercy(h.combo.combo);
       bus.emit('mercy:gain', { enemyId: c.def.id, x: c.x, y: c.y, score: gained });
@@ -86,28 +92,26 @@ export class StageRules {
   }
 
   /**
-   * 패시브가 빛에 맞음 (2026-11-18): 차분하던 주민이면 화남을 알리고(튜토리얼 '지나치기' 단계도 끝남),
-   * 판 전체에서 여러 번 맞히면 그 주민 너머(루미 반대쪽) 어둠에서 호스틸 무리가 몰려온다 — 기획서 8절 '여러 번 공격하면 호스틸이 늘어남'
+   * 행렬의 패시브가 빛에 맞음 (2026-11-23): 반격하지 않고 웅크린다(소리는 passive:upset, 튜토리얼 '지나치기' 단계도 끝남).
+   * 세 번째면 돌려보냄 — 곧바로 그 주민 너머(루미 반대쪽) 어둠에서 그 밤 로스터의 호스틸이 나온다(game.json passive.banishHostile*).
+   * 점수(150 × 배율)는 Hits가 매긴다
    */
-  passiveHit(e: Enemy, wasCalm: boolean): void {
-    if (wasCalm) {
-      bus.emit('passive:upset', { enemyId: e.def.id, x: e.x, y: e.y });
-      this.signal('upset');
+  passiveHit(e: Enemy, banished: boolean): void {
+    const c = e instanceof Creature ? e : null;
+    bus.emit('passive:upset', { enemyId: e.def.id, x: e.x, y: e.y });
+    this.signal('upset');
+    if (!banished) {
+      bus.emit('passive:cower', { enemyId: e.def.id, x: e.x, y: e.y, hits: c?.parade?.hits ?? 1 });
+      return;
     }
-    const wave = this.tutorial ? 0 : this.anger.hit();
-    if (!wave) return;
-    const p = this.host.keeper();
-    const P = CFG.passive;
-    const len = Math.hypot(e.x - p.x, e.y - p.y) || 1;
-    const a = this.area;
+    this.banishCount += 1;
+    if (c) this.parade.noteBanish(c);
+    bus.emit('passive:banished', { enemyId: e.def.id, x: e.x, y: e.y });
+    if (this.tutorial) return;
     const hostiles = Object.keys(this.stage.spawn.normal.weights).filter((id) => enemyById(id as EnemyId).kind === 'hostile') as EnemyId[];
-    for (let i = 0; i < P.angerWaveSize; i++) {
-      const spread = (i - (P.angerWaveSize - 1) / 2) * 90;
-      const x = Math.min(a.x + a.w, Math.max(a.x, e.x + ((e.x - p.x) / len) * P.angerSpawnDist - ((e.y - p.y) / len) * spread));
-      const y = Math.min(a.y + a.h, Math.max(a.y, e.y + ((e.y - p.y) / len) * P.angerSpawnDist + ((e.x - p.x) / len) * spread));
-      this.host.field.spawnAt(hostiles.length ? hostiles[Math.floor(this.rng.range(0, hostiles.length)) % hostiles.length] : 'bat', x, y);
+    for (const at of beyondSpots(e, this.host.keeper(), CFG.passive, this.area)) {
+      this.host.field.spawnAt(hostiles.length ? hostiles[Math.floor(this.rng.range(0, hostiles.length)) % hostiles.length] : 'bat', at.x, at.y);
     }
-    bus.emit('passive:anger', { wave, x: e.x, y: e.y });
   }
 
   /** 튜토리얼 '걷기' 거리 */

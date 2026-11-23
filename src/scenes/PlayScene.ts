@@ -513,6 +513,7 @@ export class PlayScene extends Phaser.Scene {
     if (outcome === 'complete') gained += this.score.applyComplete();
     this.night.emitScore(this.score.total, gained);
     this.stage.dawn(DAWN_SEC);
+    this.rules.parade.finish(); // 아직 지나가는 행렬도 지나간 것으로 (2026-11-23)
     // 아침이 오면 남은 적은 모두 스스로 물러난다(점수 없음). 구출하지 못한 친구는 그대로 (달려가면 구출한 것처럼 보임)
     const home = this.sources.central.pos;
     for (const e of this.field.active) if (e.def.kind !== 'passive' && !e.def.friend) e.hitByLight(e.hp, 0, CFG.light.stunSec, { from: home, home });
@@ -550,6 +551,7 @@ export class PlayScene extends Phaser.Scene {
       itemsUsed: this.items.used,
       bossCalmed: !!this.boss?.calmed,
       ...this.night.extras(),
+      banish: this.rules.banishCount,
     };
     RunState.lastResult = result;
     return result;

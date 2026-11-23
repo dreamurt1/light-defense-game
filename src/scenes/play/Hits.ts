@@ -4,7 +4,6 @@
 //  - 꺼진 등불: 남은 LP와 상관없이 켜지고, 쏜 뒤 LP가 준다(XMind)
 import { bus } from '../../core/events';
 import { GameData, enemyById } from '../../data';
-import { Creature } from '../../entities/enemies/Creature';
 import type { Enemy } from '../../entities/enemies/Enemy';
 import type { LightFx } from '../../entities/LightFx';
 import type { Lightkeeper } from '../../entities/Lightkeeper';
@@ -50,13 +49,19 @@ export class Hits {
   enemy(e: Enemy, power = this.power): void {
     const h = this.h;
     h.fx.impact(e.x, e.y);
-    const calmPassive = e instanceof Creature && e.calm;
     const returned = e.hitByLight(power, CFG.light.knockback, CFG.light.stunSec, { from: h.keeper.pos, home: h.sources.central.pos });
     bus.emit('enemy:hit', { uid: e.uid, enemyId: e.def.id, remainingHp: Math.max(0, e.hp) });
-    // 공격하지 않아야 할 주민을 맞힘 (StageRules.passiveHit)
-    if (e.def.kind === 'passive') h.rules.passiveHit(e, calmPassive);
-    if (calmPassive) return;
-    if (!returned || e.def.kind === 'passive') return;
+    // 어둠의 행렬(2026-11-23): 반격하지 않고 웅크림, 세 번째면 돌려보냄 — 어둠 점수 150 × 배율(별가루 없음), 그 너머의 호스틸은 StageRules
+    if (e.def.kind === 'passive') {
+      h.rules.passiveHit(e, returned);
+      if (!returned) return;
+      const combo = h.combo.registerReturn();
+      const gained = h.score.addReturn(CFG.score.banishPassive, combo);
+      bus.emit('enemy:returned', { enemyId: e.def.id, kind: e.def.kind, x: e.x, y: e.y, score: gained, combo });
+      h.emitScore(gained);
+      return;
+    }
+    if (!returned) return;
     if (e.def.friend) bus.emit('friend:rescued', { characterId: e.def.friend });
     if (e.def.kind === 'lost') this.rescued += 1;
     else this.retreated += 1;

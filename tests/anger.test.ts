@@ -1,25 +1,32 @@
 import { describe, expect, it } from 'vitest';
-import { AngerMeter } from '../src/systems/anger';
+import { GameData } from '../src/data';
+import { beyondSpots } from '../src/systems/anger';
 
-describe('AngerMeter (패시브를 여러 번 맞히면 호스틸이 늘어남)', () => {
-  it('맞힐 때마다 세고, hitsPerWave번째마다 무리를 부른다', () => {
-    const a = new AngerMeter({ hitsPerWave: 2, maxWaves: 3 });
-    expect(a.hit()).toBe(0);
-    expect(a.hit()).toBe(1);
-    expect(a.hit()).toBe(0);
-    expect(a.hit()).toBe(2);
-    expect(a.count).toBe(4);
+// 2026-11-23: 옛 분노 계수기 대신 — 돌려보낸 패시브 너머 380에 호스틸 1마리
+describe('돌려보낸 패시브 너머의 어둠', () => {
+  const area = { x: 100, y: 250, w: 3000, h: 1440 };
+  const cfg = GameData.game.passive;
+
+  it('game.json: 한 마리, 380 너머', () => {
+    expect(cfg.banishHostileCount).toBe(1);
+    expect(cfg.banishHostileDist).toBe(380);
   });
 
-  it('maxWaves번까지만 부른다', () => {
-    const a = new AngerMeter({ hitsPerWave: 1, maxWaves: 2 });
-    expect([a.hit(), a.hit(), a.hit(), a.hit()]).toEqual([1, 2, 0, 0]);
-    expect(a.wavesCalled).toBe(2);
+  it('루미 반대쪽으로 banishHostileDist만큼', () => {
+    const [s] = beyondSpots({ x: 1000, y: 900 }, { x: 800, y: 900 }, cfg, area);
+    expect(s.x).toBeCloseTo(1380);
+    expect(s.y).toBeCloseTo(900);
   });
 
-  it('한 번 맞힌 것으로는 늘지 않는다', () => {
-    const a = new AngerMeter({ hitsPerWave: 2, maxWaves: 3 });
-    expect(a.hit()).toBe(0);
-    expect(a.wavesCalled).toBe(0);
+  it('걷는 영역 밖으로 나가지 않는다', () => {
+    const [s] = beyondSpots({ x: 3000, y: 300 }, { x: 2900, y: 400 }, cfg, area);
+    expect(s.x).toBeLessThanOrEqual(3100);
+    expect(s.y).toBeGreaterThanOrEqual(250);
+  });
+
+  it('여러 마리면 나란히', () => {
+    const spots = beyondSpots({ x: 1000, y: 900 }, { x: 800, y: 900 }, { banishHostileCount: 2, banishHostileDist: 380 }, area);
+    expect(spots).toHaveLength(2);
+    expect(Math.abs(spots[0].y - spots[1].y)).toBeCloseTo(90);
   });
 });

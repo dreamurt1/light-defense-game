@@ -179,6 +179,7 @@
   "score": {
     "station": 50,
     "mercy": 300,
+    "banishPassive": 150,
     "itemPickup": 10,
     "clearBase": 500,
     "completeMultiplier": 2.5,
@@ -219,15 +220,11 @@
     "dwellSec": 1.5
   },
   "passive": {
-    "spawnMinDist": 620,
+    "_note": "2026-11-23 밤 나들이 v3: 패시브는 어둠의 행렬(nights.json parade, enemies.json hitsToBanish·cowerSec·fleeSec·fleeMultiplier) — 반격·추적 없음. 세 번 맞혀 돌려보내면 그 주민 너머 banishHostileDist에 그 밤 로스터의 호스틸 banishHostileCount마리. 옛 분노(angryDamage·angerHitsPerWave 등)는 없앰. shyDist·shySpeedMultiplier = 길이 없는 패시브(튜토리얼·트라이얼)가 루미를 살짝 피하는 거리·빠르기",
     "shyDist": 150,
     "shySpeedMultiplier": 1.5,
-    "angryDamage": 4,
-    "angrySpeedMultiplier": 1.35,
-    "angerHitsPerWave": 2,
-    "angerWaveSize": 2,
-    "angerMaxWaves": 3,
-    "angerSpawnDist": 380
+    "banishHostileCount": 1,
+    "banishHostileDist": 380
   },
   "boss": {
     "orbitRx": 470,

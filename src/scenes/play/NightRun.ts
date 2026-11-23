@@ -56,10 +56,10 @@ export class NightRun {
     bus.emit('score:change', { score: this.scoreBase + nightTotal, gained });
   }
 
-  /** run:start에 덧붙임: 밤 번호·빛 레벨·별가루 잔액 */
-  startInfo(): Pick<GameEvents['run:start'], 'night' | 'level' | 'dust'> {
+  /** run:start에 덧붙임: 밤 번호·빛 레벨·별가루 잔액·구간 이름·길 */
+  startInfo(): Pick<GameEvents['run:start'], 'night' | 'level' | 'dust' | 'band' | 'path'> {
     if (!this.def) return {};
-    return { night: this.def.night, level: RunState.run?.level ?? 1, dust: RunState.isRealRun ? Progress.data.dust : 0 };
+    return { night: this.def.night, level: RunState.run?.level ?? 1, dust: RunState.isRealRun ? Progress.data.dust : 0, band: this.def.bandName, path: this.def.path };
   }
 
   /** 결과에 덧붙임 */

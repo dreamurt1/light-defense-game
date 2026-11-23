@@ -322,3 +322,40 @@
 :root[data-layout='landscape'] .screen--home.has-continue .home-badge {
   margin-top: calc(var(--u) * -36);
 }
+
+/* ---------- 이야기 카드 (2026-11-23): ② 광원이 꺼진 밤 · ④ 두 목소리 — 그림이 오기 전 초상·도형 ---------- */
+
+.story__totem--out {
+  background-position: 50% 0;
+  filter: grayscale(0.45) brightness(0.8) drop-shadow(0 0 calc(var(--u) * 22) color-mix(in srgb, var(--lavender) 65%, transparent));
+  animation: none;
+}
+
+.story__portrait--left,
+.story__portrait--right {
+  position: absolute;
+  bottom: calc(var(--u) * -4);
+  width: calc(var(--u) * 104);
+  height: calc(var(--u) * 104);
+}
+
+.story__portrait--left {
+  left: calc(var(--u) * -10);
+}
+
+.story__portrait--right {
+  right: calc(var(--u) * -10);
+}
+
+.story__portrait--side {
+  filter: drop-shadow(0 0 calc(var(--u) * 14) color-mix(in srgb, var(--amber) 35%, transparent));
+}
+
+.story__portrait--side.story__portrait--left {
+  transform: scaleX(-1);
+}
+
+.story__portrait--center {
+  width: calc(var(--u) * 150);
+  height: calc(var(--u) * 150);
+}

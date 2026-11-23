@@ -35,7 +35,8 @@ export class Toast {
   private guideTimer: number | null = null;
   private hintTimer: number | null = null;
   private mercySeen = false;
-  private upsetSeen = false;
+  /** 넓히는 길 알림 예약 (2026-11-23) */
+  private pathTimer: number | undefined = undefined;
 
   constructor() {
     this.guideStep = h('span', { class: 'guide__step' });
@@ -55,15 +56,18 @@ export class Toast {
       this.hideGuide(true);
       this.clearHint();
       this.mercySeen = false;
-      this.upsetSeen = false;
-      const stage = stageById(e.stageId);
+      // 런의 밤(2026-11-23)은 stages.json에 없다 — 밤 번호·구간 이름은 run:start가 함께 보낸다
+      const night = e.night !== undefined;
+      const stage = night ? null : stageById(e.stageId);
       // 튜토리얼은 단계 안내가 따로 오므로 소개·등불 안내를 띄우지 않는다 (트라이얼·체험판은 띄움, 2026-11-14)
-      if (stage.tutorial) return;
-      // 스테이지 소개 (2026-11-13, 제안): 이 판의 목적을 먼저 보여 준다
-      this.showGuide({ text: stage.name, sub: stage.blurb ?? '', stage: true });
+      if (stage?.tutorial) return;
+      // 판 소개 (2026-11-13, 제안): 이 판의 목적을 먼저 보여 준다 — 런의 밤은 '밤 n' + 구간 이름
+      this.showGuide(night ? { text: `밤 ${e.night}`, sub: e.band ?? '', stage: true } : { text: stage?.name ?? '', sub: stage?.blurb ?? '', stage: true });
       this.guideTimer = window.setTimeout(() => this.hideGuide(), STAGE_INTRO_MS);
       // 판 시작 안내 (2026-11-12, 제안): 등불 자리는 판마다 바뀌므로 노란 화살표를 따라가게 한다 (2026-11-13 '호박빛 표시' → '노란 화살표')
-      if (stage.stations >= 1) this.hintTimer = window.setTimeout(() => this.show('노란 화살표를 따라 꺼진 등불을 켜요'), STAGE_INTRO_MS + 200);
+      if (night || (stage?.stations ?? 0) >= 1) this.hintTimer = window.setTimeout(() => this.show('노란 화살표를 따라 꺼진 등불을 켜요'), STAGE_INTRO_MS + 200);
+      // 넓히는 길로 밤이 시작되면 (2026-11-23 두 길)
+      if (e.path === 'expand') this.pathTimer = window.setTimeout(() => this.show('어둠이 더 거세져요'), STAGE_INTRO_MS + 2800);
     });
     const end = () => {
       // 튜토리얼을 마친 '잘했어요!'는 제 시간(2초)만큼 남긴다
@@ -101,14 +105,11 @@ export class Toast {
       this.mercySeen = true;
       this.show(`그냥 지나가 주면 고마워해요 · 자비 +${e.score}`);
     });
-    bus.on('passive:upset', () => {
-      if (this.upsetSeen) return;
-      this.upsetSeen = true;
-      this.show('어둠의 주민이 화가 났어요');
-    });
     bus.on('stealth:exposed', () => this.show('풀숲에 너무 오래 있었어요! 들켰어요'));
-    // 2026-11-18: 패시브를 여러 번 맞히면 어둠의 호스틸이 몰려온다
-    bus.on('passive:anger', () => this.show('화난 주민 너머로 어둠이 몰려와요'));
+    // 2026-11-23 어둠의 행렬: 한 마리도 돌려보내지 않고 지나가면 (돌려보낸 것은 점수만 뜸)
+    bus.on('parade:passed', (e) => {
+      if (e.banished === 0) this.show(e.mercy > 0 ? `길을 터 줬어요 · 자비 +${e.mercy}` : '길을 터 줬어요');
+    });
     // 2026-11-18 랜덤 이벤트
     bus.on('run:event', (e) => this.show(EVENT_LINES[e.kind]));
     bus.on('witch:spawn', () => this.show('노월이 나타났어요'));
@@ -160,6 +161,7 @@ export class Toast {
   }
 
   private clearHint(): void {
+    window.clearTimeout(this.pathTimer);
     if (this.hintTimer !== null) window.clearTimeout(this.hintTimer);
     this.hintTimer = null;
   }

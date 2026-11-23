@@ -1152,7 +1152,7 @@
   border-radius: 50%;
   border: 2px solid var(--lavender);
   /* witch.png 첫 칸(192×192)의 얼굴(96, 108)을 원 가운데로: 0.7배 */
-  background: #2b1b3d url('/assets/enemies/witch.png') calc(var(--u) * -46) calc(var(--u) * -54) /
+  background: #2b1b3d url('/assets/enemies/witch.webp') calc(var(--u) * -46) calc(var(--u) * -54) /
     calc(var(--u) * 269) calc(var(--u) * 134) no-repeat;
 }
 

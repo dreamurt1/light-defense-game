@@ -18,8 +18,6 @@ const WARD = GameData.game.station.ward;
 
 /** 화면 밖에서 적이 나타나는 거리: 보이는 영역 가장자리에서 이만큼 바깥 (제안) */
 const SPAWN_OUTSIDE = 56;
-/** 패시브 주민은 루미에게서 이만큼 떨어진 마을 안에 나타난다 (game.json passive.spawnMinDist, 제안) */
-const FAR_FROM_PLAYER = GameData.game.passive.spawnMinDist;
 /** 빛을 잃은 친구가 기다리는 자리 후보: 마을 네 귀퉁이 쪽 (map.json friendSpots, 제안) */
 const FRIEND_SPOTS = GameData.map.friendSpots;
 
@@ -28,7 +26,6 @@ export class EnemyField {
   private pending: SpawnRequest[] = [];
   /** 걷는 적이 막히는 벽·장애물 */
   obstacles: Rect[] = [];
-  private passiveLeft = 0;
   /** 나타난 빛을 잃은 친구 (구출 전) */
   friend: Creature | null = null;
   private friendSpawned = false;
@@ -101,25 +98,6 @@ export class EnemyField {
       if (s.hit) hits.push({ enemy: e, hit: s.hit });
     }
     return hits;
-  }
-
-  /** 패시브 주민 줄 (동시 최대에 넣지 않음): intervalSec마다 하나, maxAlive까지. 루미에게서 먼 마을 안에 */
-  spawnPassives(dt: number, stage: StageDef, rng: Rng, player: Vec, area: { x: number; y: number; w: number; h: number }): void {
-    const p = stage.passive;
-    if (!p) return;
-    this.passiveLeft -= dt;
-    if (this.passiveLeft > 0) return;
-    this.passiveLeft = p.intervalSec;
-    const alive = this.enemies.filter((e) => e.def.kind === 'passive' && e.targetable).length;
-    if (alive >= p.maxAlive) return;
-    const id = rng.weighted(p.weights);
-    if (!id) return;
-    for (let tries = 0; tries < 12; tries++) {
-      const at = { x: rng.range(area.x, area.x + area.w), y: rng.range(area.y, area.y + area.h) };
-      if (Math.hypot(at.x - player.x, at.y - player.y) < FAR_FROM_PLAYER) continue;
-      this.spawnAt(id, at.x, at.y);
-      return;
-    }
   }
 
   /** 구출 스테이지: 진행 atProgress에 빛을 잃은 친구가 루미에게서 가장 먼 귀퉁이에 한 번 나타난다. 고른 주인공이 그 친구면 나타나지 않음(2026-11-17) */

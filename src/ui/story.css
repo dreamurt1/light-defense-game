@@ -132,7 +132,7 @@
 .story__totem {
   width: calc(var(--u) * 128);
   height: calc(var(--u) * 176);
-  background: url('/assets/objects/central-source.png') 0 0 / 300% 100% no-repeat;
+  background: url('/assets/objects/central-source.webp') 0 0 / 300% 100% no-repeat;
   filter: drop-shadow(0 0 calc(var(--u) * 28) color-mix(in srgb, var(--amber) 70%, transparent));
   animation: story-breathe 2.6s ease-in-out infinite;
 }

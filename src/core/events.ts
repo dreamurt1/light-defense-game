@@ -4,6 +4,7 @@ import type { CharacterId, EnemyId, EnemyKind, NightPhase } from '../data';
 import type { EndReason, StageOutcome } from '../systems/stageOutcome';
 import type { RunEventKind } from '../systems/runEvents';
 import type { RunData, RunSummary } from '../systems/nightRun';
+import type { RunPath } from '../systems/nightRules';
 import { reportError } from './errorLog';
 
 export type Outcome = StageOutcome;
@@ -76,12 +77,14 @@ export interface GameEvents {
   'item:slots': { slots: (string | null)[] };
   /** 자비: 패시브 주민을 공격하지 않고 지나감 */
   'mercy:gain': { enemyId: EnemyId; x: number; y: number; score: number };
-  /** 패시브 주민이 빛에 맞아 화남 */
+  /** 패시브 주민이 빛에 맞음 (2026-11-23부터 화나지 않음 — 웅크림 소리용, 튜토리얼 '지나치기' 단계 끝) */
   'passive:upset': { enemyId: EnemyId; x: number; y: number };
   /** 랜덤 이벤트가 일어남 (2026-11-18, scenes/play/RunEvents.ts): fireflies · lostParade(길 잃은 주민 행렬) · gift · darkWind */
   'run:event': { kind: RunEventKind; x: number; y: number };
-  /** 패시브를 여러 번 맞혀 호스틸 무리가 몰려옴 (2026-11-18, systems/anger.ts) */
-  'passive:anger': { wave: number; x: number; y: number };
+  /** 어둠의 행렬 (2026-11-23): 빛을 맞아 웅크림(hits = 몇 번째) · 세 번 맞아 돌려보냄 · 한 묶음이 맵을 나감(banished = 그 묶음에서 돌려보낸 수, mercy = 그 묶음에서 받은 자비) */
+  'passive:cower': { enemyId: EnemyId; x: number; y: number; hits: number };
+  'passive:banished': { enemyId: EnemyId; x: number; y: number };
+  'parade:passed': { enemyId: EnemyId; size: number; banished: number; mercy: number };
   /** 빛을 잃은 친구(토리·도토)를 되찾음 → 해금 */
   'friend:rescued': { characterId: CharacterId };
   /** 노월이 어둠 구슬을 던지거나 박쥐를 부름 */
@@ -103,7 +106,7 @@ export interface GameEvents {
   'run:end': { summary: RunSummary; best: boolean };
 
   // DOM HUD가 매 프레임 폴링하지 않도록 필요한 최소 이벤트
-  'run:start': { seed: number; characterId: CharacterId; stageId: string; durationSec: number; /** 홈의 테스트 판 */ test: boolean; /** 런의 밤 번호·빛 레벨·별가루 잔액 (2026-11-23) */ night?: number; level?: number; dust?: number };
+  'run:start': { seed: number; characterId: CharacterId; stageId: string; durationSec: number; /** 홈의 테스트 판 */ test: boolean; /** 런의 밤 번호·빛 레벨·별가루 잔액·구간 이름·길 (2026-11-23) */ night?: number; level?: number; dust?: number; band?: string; path?: RunPath };
   'run:pause': { paused: boolean };
   'night:tick': { t: number; durationSec: number };
   'score:change': { score: number; gained: number };
