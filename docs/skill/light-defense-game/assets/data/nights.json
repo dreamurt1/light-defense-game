@@ -38,7 +38,7 @@
     "climaxMultiplier": 0.7,
     "normalMultiplier": 0.85
   },
-  "witch": { "atSec": 8, "fromNight": 5, "chancePerNight": 0.12, "guaranteedNight": 10, "requiresFriends": ["tori", "doto"], "oncePerRun": true },
+  "witch": { "atSec": 8, "fromNight": 5, "chancePerNight": 0.18, "guaranteedNight": 10, "requiresFriends": ["tori"], "oncePerRun": true },
   "expand": { "hostileRatioPerBanish": 0.1, "hostileRatioCap": 0.4 },
   "testNights": [{ "night": 1, "level": 1 }, { "night": 3, "level": 6 }, { "night": 6, "level": 8 }, { "night": 9, "level": 9 }, { "night": 10, "level": 10 }]
 }

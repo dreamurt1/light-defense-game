@@ -245,8 +245,13 @@ describe('친구 구출·노월', () => {
   it('구출 밤의 판에는 빛을 잃은 친구가 진행 30%에', () => {
     expect(rulesForNight(3, run()).rescue).toEqual({ enemyId: 'tori-lost', atProgress: 0.3 });
   });
-  it('노월: 밤 5부터, 친구 둘이 함께일 때만, 밤 10이면 반드시, 한 런에 한 번, 구출 밤엔 없음', () => {
+  it('노월: 밤 5부터, 토리가 함께일 때(2026-11-24 구조 보강 — 도토는 없어도), 밤 10이면 반드시, 한 런에 한 번, 구출 밤엔 없음', () => {
+    expect(N.witch.requiresFriends).toEqual(['tori']);
+    expect(N.witch.chancePerNight).toBe(0.18);
     const both = run({ friendNights: { tori: 2, doto: 4 } });
+    const toriOnly = run({ friendNights: { tori: 2 } });
+    expect(witchComesOn(10, toriOnly, false)).toBe(true); // 토리만으로도
+    expect(witchComesOn(10, run({ friendNights: { doto: 4 } }), false)).toBe(false); // 도토만으로는 안 됨
     expect(witchComesOn(4, both, false)).toBe(false);
     expect(witchComesOn(10, run(), false)).toBe(false); // 친구 없음
     expect(witchComesOn(10, both, false)).toBe(true);
@@ -255,10 +260,10 @@ describe('친구 구출·노월', () => {
     const d = rulesForNight(10, both);
     expect(d.witch).toBe(true);
     expect(d.boss).toEqual({ enemyId: 'witch', atSec: 8 });
-    // 밤 5~9는 낮은 확률(12%)
-    const hits = Array.from({ length: 400 }, (_, seed) => witchComesOn(5, { ...both, seed }, false)).filter(Boolean).length / 400;
-    expect(hits).toBeGreaterThan(0.05);
-    expect(hits).toBeLessThan(0.2);
+    // 밤 5~9는 낮은 확률(18%) — 토리만 함께여도 같은 확률
+    const hits = Array.from({ length: 1000 }, (_, seed) => witchComesOn(5, { ...toriOnly, seed }, false)).filter(Boolean).length / 1000;
+    expect(hits).toBeGreaterThan(0.13);
+    expect(hits).toBeLessThan(0.23);
   });
   it('노월 두 모습: 넓히는 길이면 분노한 노월(HP·소환·구슬·점수가 거셈, 눈빛 잔불 주황), 아니면 찾아온 노월', () => {
     expect(witchFormOf('expand')).toBe('angry');
