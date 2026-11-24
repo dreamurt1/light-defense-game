@@ -1391,3 +1391,8 @@ body {
 .fs-hint.is-anchored.is-on {
   transform: translate(-50%, -100%);
 }
+
+/* 가벼운 모드 (2026-11-24 삼성 태블릿 렉, core/perfGuard.ts): 판 위 HUD의 그림자 필터를 끈다 — 큰 화면에서 기기 해상도로 다시 계산되는 일을 덜기 */
+:root[data-perf='lite'] :is(.night-bar__marker, .heart, .stations.is-all, .combo-burst__swoosh, .combo-burst__star) {
+  filter: none;
+}

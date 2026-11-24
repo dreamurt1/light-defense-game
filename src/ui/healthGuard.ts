@@ -4,6 +4,7 @@
 // - ?debug: 화면 왼쪽 위에 실제 초당 갱신 수·화면 주기·한 프레임 일한 시간·캔버스 크기·잡은 오류를 띄운다(휴대폰에서 찍어 보내기용).
 import Phaser from 'phaser';
 import { loggedErrors, onErrorsChange, reportError, clearErrors } from '../core/errorLog';
+import { isLite } from '../core/perfGuard';
 import { h } from './dom';
 
 const RESTORE_WAIT_MS = 3000;
@@ -59,6 +60,15 @@ export function installDebugOverlay(game: Phaser.Game): void {
   let errText = errLine();
   onErrorsChange(() => (errText = errLine()));
 
+  // 기기 GPU 이름 (2026-11-24 태블릿 렉 진단 — 브라우저가 알려 줄 때만)
+  let gpu = '';
+  try {
+    const ctx = (game.renderer as Phaser.Renderer.WebGL.WebGLRenderer).gl;
+    const ext = ctx?.getExtension('WEBGL_debug_renderer_info');
+    if (ctx && ext) gpu = String(ctx.getParameter(ext.UNMASKED_RENDERER_WEBGL)).slice(0, 60);
+  } catch {
+    // 모르면 빼고
+  }
   window.setInterval(() => {
     const now = performance.now();
     const sec = (now - since) / 1000;
@@ -67,6 +77,8 @@ export function installDebugOverlay(game: Phaser.Game): void {
       `게임 ${Math.round(steps / sec)}/초 · 화면 ${Math.round(rafs / sec)}Hz\n` +
       `한 프레임 평균 ${(workSum / Math.max(1, steps)).toFixed(1)}ms · 최대 ${workMax.toFixed(0)}ms\n` +
       `캔버스 ${game.scale.width}×${game.scale.height} · 배율 ${devicePixelRatio.toFixed(2)} · ${gl}\n` +
+      `화면 ${screen.width}×${screen.height} · 가벼운 모드 ${isLite() ? '켬(초당 30)' : '끔'}\n` +
+      (gpu ? `GPU ${gpu}\n` : '') +
       errText;
     steps = 0;
     workSum = 0;

@@ -114,6 +114,7 @@
 - 변하지 않는 도형은 `generateTexture`(판 위에 살아 있는 Graphics는 화면 밖이어도 매 프레임 다시 쪼개진다 — `entities/bake.ts`), Phaser 도형 길이는 `setScale`·`setSize`. 움직이지 않는 장식은 화면 밖이면 끈다(`entities/WorldCuller.ts`).
 - **판이 멈추지 않게**(2026-11-20): Phaser는 한 프레임의 예외로 다음 프레임을 예약하지 않아 판이 영영 멈춘다 → 프레임(`core/frameLimit.ts`)·이벤트 버스 구독자(`core/events.ts`)의 예외는 `core/errorLog.ts`로 남기고 계속, 그래픽 문맥을 3초 안에 못 돌려받으면 새로고침(`ui/healthGuard.ts`). 휴대폰에서 직접 보기 = 주소 뒤 `?debug`(실제 초당 갱신 수·한 프레임 시간·잡은 오류).
 - **휴대폰 프레임**(2026-11-20): 판 위 DOM은 `transform`·`opacity`로만 움직임(레이아웃·다시 그리기를 매 프레임 부르지 않게), RenderTexture는 `beginDraw`/`endDraw` 한 번에(`stamp`마다 begin/end = 전체 화면 옮겨 그리기), BitmapMask 쓰지 않음, 초당 60번 상한은 `core/frameLimit.ts`. 확인 = 헤드리스로 프레임당 그릴 대상 바꾸기·레이아웃 횟수.
+- **가벼운 모드**(2026-11-24 라이언: 삼성 태블릿 렉): `core/perfGuard.ts` — 판 중 실제로 그린 프레임이 3초 연속 초당 50 아래면 초당 30 + HUD 그림자 필터 끔(`:root[data-perf=lite]`), 그 기기에서 기억(`ld.perf.v1`), `?lite` 강제·`?lite=off` 지움. 원인 측정: CPU·DOM 다시 칠하기는 휴대폰과 같고, 화면 전체 층을 프레임마다 여러 번 칠하는 GPU 채우기 + 큰 화면 합성이 보급형 태블릿 GPU를 넘음. `?debug`에 화면 크기·가벼운 모드·GPU 이름.
 - 작은 단위로. 동작하는 기능·에셋을 임의로 지우거나 전면 재작성하지 않는다.
 - 입력: 터치·마우스·키보드를 같은 `input:*`로. 당겨서 새로고침은 직접 구현(`ui/PullRefresh.ts`, 게임 중 제외). 뒤로·앞으로가기는 `ui/HistoryNav.ts`(메뉴 화면만 기록, 게임 중엔 아무 일도 안 함 — 단 테스트 판(트라이얼·체험)은 홈 + 테스트 창, 튜토리얼 판은 홈으로, 이 두 판은 새로고침하면 그 판을 다시(sessionStorage `ld.replayRun.v1`), 맨 처음에서 "한 번 더 누르면 나가요").
 - 셸: 따옴표·백틱이 섞인 긴 편집은 bash heredoc이 깨질 수 있다 → 편집 스크립트는 파일로 만들어 `node`로.

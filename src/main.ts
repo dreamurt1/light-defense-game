@@ -17,6 +17,7 @@ import { installPullRefresh } from './ui/PullRefresh';
 import { installAutoFullscreen } from './ui/fullscreen';
 import { installGlobalErrorLog } from './core/errorLog';
 import { installContextGuard, installDebugOverlay } from './ui/healthGuard';
+import { installPerfGuard } from './core/perfGuard';
 
 // 처리되지 않은 오류도 남긴다(휴대폰에서만 나는 멈춤을 ?debug로 보기, 2026-11-20)
 installGlobalErrorLog();
@@ -30,6 +31,8 @@ watchLayout(game);
 game.events.once(Phaser.Core.Events.READY, () => {
   installContextGuard(game);
   installDebugOverlay(game);
+  // 느린 기기는 판 중에 재서 가벼운 모드(초당 30 + HUD 그림자 끔)로, 그 기기에서 기억 (2026-11-24 삼성 태블릿 렉)
+  installPerfGuard(game);
 });
 watchProgress();
 // 런: 밤의 끝 → 아침 화면 / 런의 끝 (2026-11-23 밤 나들이)
