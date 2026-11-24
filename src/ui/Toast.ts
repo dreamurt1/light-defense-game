@@ -4,6 +4,7 @@
 import { bus } from '../core/events';
 import { GameData, characterById, stageById } from '../data';
 import { h } from './dom';
+import { BANISH_TOAST } from './runText';
 import type { RunEventKind } from '../systems/runEvents';
 
 /** 튜토리얼을 마친 뒤 안내 띠가 남는 시간 */
@@ -109,7 +110,9 @@ export class Toast {
       this.show(`그냥 지나가 주면 고마워해요 · 자비 +${e.score}`);
     });
     bus.on('stealth:exposed', () => this.show('풀숲에 너무 오래 있었어요! 들켰어요'));
-    // 2026-11-23 어둠의 행렬: 한 마리도 돌려보내지 않고 지나가면 (돌려보낸 것은 점수만 뜸)
+    // 2026-11-23 어둠의 행렬: 한 마리도 돌려보내지 않고 지나가면 '길을 터 줬어요' (2026-11-24부터 돌려보냄은 아래 한 줄)
+    // 행렬 패시브를 세 번 맞혀 돌려보냄 = 넓히는 길 한 걸음 (2026-11-24 구조 보강 ② — 호스틸 돌려보냄에는 띄우지 않음)
+    bus.on('passive:banished', () => this.show(BANISH_TOAST));
     bus.on('parade:passed', (e) => {
       if (e.banished === 0) this.show(e.mercy > 0 ? `길을 터 줬어요 · 자비 +${e.mercy}` : '길을 터 줬어요');
     });

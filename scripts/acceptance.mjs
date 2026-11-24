@@ -309,9 +309,16 @@ if (!skipLong) {
       await page.evaluate(`(() => { const s = window.__game.scene.getScene('Play'); s.vitals.invulnLeft = 9999; s.clock.t = s.stageDef.durationSec - 1; return 1; })()`);
       r.morning2 = await waitFor(page, `document.documentElement.dataset.screen === 'morning'`, 15000);
       await sleep(600);
+      // 구조 보강(2026-11-24): 아침 '지금 길' 한 줄 · 다음 밤 미리 보기 · 집으로 귀가 보너스
+      r.pathNow = await text(page, '.morning__path-now');
+      r.preview = await page.evaluate(`(document.querySelector('.morning__preview')?.textContent ?? '').trim()`);
+      r.homeBtn = await text(page, '.morning__home');
+      r.dustBefore = await page.evaluate(`JSON.parse(localStorage.getItem('ld.progress.v2') || '{}').dust ?? 0`);
       await click(page, '.morning__home');
       await sleep(900);
       r.result = await text(page, '#result-title');
+      r.homeLine = await page.evaluate(`(document.querySelector('.result__home')?.textContent ?? '').trim()`);
+      r.dustAfter = await page.evaluate(`JSON.parse(localStorage.getItem('ld.progress.v2') || '{}').dust ?? 0`);
       r.saveCleared = (await page.evaluate(`localStorage.getItem('ld.run.v1')`)) === null;
       r.errs = errorsOf(page).slice(0, 3);
     } finally {
@@ -323,6 +330,7 @@ if (!skipLong) {
   record('I2 하트가 밤 사이에 이어짐', flow.saveHearts !== null && flow.hearts3 === flow.saveHearts, { saved: flow.saveHearts, night3: flow.hearts3 });
   record('I3 저장·이어서 하기 (런이 끝나면 지움)', flow.saveNight === 3 && flow.cont === '이어서 하기 (밤 3)' && flow.saveCleared, { saveNight: flow.saveNight, cont: flow.cont, cleared: flow.saveCleared });
   record('I4 새 지역(구간에 처음 닿는 아침)', flow.region === '경계의 숲을 발견했어요', flow.region);
+  record('I13 아침 \'지금 길\' 한 줄(2026-11-24 구조 보강 ②)', /^지금 길: (지키는 길 — 조용한 밤|넓히는 길 — 어둠이 거세져요|사이 — 아직 정하지 않았어요)$/.test(flow.pathNow ?? ''), flow.pathNow);
 
   // I5·I6 행렬: 밤 2, 28초에 등장 — 피해 0, 세 번 맞히면 돌려보냄(150×)
   const parade = await (async () => {

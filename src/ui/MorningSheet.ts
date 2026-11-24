@@ -19,7 +19,7 @@ import { buyPrep, canBuy } from '../systems/shop';
 import { formatScore, h, svg } from './dom';
 import { heartIcon, homeIcon, playIcon } from './icons';
 import { pathIconName, prepIconName, v3Icon, withIcon } from './v3Icons';
-import { PATH_TITLE, hasBatchim, nightSubject, pathLine } from './runText';
+import { PATH_NOW, PATH_TITLE, hasBatchim, nightSubject, pathLine } from './runText';
 import { screenShell } from './screens/common';
 
 function row(label: string, value: HTMLElement, cls = ''): HTMLElement {
@@ -33,6 +33,8 @@ export class MorningSheet {
   private readonly region = h('div', { class: 'morning__region' });
   private readonly title = h('h2', { class: 'sheet__title', id: 'morning-title' });
   private readonly path = h('p', { class: 'morning__path' });
+  /** 하트·★ 줄 아래 '지금 길' (2026-11-24 구조 보강 ②) */
+  private readonly pathNow = h('p', { class: 'morning__path-now' });
   private readonly score = h('strong', { class: 'result__score' });
   private readonly mercy = h('span');
   private readonly returned = h('span');
@@ -75,6 +77,7 @@ export class MorningSheet {
         row('별가루', this.dust),
       ),
       h('div', { class: 'morning__run' }, h('div', { class: 'morning__hearts', role: 'img' }, ...this.hearts), this.level),
+      this.pathNow,
       this.shop,
       h('div', { class: 'sheet__actions morning__actions' }, next, home),
     );
@@ -115,6 +118,8 @@ export class MorningSheet {
     this.path.hidden = run.mercy + banished === 0;
     this.path.dataset.path = path;
     withIcon(this.path, pathIconName(path), `${PATH_TITLE[path]} · ${pathLine(run.mercy, banished)}`);
+    this.pathNow.dataset.path = path;
+    this.pathNow.textContent = PATH_NOW[path];
 
     this.score.textContent = formatScore(r.score);
     this.mercy.textContent = `${r.mercy}번`;

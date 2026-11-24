@@ -77,6 +77,23 @@
   color: var(--ember);
 }
 
+/* 하트·★ 줄 아래 '지금 길' (2026-11-24 구조 보강 ②): 지키는 길 민트 · 넓히는 길 잔불 주황 · 사이 재 회색 */
+.morning__path-now {
+  margin: calc(var(--u) * 4) 0 0;
+  font-size: calc(var(--u) * 15);
+  font-weight: 700;
+  text-align: center;
+  color: var(--ash);
+}
+
+.morning__path-now[data-path='keep'] {
+  color: var(--mint);
+}
+
+.morning__path-now[data-path='expand'] {
+  color: var(--ember);
+}
+
 /* 하트(최대 4칸) + 빛 레벨 */
 .morning__run {
   display: flex;
@@ -530,9 +547,10 @@
     'sub sub'
     'path path'
     'stats run'
+    'stats pathnow'
     'stats shop'
     'actions actions';
-  grid-template-rows: auto auto auto auto auto auto 1fr auto;
+  grid-template-rows: auto auto auto auto auto auto auto 1fr auto;
   column-gap: calc(var(--u) * 28);
   align-content: start;
 }
@@ -566,6 +584,11 @@
 :root[data-layout='landscape'] .morning__run {
   grid-area: run;
   align-self: end;
+}
+
+:root[data-layout='landscape'] .morning__path-now {
+  grid-area: pathnow;
+  margin-top: calc(var(--u) * 2);
 }
 
 :root[data-layout='landscape'] .morning__shop {
