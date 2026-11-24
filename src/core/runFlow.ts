@@ -10,6 +10,7 @@ import { clearRun, loadRun, saveRun } from './runSave';
 import { makeSeed } from './rng';
 import { GameData, type CharacterId } from '../data';
 import { morningAfter, newRunData, recordNight, summarize, type NightOutcome, type RunData, type RunSummary } from '../systems/nightRun';
+import { homeBonus } from '../systems/stardust';
 
 /** 밤 결과 → 런에 쌓을 것 */
 export function outcomeOf(r: RunResult): NightOutcome {
@@ -83,7 +84,11 @@ function finish(summary: RunSummary): void {
 export function goHome(): void {
   const run = RunState.run;
   if (!run || !RunState.isRealRun) return;
-  finish(summarize(run, 'home', 'home', RunState.lastResult?.survivedSec ?? 0));
+  // 귀가 보너스 (2026-11-24 구조 보강 ①): 이번 나들이 별가루 +20%(올림·최소 1) — 광원이 잠든 런엔 없음
+  const bonus = homeBonus(run.dustEarned, GameData.game.dust);
+  Progress.addDust(bonus);
+  const summary = summarize(run, 'home', 'home', RunState.lastResult?.survivedSec ?? 0);
+  finish({ ...summary, dust: summary.dust + bonus, homeBonus: bonus });
 }
 
 export function installRunFlow(): void {

@@ -330,6 +330,11 @@ if (!skipLong) {
   record('I2 하트가 밤 사이에 이어짐', flow.saveHearts !== null && flow.hearts3 === flow.saveHearts, { saved: flow.saveHearts, night3: flow.hearts3 });
   record('I3 저장·이어서 하기 (런이 끝나면 지움)', flow.saveNight === 3 && flow.cont === '이어서 하기 (밤 3)' && flow.saveCleared, { saveNight: flow.saveNight, cont: flow.cont, cleared: flow.saveCleared });
   record('I4 새 지역(구간에 처음 닿는 아침)', flow.region === '경계의 숲을 발견했어요', flow.region);
+  {
+    const m = /^무사히 돌아왔어요 · 별가루 \+(\d+)$/.exec(flow.homeLine ?? '');
+    record('I12 집으로 = 별가루 +20%(올림·최소 1)·버튼 문구·결과 한 줄(2026-11-24 구조 보강 ①)', !!m && flow.homeBtn === '집으로 (별가루 +20%)' && flow.dustAfter - flow.dustBefore === Number(m?.[1]) && Number(m?.[1]) >= 1, { homeBtn: flow.homeBtn, homeLine: flow.homeLine, dust: [flow.dustBefore, flow.dustAfter] });
+    record('I14 아침 다음 밤 미리 보기(2026-11-24 구조 보강 ①)', /^다음 밤: .+ · 등불 \d+ · (적이 조금 더 거세요|오늘과 비슷해요)$/.test(flow.preview ?? ''), flow.preview);
+  }
   record('I13 아침 \'지금 길\' 한 줄(2026-11-24 구조 보강 ②)', /^지금 길: (지키는 길 — 조용한 밤|넓히는 길 — 어둠이 거세져요|사이 — 아직 정하지 않았어요)$/.test(flow.pathNow ?? ''), flow.pathNow);
 
   // I5·I6 행렬: 밤 2, 28초에 등장 — 피해 0, 세 번 맞히면 돌려보냄(150×)

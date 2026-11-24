@@ -64,6 +64,8 @@ export class ResultSheet {
   private readonly title: HTMLElement;
   private readonly subtitle: HTMLElement;
   private readonly friendLine: HTMLElement;
+  /** 집으로: '무사히 돌아왔어요 · 별가루 +n' (2026-11-24 구조 보강 ①) */
+  private readonly homeLine = h('p', { class: 'result__home' });
   /** 테스트 판 안내 (2026-11-14) */
   private readonly testNote: HTMLElement;
   private readonly statList: HTMLElement;
@@ -149,6 +151,7 @@ export class ResultSheet {
       { class: 'sheet__panel', tabindex: -1 },
       this.title,
       this.subtitle,
+      this.homeLine,
       this.path,
       this.best,
       this.friendLine,
@@ -196,6 +199,7 @@ export class ResultSheet {
     // 테스트 판은 친구 해금이 남지 않으므로 알리지 않는다
     this.friendLine.hidden = names.length === 0 || RunState.test;
     this.testNote.hidden = !RunState.test;
+    this.homeLine.hidden = true;
     // 밤 n 체험은 시작 빛 레벨을 덧붙여 시연 때 오해가 없게 (2026-11-24 기획 세션)
     const start = RunState.test && RunState.run ? GameData.nights.testNights.find((t) => t.night === RunState.run?.night) : undefined;
     this.testNote.textContent = '테스트 판이라 진행과 지난 밤들에는 남지 않아요' + (start ? ` · 시작 빛 레벨 ★${start.level}` : '');
@@ -237,6 +241,8 @@ export class ResultSheet {
     this.el.dataset.outcome = s.outcome === 'home' ? 'clear' : 'over';
     this.title.textContent = runTitle(s);
     this.subtitle.textContent = runSubtitle(s);
+    this.homeLine.hidden = s.outcome !== 'home';
+    this.homeLine.textContent = s.outcome === 'home' ? `무사히 돌아왔어요 · 별가루 +${s.homeBonus ?? 0}` : '';
     const banished = s.stats.retreated + s.banish;
     this.path.hidden = false;
     this.path.dataset.path = s.path;

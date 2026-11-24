@@ -108,7 +108,7 @@ export interface GameConfig {
     perLevel: { lightPower: number; lightRange: number; lightRangeCap: number; lpMax: number; toriMove: number; dotoItemEffect: number };
   };
   /** 별가루 ✦ (2026-11-23, systems/stardust.ts) */
-  dust: { station: number; victory: number; complete: number; rescue: number; mercy: number; witch: number };
+  dust: { station: number; victory: number; complete: number; rescue: number; mercy: number; witch: number; /** 귀가 보너스(2026-11-24) */ homeBonusRatio: number; homeBonusMin: number };
   player: {
     maxHp: number;
     respawnDelaySec: number;

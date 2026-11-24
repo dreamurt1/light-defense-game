@@ -103,7 +103,10 @@
     "complete": 10,
     "rescue": 1,
     "mercy": 1,
-    "witch": 20
+    "witch": 20,
+    "_homeBonus": "2026-11-24 구조 보강 ①(라이언 확정): 아침에 '집으로'를 고르면 이번 나들이 별가루(dustEarned)의 +20%(올림, 최소 +1). 광원이 잠들어 끝난 런은 보너스 없음(벌도 없음)",
+    "homeBonusRatio": 0.2,
+    "homeBonusMin": 1
   },
   "player": {
     "maxHp": 100,

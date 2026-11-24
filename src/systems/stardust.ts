@@ -5,6 +5,11 @@ import type { GameConfig } from '../data';
 import type { StageOutcome } from './stageOutcome';
 
 export type DustCfg = GameConfig['dust'];
+
+/** 귀가 보너스 (2026-11-24 구조 보강 ①): 아침에 '집으로' = 이번 나들이 별가루의 homeBonusRatio배를 올림, 최소 homeBonusMin */
+export function homeBonus(earned: number, cfg: Pick<DustCfg, 'homeBonusRatio' | 'homeBonusMin'>): number {
+  return Math.max(cfg.homeBonusMin, Math.ceil(Math.max(0, earned) * cfg.homeBonusRatio));
+}
 export type DustSource = 'station' | 'rescue' | 'mercy' | 'witch';
 
 export class DustTally {

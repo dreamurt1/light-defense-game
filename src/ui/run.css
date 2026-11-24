@@ -94,6 +94,23 @@
   color: var(--ember);
 }
 
+/* 다음 밤 미리 보기 (2026-11-24 구조 보강 ①) */
+.morning__preview {
+  margin: calc(var(--u) * 2) 0 0;
+  font-size: calc(var(--u) * 14);
+  text-align: center;
+  color: var(--paper);
+  opacity: 0.8;
+}
+
+/* 집으로 결과 한 줄 */
+.result__home {
+  margin: calc(var(--u) * 6) 0 0;
+  font-size: calc(var(--u) * 16);
+  font-weight: 700;
+  color: var(--amber);
+}
+
 /* 하트(최대 4칸) + 빛 레벨 */
 .morning__run {
   display: flex;
@@ -548,9 +565,10 @@
     'path path'
     'stats run'
     'stats pathnow'
+    'stats preview'
     'stats shop'
     'actions actions';
-  grid-template-rows: auto auto auto auto auto auto auto 1fr auto;
+  grid-template-rows: auto auto auto auto auto auto auto auto 1fr auto;
   column-gap: calc(var(--u) * 28);
   align-content: start;
 }
@@ -589,6 +607,10 @@
 :root[data-layout='landscape'] .morning__path-now {
   grid-area: pathnow;
   margin-top: calc(var(--u) * 2);
+}
+
+:root[data-layout='landscape'] .morning__preview {
+  grid-area: preview;
 }
 
 :root[data-layout='landscape'] .morning__shop {

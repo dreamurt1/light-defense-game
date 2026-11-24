@@ -5,13 +5,14 @@
 //  - 다음 밤으로 → (주요) / 집으로 (기록을 남겨요) (보조). 아침 화면을 건너뛰지 않는다(지시서 12절)
 //  - 구출 밤이면 리본 "{친구}가 함께하게 됐어요"
 // 배경은 새벽 하늘(#3A3F78 → #F2B880). 그림(ChatGPT v3 브리프 morning·morning-wide)이 오면 --morning-art로 깐다.
+import { nextNightPreview, previewLine } from '../systems/morningPreview';
 import { bus, type RunResult } from '../core/events';
 import { Progress } from '../core/Progress';
 import { goHome, nextNight } from '../core/runFlow';
 import { NIGHT_STAGE, RunState } from '../core/RunState';
 import { saveRun } from '../core/runSave';
 import { GameData, characterById, type PrepDef } from '../data';
-import { runPath, type RunData } from '../systems/nightRun';
+import { runInfo, runPath, type RunData } from '../systems/nightRun';
 import { growthLine } from '../systems/growth';
 import { firstNightOfBand } from '../systems/nightRules';
 import { parseBlobs, type GridMap } from '../systems/grid';
@@ -35,6 +36,8 @@ export class MorningSheet {
   private readonly path = h('p', { class: 'morning__path' });
   /** 하트·★ 줄 아래 '지금 길' (2026-11-24 구조 보강 ②) */
   private readonly pathNow = h('p', { class: 'morning__path-now' });
+  /** 다음 밤 미리 보기 (2026-11-24 구조 보강 ①) */
+  private readonly preview = h('p', { class: 'morning__preview' });
   private readonly score = h('strong', { class: 'result__score' });
   private readonly mercy = h('span');
   private readonly returned = h('span');
@@ -53,7 +56,7 @@ export class MorningSheet {
     this.hearts = Array.from({ length: GameData.game.run.maxHearts }, () => svg(heartIcon));
     const next = h('button', { class: 'pill pill--primary morning__next', type: 'button' }, svg(playIcon), '다음 밤으로 →');
     next.addEventListener('click', () => nextNight());
-    const home = h('button', { class: 'pill pill--secondary morning__home', type: 'button' }, svg(homeIcon), '집으로 (기록을 남겨요)');
+    const home = h('button', { class: 'pill pill--secondary morning__home', type: 'button' }, svg(homeIcon), `집으로 (별가루 +${Math.round(GameData.game.dust.homeBonusRatio * 100)}%)`);
     home.addEventListener('click', () => goHome());
     this.region.hidden = true;
     this.shop.append(h('h3', { class: 'morning__shop-title', id: 'morning-shop-title' }, '아침 상점 · 이번 나들이 동안만'), this.shopGrid, this.shopNote);
@@ -78,6 +81,7 @@ export class MorningSheet {
       ),
       h('div', { class: 'morning__run' }, h('div', { class: 'morning__hearts', role: 'img' }, ...this.hearts), this.level),
       this.pathNow,
+      this.preview,
       this.shop,
       h('div', { class: 'sheet__actions morning__actions' }, next, home),
     );
@@ -120,6 +124,7 @@ export class MorningSheet {
     withIcon(this.path, pathIconName(path), `${PATH_TITLE[path]} · ${pathLine(run.mercy, banished)}`);
     this.pathNow.dataset.path = path;
     this.pathNow.textContent = PATH_NOW[path];
+    this.preview.textContent = previewLine(nextNightPreview(runInfo(run), run.night));
 
     this.score.textContent = formatScore(r.score);
     this.mercy.textContent = `${r.mercy}번`;

@@ -158,6 +158,8 @@ export function morningAfter(run: RunData, o: NightOutcome, cfg: RunConfig): Run
 /** 런의 끝: 결과 화면·지난 밤들·최고 기록 */
 export interface RunSummary {
   outcome: 'over' | 'home';
+  /** 집으로: 귀가 보너스 별가루 (2026-11-24, dust에 이미 더함) */
+  homeBonus?: number;
   reason: EndReason | 'home';
   /** 런이 끝난 밤(패배) / 마지막으로 아침을 맞은 밤(집으로) */
   night: number;
