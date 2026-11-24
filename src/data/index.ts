@@ -479,7 +479,8 @@ export interface NightsDef {
   };
   witch: { atSec: number; fromNight: number; chancePerNight: number; guaranteedNight: number; requiresFriends: CharacterId[]; oncePerRun: boolean };
   expand: { hostileRatioPerBanish: number; hostileRatioCap: number };
-  testNights: number[];
+  /** 테스트 메뉴 '밤 n 체험' — 그 밤의 평균 빛 레벨 ★로 시작(2026-11-24 기획 세션, 테스트 판에만) */
+  testNights: { night: number; level: number }[];
 }
 
 /** 상점의 겉모습 (2026-11-18): 빛 색. 2026-11-23부터 별가루로 산다 — price 0 = 처음부터(호박빛) */

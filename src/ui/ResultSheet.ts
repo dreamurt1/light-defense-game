@@ -196,6 +196,9 @@ export class ResultSheet {
     // 테스트 판은 친구 해금이 남지 않으므로 알리지 않는다
     this.friendLine.hidden = names.length === 0 || RunState.test;
     this.testNote.hidden = !RunState.test;
+    // 밤 n 체험은 시작 빛 레벨을 덧붙여 시연 때 오해가 없게 (2026-11-24 기획 세션)
+    const start = RunState.test && RunState.run ? GameData.nights.testNights.find((t) => t.night === RunState.run?.night) : undefined;
+    this.testNote.textContent = '테스트 판이라 진행과 지난 밤들에는 남지 않아요' + (start ? ` · 시작 빛 레벨 ★${start.level}` : '');
 
     this.statList.hidden = tutorial;
     this.combo.textContent = `×${result.maxCombo}`;
@@ -246,7 +249,8 @@ export class ResultSheet {
     this.scoreLabel.textContent = '점수';
     for (const r of this.runRows) r.hidden = false;
     for (const r of this.nightRows) r.hidden = true;
-    this.nights.textContent = `${s.nights}밤`;
+    // 오늘은 여기까지: 부제("밤 2 · 중앙 광원이 잠들었어요")와 같은 번호로 "밤 2에서", 집으로: "3밤" (2026-11-24 기획 세션)
+    this.nights.textContent = s.outcome === 'over' ? `밤 ${s.night}에서` : `${s.nights}밤`;
     this.combo.textContent = `×${s.stats.maxCombo}`;
     this.rescued.textContent = `${s.stats.rescued}명`;
     this.stations.textContent = `${s.stats.stationsLit}개`;

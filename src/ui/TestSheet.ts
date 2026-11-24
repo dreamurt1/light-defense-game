@@ -51,14 +51,14 @@ export class TestSheet {
     );
     tutorialCard.addEventListener('click', () => this.start('tutorial'));
     const probe = { seed: 1, keeperId: 'lumi' as CharacterId, friendNights: {}, witchSeen: false, lastMapId: null, mercy: 0, banish: 0 };
-    const nightCards = GameData.nights.testNights.map((n) => {
+    const nightCards = GameData.nights.testNights.map(({ night: n, level }) => {
       const def = rulesForNight(n, probe);
       const card = h(
         'button',
         { class: 'stage-card', type: 'button', 'data-theme': def.theme, 'aria-label': `밤 ${n} 체험 — ${def.bandName}, 등불 ${def.stations}` },
         h('span', { class: 'stage-card__num' }, String(n)),
         h('span', { class: 'stage-card__name' }, `밤 ${n} 체험`),
-        h('span', { class: 'stage-card__meta' }, svg(lampIcon), `등불 ${def.stations}`),
+        h('span', { class: 'stage-card__meta' }, svg(lampIcon), `등불 ${def.stations} · ★${level}`),
         h('span', { class: 'stage-card__tag stage-card__tag--none' }, svg(moonIcon), def.bandName),
       );
       card.addEventListener('click', () => this.start(NIGHT_STAGE, undefined, n));

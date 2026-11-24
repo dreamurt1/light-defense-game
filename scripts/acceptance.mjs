@@ -235,7 +235,9 @@ if (!skipLong) {
       bus.on('enemy:returned', (e) => window.__kinds.push(e.kind));
       bus.on('game:clear', (e) => (window.__end = e.result)); bus.on('game:over', (e) => (window.__end = e.result));
       // 노월 판(밤 10)은 실제 런처럼 ★9로 시작(&level=9 — 2026-11-24 다듬기 2차로 레벨이 느려져 ★1 시작이면 100초에 걸림), 중앙 광원·루미를 지켜 둔다 — 이 판은 '노월을 진정시키면 아침' 규칙만 본다
-      if (${JSON.stringify(stage)}.includes('friends')) setInterval(() => { const s = window.__game.scene.getScene('Play'); if (s?.sources) { s.sources.central.state.hp = s.sources.central.state.maxHp; s.vitals.invulnLeft = 9; } }, 200); })()`);
+      if (${JSON.stringify(stage)}.includes('friends')) setInterval(() => { const s = window.__game.scene.getScene('Play'); if (s?.sources) { s.sources.central.state.hp = s.sources.central.state.maxHp; s.vitals.invulnLeft = 9; }
+        // 2026-11-24: 자동 플레이가 노월을 겨누는 정도가 판마다 달라 100초에 걸리기도 함 → 노월이 나오면 게임의 맞히기 처리(Hits.boss)로 0.3초마다 빛을 맞힘 — '진정하면 아침' 규칙만 본다
+        if (s?.boss?.active && !s.boss.entering) s.hits.boss(900000); }, 300); })()`);
     const t0 = Date.now();
     let end = null;
     while (Date.now() - t0 < 150000 && !(end = await page.evaluate('window.__end'))) await sleep(2000);

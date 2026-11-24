@@ -142,6 +142,8 @@ export class MorningSheet {
     this.region.replaceChildren(
       h('p', { class: 'morning__region-title' }, `${band.name}${hasBatchim(band.name) ? '을' : '를'} 발견했어요`),
       h('p', { class: 'morning__region-line' }, `밤 ${band.fromNight}부터 이 길로 나가요${desc ? ' · ' + desc : ''}`),
+      // 왜 밤마다 더 바깥으로 나가는지 (2026-11-24 기획 세션)
+      h('p', { class: 'morning__region-line' }, '친구들의 흔적은 더 바깥에 있어요'),
       ...(map ? [miniMap(map)] : []),
       h('p', { class: 'morning__region-count' }, `발견한 지역 ${Progress.data.discovered.length}/${total}`),
     );
