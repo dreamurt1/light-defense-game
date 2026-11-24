@@ -570,7 +570,7 @@ SKILL.md: 격자 규격, 장애물 사전, 문자 범례, 맵 파일 만들기 �
 | `bat_fly_090_right_f01~04` (**11-24 적용**, 수정본) | `art-src/enemies/bat-dark.fly_090_right_f01~04.png` | `bat-dark` 0~3 | 80 · 몸 가운데(나는 종 — 옆 4장만, 가로 부호로 뒤집기, `register: 'canvas'`) |
 | `bat_true_fly_090_right_f01~04` (**11-24 적용**) | `art-src/enemies/bat-true.fly_090_right_f01~04.png` | `bat-true` 0~3 (`bat-dark` 축척 빌림) — 빛을 받아 돌아갈 때 제자리 교체(`Bat.playReturn`) | 80 · 몸 가운데 |
 | `werewolf_walk_090_right / 000_front / 180_back_f01~04` (**11-24 적용**) | `art-src/enemies/werewolf-dark.walk_<각도>_f01~04.png` | `werewolf-dark` 0~3 / 4~7 / 8~11 — 앞·뒤 걷기 ±2px 출렁임(`walkBob`) | 96 · 발끝(`register: 'canvas'`) |
-| `vampire_fly_090_right_f01~04` | `art-src/enemies/vampire-dark.walk_090_right_f01~04.png` (이름의 fly → walk) | `vampire-dark` 0~3 | 80 · 몸 가운데 |
+| `vampire_fly_090_right_f01~04` (**11-24 적용** — 몸 자리를 Claude가 눈 기준으로 옮긴 사본) | `art-src/enemies/vampire-dark.walk_090_right_f01~04.png` (이름의 fly → walk) | `vampire-dark` 0~3 | **96**(뒤로 뻗은 날개 — 80칸에선 박쥐보다 작음) · 몸 가운데(기준점 48·52) |
 | `frog_lost_walk_<각도>_f01~04` / `frog_walk_…` | `art-src/enemies/frog-dark.walk_<각도>_f0N.png` / `frog-true.walk_…` | `frog-dark`·`frog-true` 0~11 (옆·앞·뒤 × 폴짝 4, true는 dark 축척) | 64 · 발끝(공중 칸도 땅 = y 496) |
 | `hedgehog_lost_walk_…` / `hedgehog_walk_…` | `art-src/enemies/hedgehog-dark.walk_…` / `hedgehog-true.walk_…` | 0~11 (true는 dark 축척) | 64 · 발끝 |
 | `redpanda_lost_walk_…` / `redpanda_walk_…` | `art-src/enemies/redpanda-dark.walk_…` / `redpanda-true.walk_…` | 0~11 (true는 dark 축척) | 72 · 발끝 |
@@ -579,5 +579,5 @@ SKILL.md: 격자 규격, 장애물 사전, 문자 범례, 맵 파일 만들기 �
 - **앞·뒤(2차, 11-26 12:00)가 마감까지 안 오면**: 옆 4장이 앞·뒤 칸에 자동으로 들어간다(`ArtSpec.poseFallback`, 뒤집기 없음) — 라이언 보고에 "앞·뒤는 옆모습으로 대체".
 - **잠든 모습 그림이 없을 때의 대체**: 옆모습 대기 첫 칸을 90° 눕히고 살짝 어둡게(`Lightkeeper.ko`) — 11-24에 그림이 와서 지금은 그림을 씀. 쓰러짐 = 기절·잠듦 — X 눈 칸(`<id>-ko`)은 쓰지 않음. **'z' 같은 글자는 띄우지 않는다**(라이언 2026-11-24 — 기획 지시서의 "z z"는 따르지 않음, 전에 떠오르던 'z'도 없앰).
 - 점검: `node scripts/art-check.mjs --kind pair --dir <빛을 잃은 모습> --dir2 <제 모습> --a frog_lost_walk_ --b frog_walk_`(같은 칸 높이·발끝·가운데 ±8px) · `--kind sleep --dir reference/Sleep_Pack`(√넓이 비 1 ± 0.10, 바닥 496, 가운데 256 — X 눈·zzz·글자는 확인용 그림을 눈으로).
-- 빛을 잃은 토리·도토(맵 위·카드) 실루엣 합성은 그대로(의뢰 없음). 중앙 광원은 11-24 ChatGPT `Source_Pack`(칸 0·1·2 = 밝음·낮음·꺼짐, `art-src/objects/central-source.bright·dim·off.png`), 등불은 아직 코드 그림.
+- 빛을 잃은 토리·도토(맵 위·카드) 실루엣 합성은 그대로(의뢰 없음). 중앙 광원은 11-24 ChatGPT `Source_Pack`(칸 0·1·2 = 밝음·낮음·꺼짐, `art-src/objects/central-source.bright·dim·off.png`), 등불도 11-24 `Lantern_Pack`(`art-src/objects/lantern.on·dim·off.png`, 바닥 = 기준점 72줄), 스폰 아이템 아이콘 `Item_Icons_v3`(`art-src/items/item-<id>.png`).
 - **`ArtSpec.register: 'canvas'`**(2026-11-24): 2-C 팩은 캔버스 앵커(몸 가운데 256·256, 발끝 256·496)로 맞춰 오므로, 포즈마다 보이는 부분만 따로 자르지 않고 모든 포즈를 같은 사각형(캔버스 가운데 기준 좌우 대칭, 가운데 정렬이면 위아래도)으로 잘라 넣는다 — 날개·꼬리 자세로 몸이 칸 안에서 흔들리지 않게. 뱀파이어·주민 셋이 오면 같은 값을 `CREATURES`/시트에 켠다.

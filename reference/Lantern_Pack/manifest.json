@@ -1,0 +1,48 @@
+{
+  "pack": "lantern",
+  "generated": "2026-11-24",
+  "assets": [
+    {
+      "state": "on",
+      "flameCount": 1,
+      "canvas": "448x640",
+      "transparent": true,
+      "format": "PNG RGBA",
+      "file": "lantern_on.png",
+      "anchor": {
+        "type": "base",
+        "y": 621,
+        "x": 224
+      },
+      "glass": "warm amber"
+    },
+    {
+      "state": "dim",
+      "flameCount": 1,
+      "canvas": "448x640",
+      "transparent": true,
+      "format": "PNG RGBA",
+      "file": "lantern_dim.png",
+      "anchor": {
+        "type": "base",
+        "y": 621,
+        "x": 224
+      },
+      "glass": "half dark, small red-orange flame"
+    },
+    {
+      "state": "off",
+      "flameCount": 0,
+      "canvas": "448x640",
+      "transparent": true,
+      "format": "PNG RGBA",
+      "file": "lantern_off.png",
+      "anchor": {
+        "type": "base",
+        "y": 621,
+        "x": 224
+      },
+      "glass": "dark muted indigo-violet"
+    }
+  ]
+}

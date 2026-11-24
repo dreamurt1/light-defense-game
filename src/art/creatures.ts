@@ -65,7 +65,9 @@ export interface CreatureArt {
 export const CREATURES: Record<CreatureId, CreatureArt> = {
   // 2026-11-24 ChatGPT 2-C 그림(Hostile_Pack/werewolf): 앞·뒤 걷기는 다리 움직임이 작아 ±2px 출렁임을 더한다(기획 세션 호스틸 연결 지시서)
   werewolf: { size: 96, cy: 84, frames: 12, looks: ['dark'], flies: false, fps: 8, register: 'canvas', walkBob: 2 },
-  vampire: { size: 80, cy: 44, frames: 4, looks: ['dark'], flies: true, fps: 9 },
+  // 2026-11-24 ChatGPT 2-C 그림(Hostile_Pack/vampire): 받은 4장은 몸이 왼쪽 위로 치우치고 장마다 달라 Claude가 눈 기준으로 위치만 옮긴 사본(art-src)을 씀
+  // 칸 80 → 96(2026-11-24): 뒤로 뻗은 날개가 길어 몸 가운데 앵커로 80칸에 넣으면 박쥐보다 작아짐 → 96칸(상자 88)에서 박쥐와 비슷한 크기. 코드 그림은 (8, 8) 옮겨 그려 기준점 자리 그대로
+  vampire: { size: 96, cy: 52, frames: 4, looks: ['dark'], flies: true, fps: 9, register: 'canvas' },
   hedgehog: { size: 64, cy: 54, frames: 12, looks: ['dark', 'true'], flies: false, fps: 9 },
   redpanda: { size: 72, cy: 62, frames: 12, looks: ['dark', 'true'], flies: false, fps: 9 },
   owl: { size: 72, cy: 62, frames: 12, looks: ['plain'], flies: false, fps: 6, fleeFps: 8 },
@@ -1381,6 +1383,7 @@ export function drawCreature(ctx: Ctx, id: CreatureId, look: CreatureLook, frame
       drawWerewolf(ctx, view, g);
       break;
     case 'vampire':
+      ctx.translate(8, 8); // 80칸용 코드 그림을 96칸 기준점(48, 52)에 (2026-11-24)
       drawVampire(ctx, frame % CYCLE);
       break;
     case 'hedgehog':

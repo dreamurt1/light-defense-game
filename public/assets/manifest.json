@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-24T01:21:31.222Z",
+  "generatedAt": "2026-11-24T01:41:20.831Z",
   "sheets": [
     {
       "key": "portrait-lumi",
@@ -1072,11 +1072,11 @@
       "category": "enemies",
       "label": "vampire — 빛을 잃은 모습",
       "file": "enemies/vampire-dark.png",
-      "frameWidth": 80,
-      "frameHeight": 80,
+      "frameWidth": 96,
+      "frameHeight": 96,
       "frames": 4,
-      "res": 1,
-      "source": "code",
+      "res": 2,
+      "source": "art",
       "load": true,
       "anims": [
         {
@@ -1493,8 +1493,8 @@
       "frameWidth": 64,
       "frameHeight": 64,
       "frames": 1,
-      "res": 1,
-      "source": "code",
+      "res": 2,
+      "source": "art",
       "load": true,
       "anims": []
     },
@@ -1506,8 +1506,8 @@
       "frameWidth": 64,
       "frameHeight": 64,
       "frames": 1,
-      "res": 1,
-      "source": "code",
+      "res": 2,
+      "source": "art",
       "load": true,
       "anims": []
     },
@@ -1519,8 +1519,8 @@
       "frameWidth": 64,
       "frameHeight": 64,
       "frames": 1,
-      "res": 1,
-      "source": "code",
+      "res": 2,
+      "source": "art",
       "load": true,
       "anims": []
     },
@@ -1532,8 +1532,8 @@
       "frameWidth": 64,
       "frameHeight": 64,
       "frames": 1,
-      "res": 1,
-      "source": "code",
+      "res": 2,
+      "source": "art",
       "load": true,
       "anims": []
     },
@@ -1545,8 +1545,8 @@
       "frameWidth": 64,
       "frameHeight": 64,
       "frames": 1,
-      "res": 1,
-      "source": "code",
+      "res": 2,
+      "source": "art",
       "load": true,
       "anims": []
     },
@@ -1571,8 +1571,8 @@
       "frameWidth": 56,
       "frameHeight": 80,
       "frames": 3,
-      "res": 1,
-      "source": "code",
+      "res": 2,
+      "source": "art",
       "load": true,
       "anims": []
     },

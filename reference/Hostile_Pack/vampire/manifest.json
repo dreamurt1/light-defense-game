@@ -1,0 +1,66 @@
+{
+  "generated": "2026-11-24",
+  "assets": [
+    {
+      "transparent": true,
+      "view": "090_right",
+      "anchor": {
+        "x": 256,
+        "type": "body_center",
+        "y": 256
+      },
+      "format": "PNG RGBA",
+      "file": "vampire_fly_090_right_f01.png",
+      "pose": "wings up",
+      "canvas": "512x512",
+      "species": "vampire",
+      "frame": 1
+    },
+    {
+      "transparent": true,
+      "view": "090_right",
+      "anchor": {
+        "x": 256,
+        "type": "body_center",
+        "y": 256
+      },
+      "format": "PNG RGBA",
+      "file": "vampire_fly_090_right_f02.png",
+      "pose": "wings halfway down",
+      "canvas": "512x512",
+      "species": "vampire",
+      "frame": 2
+    },
+    {
+      "transparent": true,
+      "view": "090_right",
+      "anchor": {
+        "x": 256,
+        "type": "body_center",
+        "y": 256
+      },
+      "format": "PNG RGBA",
+      "file": "vampire_fly_090_right_f03.png",
+      "pose": "wings fully down",
+      "canvas": "512x512",
+      "species": "vampire",
+      "frame": 3
+    },
+    {
+      "transparent": true,
+      "view": "090_right",
+      "anchor": {
+        "x": 256,
+        "type": "body_center",
+        "y": 256
+      },
+      "format": "PNG RGBA",
+      "file": "vampire_fly_090_right_f04.png",
+      "pose": "recovering forward/up",
+      "canvas": "512x512",
+      "species": "vampire",
+      "frame": 4
+    }
+  ],
+  "pack": "vampire"
+}

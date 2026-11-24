@@ -1,0 +1,81 @@
+{
+  "pack": "Item_Icons_v3",
+  "assets": [
+    {
+      "file": "item-wind-feather.png",
+      "outline": "#1B1F3B",
+      "color": "#9ED9B5",
+      "motif": "curved feather with central shaft and barbs",
+      "item": "wind feather",
+      "canvas": "128x128",
+      "anchor": {
+        "type": "center",
+        "x": 64,
+        "y": 64
+      },
+      "format": "PNG RGBA",
+      "transparent": true
+    },
+    {
+      "file": "item-star-necklace.png",
+      "outline": "#1B1F3B",
+      "color": "#A89CD9",
+      "motif": "two chain sides with a central star pendant",
+      "item": "star necklace",
+      "canvas": "128x128",
+      "anchor": {
+        "type": "center",
+        "x": 64,
+        "y": 64
+      },
+      "format": "PNG RGBA",
+      "transparent": true
+    },
+    {
+      "file": "item-firefly-jar.png",
+      "outline": "#1B1F3B",
+      "color": "#FFC857",
+      "motif": "round capped jar with three light dots",
+      "item": "firefly jar",
+      "canvas": "128x128",
+      "anchor": {
+        "type": "center",
+        "x": 64,
+        "y": 64
+      },
+      "format": "PNG RGBA",
+      "transparent": true
+    },
+    {
+      "file": "item-golden-acorn.png",
+      "outline": "#1B1F3B",
+      "color": "gold-brown",
+      "motif": "acorn with cap and inset star",
+      "item": "golden acorn",
+      "canvas": "128x128",
+      "anchor": {
+        "type": "center",
+        "x": 64,
+        "y": 64
+      },
+      "format": "PNG RGBA",
+      "transparent": true
+    },
+    {
+      "file": "item-light-charm.png",
+      "outline": "#1B1F3B",
+      "color": "#F6F1E7 with #FFC857 star",
+      "motif": "rounded diamond charm matching prep-charm silhouette",
+      "item": "light charm",
+      "canvas": "128x128",
+      "anchor": {
+        "type": "center",
+        "x": 64,
+        "y": 64
+      },
+      "format": "PNG RGBA",
+      "transparent": true
+    }
+  ],
+  "generated": "2026-11-24"
+}

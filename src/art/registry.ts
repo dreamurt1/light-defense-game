@@ -370,7 +370,8 @@ const enemies: SheetDef[] = [
           poses: creatureArtPoses(id),
           frames: creatureArtPoses(id).map((_, pose) => ({ pose })),
           fit: 'contain',
-          box: CREATURES[id].flies ? { x: 4, y: 4, w: CREATURES[id].size - 8, h: CREATURES[id].size - 8 } : { x: 4, y: 4, w: CREATURES[id].size - 8, h: CREATURES[id].cy - 4 },
+          // 나는 종: 상자 가운데 = 시트 기준점(cy) — 몸 가운데 앵커 팩이 기준점에 온다(2026-11-24 뱀파이어 cy 44, 나방·반딧불이는 전과 같음)
+          box: CREATURES[id].flies ? { x: 4, y: CREATURES[id].cy - (CREATURES[id].size - 8) / 2, w: CREATURES[id].size - 8, h: CREATURES[id].size - 8 } : { x: 4, y: 4, w: CREATURES[id].size - 8, h: CREATURES[id].cy - 4 },
           align: CREATURES[id].flies ? 'center' : 'feet',
           res: 2,
           // 2-C(2026-11-24): 앞·뒤가 없으면 옆 4장, 제 모습은 빛을 잃은 모습과 같은 축척(구출 순간 제자리 교체)
@@ -477,7 +478,8 @@ const objects: SheetDef[] = [
       poses: ['on', 'dim', 'off'],
       frames: [{ pose: 0 }, { pose: 1 }, { pose: 2 }],
       fit: 'contain',
-      box: { x: 1, y: 1, w: 54, h: 78 },
+      // 상자 아래 = 등불 기준점(LightStation origin, 칸 72줄) — 팩의 등불 바닥(621)이 기준점에 온다(2026-11-24). 줄임 약 0.115, 그림 속 유리 가운데는 50줄(불빛·결계 중심 glassY 44보다 6줄 아래 — 연출은 그대로)
+      box: { x: 1, y: 1, w: 54, h: 71 },
       align: 'feet',
       res: 2,
     },
