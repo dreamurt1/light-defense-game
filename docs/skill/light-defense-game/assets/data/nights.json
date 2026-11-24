@@ -2,14 +2,20 @@
   "_notes": "밤 n 생성 규칙 (2026-11-23 기획 세션 지시서 v3, 정본 docs/design/NIGHT_RUN.md). stages.json의 옛 stage-1~4는 테스트 메뉴 '밤 n 체험'(testNights)으로 흡수. tutorial·trial은 stages.json 그대로. 표(stations·hostileRatio·roster·groupsByNight·sizeByNight)는 보간이 아니라 구간값 — 밤 n 이하에서 가장 큰 키의 값. 밸런스는 spawn만 고친다",
   "durationSec": 100,
   "bands": [
-    { "id": "A", "name": "빛의 마을", "theme": "light-village", "fromNight": 1, "maps": ["A1", "A2", "A3"] },
+    { "id": "A", "name": "빛의 마을", "theme": "light-village", "fromNight": 1, "maps": ["A1", "A2", "A3"], "lampDist": [4, 6] },
     { "id": "B", "name": "경계의 숲", "theme": "border", "fromNight": 3, "maps": ["B1", "B2"] },
-    { "id": "C", "name": "어둠이 삼킨 외곽", "theme": "dark-village", "fromNight": 6, "maps": ["C1"] }
+    { "id": "C", "name": "어둠이 삼킨 외곽", "theme": "dark-village", "fromNight": 6, "maps": ["C1", "C2"] }
   ],
   "stations": { "1": 1, "2": 2, "3": 2, "4": 3, "5": 3, "6": 4 },
   "spawn": {
-    "normal": { "maxAliveStart": 1.5, "maxAlivePerNight": 0.95, "maxAliveCap": 20, "intervalStart": [7.6, 5.8], "intervalPerNight": 0.79, "intervalFloor": [0.4, 0.3] },
-    "climax": { "maxAliveStart": 3, "maxAlivePerNight": 1.6, "maxAliveCap": 28, "intervalStart": [4.8, 4.0], "intervalPerNight": 0.79, "intervalFloor": [0.3, 0.24] },
+    "_curve": "2026-11-24 다듬기 1차: 밤 1~3은 overrides 고정값, 밤 4부터 밤 3 값에서 이어지는 곡선 — 동시 최대 = round(start + perNight×(n−fromNight)), 간격 = start × perNight^(n−fromNight). 어느 밤도 전 밤보다 동시 최대가 적거나 간격이 길지 않게(tests/nightRules.test.ts)",
+    "normal": { "fromNight": 3, "maxAliveStart": 5, "maxAlivePerNight": 0.8, "maxAliveCap": 20, "intervalStart": [3.0, 2.4], "intervalPerNight": 0.8, "intervalFloor": [0.4, 0.3] },
+    "climax": { "fromNight": 3, "maxAliveStart": 8, "maxAlivePerNight": 1.7, "maxAliveCap": 28, "intervalStart": [1.8, 1.5], "intervalPerNight": 0.8, "intervalFloor": [0.3, 0.24] },
+    "overrides": {
+      "1": { "normal": { "maxAlive": 3, "interval": [4.0, 3.0] }, "climax": { "maxAlive": 6, "interval": [2.4, 2.0] } },
+      "2": { "normal": { "maxAlive": 4, "interval": [3.4, 2.7] }, "climax": { "maxAlive": 7, "interval": [2.0, 1.7] } },
+      "3": { "normal": { "maxAlive": 5, "interval": [3.0, 2.4] }, "climax": { "maxAlive": 8, "interval": [1.8, 1.5] } }
+    },
     "onlyHostileUntilSec": 6,
     "hostileRatio": { "1": 0.75, "2": 0.6, "3": 0.55, "4": 0.5, "6": 0.6, "9": 0.65, "11": 0.75 },
     "roster": {
@@ -25,7 +31,11 @@
   "rescue": {
     "atProgress": 0.3,
     "tori": { "fromNight": 2, "chance": 0.5, "guaranteedNight": 3 },
-    "doto": { "nightsAfterTori": 2, "chance": 0.5, "guaranteedAfter": 1 }
+    "doto": { "nightsAfterTori": 2, "chance": 0.5, "guaranteedAfter": 1 },
+    "spotDist": [6, 9],
+    "excludeEvents": ["darkWind"],
+    "_climaxMultiplier": "2026-11-24 다듬기 1차 2절 (나): 실력 0.25의 구출 밤에 끝난 런이 12 중 3을 넘어(측정 5/12) 구출 밤 클라이맥스 동시 최대 ×0.8",
+    "climaxMultiplier": 0.8
   },
   "witch": { "atSec": 8, "fromNight": 5, "chancePerNight": 0.12, "guaranteedNight": 10, "requiresFriends": ["tori", "doto"], "oncePerRun": true },
   "expand": { "hostileRatioPerBanish": 0.1, "hostileRatioCap": 0.4 },

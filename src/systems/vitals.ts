@@ -63,6 +63,13 @@ export class Vitals {
     return 'down';
   }
 
+  /** 하트 하나를 광원을 되살리는 데 씀 (2026-11-24) — 마지막 하트는 쓰지 않는다 @returns 썼으면 true */
+  spendHeart(): boolean {
+    if (this.hearts < 2) return false;
+    this.hearts -= 1;
+    return true;
+  }
+
   heal(amount: number): void {
     if (this.down) return;
     this.hp = Math.min(this.cfg.maxHp, this.hp + amount);

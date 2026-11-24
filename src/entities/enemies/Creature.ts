@@ -55,6 +55,8 @@ export class Creature extends Enemy {
   /** 행렬 자세(웅크림·도망)와, 그 생성 그림을 지금 끼우고 있는지 */
   private poseMode: ParadeMode = 'walk';
   private poseArt = false;
+  /** 마지막 옆모습이 왼쪽(뒤집음)이었는지 — 세로로만 도망갈 때 그 방향을 유지 (2026-11-24) */
+  private sideFlip = false;
 
   /** @param rng 대사 타이밍·대사 고르기·첫 동작 칸 (판 seed에서, 같은 seed면 같은 밤) */
   constructor(scene: Phaser.Scene, def: EnemyDef, x: number, y: number, private readonly rng: Rng) {
@@ -114,8 +116,9 @@ export class Creature extends Enemy {
   protected override face(dir: { x: number; y: number }): void {
     const walker = this.art && !this.art.flies && isCreature(this.def.id);
     if (this.poseArt) {
-      // 웅크림·도망 생성 그림을 낀 동안은 좌우만 (그림은 옆모습)
-      if (Math.abs(dir.x) > 0.15) this.sprite.setFlipX(dir.x < 0);
+      // 생성 그림을 낀 동안 (2026-11-24 올빼미 지시서 2절): 웅크림 = 정면 한 장(뒤집지 않음),
+      // 도망 = 옆 2장 — 가로 성분 부호로 뒤집고, 세로로만 가면 직전 옆 방향 그대로
+      if (this.poseMode === 'flee' && Math.abs(dir.x) > 0.15) this.setSide(dir.x < 0);
       return;
     }
     if (walker && isCreature(this.def.id)) {
@@ -130,7 +133,12 @@ export class Creature extends Enemy {
         return;
       }
     }
-    if (Math.abs(dir.x) > 0.15) this.sprite.setFlipX(dir.x < 0);
+    if (Math.abs(dir.x) > 0.15) this.setSide(dir.x < 0);
+  }
+
+  private setSide(left: boolean): void {
+    this.sideFlip = left;
+    this.sprite.setFlipX(left);
   }
 
   protected playHit(): void {
@@ -171,13 +179,15 @@ export class Creature extends Enemy {
   }
 
   override step(dt: number, ctx: EnemyContext): EnemyStep {
+    // 사라지는 트윈이 이번 프레임 앞에서 끝나 지워졌는데 목록 정리(prune)는 판 끝에 함 → 한 번 더 불릴 수 있다 (2026-11-24 측정 중 말풍선 오류)
+    if (!this.active) return { hit: null };
     this.guardLeft = Math.max(0, this.guardLeft - dt);
     // 트라이얼의 고정된 적 (패시브도 떠돌지 않음 — 곁을 지나가면 자비, 맞히면 화남 → 화난 채로 아주 가까우면 제자리에서 공격)
     if (this.pinned && !this.leaving) return super.step(dt, ctx);
     if (this.def.behavior === 'idle') {
       this.age += dt;
       this.underGlow.setAlpha(0.35 + 0.15 * Math.sin(this.age * 3));
-      this.talk(dt, ctx, ['도와줘..', '여기 있어..']);
+      if (!this.leaving) this.talk(dt, ctx, ['도와줘..', '여기 있어..']);
       return { hit: null };
     }
     if (this.parade) return this.leaving || !this.targetable ? { hit: null } : this.walkParade(dt, ctx);
@@ -229,6 +239,7 @@ export class Creature extends Enemy {
       this.poseArt = true;
       this.sprite.anims.stop(); // 걷기 애니가 돌면 다음 프레임에 걷기 그림으로 되덮는다
       this.sprite.setTexture(key, 0).setScale(texScale(key));
+      this.sprite.setFlipX(mode === 'flee' ? this.sideFlip : false); // 웅크림(정면)은 뒤집지 않음
       if (mode === 'flee' && this.scene.anims.exists(paradeFleeAnim(id))) this.sprite.play(paradeFleeAnim(id));
       return;
     }
@@ -236,6 +247,7 @@ export class Creature extends Enemy {
     this.poseArt = false;
     const walk = creatureKey(id, this.look);
     this.sprite.setTexture(walk, 0).setScale(texScale(walk));
+    this.sprite.setFlipX(this.art?.flies || this.view === 'side' ? this.sideFlip : false);
     const anim = creatureAnim(id, this.look, this.art?.flies ? 'side' : this.view);
     if (this.scene.anims.exists(anim)) this.sprite.play(anim);
   }

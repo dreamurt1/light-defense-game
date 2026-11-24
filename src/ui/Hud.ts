@@ -9,6 +9,7 @@ import { isComboMilestone } from '../systems/ComboSystem';
 import { bandOf } from '../systems/lightLevel';
 import { formatScore, formatTime, h, replay, svg } from './dom';
 import { crystalIcon, heartIcon, lampIcon, moonIcon, pauseIcon, starIcon, swooshArt } from './icons';
+import { v3Icon } from './v3Icons';
 
 const G = GameData.game;
 const BAND_NAMES = G.lightLevels.names;
@@ -70,8 +71,8 @@ export class Hud {
     this.score = h('output', { class: 'stat__value' }, '0');
     this.comboCount = h('span', { class: 'stat__value' });
     this.combo = h('div', { class: 'stat stat--combo' }, h('span', { class: 'stat__label' }, '콤보'), this.comboCount);
-    this.level = h('div', { class: 'stat stat--level', 'aria-label': '빛 레벨' }, h('span', { class: 'stat__mark', 'aria-hidden': 'true' }, '★'), this.levelValue);
-    this.dust = h('div', { class: 'stat stat--dust', 'aria-label': '별가루' }, h('span', { class: 'stat__mark', 'aria-hidden': 'true' }, '✦'), this.dustValue);
+    this.level = h('div', { class: 'stat stat--level', 'aria-label': '빛 레벨' }, h('span', { class: 'stat__mark', 'aria-hidden': 'true' }, v3Icon('level')), this.levelValue);
+    this.dust = h('div', { class: 'stat stat--dust', 'aria-label': '별가루' }, h('span', { class: 'stat__mark', 'aria-hidden': 'true' }, v3Icon('stardust')), this.dustValue);
 
     const top = h(
       'header',

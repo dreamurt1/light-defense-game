@@ -7,7 +7,7 @@
 // 2026-11-12 새 기획: 루미는 등불을 들지 않고 스스로 빛을 쏜다(라이언 답변). 하트를 잃으면 잠들고(KO) 중앙 광원 옆에서 부활한다.
 import Phaser from 'phaser';
 import { TextureKeys } from '../core/TextureKeys';
-import { texScale } from '../core/textureRes';
+import { isArtTexture, texScale } from '../core/textureRes';
 import { GameData, type CharacterDef } from '../data';
 import { CELL, FEET_Y } from '../art/lumiSheet';
 import { dirOf, follow, turnToward, type Dir } from '../systems/facing';
@@ -21,6 +21,8 @@ const DISPLAY = 2;
 /** 몸 가운데(pos)에서 발끝까지. PlayScene이 장애물·풀숲을 이 발 위치로 판정한다 (손·그림자·먼지 값과 함께 칸 크기에 비례) */
 export const KEEPER_FOOT_Y = 32;
 const FOOT_Y = KEEPER_FOOT_Y;
+/** 잠든 모습 대체(눕힌 대기 그림)의 색: 살짝 어둡게 (2026-11-24, 제안) */
+const SLEEP_TINT = 0xb9b4d6;
 /** 바라보는 각도가 따라가는 반응 시간 */
 const TURN_TAU = 0.06;
 /** 걸을 때 발밑 먼지 ('게임 내 연출 예시 – 이동') */
@@ -60,6 +62,8 @@ export class Lightkeeper {
   private hurtTimers: Phaser.Time.TimerEvent[] = [];
   private pose: Pose = { ...REST };
   private sleeping = false;
+  /** 잠든 모습 생성 그림의 배율 보정 (그 시트 축척 ÷ 8방향 시트 축척, 그림이 없으면 1) */
+  private sleepScale = 1;
   private moving = false;
   private dustT = 0;
   private veil = 1;
@@ -123,7 +127,7 @@ export class Lightkeeper {
     const p = this.pose;
     this.sprite
       .setPosition(x + p.dx, y + FOOT_Y + p.dy)
-      .setScale(this.scale * p.sx, this.scale * p.sy)
+      .setScale(this.scale * this.sleepScale * p.sx, this.scale * this.sleepScale * p.sy)
       .setRotation(p.rot)
       .setAlpha(this.veil * p.alpha)
       .setDepth(y);
@@ -163,6 +167,8 @@ export class Lightkeeper {
   /** 스테이지 시작·하트를 잃은 뒤: 정면 정지 모습으로 빛 속에 나타난다 (빛기둥은 LightFx) */
   respawn(): void {
     this.sleeping = false;
+    this.sleepScale = 1;
+    this.sprite.clearTint().setFlipX(false);
     this.faceAngle = Math.PI / 2;
     this.dir = 's';
     this.refresh(true);
@@ -189,17 +195,41 @@ export class Lightkeeper {
     for (const d of this.dust) d.setVisible(false);
   }
 
-  /** 하트를 잃음·오늘은 여기까지: 그 자리에 잠든다 */
+  /**
+   * 하트를 잃음·오늘은 여기까지: 그 자리에 잠든다 (2026-11-24 라이언·기획 세션: 쓰러짐 = 기절·잠듦 — X 눈 칸(ko)은 쓰지 않음, 'z' 같은 글자도 띄우지 않음).
+   * 생성 그림 <id>-sleep(2-C Sleep_Pack)이 있으면 그 한 장(루미·도토는 쓰러진 방향대로 뒤집기, 토리는 리본 귀가 위로 오게 그대로),
+   * 없으면 옆모습 대기 첫 칸을 90° 눕히고 살짝 어둡게
+   */
   ko(): void {
     this.clearHurtTint();
     this.sleeping = true;
     this.action = null;
-    this.pose = { ...REST };
-    // 판이 끝나 moveTo가 더는 불리지 않으므로 동작 중이던 모양을 여기서 되돌린다
-    this.sprite.setPosition(this.pos.x, this.pos.y + FOOT_Y).setScale(this.scale).setRotation(0).setAlpha(this.veil);
-    this.sprite.anims.timeScale = 1;
-    this.sprite.play(`${this.prefix}ko`);
     for (const d of this.dust) d.setVisible(false);
+    this.sprite.anims.stop();
+    this.sprite.anims.timeScale = 1;
+    const id = this.prefix.slice(0, -1);
+    const left = Math.cos(this.faceAngle) < 0;
+    const art = `${id}-sleep`;
+    if (isArtTexture(art) && this.scene.textures.exists(art)) {
+      this.sprite.setTexture(art, 0).setFlipX(id !== 'tori' && left);
+      this.pose = { ...REST };
+      this.sleepScale = (DISPLAY * texScale(art)) / this.scale;
+    } else {
+      const idle = this.scene.anims.get(`${this.prefix}idle-${left ? 'w' : 'e'}`)?.frames[0]?.frame;
+      if (idle) this.sprite.setTexture(idle.texture.key, idle.name);
+      this.sprite.setFlipX(false).setTint(SLEEP_TINT);
+      // 발끝을 축으로 90° 눕힌다: 머리가 보던 쪽으로, 몸은 발끝 줄 위에 오게(칸 크기 비율, 제안)
+      const h = CELL * this.scale;
+      this.pose = { ...REST, rot: left ? -Math.PI / 2 : Math.PI / 2, dx: (left ? 1 : -1) * h * 0.36, dy: -h * 0.16 };
+      this.sleepScale = 1;
+    }
+    // 판이 끝나 moveTo가 더는 불리지 않으므로 여기서 한 번 놓는다
+    const p = this.pose;
+    this.sprite
+      .setPosition(this.pos.x + p.dx, this.pos.y + FOOT_Y + p.dy)
+      .setScale(this.scale * this.sleepScale)
+      .setRotation(p.rot)
+      .setAlpha(this.veil);
   }
 
   /** 풀숲에 숨으면 반투명하게 (1 = 그대로) */

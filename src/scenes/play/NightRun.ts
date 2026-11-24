@@ -89,6 +89,10 @@ export class NightRun {
     if (!xp) return;
     const next = addXp(this.growth, G.growth.xp[xp], G.growth);
     this.growth = { level: next.level, xp: next.xp };
+    if (next.dust > 0) {
+      this.dust.addRaw(next.dust);
+      bus.emit('dust:change', { dust: this.dustShown });
+    }
     if (next.ups > 0) {
       this.effects = growthEffects(next.level, this.keeperId, G.growth);
       this.onGrowth?.();

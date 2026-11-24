@@ -19,6 +19,18 @@ export interface OutcomeInput {
   bands: readonly [number, number, number];
 }
 
+/**
+ * 하트로 광원 되살리기 (2026-11-24 다듬기 1차): 광원이 꺼진 순간 되살릴 수 있는가.
+ * 런의 밤(allowed)·켜 둠(enabled)·이번 밤 maxPerNight번 아래·하트 2개 이상(루미가 쓰러져 다시 일어나는 중이어도)
+ * (루미 자신의 마지막 하트는 쓰지 않는다 — 1개를 쓰면 하트 0 = 그 자리에서 끝이라 되살리는 뜻이 없다)
+ */
+export function canReviveSource(
+  cfg: { enabled: boolean; maxPerNight: number },
+  s: { allowed: boolean; hearts: number; used: number },
+): boolean {
+  return cfg.enabled && s.allowed && s.used < cfg.maxPerNight && s.hearts >= 2;
+}
+
 export function judgeStage(s: OutcomeInput): { outcome: StageOutcome; reason: EndReason } | null {
   if (s.hearts <= 0) return { outcome: 'over', reason: 'hearts' };
   if (s.centralOut) return { outcome: 'over', reason: 'central' };

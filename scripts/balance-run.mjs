@@ -22,8 +22,21 @@ const jobs = skills.flatMap((skill) => seeds.map((seed) => ({ skill, seed })));
 const results = [];
 const started = Date.now();
 
+/** 크롬이 제때 안 뜨면 세 번까지 다시 (2026-11-24 — 9창 동시에 한 번 실패해 측정 전체가 멈춤) */
+async function openRetry() {
+  for (let i = 0; ; i++) {
+    try {
+      return await openPage({ width: 640, height: 360, scale: 1 });
+    } catch (e) {
+      if (i >= 2) throw e;
+      console.log(`크롬 다시 켜기 (${i + 1})`);
+      await sleep(2000);
+    }
+  }
+}
+
 async function runOne({ skill, seed }) {
-  const page = await openPage({ width: 640, height: 360, scale: 1 });
+  const page = await openRetry();
   try {
     await page.navigate(`${base}/?autoplay=run&skill=${skill}&seed=${seed}&speed=${speed}&cap=${cap}&char=${ch}`);
     // 한 밤 100초 ÷ 배율 + 여유, 상한 밤까지
@@ -37,6 +50,8 @@ async function runOne({ skill, seed }) {
     const errs = page.logs.filter((l) => l.startsWith('ERROR') || l.startsWith('EXCEPTION'));
     const r = { skill, seed, done: !!log?.done, summary: log?.summary ?? null, nights: log?.nights ?? [], wallSec: log?.wallSec ?? null, errors: errs.slice(0, 3) };
     results.push(r);
+    // 중간 저장: 도중에 멈춰도 그때까지의 런은 남는다
+    if (out) writeFileSync(out, JSON.stringify({ at: new Date().toISOString(), speed, cap, partial: results.length < jobs.length, results }, null, 2));
     const s = r.summary;
     console.log(
       `실력 ${skill} seed ${seed}: ${r.done ? `밤 ${s.nights} (마지막 밤 ${s.lastNight}, ${s.reason}) · 점수 ${s.score} · 길 ${s.path}` : `끝나지 않음 (기록 ${r.nights.length}밤)`} · ${r.wallSec ?? '?'}초 · 오류 ${errs.length}`,

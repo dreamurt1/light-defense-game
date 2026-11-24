@@ -1,5 +1,7 @@
 # light-defense-game
 
+![라이트 디펜스 — 밤 나들이](public/og.png)
+
 The casual game by claude coding
 
 **라이트 디펜스 (Light Defense)** — 작은 빛으로, 마을을 되찾아요.

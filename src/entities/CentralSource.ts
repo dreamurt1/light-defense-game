@@ -102,8 +102,15 @@ export class CentralSource {
     });
   }
 
+  /** 하트로 되살아남 (2026-11-24): 결정이 환해지고 게이지가 번쩍인다 */
+  revived(): void {
+    this.glowBoost = 1;
+    this.gauge.flash();
+  }
+
   update(dt: number): void {
     this.t += dt;
+    this.state.tick(dt);
     this.glowBoost = Math.max(0, this.glowBoost - dt * 1.4);
     const s = this.state;
     const band = bandOf(s.light, this.bands);

@@ -1,12 +1,12 @@
 // 밤 n의 규칙 (2026-11-23 밤 나들이 v3, 정본 docs/design/NIGHT_RUN.md 4-1절) — 순수 로직.
 // nights.json 표에서 밤 n의 StageDef와 같은 모양(+ 구간·맵·행렬·호스틸 비중·길·이벤트 조정)을 만든다.
 //  - 표(stations·hostileRatio·roster·groupsByNight·sizeByNight)는 보간이 아니라 구간값: 밤 n 이하에서 가장 큰 키의 값
-//  - 적 수·간격은 밤마다 늘고 줄며 상한·하한이 있다. 적 섞기는 로스터의 호스틸이 hostileRatio를, 잃어버린 주민이 나머지를 같은 몫으로
+//  - 적 수·간격: 밤 1~3은 고정값(spawn.overrides), 밤 4부터 밤 3 값에서 이어지는 곡선(늘고 줄며 상한·하한) — 2026-11-24 다듬기 1차. 적 섞기는 로스터의 호스틸이 hostileRatio를, 잃어버린 주민이 나머지를 같은 몫으로
 //  - 맵은 그 밤 구간의 풀에서 고르되 같은 맵이 두 밤 연속 나오지 않게, 구간에 맵이 없으면 바로 아래 구간에서
-//  - 친구 구출·노월은 밤 시작 때 seed로 정한다(정해진 밤이면 반드시). 구출 밤에는 노월이 없다
+//  - 친구 구출·노월은 밤 시작 때 seed로 정한다(정해진 밤이면 반드시). 구출 밤에는 노월·어둠 바람이 없다
 // 같은 런 seed·같은 밤이면 늘 같은 결과(nightSeed).
 import { Rng } from '../core/rng';
-import { GameData, enemyById, type BandId, type CharacterId, type EnemyId, type NightBand, type NightSpawnCurve, type NightsDef, type NightTable, type SpawnTable, type StageDef } from '../data';
+import { GameData, enemyById, type BandId, type CharacterId, type EnemyId, type NightBand, type NightSpawnCurve, type NightSpawnFixed, type NightsDef, type NightTable, type SpawnTable, type StageDef } from '../data';
 import type { EventMods, RunEventKind } from './runEvents';
 
 /** 두 길: 지키는 길(자비 > 돌려보냄) · 넓히는 길(돌려보냄 > 자비) · 중립 */
@@ -116,9 +116,10 @@ export function rosterWeights(roster: readonly EnemyId[], hostileRatio: number):
 
 const r3 = (v: number) => Math.round(v * 1000) / 1000;
 
-/** 밤 n의 적 표 하나 */
-export function spawnTable(c: NightSpawnCurve, n: number, weights: SpawnTable['weights']): SpawnTable {
-  const k = Math.max(0, n - 1);
+/** 밤 n의 적 표 하나: 고정값(fixed)이 있으면 그 값, 아니면 fromNight부터의 곡선 */
+export function spawnTable(c: NightSpawnCurve, n: number, weights: SpawnTable['weights'], fixed?: NightSpawnFixed): SpawnTable {
+  if (fixed) return { maxAlive: fixed.maxAlive, intervalStart: fixed.interval[0], intervalEnd: fixed.interval[1], weights };
+  const k = Math.max(0, n - c.fromNight);
   return {
     maxAlive: Math.min(c.maxAliveCap, Math.round(c.maxAliveStart + c.maxAlivePerNight * k)),
     intervalStart: r3(Math.max(c.intervalFloor[0], c.intervalStart[0] * c.intervalPerNight ** k)),
@@ -162,9 +163,9 @@ export function witchComesOn(n: number, run: RunInfo, rescueNight: boolean, nigh
   return n >= w.guaranteedNight || roll < w.chancePerNight;
 }
 
-/** 랜덤 이벤트 조정: 어둠 바람은 밤 2부터·밤 6부터 ×2, 지키는 길 = 어둠 바람 없음·작은 화해 ×2, 넓히는 길 = 반딧불 무리 없음 */
-export function eventModsFor(n: number, path: RunPath, nights: NightsDef = GameData.nights): EventMods {
-  const exclude: RunEventKind[] = [];
+/** 랜덤 이벤트 조정: 어둠 바람은 밤 2부터·밤 6부터 ×2, 지키는 길 = 어둠 바람 없음·작은 화해 ×2, 넓히는 길 = 반딧불 무리 없음, 구출 밤 = rescue.excludeEvents(어둠 바람) 없음 */
+export function eventModsFor(n: number, path: RunPath, nights: NightsDef = GameData.nights, rescueNight = false): EventMods {
+  const exclude: RunEventKind[] = rescueNight ? [...nights.rescue.excludeEvents] : [];
   const weightMul: Partial<Record<RunEventKind, number>> = {};
   if (n < nights.runEvents.darkWindFromNight) exclude.push('darkWind');
   if (n >= 6) weightMul.darkWind = nights.runEvents.darkWindWeightMultiplierFromNight6;
@@ -192,6 +193,11 @@ export function rulesForNight(n: number, run: RunInfo, opts: NightOptions = {}, 
   const witch = witchComesOn(night, run, friend !== null, nights);
   const p = nights.parade;
   const it = nights.items;
+  const fixed = nights.spawn.overrides?.[String(night)];
+  const climax = spawnTable(nights.spawn.climax, night, weights, fixed?.climax);
+  // 구출 밤 클라이맥스 배율 (지시서 (나) — 측정에서 필요할 때만 nights.json에 둔다)
+  const cm = friend ? (nights.rescue.climaxMultiplier ?? 1) : 1;
+  if (cm !== 1) climax.maxAlive = Math.max(1, Math.round(climax.maxAlive * cm));
   return {
     id: `night-${night}`,
     name: `밤 ${night}`,
@@ -200,8 +206,8 @@ export function rulesForNight(n: number, run: RunInfo, opts: NightOptions = {}, 
     stations: stepValue(nights.stations, night),
     spawn: {
       onlyHostileUntilSec: nights.spawn.onlyHostileUntilSec,
-      normal: spawnTable(nights.spawn.normal, night, weights),
-      climax: spawnTable(nights.spawn.climax, night, weights),
+      normal: spawnTable(nights.spawn.normal, night, weights, fixed?.normal),
+      climax,
     },
     rescue: friend ? { enemyId: `${friend}-lost` as EnemyId, atProgress: nights.rescue.atProgress } : undefined,
     boss: witch ? { enemyId: 'witch', atSec: nights.witch.atSec } : undefined,
@@ -214,7 +220,7 @@ export function rulesForNight(n: number, run: RunInfo, opts: NightOptions = {}, 
     parade: night >= p.fromNight ? { groups: stepValue(p.groupsByNight, night), size: stepValue(p.sizeByNight, night), everySec: p.everySec, kinds: [...p.kinds] } : null,
     hostileRatio,
     path,
-    eventMods: eventModsFor(night, path, nights),
+    eventMods: eventModsFor(night, path, nights, friend !== null),
     witch,
   };
 }

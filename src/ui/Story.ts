@@ -29,7 +29,26 @@ export interface StoryOptions {
   finalLabel?: string;
 }
 
+/** 이야기 카드 그림 (2026-11-24 ChatGPT 2-B, 1280×720) — 카드 2 '광원이 꺼진 밤'·카드 4 '두 목소리' */
+const STORY_ART: Partial<Record<Card['art'], string>> = {
+  source: 'assets/backgrounds/story-02-source.webp',
+  voices: 'assets/backgrounds/story-04-voices.webp',
+};
+
 function artFor(kind: Card['art']): HTMLElement {
+  const src = STORY_ART[kind];
+  if (src) {
+    const art = h('div', { class: `story__art story__art--image story__art--${kind}`, 'aria-hidden': 'true' });
+    const img = h('img', { class: 'story__image', src, alt: '', width: 1280, height: 720 });
+    // 그림을 못 불러오면 예전 초상·도형 구성으로 (임시 코드 그림은 지우지 않음)
+    img.addEventListener('error', () => art.replaceWith(composedArt(kind)), { once: true });
+    art.append(img);
+    return art;
+  }
+  return composedArt(kind);
+}
+
+function composedArt(kind: Card['art']): HTMLElement {
   const art = h('div', { class: `story__art story__art--${kind}`, 'aria-hidden': 'true' });
   if (kind === 'villages') {
     art.append(h('span', { class: 'story__orb story__orb--light' }), h('span', { class: 'story__orb story__orb--dark' }));

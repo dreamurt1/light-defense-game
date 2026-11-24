@@ -1,0 +1,122 @@
+{
+  "assets": [
+    {
+      "animation": "walk",
+      "direction": "right",
+      "path": "owl_walk_090_right_f01.png",
+      "frame": 1,
+      "name": "owl_walk_090_right_f01.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "right",
+      "path": "owl_walk_090_right_f02.png",
+      "frame": 2,
+      "name": "owl_walk_090_right_f02.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "right",
+      "path": "owl_walk_090_right_f03.png",
+      "frame": 3,
+      "name": "owl_walk_090_right_f03.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "right",
+      "path": "owl_walk_090_right_f04.png",
+      "frame": 4,
+      "name": "owl_walk_090_right_f04.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "front",
+      "path": "owl_walk_000_front_f01.png",
+      "frame": 1,
+      "name": "owl_walk_000_front_f01.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "front",
+      "path": "owl_walk_000_front_f02.png",
+      "frame": 2,
+      "name": "owl_walk_000_front_f02.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "front",
+      "path": "owl_walk_000_front_f03.png",
+      "frame": 3,
+      "name": "owl_walk_000_front_f03.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "front",
+      "path": "owl_walk_000_front_f04.png",
+      "frame": 4,
+      "name": "owl_walk_000_front_f04.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "back",
+      "path": "owl_walk_180_back_f01.png",
+      "frame": 1,
+      "name": "owl_walk_180_back_f01.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "back",
+      "path": "owl_walk_180_back_f02.png",
+      "frame": 2,
+      "name": "owl_walk_180_back_f02.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "back",
+      "path": "owl_walk_180_back_f03.png",
+      "frame": 3,
+      "name": "owl_walk_180_back_f03.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "back",
+      "path": "owl_walk_180_back_f04.png",
+      "frame": 4,
+      "name": "owl_walk_180_back_f04.png"
+    },
+    {
+      "animation": "cower",
+      "direction": "front",
+      "path": "owl_cower.png",
+      "frame": null,
+      "name": "owl_cower.png"
+    },
+    {
+      "animation": "flee",
+      "direction": "right",
+      "path": "owl_flee_f01.png",
+      "frame": 1,
+      "name": "owl_flee_f01.png"
+    },
+    {
+      "animation": "flee",
+      "direction": "right",
+      "path": "owl_flee_f02.png",
+      "frame": 2,
+      "name": "owl_flee_f02.png"
+    }
+  ],
+  "category": "passive",
+  "imageFormat": "PNG RGBA",
+  "walkAnchor": {
+    "feetBaselineY": 496,
+    "centerX": 256
+  },
+  "canvas": {
+    "height": 512,
+    "width": 512
+  },
+  "mirrorSideForLeft": true,
+  "character": "owl",
+  "pack": "LIGHT DEFENSE v3 Passive Owl"
+}

@@ -5,7 +5,8 @@
 // 순수 계산은 systems/grid.ts·pathfind.ts.
 import { GameData, gridMapById, type StageDef } from '../../data';
 import type { Vec } from '../../systems/fan';
-import { cellCenter, cellOf, farFloorCells, firstBlockDist, lampCells, lightGrid, lineBlocked, walkGrid, type Cell, type GridMap } from '../../systems/grid';
+import { Rng } from '../../core/rng';
+import { cellCenter, cellOf, farFloorCells, firstBlockDist, friendSpotCells, lampCells, lightGrid, lineBlocked, walkGrid, type Cell, type GridMap } from '../../systems/grid';
 import type { NightDef } from '../../systems/nightRules';
 import { findPath } from '../../systems/pathfind';
 
@@ -134,9 +135,17 @@ export class GridWorld {
     });
   }
 
-  /** 광장에서 먼 바닥 칸 4곳 (빛을 잃은 친구 자리·랜덤 이벤트) */
+  /** 광장에서 먼 바닥 칸 4곳 (랜덤 이벤트) */
   farSpots(): Vec[] {
     return farFloorCells(this.map, D).map((c) => cellCenter(c.col, c.row, D));
+  }
+
+  /** 빛을 잃은 친구 자리 (2026-11-24): 광장에서 rescue.spotDist(6~9칸) 바닥 칸 중 seed로 하나, 없으면 먼 바닥 칸 */
+  friendSpots(seed: number): Vec[] {
+    const cells = friendSpotCells(this.map, D, GameData.nights.rescue.spotDist);
+    if (!cells.length) return this.farSpots();
+    const c = new Rng(seed).pick(cells);
+    return [cellCenter(c.col, c.row, D)];
   }
 
   /** a → b 빛이 막히는가 */

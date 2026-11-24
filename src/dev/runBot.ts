@@ -30,6 +30,8 @@ export interface RunLogNight {
   sec: number;
   /** 이번 밤 중앙 광원 HP 최저 비율(%) */
   centralLow: number;
+  /** 이번 밤 하트로 광원을 되살린 횟수 (2026-11-24) */
+  revived: number;
 }
 
 export interface RunLog {
@@ -78,6 +80,9 @@ export function installRunBot(skill: number, seed: number, cap: number): void {
   window.__runLog = log;
   // 새 프로필처럼: 별가루 0에서
   Progress.spendDust(Progress.data.dust);
+  let revived = 0;
+  bus.on('run:start', () => (revived = 0));
+  bus.on('central:revived', () => (revived += 1));
 
   bus.on('run:morning', (e) => {
     const r = e.result;
@@ -97,6 +102,7 @@ export function installRunBot(skill: number, seed: number, cap: number): void {
       friends: [...(r.friends ?? [])],
       sec: Math.round((performance.now() - started) / 1000),
       centralLow: Math.round(((window as unknown as { __centralLowest?: () => number }).__centralLowest?.() ?? -0.01) * 100),
+      revived,
     });
     setTimeout(() => {
       const run = RunState.run;
@@ -124,7 +130,7 @@ export function installRunBot(skill: number, seed: number, cap: number): void {
       night: RunState.run?.night ?? 0,
       outcome: r.outcome,
       score: r.score,
-      hearts: 0,
+      hearts: r.heartsLeft,
       level: r.level ?? 0,
       mapId: r.mapId ?? null,
       reason: r.reason,
@@ -136,6 +142,7 @@ export function installRunBot(skill: number, seed: number, cap: number): void {
       friends: [...(r.friends ?? [])],
       sec: Math.round((performance.now() - started) / 1000),
       centralLow: Math.round(((window as unknown as { __centralLowest?: () => number }).__centralLowest?.() ?? -0.01) * 100),
+      revived,
     });
   });
   bus.on('run:end', (e) => {

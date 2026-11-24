@@ -157,6 +157,8 @@ export class Sources {
   damage(target: string, amount: number, by: EnemyId, climax: boolean): boolean {
     if (target === 'central') {
       const c = this.central;
+      // 하트로 되살린 뒤 무적 동안은 맞은 효과·이벤트도 없이 (2026-11-24)
+      if (c.state.invulnLeft > 0) return false;
       c.state.damage(amount);
       c.hit();
       this.mapLight.hit('central', climax);

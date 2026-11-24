@@ -1,0 +1,108 @@
+{
+  "pack": "UI_Icons_v3",
+  "format": "PNG",
+  "canvas": "128x128",
+  "transparent_background": true,
+  "line_color": "#F6F1E7",
+  "active_fill": "#FFC857",
+  "active_outline": "#1B1F3B",
+  "badge_background": "none",
+  "files": [
+    {
+      "name": "icon-stardust.png",
+      "width": 128,
+      "height": 128,
+      "state": "line"
+    },
+    {
+      "name": "icon-level.png",
+      "width": 128,
+      "height": 128,
+      "state": "line"
+    },
+    {
+      "name": "icon-prep-lamp-oil.png",
+      "width": 128,
+      "height": 128,
+      "state": "line"
+    },
+    {
+      "name": "icon-prep-spare-heart.png",
+      "width": 128,
+      "height": 128,
+      "state": "line"
+    },
+    {
+      "name": "icon-prep-big-pouch.png",
+      "width": 128,
+      "height": 128,
+      "state": "line"
+    },
+    {
+      "name": "icon-prep-extra-charm.png",
+      "width": 128,
+      "height": 128,
+      "state": "line"
+    },
+    {
+      "name": "icon-path-keep.png",
+      "width": 128,
+      "height": 128,
+      "state": "line"
+    },
+    {
+      "name": "icon-path-expand.png",
+      "width": 128,
+      "height": 128,
+      "state": "line"
+    },
+    {
+      "name": "icon-stardust-on.png",
+      "width": 128,
+      "height": 128,
+      "state": "active"
+    },
+    {
+      "name": "icon-level-on.png",
+      "width": 128,
+      "height": 128,
+      "state": "active"
+    },
+    {
+      "name": "icon-prep-lamp-oil-on.png",
+      "width": 128,
+      "height": 128,
+      "state": "active"
+    },
+    {
+      "name": "icon-prep-spare-heart-on.png",
+      "width": 128,
+      "height": 128,
+      "state": "active"
+    },
+    {
+      "name": "icon-prep-big-pouch-on.png",
+      "width": 128,
+      "height": 128,
+      "state": "active"
+    },
+    {
+      "name": "icon-prep-extra-charm-on.png",
+      "width": 128,
+      "height": 128,
+      "state": "active"
+    },
+    {
+      "name": "icon-path-keep-on.png",
+      "width": 128,
+      "height": 128,
+      "state": "active"
+    },
+    {
+      "name": "icon-path-expand-on.png",
+      "width": 128,
+      "height": 128,
+      "state": "active"
+    }
+  ]
+}

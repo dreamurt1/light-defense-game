@@ -26,9 +26,10 @@ import { CENTRAL, HANGING_LANTERN, LANTERN, drawCentralSource, drawHangingLanter
 import { DARK, LIT, VILLAGE_OBJECTS, drawVillage, drawWorld } from './village';
 import { LUMI_COLUMNS, LUMI_ROWS, composeLumi, lumiAnims } from './lumiCompose';
 import { DIRS } from '../systems/facing';
-import { CREATURES, creatureAnims, creatureArtPoses, creatureFrame, creatureKey, drawCreature, paradeFleeAnim, paradePoseKey, type CreatureId } from './creatures';
+import { CREATURES, creatureAnims, creatureArtPoses, creatureFrame, creatureKey, creaturePoseFallback, drawCreature, paradeFleeAnim, paradePoseKey, type CreatureId } from './creatures';
 import { DARK_ORB, ITEM_ICON, ITEM_IDS, ITEM_LABEL, drawDarkOrb, drawItemIcon, itemKey } from './items';
 import { buildKeeperSheet, drawKeeperSpriteFrame } from './keeperSprites';
+import { composeSleep } from './sleepSheet';
 import { FRIEND_PACKS, composeFriend, friendAnims } from './friendSheet';
 
 export type AssetCategory = 'characters' | 'enemies' | 'objects' | 'effects' | 'backgrounds' | 'items';
@@ -72,6 +73,11 @@ export interface ArtSpec {
    * 웅크린 그림만 있는 시트는 혼자 맞추면 커져 보인다 → 그 종 걷기 시트의 축척을 쓴다. 빌릴 시트에 생성 그림이 없으면 제 축척
    */
   scaleFrom?: string;
+  /**
+   * 포즈 파일이 없을 때 대신 쓸 포즈 (2026-11-24 2-C): 걷는 종의 앞·뒤(2차)가 마감까지 안 오면 옆 4장을 그 자리에(뒤집기 없음).
+   * 대신 쓴 포즈가 하나라도 있으면 manifest note에 남는다
+   */
+  poseFallback?: Record<string, string>;
 }
 
 export interface SheetDef {
@@ -102,10 +108,9 @@ export interface SheetDef {
 const still = (frames: number, pose = 0): ArtFrame[] => Array.from({ length: frames }, () => ({ pose }));
 
 /** 개구리 생성 그림(앉음·폴짝 두 포즈)을 12칸(옆·앞·뒤 × 웅크림·박차기·공중·착지)에 나눠 쓴다 */
-const FROG_ART_FRAMES: ArtFrame[] = Array.from({ length: 12 }, (_, i) => {
-  const p = i % 4;
-  return p === 0 ? { pose: 0, sy: 0.94 } : p === 3 ? { pose: 0 } : { pose: 1, dy: p === 2 ? -3 : -1 };
-});
+/** 개구리 생성 그림 포즈 (2026-11-24 2-C): 옆·앞·뒤 × 폴짝 4칸(f01 앉음 → f02 웅크림 → f03 공중 → f04 착지) — 시트 칸 순서와 같음 */
+const FROG_ART_POSES = ['090_right', '000_front', '180_back'].flatMap((v) => [1, 2, 3, 4].map((f) => `walk_${v}_f0${f}`));
+const FROG_POSE_FALLBACK: Record<string, string> = Object.fromEntries(FROG_ART_POSES.filter((p) => !p.startsWith('walk_090')).map((p) => [p, p.replace(/walk_\d{3}_[a-z]+_/, 'walk_090_right_')]));
 
 /** 플레이 마을(월드) 크기: 카메라가 등불지기를 따라간다 */
 const WORLD = GameData.game.world;
@@ -232,10 +237,10 @@ const enemies: SheetDef[] = [
     draw: drawBatDark,
     // 2026-11-13: 4칸 모두 다른 날갯짓 (위 → 내려침 → 아래 → 접어 올림), 3/4 옆모습 — 왼쪽은 flipX
     anims: [{ key: 'bat-dark-fly', frames: [0, 1, 2, 3], frameRate: 12, repeat: -1 }],
-    // 날개 올림·내림 두 포즈로 날갯짓
+    // 2-C(2026-11-24) 생성 그림: art-src/enemies/bat-dark.fly_090_right_f01~04.png (ChatGPT bat_fly_090_right_f01~04)
     art: {
-      poses: ['up', 'down'],
-      frames: [{ pose: 0 }, { pose: 1 }, { pose: 0, sy: 0.96, dy: -2 }, { pose: 1, sy: 1.03 }],
+      poses: ['fly_090_right_f01', 'fly_090_right_f02', 'fly_090_right_f03', 'fly_090_right_f04'],
+      frames: [{ pose: 0 }, { pose: 1 }, { pose: 2 }, { pose: 3 }],
       fit: 'contain',
       box: { x: 2, y: 10, w: 76, h: 66 },
       align: 'center',
@@ -251,13 +256,15 @@ const enemies: SheetDef[] = [
     frames: BAT.frames,
     draw: drawBatTrue,
     anims: [{ key: 'bat-true-fly', frames: [0, 1, 2, 3], frameRate: 10, repeat: -1 }],
+    // 2-C: art-src/enemies/bat-true.fly_090_right_f01~04.png (ChatGPT bat_true_fly_090_right_f01~04)
     art: {
-      poses: ['up', 'down'],
-      frames: [{ pose: 0 }, { pose: 1 }, { pose: 0, sy: 0.96, dy: -2 }, { pose: 1, sy: 1.03 }],
+      poses: ['fly_090_right_f01', 'fly_090_right_f02', 'fly_090_right_f03', 'fly_090_right_f04'],
+      frames: [{ pose: 0 }, { pose: 1 }, { pose: 2 }, { pose: 3 }],
       fit: 'contain',
       box: { x: 2, y: 10, w: 76, h: 66 },
       align: 'center',
       res: 2,
+      scaleFrom: 'bat-dark', // 되돌아온 모습 = 같은 박쥐, 같은 축척(제자리 교체)
     },
   },
   // 2026-11-12 새 기획: 잃어버린 빛의 주민 개구리 (임시 코드 그림, ChatGPT 그림이 오면 같은 키로 교체)
@@ -271,7 +278,8 @@ const enemies: SheetDef[] = [
     draw: drawFrogDark,
     // 2026-11-13: 옆·앞·뒤 × 폴짝 4칸 (웅크림·박차기·공중·착지). 폴짝 주기 0.7초 ≈ 4칸 ÷ 6fps
     anims: frogAnims('frog-dark-hop', 6),
-    art: { poses: ['sit', 'hop'], frames: FROG_ART_FRAMES, fit: 'contain', box: { x: 4, y: 6, w: 56, h: 54 }, align: 'feet', res: 2 },
+    // 2-C(2026-11-24): art-src/enemies/frog-dark.walk_090_right_f01~04 · walk_000_front_… · walk_180_back_….png (ChatGPT frog_lost_walk_…), 앞·뒤가 없으면 옆
+    art: { poses: FROG_ART_POSES, frames: FROG_ART_POSES.map((_, pose) => ({ pose })), fit: 'contain', box: { x: 4, y: 6, w: 56, h: 54 }, align: 'feet', res: 2, poseFallback: FROG_POSE_FALLBACK },
   },
   {
     key: 'frog-true',
@@ -283,7 +291,8 @@ const enemies: SheetDef[] = [
     draw: drawFrogTrue,
     // 구출 뒤 뛰어가는 폴짝(0.36초)에 맞춰 빠르게
     anims: frogAnims('frog-true-hop', 10),
-    art: { poses: ['sit', 'hop'], frames: FROG_ART_FRAMES, fit: 'contain', box: { x: 4, y: 6, w: 56, h: 54 }, align: 'feet', res: 2 },
+    // 2-C: art-src/enemies/frog-true.walk_….png (ChatGPT frog_walk_…) — 빛을 잃은 모습과 같은 축척(구출 순간 제자리 교체)
+    art: { poses: FROG_ART_POSES, frames: FROG_ART_POSES.map((_, pose) => ({ pose })), fit: 'contain', box: { x: 4, y: 6, w: 56, h: 54 }, align: 'feet', res: 2, poseFallback: FROG_POSE_FALLBACK, scaleFrom: 'frog-dark' },
   },
   {
     key: 'witch',
@@ -355,6 +364,9 @@ const enemies: SheetDef[] = [
           box: CREATURES[id].flies ? { x: 4, y: 4, w: CREATURES[id].size - 8, h: CREATURES[id].size - 8 } : { x: 4, y: 4, w: CREATURES[id].size - 8, h: CREATURES[id].cy - 4 },
           align: CREATURES[id].flies ? 'center' : 'feet',
           res: 2,
+          // 2-C(2026-11-24): 앞·뒤가 없으면 옆 4장, 제 모습은 빛을 잃은 모습과 같은 축척(구출 순간 제자리 교체)
+          poseFallback: CREATURES[id].flies ? undefined : creaturePoseFallback(id),
+          scaleFrom: look === 'true' && CREATURES[id].looks.includes('dark') ? creatureKey(id, 'dark') : undefined,
         },
       }),
     ),
@@ -386,7 +398,7 @@ const enemies: SheetDef[] = [
           frameHeight: c.size,
           frames: 2,
           draw: (ctx, f) => drawCreature(ctx, id, 'plain', creatureFrame('side', f * 2)),
-          anims: [{ key: paradeFleeAnim(id), frames: [0, 1], frameRate: Math.max(4, Math.round(c.fps * 0.75)), repeat: -1 }],
+          anims: [{ key: paradeFleeAnim(id), frames: [0, 1], frameRate: c.fleeFps ?? Math.max(4, Math.round(c.fps * 0.75)), repeat: -1 }],
           art: { poses: ['f01', 'f02'], frames: [{ pose: 0 }, { pose: 1 }], fit: 'contain', box, align, res: 2, scaleFrom: creatureKey(id, 'plain') },
         },
       ];
@@ -561,7 +573,54 @@ const effects: SheetDef[] = [
 
 const cover = (res: number): ArtSpec => ({ poses: ['main'], frames: still(1), fit: 'cover', res });
 
+/** 2-B 그림이 없을 때의 임시 코드 그림: 위아래 그라데이션 (2026-11-24) */
+const fillGradient = (top: string, bottom: string) => (ctx: CanvasRenderingContext2D): void => {
+  const { width: w, height: h } = ctx.canvas;
+  const g = ctx.createLinearGradient(0, 0, 0, h);
+  g.addColorStop(0, top);
+  g.addColorStop(1, bottom);
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, w, h);
+};
+/** v3 브리프 2-B (2026-11-24 ChatGPT, reference/Morning_Art_Pack·Region_Cards_v3·Story_Cards_v3): 아침 배경 세로·가로, 새 지역 카드 B·C, 이야기 카드 2·4 — DOM 배경 */
+const dawnArt = (key: string, label: string, w: number, h: number, top: string, bottom: string): SheetDef => ({
+  key,
+  category: 'backgrounds',
+  label,
+  frameWidth: w,
+  frameHeight: h,
+  frames: 1,
+  format: 'webp',
+  load: false,
+  draw: fillGradient(top, bottom),
+  art: cover(2),
+});
+
+/**
+ * 주인공 잠든 모습 (2026-11-24 2-C 1-3절, ChatGPT reference/Sleep_Pack/<id>_sleep.png — src/art/sleepSheet.ts가 8방향 시트와 같은 축척으로 128 칸에).
+ * 쓰러짐 = 잠듦(X 눈 금지). 그림이 없으면 Lightkeeper가 옆모습 대기 첫 칸을 눕혀 쓴다 — 'z' 같은 글자는 띄우지 않는다(라이언 11-24)
+ */
+export const sleepKey = (id: string): string => `${id}-sleep`;
+const sleepSheets: SheetDef[] = (['lumi', 'tori', 'doto'] as const).map((id) => ({
+  key: sleepKey(id),
+  format: 'webp',
+  category: 'characters',
+  label: `${id} — 잠든 모습 (Sleep_Pack, 8방향 시트와 같은 축척)`,
+  frameWidth: 64,
+  frameHeight: 64,
+  frames: 1,
+  draw: () => undefined,
+  build: () => composeSleep(id),
+  buildRes: 2,
+}));
+
 const backgrounds: SheetDef[] = [
+  dawnArt('morning', '아침 배경 — 세로 (ChatGPT 2-B)', 540, 1170, '#3A3F78', '#F2B880'),
+  dawnArt('morning-wide', '아침 배경 — 가로 (ChatGPT 2-B)', 1170, 540, '#3A3F78', '#F2B880'),
+  dawnArt('region-border', '새 지역 카드 — 경계의 숲 (ChatGPT 2-B)', 512, 256, '#1B1F3B', '#14152E'),
+  dawnArt('region-dark', '새 지역 카드 — 어둠이 삼킨 외곽 (ChatGPT 2-B)', 512, 256, '#14152E', '#120F24'),
+  dawnArt('story-02-source', '이야기 카드 2 — 광원이 꺼진 밤 (ChatGPT 2-B)', 640, 360, '#1B1F3B', '#120F24'),
+  dawnArt('story-04-voices', '이야기 카드 4 — 두 목소리 (ChatGPT 2-B)', 640, 360, '#1B1F3B', '#2A2F5A'),
   {
     key: 'village-dark',
     category: 'backgrounds',
@@ -660,7 +719,7 @@ const backgrounds: SheetDef[] = [
   },
 ];
 
-export const SHEETS: readonly SheetDef[] = [...characters, ...enemies, ...items, ...objects, ...effects, ...backgrounds];
+export const SHEETS: readonly SheetDef[] = [...characters, ...sleepSheets, ...enemies, ...items, ...objects, ...effects, ...backgrounds];
 
 export function sheetFile(s: Pick<SheetDef, 'category' | 'key' | 'format'>): string {
   return `${s.category}/${s.key}.${s.format ?? 'png'}`;

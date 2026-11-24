@@ -157,6 +157,11 @@ export class Boss {
     sayAbove(s, box, this.F.calmLine, -150, 2400);
     // 눈을 감고 미소 짓는 진정 칸에서 멈춘다
     this.witch?.stop().setFrame(WITCH_FRAME.calm);
+    // 2026-11-24 생성 그림은 진정 칸이 대기와 거의 같다 → 기존 부활 빛기둥(fx-respawn)을 한 번 겹쳐 진정을 보여 준다
+    if (s.textures.exists(TextureKeys.fxRespawn)) {
+      const fx = s.add.image(box.x, box.y + 90, TextureKeys.fxRespawn).setOrigin(0.5, 0.9).setScale(texScale(TextureKeys.fxRespawn) * 1.6).setDepth(box.depth + 1);
+      s.tweens.add({ targets: fx, alpha: 0, scaleY: fx.scaleY * 1.4, duration: 900, delay: 150, ease: 'Sine.easeIn', onComplete: () => fx.destroy() });
+    }
     for (let i = this.orbs.length - 1; i >= 0; i--) this.popOrb(i);
     s.tweens.add({ targets: box, y: box.y - 160, alpha: 0, delay: 1400, duration: 1400, onComplete: () => box.destroy() });
     bus.emit('witch:returned');

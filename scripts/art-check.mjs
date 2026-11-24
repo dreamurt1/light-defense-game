@@ -2,6 +2,7 @@
 //
 // 사용:
 //   node scripts/art-check.mjs --dir <PNG 폴더> [--char tori|doto|lumi] [--view 000_front] [--kind walk|idle|bg] [--out <png>]
+//   2-C(2026-11-24): --kind pair --dir <빛을 잃은 모습> --dir2 <제 모습> · --kind sleep --dir <Sleep_Pack> (scripts/art-pair-check.mjs)
 //   예) 걷기 4장: --dir C:/tmp/x/000_front --char tori --view 000_front --kind walk
 //       대기 8장: --dir C:/tmp/x/Doto_Idle_8D_Pack --char doto --kind idle
 // 걷기는 같은 방향의 팩 대기 그림(reference/<Char>_8_Direction_Pack/<Char>_Idle_8D_Pack/<char>_idle_<view>.png)과 견준다.
@@ -16,6 +17,11 @@ const arg = (k, d = null) => {
   const i = process.argv.indexOf(`--${k}`);
   return i > 0 ? process.argv[i + 1] : d;
 };
+// 2026-11-24 2-C: 두 모습 실루엣 맞춤(--kind pair)·잠든 모습 축척(--kind sleep)은 따로 (scripts/art-pair-check.mjs)
+if (['pair', 'sleep'].includes(process.argv[process.argv.indexOf('--kind') + 1] ?? '')) {
+  await import('./art-pair-check.mjs');
+  await new Promise(() => {}); // art-pair-check가 끝나며 process.exit
+}
 const dir = arg('dir');
 const char = arg('char');
 const view = arg('view');

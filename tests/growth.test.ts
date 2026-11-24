@@ -11,13 +11,30 @@ const G = GameData.game.growth;
 const prep = (id: string) => GameData.shop.prep.find((p) => p.id === id)!;
 
 describe('빛 레벨 ★ (런 안에서만)', () => {
-  it('★1 → ★2에 10, ★2 → ★3에 15 … 최대 ★10', () => {
-    expect([1, 2, 9, 10].map((l) => xpNeed(l, G))).toEqual([10, 15, 50, Infinity]);
-    expect(addXp({ level: 1, xp: 0 }, 9, G)).toEqual({ level: 1, xp: 9, ups: 0 });
-    expect(addXp({ level: 1, xp: 9 }, 3, G)).toEqual({ level: 2, xp: 2, ups: 1 });
-    expect(addXp({ level: 1, xp: 0 }, 25, G)).toEqual({ level: 3, xp: 0, ups: 2 });
-    expect(addXp({ level: 9, xp: 49 }, 999, G)).toEqual({ level: 10, xp: 0, ups: 1 });
-    expect(addXp({ level: 10, xp: 0 }, 5, G).level).toBe(10);
+  it('뒤로 갈수록 비싸게 (2026-11-24 다듬기 1차): 앞 여섯 10·15·25·40·60·85는 지시서 값, 뒤 셋은 밸런스 레버(5절 ③) — 늘 커짐, 최대 ★10', () => {
+    const X = G.xpToNext;
+    expect(X).toHaveLength(9);
+    expect(X.slice(0, 6)).toEqual([10, 15, 25, 40, 60, 85]);
+    for (let i = 1; i < X.length; i++) expect(X[i]).toBeGreaterThan(X[i - 1]);
+    const total = X.reduce((a, b) => a + b, 0);
+    expect([1, 2, 3, 9, 10].map((l) => xpNeed(l, G))).toEqual([10, 15, 25, X[8], Infinity]);
+    expect(addXp({ level: 1, xp: 0 }, 9, G)).toEqual({ level: 1, xp: 9, ups: 0, dust: 0 });
+    expect(addXp({ level: 1, xp: 9 }, 3, G)).toEqual({ level: 2, xp: 2, ups: 1, dust: 0 });
+    expect(addXp({ level: 1, xp: 0 }, 25, G)).toEqual({ level: 3, xp: 0, ups: 2, dust: 0 });
+    expect(addXp({ level: 4, xp: 39 }, 1, G)).toEqual({ level: 5, xp: 0, ups: 1, dust: 0 });
+    expect(addXp({ level: 1, xp: 0 }, total, G)).toEqual({ level: 10, xp: 0, ups: 9, dust: 0 });
+    expect(addXp({ level: 1, xp: 0 }, total - 1, G).level).toBe(9);
+  });
+  it('★10 뒤 남는 경험치는 50마다 별가루 +1 (남은 것은 다음 별가루 몫으로)', () => {
+    const last = G.xpToNext[8];
+    expect(G.overflowDustPerXp).toBe(50);
+    expect(addXp({ level: 9, xp: last - 1 }, 51, G)).toEqual({ level: 10, xp: 0, ups: 1, dust: 1 });
+    expect(addXp({ level: 9, xp: last - 1 }, 999, G)).toEqual({ level: 10, xp: 48, ups: 1, dust: 19 });
+    expect(addXp({ level: 10, xp: 48 }, 2, G)).toEqual({ level: 10, xp: 0, ups: 0, dust: 1 });
+    expect(addXp({ level: 10, xp: 0 }, 3, G)).toEqual({ level: 10, xp: 3, ups: 0, dust: 0 });
+    const t = new DustTally(GameData.game.dust);
+    t.addRaw(2);
+    expect(t.total).toBe(2);
   });
   it('경험치: 구출 3 · 호스틸 2 · 등불 2 · 자비 2 · 패시브 돌려보냄 1', () => {
     expect(G.xp).toEqual({ rescue: 3, returnHostile: 2, station: 2, mercy: 2, banishPassive: 1 });

@@ -17,6 +17,8 @@ export class Haptics {
       if (e.reason === 'gain' && e.combo > 0 && e.combo % 5 === 0) this.buzz(18);
     });
     bus.on('friend:rescued', () => this.buzz([30, 50, 30, 50, 60]));
+    // 하트로 광원을 되살림 (2026-11-24): 세 번
+    bus.on('central:revived', () => this.buzz([40, 60, 40, 60, 40]));
   }
 
   setEnabled(on: boolean): void {

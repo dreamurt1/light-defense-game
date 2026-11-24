@@ -17,7 +17,8 @@ import { firstNightOfBand } from '../systems/nightRules';
 import { parseBlobs, type GridMap } from '../systems/grid';
 import { buyPrep, canBuy } from '../systems/shop';
 import { formatScore, h, svg } from './dom';
-import { heartIcon, homeIcon, playIcon, prepIcons } from './icons';
+import { heartIcon, homeIcon, playIcon } from './icons';
+import { pathIconName, prepIconName, v3Icon, withIcon } from './v3Icons';
 import { PATH_TITLE, hasBatchim, nightSubject, pathLine } from './runText';
 import { screenShell } from './screens/common';
 
@@ -113,18 +114,16 @@ export class MorningSheet {
     const path = runPath(run);
     this.path.hidden = run.mercy + banished === 0;
     this.path.dataset.path = path;
-    this.path.textContent = `${PATH_TITLE[path]} · ${pathLine(run.mercy, banished)}`;
+    withIcon(this.path, pathIconName(path), `${PATH_TITLE[path]} · ${pathLine(run.mercy, banished)}`);
 
     this.score.textContent = formatScore(r.score);
     this.mercy.textContent = `${r.mercy}번`;
     this.returned.textContent = `${r.retreated + (r.banish ?? 0)}명`;
     this.rescued.textContent = `${r.rescued}명`;
     this.stations.textContent = `${r.stationsLit} / ${r.stationsTotal}`;
-    this.dust.textContent = `✦+${r.dust ?? 0} → ✦${Progress.data.dust}`;
-
     this.renderRun(run);
     const up = growthLine(before.level, run.level, run.characterId, GameData.game.growth);
-    this.level.textContent = up ? `빛 레벨 ★${run.level} · 이번 밤 ${up}` : `빛 레벨 ★${run.level}`;
+    withIcon(this.level, 'level', up ? `빛 레벨 ${run.level} · 이번 밤 ${up}` : `빛 레벨 ${run.level}`, !!up);
   }
 
   /**
@@ -152,7 +151,7 @@ export class MorningSheet {
   /** 하트·별가루·상점 (사면 다시) */
   private renderRun(run: RunData): void {
     const r = this.result;
-    this.dust.textContent = `✦+${r?.dust ?? 0} → ✦${Progress.data.dust}`;
+    withIcon(this.dust, 'stardust', `+${r?.dust ?? 0} → ${Progress.data.dust}`, (r?.dust ?? 0) > 0);
     this.hearts.forEach((el, i) => el.classList.toggle('is-empty', i >= run.hearts));
     this.hearts[0]?.parentElement?.setAttribute('aria-label', `하트 ${run.hearts}개`);
     this.shopGrid.replaceChildren(...GameData.shop.prep.map((def) => this.prepCard(def, run)));
@@ -161,13 +160,14 @@ export class MorningSheet {
 
   private prepCard(def: PrepDef, run: RunData): HTMLElement {
     const state = canBuy(def, run, Progress.data.dust);
-    const tag = state === 'owned' ? '챙겼어요' : `✦${def.price}`;
+    const owned = state === 'owned';
+    const tag = owned ? '챙겼어요' : `별가루 ${def.price}`;
     const b = h(
       'button',
       { class: `prep-card${state === 'owned' ? ' is-owned' : ''}${state === 'short' ? ' is-short' : ''}`, type: 'button', 'aria-label': `${def.name} — ${def.desc}, ${tag}` },
-      h('span', { class: 'prep-card__icon' }, svg(prepIcons[def.id] ?? prepIcons.extra_charm)),
+      h('span', { class: 'prep-card__icon' }, v3Icon(prepIconName(def.id), owned)),
       h('span', { class: 'prep-card__text' }, h('strong', {}, def.name), h('small', {}, def.desc)),
-      h('span', { class: 'prep-card__price' }, tag),
+      owned ? h('span', { class: 'prep-card__price' }, tag) : h('span', { class: 'prep-card__price' }, v3Icon('stardust'), String(def.price)),
     );
     b.addEventListener('click', () => this.buy(def));
     return b;

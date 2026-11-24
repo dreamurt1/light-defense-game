@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-23T16:01:36.330Z",
+  "generatedAt": "2026-11-24T00:12:56.839Z",
   "sheets": [
     {
       "key": "portrait-lumi",
@@ -770,6 +770,45 @@
       ]
     },
     {
+      "key": "lumi-sleep",
+      "category": "characters",
+      "label": "lumi — 잠든 모습 (Sleep_Pack, 8방향 시트와 같은 축척)",
+      "file": "characters/lumi-sleep.webp",
+      "frameWidth": 64,
+      "frameHeight": 64,
+      "frames": 1,
+      "res": 2,
+      "source": "art",
+      "load": true,
+      "anims": []
+    },
+    {
+      "key": "tori-sleep",
+      "category": "characters",
+      "label": "tori — 잠든 모습 (Sleep_Pack, 8방향 시트와 같은 축척)",
+      "file": "characters/tori-sleep.webp",
+      "frameWidth": 64,
+      "frameHeight": 64,
+      "frames": 1,
+      "res": 2,
+      "source": "art",
+      "load": true,
+      "anims": []
+    },
+    {
+      "key": "doto-sleep",
+      "category": "characters",
+      "label": "doto — 잠든 모습 (Sleep_Pack, 8방향 시트와 같은 축척)",
+      "file": "characters/doto-sleep.webp",
+      "frameWidth": 64,
+      "frameHeight": 64,
+      "frames": 1,
+      "res": 2,
+      "source": "art",
+      "load": true,
+      "anims": []
+    },
+    {
       "key": "bat-dark",
       "category": "enemies",
       "label": "파닥 — 어둠에 변한 모습 (날갯짓)",
@@ -921,8 +960,8 @@
       "frameWidth": 192,
       "frameHeight": 192,
       "frames": 7,
-      "res": 1,
-      "source": "code",
+      "res": 2,
+      "source": "art",
       "load": true,
       "anims": [
         {
@@ -955,8 +994,8 @@
       "frameWidth": 192,
       "frameHeight": 192,
       "frames": 7,
-      "res": 1,
-      "source": "code",
+      "res": 2,
+      "source": "art",
       "load": true,
       "anims": [
         {
@@ -1249,8 +1288,8 @@
       "frameWidth": 72,
       "frameHeight": 72,
       "frames": 12,
-      "res": 1,
-      "source": "code",
+      "res": 2,
+      "source": "art",
       "load": true,
       "anims": [
         {
@@ -1296,8 +1335,8 @@
       "frameWidth": 64,
       "frameHeight": 64,
       "frames": 4,
-      "res": 1,
-      "source": "code",
+      "res": 2,
+      "source": "art",
       "load": true,
       "anims": [
         {
@@ -1308,7 +1347,7 @@
             2,
             3
           ],
-          "frameRate": 10,
+          "frameRate": 8,
           "repeat": -1
         }
       ]
@@ -1321,8 +1360,8 @@
       "frameWidth": 48,
       "frameHeight": 48,
       "frames": 4,
-      "res": 1,
-      "source": "code",
+      "res": 2,
+      "source": "art",
       "load": true,
       "anims": [
         {
@@ -1333,7 +1372,7 @@
             2,
             3
           ],
-          "frameRate": 12,
+          "frameRate": 8,
           "repeat": -1
         }
       ]
@@ -1346,8 +1385,8 @@
       "frameWidth": 72,
       "frameHeight": 72,
       "frames": 1,
-      "res": 1,
-      "source": "code",
+      "res": 2,
+      "source": "art",
       "load": true,
       "anims": []
     },
@@ -1359,8 +1398,8 @@
       "frameWidth": 72,
       "frameHeight": 72,
       "frames": 2,
-      "res": 1,
-      "source": "code",
+      "res": 2,
+      "source": "art",
       "load": true,
       "anims": [
         {
@@ -1369,7 +1408,7 @@
             0,
             1
           ],
-          "frameRate": 5,
+          "frameRate": 8,
           "repeat": -1
         }
       ]
@@ -1382,8 +1421,8 @@
       "frameWidth": 64,
       "frameHeight": 64,
       "frames": 1,
-      "res": 1,
-      "source": "code",
+      "res": 2,
+      "source": "art",
       "load": true,
       "anims": []
     },
@@ -1395,8 +1434,8 @@
       "frameWidth": 64,
       "frameHeight": 64,
       "frames": 2,
-      "res": 1,
-      "source": "code",
+      "res": 2,
+      "source": "art",
       "load": true,
       "anims": [
         {
@@ -1405,7 +1444,7 @@
             0,
             1
           ],
-          "frameRate": 8,
+          "frameRate": 6,
           "repeat": -1
         }
       ]
@@ -1418,8 +1457,8 @@
       "frameWidth": 48,
       "frameHeight": 48,
       "frames": 1,
-      "res": 1,
-      "source": "code",
+      "res": 2,
+      "source": "art",
       "load": true,
       "anims": []
     },
@@ -1431,8 +1470,8 @@
       "frameWidth": 48,
       "frameHeight": 48,
       "frames": 2,
-      "res": 1,
-      "source": "code",
+      "res": 2,
+      "source": "art",
       "load": true,
       "anims": [
         {
@@ -1441,7 +1480,7 @@
             0,
             1
           ],
-          "frameRate": 9,
+          "frameRate": 8,
           "repeat": -1
         }
       ]
@@ -1912,6 +1951,84 @@
       "res": 1,
       "source": "code",
       "load": true,
+      "anims": []
+    },
+    {
+      "key": "morning",
+      "category": "backgrounds",
+      "label": "아침 배경 — 세로 (ChatGPT 2-B)",
+      "file": "backgrounds/morning.webp",
+      "frameWidth": 540,
+      "frameHeight": 1170,
+      "frames": 1,
+      "res": 2,
+      "source": "art",
+      "load": false,
+      "anims": []
+    },
+    {
+      "key": "morning-wide",
+      "category": "backgrounds",
+      "label": "아침 배경 — 가로 (ChatGPT 2-B)",
+      "file": "backgrounds/morning-wide.webp",
+      "frameWidth": 1170,
+      "frameHeight": 540,
+      "frames": 1,
+      "res": 2,
+      "source": "art",
+      "load": false,
+      "anims": []
+    },
+    {
+      "key": "region-border",
+      "category": "backgrounds",
+      "label": "새 지역 카드 — 경계의 숲 (ChatGPT 2-B)",
+      "file": "backgrounds/region-border.webp",
+      "frameWidth": 512,
+      "frameHeight": 256,
+      "frames": 1,
+      "res": 2,
+      "source": "art",
+      "load": false,
+      "anims": []
+    },
+    {
+      "key": "region-dark",
+      "category": "backgrounds",
+      "label": "새 지역 카드 — 어둠이 삼킨 외곽 (ChatGPT 2-B)",
+      "file": "backgrounds/region-dark.webp",
+      "frameWidth": 512,
+      "frameHeight": 256,
+      "frames": 1,
+      "res": 2,
+      "source": "art",
+      "load": false,
+      "anims": []
+    },
+    {
+      "key": "story-02-source",
+      "category": "backgrounds",
+      "label": "이야기 카드 2 — 광원이 꺼진 밤 (ChatGPT 2-B)",
+      "file": "backgrounds/story-02-source.webp",
+      "frameWidth": 640,
+      "frameHeight": 360,
+      "frames": 1,
+      "res": 2,
+      "source": "art",
+      "load": false,
+      "anims": []
+    },
+    {
+      "key": "story-04-voices",
+      "category": "backgrounds",
+      "label": "이야기 카드 4 — 두 목소리 (ChatGPT 2-B)",
+      "file": "backgrounds/story-04-voices.webp",
+      "frameWidth": 640,
+      "frameHeight": 360,
+      "frames": 1,
+      "res": 2,
+      "source": "art",
+      "load": false,
       "anims": []
     },
     {

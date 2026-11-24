@@ -1,0 +1,17 @@
+{
+  "pack": "Morning_Art_Pack",
+  "format": "PNG",
+  "transparent_background": false,
+  "files": [
+    {
+      "name": "morning.png",
+      "width": 1080,
+      "height": 2340
+    },
+    {
+      "name": "morning-wide.png",
+      "width": 2340,
+      "height": 1080
+    }
+  ]
+}

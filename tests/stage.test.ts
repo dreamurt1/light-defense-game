@@ -6,7 +6,7 @@ import { LightPoints } from '../src/systems/lightPoints';
 import { bandOf } from '../src/systems/lightLevel';
 import { CentralSourceState } from '../src/systems/centralSource';
 import { StationState } from '../src/systems/lightStation';
-import { judgeStage } from '../src/systems/stageOutcome';
+import { canReviveSource, judgeStage } from '../src/systems/stageOutcome';
 
 const G = GameData.game;
 const bands = G.lightLevels.bands;
@@ -229,5 +229,48 @@ describe('주인공 특성 (2026-11-17 라이언: 토리 = 빠른 발)', () => {
     expect(rescueFor(s3, 'doto')).toBeNull();
     expect(rescueFor(s3, 'tori')?.enemyId).toBe('doto-lost');
     expect(rescueFor(base, 'lumi')).toBeNull();
+  });
+});
+
+describe('하트로 광원 되살리기 (2026-11-24 다듬기 1차, 라이언 확정)', () => {
+  const R = G.run.sourceRevive;
+  it('값: 켜 둠 · HP 40% · 한 밤에 1번 · 밀어내기 240 · 무적 2.5초', () => {
+    expect(R).toMatchObject({ enabled: true, hpRatio: 0.4, maxPerNight: 1, pushRadius: 240, invulnSec: 2.5 });
+  });
+  it('광원 0 + 하트 2개 이상 → 되살림 1회, 두 번째(같은 밤) → 안 됨', () => {
+    expect(canReviveSource(R, { allowed: true, hearts: 3, used: 0 })).toBe(true);
+    expect(canReviveSource(R, { allowed: true, hearts: 3, used: 1 })).toBe(false);
+  });
+  it('마지막 하트(1개)는 쓰지 않는다 — 그대로 끝, 튜토리얼·트라이얼(allowed false)도 없음, 끄면 없음', () => {
+    expect(canReviveSource(R, { allowed: true, hearts: 1, used: 0 })).toBe(false);
+    expect(canReviveSource(R, { allowed: true, hearts: 2, used: 0 })).toBe(true);
+    expect(canReviveSource(R, { allowed: false, hearts: 3, used: 0 })).toBe(false);
+    expect(canReviveSource({ ...R, enabled: false }, { allowed: true, hearts: 3, used: 0 })).toBe(false);
+  });
+  it('되살린 광원: HP 40%, 무적 동안 맞아도 줄지 않고 무적이 끝나면 다시 준다', () => {
+    const c = new CentralSourceState(G.central);
+    c.damage(c.maxHp);
+    expect(c.out).toBe(true);
+    c.revive(R.hpRatio, R.invulnSec);
+    expect(c.out).toBe(false);
+    expect(c.hp).toBeCloseTo(c.maxHp * 0.4);
+    c.damage(10);
+    expect(c.hp).toBeCloseTo(c.maxHp * 0.4);
+    c.tick(2.5);
+    c.damage(10);
+    expect(c.hp).toBeCloseTo(c.maxHp * 0.4 - 10);
+  });
+  it('하트를 쓰면 하트 −1 (마지막 하트는 못 씀), 판정: 되살린 뒤 하트 ≥1이면 계속, 두 번째로 꺼지면 끝', () => {
+    const v = new Vitals(G.player, 3);
+    expect(v.spendHeart()).toBe(true);
+    expect(v.hearts).toBe(2);
+    expect(v.spendHeart()).toBe(true);
+    expect(v.hearts).toBe(1);
+    expect(v.spendHeart()).toBe(false);
+    expect(v.hearts).toBe(1);
+    const base = { timeUp: false, centralLevel: 40, stationsOn: [true], bands };
+    expect(judgeStage({ ...base, hearts: 1, centralOut: false })).toBeNull();
+    expect(judgeStage({ ...base, hearts: 1, centralOut: true })).toEqual({ outcome: 'over', reason: 'central' });
+    expect(judgeStage({ ...base, hearts: 0, centralOut: false })).toEqual({ outcome: 'over', reason: 'hearts' });
   });
 });

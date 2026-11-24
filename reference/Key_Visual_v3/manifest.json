@@ -1,0 +1,18 @@
+{
+  "pack": "Key_Visual_v3",
+  "theme": "Night Outing",
+  "format": "PNG",
+  "transparent_background": false,
+  "files": [
+    {
+      "name": "night-outing-portrait.png",
+      "width": 1080,
+      "height": 1920
+    },
+    {
+      "name": "night-outing-landscape.png",
+      "width": 1920,
+      "height": 1080
+    }
+  ]
+}

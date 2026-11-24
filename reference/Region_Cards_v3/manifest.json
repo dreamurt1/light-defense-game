@@ -1,0 +1,22 @@
+{
+  "pack": "Region_Cards_v3",
+  "format": "PNG",
+  "canvas": "1024x512",
+  "transparent_background": false,
+  "reserved_overlay_regions": [
+    "upper-left map area",
+    "right-side title and copy"
+  ],
+  "files": [
+    {
+      "name": "region-border.png",
+      "width": 1024,
+      "height": 512
+    },
+    {
+      "name": "region-dark.png",
+      "width": 1024,
+      "height": 512
+    }
+  ]
+}

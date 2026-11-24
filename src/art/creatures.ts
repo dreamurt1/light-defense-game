@@ -54,6 +54,8 @@ export interface CreatureArt {
   flies: boolean;
   /** 걸음·날갯짓 애니메이션 속도 (초당 칸, 제안) */
   fps: number;
+  /** 행렬 도망 2칸의 속도 (초당 칸, 없으면 fps × 0.75 — 2026-11-24 올빼미 8, 기획 세션 제안) */
+  fleeFps?: number;
 }
 
 export const CREATURES: Record<CreatureId, CreatureArt> = {
@@ -61,9 +63,10 @@ export const CREATURES: Record<CreatureId, CreatureArt> = {
   vampire: { size: 80, cy: 44, frames: 4, looks: ['dark'], flies: true, fps: 9 },
   hedgehog: { size: 64, cy: 54, frames: 12, looks: ['dark', 'true'], flies: false, fps: 9 },
   redpanda: { size: 72, cy: 62, frames: 12, looks: ['dark', 'true'], flies: false, fps: 9 },
-  owl: { size: 72, cy: 62, frames: 12, looks: ['plain'], flies: false, fps: 6 },
-  moth: { size: 64, cy: 32, frames: 4, looks: ['plain'], flies: true, fps: 10 },
-  firefly: { size: 48, cy: 24, frames: 4, looks: ['plain'], flies: true, fps: 12 },
+  owl: { size: 72, cy: 62, frames: 12, looks: ['plain'], flies: false, fps: 6, fleeFps: 8 },
+  // 2026-11-24 ChatGPT 그림: 날갯짓 8칸/초(올빼미 걷기 6보다 빠르게 — 곤충), 나방 도망은 f01 옆 ↔ f02 3/4 뒷모습이라 6칸/초(기획 지시서 2-1)
+  moth: { size: 64, cy: 32, frames: 4, looks: ['plain'], flies: true, fps: 8, fleeFps: 6 },
+  firefly: { size: 48, cy: 24, frames: 4, looks: ['plain'], flies: true, fps: 8, fleeFps: 8 },
 };
 
 export const creatureKey = (id: CreatureId, look: CreatureLook): string => (look === 'plain' ? id : `${id}-${look}`);
@@ -84,6 +87,13 @@ const VIEW_NAME: Record<CritterView, string> = { side: '090_right', front: '000_
  * 파일 = art-src/enemies/<시트 키>.<포즈>.png (ChatGPT 이름 `owl_walk_090_right_f01.png` → `owl.walk_090_right_f01.png`, 호스틸은 `werewolf-dark.…`)
  */
 export const creatureArtPoses = (id: CreatureId): string[] => creatureViews(id).flatMap((v) => [1, 2, 3, 4].map((f) => `walk_${VIEW_NAME[v]}_f0${f}`));
+/** 앞·뒤 걷기 그림이 없을 때 옆 걷기 그림으로 (2026-11-24 2-C 폴백: walk_000_front_f01 → walk_090_right_f01) */
+export const creaturePoseFallback = (id: CreatureId): Record<string, string> =>
+  Object.fromEntries(
+    creatureArtPoses(id)
+      .filter((p) => !p.startsWith(`walk_${VIEW_NAME.side}_`))
+      .map((p) => [p, p.replace(/walk_\d{3}_[a-z]+_/, `walk_${VIEW_NAME.side}_`)]),
+  );
 /** 이 종의 시트에 들어 있는 방향 (나는 종은 옆만) */
 export const creatureViews = (id: CreatureId): readonly CritterView[] => (CREATURES[id].flies ? ['side'] : CRITTER_VIEWS);
 /** 방향·걸음 칸 → 시트 칸 번호 */

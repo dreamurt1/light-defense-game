@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { GameData } from '../src/data';
-import { cellCenter, cellOf, cellsBlocked, checkMap, farFloorCells, firstBlockDist, lampCells, lightGrid, lineBlocked, parseBlobs, walkGrid, type GridMap } from '../src/systems/grid';
+import { cellCenter, cellOf, cellsBlocked, checkMap, farFloorCells, firstBlockDist, friendSpotCells, lampCells, plazaDist, lightGrid, lineBlocked, parseBlobs, walkGrid, type GridMap } from '../src/systems/grid';
 
 // 2026-11-23 밤 나들이 v3 — 격자 맵 (NIGHT_RUN.md 7절)
 const D = GameData.grid;
@@ -19,13 +19,27 @@ describe('격자 규격', () => {
   });
 });
 
-describe('맵 3장 검사 (scripts/map-check.mjs와 같은 규칙)', () => {
+describe('맵 7장 검사 (scripts/map-check.mjs와 같은 규칙)', () => {
+  const lampDistOf = (band: string) => GameData.nights.bands.find((b) => b.id === band)?.lampDist ?? D.lampDist;
   for (const [id, m] of Object.entries(GameData.maps)) {
     it(`${id} ${m.name}`, () => {
-      expect(checkMap(m, D)).toEqual([]);
+      expect(checkMap(m, D, lampDistOf(m.band))).toEqual([]);
       expect(lampCells(m, D)).toHaveLength(4);
     });
   }
+  it('맵 7장: A1·A2·A3 · B1·B2 · C1·C2 (2026-11-24 C2 외곽 · 깊은 숲)', () => {
+    expect(Object.keys(GameData.maps).sort()).toEqual(['A1', 'A2', 'A3', 'B1', 'B2', 'C1', 'C2']);
+    expect(GameData.maps.C2.band).toBe('C');
+  });
+  it('빛의 마을(A) 등불 자리는 4~6칸(2026-11-24 보충 3-2), B·C는 4~8칸', () => {
+    expect(lampDistOf('A')).toEqual([4, 6]);
+    expect(lampDistOf('B')).toEqual([4, 8]);
+    for (const m of Object.values(GameData.maps).filter((x) => x.band === 'A')) for (const c of lampCells(m, D)) expect(plazaDist(c, D), `${m.id} (${c.col},${c.row})`).toBeLessThanOrEqual(6);
+    // 7칸 자리는 A 구간에서 걸린다
+    const rows = [...GameData.maps.A1.rows];
+    rows[5] = rows[5].slice(0, 22) + '.L' + rows[5].slice(24);
+    expect(checkMap({ ...GameData.maps.A1, rows }, D, [4, 6]).some((e) => e.includes('(23,5)'))).toBe(true);
+  });
   it('밤 구간의 맵이 모두 있다', () => {
     for (const b of GameData.nights.bands) for (const id of b.maps) expect(GameData.maps[id], id).toBeTruthy();
   });
@@ -65,7 +79,26 @@ describe('빛 차단 (바위·집·술통·건초·울타리는 막고, 풀숲·
   });
 });
 
-describe('먼 바닥 칸 (빛을 잃은 친구 자리)', () => {
+describe('빛을 잃은 친구 자리 (2026-11-24: 광장에서 6~9칸 바닥 칸 중 seed로 하나)', () => {
+  it('모든 맵에 후보가 있고, 모두 바닥·가장자리 아님·광장에서 걸어갈 수 있음·6~9칸', () => {
+    expect(GameData.nights.rescue.spotDist).toEqual([6, 9]);
+    for (const m of Object.values(GameData.maps)) {
+      const cells = friendSpotCells(m, D, [6, 9]);
+      expect(cells.length, m.id).toBeGreaterThan(50);
+      for (const c of cells) {
+        expect(m.rows[c.row][c.col]).toBe('.');
+        expect(c.row > 0 && c.row < 18 && c.col > 0 && c.col < 32).toBe(true);
+        expect(plazaDist(c, D)).toBeGreaterThanOrEqual(6);
+        expect(plazaDist(c, D)).toBeLessThanOrEqual(9);
+      }
+    }
+  });
+  it('후보가 없으면 빈 목록 (판은 먼 바닥 칸으로 폴백)', () => {
+    expect(friendSpotCells(GameData.maps.A1, D, [20, 30])).toEqual([]);
+  });
+});
+
+describe('먼 바닥 칸 (랜덤 이벤트 자리 · 친구 자리 폴백)', () => {
   it('네 귀퉁이 쪽, 가장자리 칸이 아닌 바닥', () => {
     for (const m of Object.values(GameData.maps)) {
       const far = farFloorCells(m, D);

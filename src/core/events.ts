@@ -63,6 +63,10 @@ export interface GameEvents {
   /** 중앙 광원 HP (게이지, 2026-11-14 — 광도는 HP 비례) */
   'central:change': { hp: number; maxHp: number };
   'central:hit': { hp: number; by: EnemyId };
+  /** 하트 하나로 중앙 광원을 되살림 (2026-11-24) — hearts = 남은 하트 */
+  'central:revived': { hearts: number };
+  /** 광원이 처음 낮아졌고 하트로 되살릴 수 있음 — 안내 한 줄 (2026-11-24, 밤마다 한 번) */
+  'central:reviveHint': undefined;
   /** 등불 스테이션: 켜진 수 / 전체 */
   'station:change': { lit: number; total: number };
   /** centralHeal = 켜진 덕에 오른 중앙 광원 HP (2026-11-14) */

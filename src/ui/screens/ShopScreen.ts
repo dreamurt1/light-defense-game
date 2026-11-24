@@ -8,6 +8,7 @@ import { Progress } from '../../core/Progress';
 import { loadSettings, saveSettings } from '../../core/Settings';
 import { GameData } from '../../data';
 import { h } from '../dom';
+import { v3Icon } from '../v3Icons';
 import { portraitUrl, screenBar, screenShell } from './common';
 
 type Tab = 'light' | 'skin';
@@ -85,7 +86,7 @@ export class ShopScreen {
         { class: `shop-card shop-card--light${on ? ' is-equipped' : ''}${owned ? '' : ' is-locked'}`, type: 'button', 'aria-pressed': String(on) },
         swatch,
         h('strong', {}, c.name),
-        h('span', { class: 'shop-card__tag' }, tag),
+        tag.startsWith('사기 ✦') ? h('span', { class: 'shop-card__tag' }, '사기 ', v3Icon('stardust'), String(c.price)) : h('span', { class: 'shop-card__tag' }, tag),
       );
       card.addEventListener('click', () => {
         // 사면 바로 쓴다. 모자라면 그 칸에 '별가루가 부족해요'
@@ -101,7 +102,7 @@ export class ShopScreen {
       return card;
     });
     this.grid.replaceChildren(...cards);
-    this.note.textContent = `별가루 ✦${Progress.data.dust} · 겉모습만 바뀌어요. 별가루는 밤을 지키면 모여요.`;
+    this.note.replaceChildren('별가루 ', v3Icon('stardust'), `${Progress.data.dust} · 겉모습만 바뀌어요. 별가루는 밤을 지키면 모여요.`);
   }
 
   private renderSkin(): void {

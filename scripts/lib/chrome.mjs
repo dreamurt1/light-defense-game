@@ -31,14 +31,15 @@ export async function openPage({ width = 390, height = 844, scale = 2, phone = f
 
   let port = 0;
   const portFile = join(profile, 'DevToolsActivePort');
-  for (let i = 0; i < 100 && !port; i++) {
+  // 창을 여러 개 동시에 켜면(밸런스 측정 9창) 10초를 넘길 때가 있다 → 30초까지 (2026-11-24)
+  for (let i = 0; i < 300 && !port; i++) {
     try {
       if (existsSync(portFile)) port = Number(readFileSync(portFile, 'utf8').split(/\r?\n/)[0]) || 0;
     } catch {}
     if (!port) await sleep(100);
   }
   let wsUrl = null;
-  for (let i = 0; i < 50 && !wsUrl && port; i++) {
+  for (let i = 0; i < 100 && !wsUrl && port; i++) {
     try {
       const list = await (await fetch(`http://127.0.0.1:${port}/json`)).json();
       wsUrl = list.find((t) => t.type === 'page')?.webSocketDebuggerUrl ?? null;

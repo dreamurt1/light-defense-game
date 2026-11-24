@@ -209,6 +209,7 @@ export function installAudio(): void {
   bus.on('player:hurt', on(() => Sfx.hurt()));
   bus.on('player:down', on(() => Sfx.down()));
   bus.on('player:respawn', on(() => Sfx.respawn()));
+  bus.on('central:revived', on(() => Sfx.respawn()));
   bus.on('friend:rescued', on(() => Sfx.friend()));
   bus.on('boss:attack', on((e) => Sfx.bossAttack(e.kind)));
   bus.on('witch:spawn', on(() => Sfx.witchSpawn()));

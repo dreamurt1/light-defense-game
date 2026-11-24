@@ -56,7 +56,8 @@ async function loadArt(path: string): Promise<CanvasImageSource | null> {
 
 /** 포즈별 파일(<키>.<포즈>.png) 또는 한 장(<키>.png). 없으면 null */
 function sourcesFor(s: SheetDef, spec: ArtSpec): { single: string } | { poses: string[] } | null {
-  const perPose = spec.poses.map((p) => findSource(s.category, `${s.key}.${p}`));
+  // 2026-11-24 2-C: 포즈 파일이 없으면 poseFallback의 포즈 파일로 (앞·뒤 → 옆)
+  const perPose = spec.poses.map((p) => findSource(s.category, `${s.key}.${p}`) ?? (spec.poseFallback?.[p] ? findSource(s.category, `${s.key}.${spec.poseFallback[p]}`) : null));
   if (perPose.every((u): u is string => u !== null)) return { poses: perPose };
   const single = findSource(s.category, s.key);
   return single ? { single } : null;

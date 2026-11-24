@@ -14,6 +14,7 @@ description: 라이트 디펜스에서 ChatGPT가 만든 그림(캐릭터 대기
 ## 2. 재기 — `node scripts/art-check.mjs`
 - 걷기 한 방향: `--dir <폴더> --char tori --view 000_front` (같은 방향 팩 대기 그림과 견줌)
 - 대기 8장: `--dir <폴더> --char doto --kind idle` · 배경: `--kind bg`
+- 2-C(2026-11-24): 두 모습(빛을 잃은·제 모습, 박쥐 어둠·되돌아온) = `--kind pair --dir <A> --dir2 <B> --a <접두사> --b <접두사>`(같은 칸 높이·발끝·가운데 ±8px), 잠든 모습 = `--kind sleep --dir reference/Sleep_Pack`(축척 ±10%, X 눈·zzz·글자는 눈으로). 자리 대조표는 `docs/design/NIGHT_RUN.md` 14-4.
 - 경고 기준: 512 캔버스 · 발끝 495~496 · f01 = 대기 그림 · 뜨는 높이 ≤ 8 · 눈 높이 ±6 · 귀 끝 ±15 · 눈 색 · **눈동자 덩이 수(눈 겹침)** · 토리 리본 쪽 · 가장자리 흰 줄 · 떨어진 조각.
 - **확인용 그림(`_art-check.png`)을 반드시 Read로 열어 얼굴 확대 줄을 눈으로 본다.** 2026-11-18 앞모습 걷기의 눈 겹침은 평균 색·높이 수치로 잡히지 않았다.
 
@@ -39,6 +40,7 @@ description: 라이트 디펜스에서 ChatGPT가 만든 그림(캐릭터 대기
 | 걷기 | `reference/<Char>_8_Direction_Pack/<Char>_Walk_8D_4Frames_Pack/<각도3>_<이름>/<char>_walk_<각도3>_<이름>_f01~04.png` (strip은 `strips/`, 메모는 `notes/`) |
 | 초상 | 대기 45°를 `art-src/characters/portrait-<char>.png`로 복사 |
 | 홈·배경·제목 | 원본 `reference/Home_Art_Pack/`, 다듬은 판 `art-src/backgrounds/<키>.png` (`src/art/registry.ts` 키) |
+| 행렬 패시브 팩(2026-11-24 올빼미 — `reference/Passive_Pack/<id>/`, 15장) | 걷기 `<id>_walk_<각도>_fNN` → `art-src/enemies/<id>.walk_<각도>_fNN.png`, 웅크림 `<id>_cower` → `<id>-cower.cower.png`, 도망 `<id>_flee_fNN` → `<id>-flee.fNN.png`(2장). 웅크림이 정면이면 전 방향 공용·뒤집지 않음(기획 세션이 받아들임), 도망은 옆(오른쪽) — 가로 부호로 뒤집기. 점검 기록 `README_claude.md`, 판 위 캡처는 행렬을 그 종으로 바꿔 당겨 찍음(`rules.parade.queue` kind·at) |
 | 받은 zip | 바탕화면 station 해당 묶음의 `received/`로 옮김 |
 | v3 브리프 그림(아침·새 지역 카드·이야기 카드 2장·아이콘·노월 낱장·패시브 웅크림/도망·격자 소품) | `docs/design/NIGHT_RUN.md` 13절 끝 **그림 이름 ↔ 게임 자리 대조표**대로 — 패시브 = `art-src/enemies/<id>-cower.cower.png`·`<id>-flee.f01~f04.png`(2026-11-24 자리 있음), 노월 낱장은 `WITCH_FRAME` 순서로 시트에, 준비물 아이콘 붙임표 → 밑줄 |
 - 각도·이름: 000_front · 045_front_right · 090_right · 135_back_right · 180_back · 225_back_left · 270_left · 315_front_left.

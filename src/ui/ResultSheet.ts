@@ -11,6 +11,7 @@ import { startNewRun } from '../core/runFlow';
 import { GameData, characterById, type CharacterId } from '../data';
 import type { RunSummary } from '../systems/nightRun';
 import { PATH_TITLE, pathLine } from './runText';
+import { pathIconName, withIcon } from './v3Icons';
 import type { Ranking } from '../services/Ranking';
 import { localPlayerId } from '../services/LocalRanking';
 import { formatScore, formatTime, h, prefersReducedMotion, svg } from './dom';
@@ -236,7 +237,7 @@ export class ResultSheet {
     const banished = s.stats.retreated + s.banish;
     this.path.hidden = false;
     this.path.dataset.path = s.path;
-    this.path.textContent = `${PATH_TITLE[s.path]} · ${pathLine(s.mercy, banished)}`;
+    withIcon(this.path, pathIconName(s.path), `${PATH_TITLE[s.path]} · ${pathLine(s.mercy, banished)}`);
     this.best.hidden = !best;
     this.best.textContent = `최고 기록 갱신! 밤 ${s.nights} · ${formatScore(s.score)}점`;
     this.friendLine.hidden = true;
@@ -249,7 +250,7 @@ export class ResultSheet {
     this.combo.textContent = `×${s.stats.maxCombo}`;
     this.rescued.textContent = `${s.stats.rescued}명`;
     this.stations.textContent = `${s.stats.stationsLit}개`;
-    this.dust.textContent = `✦${s.dust}`;
+    withIcon(this.dust, 'stardust', `${s.dust}`, s.dust > 0);
     this.seed.textContent = `#${seedLabel(s.seed)}`;
     this.nextNight = null;
     this.next.hidden = true;

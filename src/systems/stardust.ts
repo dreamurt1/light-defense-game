@@ -18,6 +18,12 @@ export class DustTally {
     return gain;
   }
 
+  /** ★최대 뒤 남은 경험치로 얻은 별가루 (2026-11-24, 토스트 없음 — 아침 요약에 합산) */
+  addRaw(gain: number): number {
+    this.total += Math.max(0, gain);
+    return gain;
+  }
+
   /** 밤의 끝: 승리 5 / 완전 승리 10 / 오늘은 여기까지 0 */
   finish(outcome: StageOutcome): number {
     const gain = outcome === 'complete' ? this.cfg.complete : outcome === 'victory' ? this.cfg.victory : 0;

@@ -20,6 +20,8 @@ import {
 // 2026-11-23 밤 나들이 v3 — 밤 n의 규칙 (NIGHT_RUN.md 4-1절)
 const N = GameData.nights;
 const run = (over: Partial<RunInfo> = {}): RunInfo => ({ seed: 12345, keeperId: 'lumi', friendNights: {}, witchSeen: false, lastMapId: null, mercy: 0, banish: 0, ...over });
+/** 구출 밤이 아닌 런 (토리·도토가 이미 함께, 노월은 이미 만남) — 적 표 값만 볼 때 (구출 밤은 클라이맥스 ×0.8, 2026-11-24) */
+const calm = (over: Partial<RunInfo> = {}): RunInfo => run({ friendNights: { tori: 1, doto: 1 }, witchSeen: true, ...over });
 
 describe('구간값 표·seed', () => {
   it('밤 n 이하에서 가장 큰 키의 값 (보간 아님)', () => {
@@ -35,7 +37,7 @@ describe('구간값 표·seed', () => {
 });
 
 describe('rulesForNight — 밤 1·2·3·6·9·20', () => {
-  it('밤 1: 빛의 마을, 등불 1, 박쥐 3 : 개구리 1, 적 표 = spawn 곡선의 첫 값(2026-11-23 밸런스 뒤 보통 2 / 클라이맥스 3), 행렬 없음', () => {
+  it('밤 1: 빛의 마을, 등불 1, 박쥐 3 : 개구리 1, 적 표 = 고정값(2026-11-24 옛 스테이지 1: 보통 3·[4, 3] / 클라이맥스 6·[2.4, 2]), 행렬 없음', () => {
     const d = rulesForNight(1, run());
     expect(d.id).toBe('night-1');
     expect(d.name).toBe('밤 1');
@@ -43,9 +45,8 @@ describe('rulesForNight — 밤 1·2·3·6·9·20', () => {
     expect(d.theme).toBe('light-village');
     expect(d.stations).toBe(1);
     expect(d.durationSec).toBe(100);
-    const sp = N.spawn;
-    expect(d.spawn.normal).toMatchObject({ maxAlive: Math.round(sp.normal.maxAliveStart), intervalStart: sp.normal.intervalStart[0], intervalEnd: sp.normal.intervalStart[1] });
-    expect(d.spawn.climax).toMatchObject({ maxAlive: Math.round(sp.climax.maxAliveStart), intervalStart: sp.climax.intervalStart[0], intervalEnd: sp.climax.intervalStart[1] });
+    expect(d.spawn.normal).toMatchObject({ maxAlive: 3, intervalStart: 4, intervalEnd: 3 });
+    expect(d.spawn.climax).toMatchObject({ maxAlive: 6, intervalStart: 2.4, intervalEnd: 2 });
     expect(d.spawn.normal.maxAlive).toBeLessThan(d.spawn.climax.maxAlive);
     expect(d.spawn.normal.weights.bat! / d.spawn.normal.weights.frog!).toBeCloseTo(3);
     expect(d.spawn.onlyHostileUntilSec).toBe(6);
@@ -60,7 +61,9 @@ describe('rulesForNight — 밤 1·2·3·6·9·20', () => {
     expect(Object.keys(d.spawn.normal.weights).sort()).toEqual(['bat', 'frog', 'hedgehog', 'vampire']);
     expect(d.hostileRatio).toBe(0.6);
     expect(d.parade).toEqual({ groups: 1, size: 2, everySec: 28, kinds: ['owl', 'moth', 'firefly'] });
-    expect(d.spawn.normal.maxAlive).toBe(Math.round(N.spawn.normal.maxAliveStart + N.spawn.normal.maxAlivePerNight));
+    const c = rulesForNight(2, calm()).spawn;
+    expect(c.normal).toMatchObject({ maxAlive: 4, intervalStart: 3.4, intervalEnd: 2.7 });
+    expect(c.climax).toMatchObject({ maxAlive: 7, intervalStart: 2, intervalEnd: 1.7 });
   });
   it('밤 3: 경계의 숲(B1·B2 중 하나), 웨어울프 합류, 행렬 3마리', () => {
     const d = rulesForNight(3, run());
@@ -69,12 +72,42 @@ describe('rulesForNight — 밤 1·2·3·6·9·20', () => {
     expect(d.theme).toBe('border');
     expect(d.spawn.normal.weights.werewolf).toBeGreaterThan(0);
     expect(d.parade?.size).toBe(3);
+    const c = rulesForNight(3, calm()).spawn;
+    expect(c.normal).toMatchObject({ maxAlive: 5, intervalStart: 3, intervalEnd: 2.4 });
+    expect(c.climax).toMatchObject({ maxAlive: 8, intervalStart: 1.8, intervalEnd: 1.5 });
+    // 구출 밤(밤 3은 토리를 반드시 되찾음) = 클라이맥스 동시 최대 ×0.8 (지시서 2절 (나), 측정 0.25 구출 밤 끝 5/12)
+    expect(N.rescue.climaxMultiplier).toBe(0.8);
+    expect(d.rescue).toBeDefined();
+    expect(d.spawn.climax.maxAlive).toBe(Math.round(8 * 0.8));
+    expect(d.spawn.normal.maxAlive).toBe(5);
   });
-  it('밤 6: 어둠이 삼킨 외곽의 첫 밤은 C1, 등불 4, 호스틸 0.6', () => {
+  it('밤 4부터 곡선은 밤 3 값에서 이어진다 (fromNight 3) — 밤 4 ≥ 밤 3', () => {
+    const sp = N.spawn;
+    expect([sp.normal.fromNight, sp.climax.fromNight]).toEqual([3, 3]);
+    const d3 = rulesForNight(3, calm()).spawn;
+    const d4 = rulesForNight(4, calm()).spawn;
+    expect(d4.normal.maxAlive).toBe(Math.round(sp.normal.maxAliveStart + sp.normal.maxAlivePerNight));
+    expect(d4.normal.intervalStart).toBeCloseTo(sp.normal.intervalStart[0] * sp.normal.intervalPerNight, 3);
+    expect(d4.normal.maxAlive).toBeGreaterThanOrEqual(d3.normal.maxAlive);
+    expect(d4.climax.maxAlive).toBeGreaterThanOrEqual(d3.climax.maxAlive);
+    expect(d4.normal.intervalStart).toBeLessThanOrEqual(d3.normal.intervalStart);
+  });
+  it('어느 밤도 전 밤보다 조용하지 않다 (동시 최대 줄지 않음 · 간격 늘지 않음, 밤 1~40 보통·클라이맥스)', () => {
+    for (let n = 1; n < 40; n++) {
+      const a = rulesForNight(n, calm()).spawn;
+      const b = rulesForNight(n + 1, calm()).spawn;
+      for (const k of ['normal', 'climax'] as const) {
+        expect(b[k].maxAlive, `밤 ${n + 1} ${k} 동시 최대`).toBeGreaterThanOrEqual(a[k].maxAlive);
+        expect(b[k].intervalStart, `밤 ${n + 1} ${k} 간격 시작`).toBeLessThanOrEqual(a[k].intervalStart);
+        expect(b[k].intervalEnd, `밤 ${n + 1} ${k} 간격 끝`).toBeLessThanOrEqual(a[k].intervalEnd);
+      }
+    }
+  });
+  it('밤 6: 어둠이 삼킨 외곽(C1·C2 중 하나), 등불 4, 호스틸 0.6', () => {
     const d = rulesForNight(6, run());
     expect(d.band).toBe('C');
     expect(d.theme).toBe('dark-village');
-    expect(d.mapId).toBe('C1');
+    expect(['C1', 'C2']).toContain(d.mapId);
     expect(d.stations).toBe(4);
     expect(d.hostileRatio).toBe(0.6);
   });
@@ -85,10 +118,10 @@ describe('rulesForNight — 밤 1·2·3·6·9·20', () => {
   });
   it('밤이 깊으면 동시 최대는 상한, 간격은 하한까지 줄고(nights.json spawn — 밸런스로 바뀌어도 규칙대로), 아이템 간격 하한 12', () => {
     const sp = N.spawn;
-    const d20 = rulesForNight(20, run());
-    expect(d20.spawn.normal.intervalStart).toBeCloseTo(Math.max(sp.normal.intervalFloor[0], sp.normal.intervalStart[0] * sp.normal.intervalPerNight ** 19), 3);
+    const d20 = rulesForNight(20, calm());
+    expect(d20.spawn.normal.intervalStart).toBeCloseTo(Math.max(sp.normal.intervalFloor[0], sp.normal.intervalStart[0] * sp.normal.intervalPerNight ** (20 - sp.normal.fromNight)), 3);
     expect(d20.items?.intervalSec).toBe(12);
-    const d = rulesForNight(60, run());
+    const d = rulesForNight(60, calm());
     expect(d.spawn.normal.maxAlive).toBe(sp.normal.maxAliveCap);
     expect(d.spawn.climax.maxAlive).toBe(sp.climax.maxAliveCap);
     expect([d.spawn.normal.intervalStart, d.spawn.normal.intervalEnd]).toEqual(sp.normal.intervalFloor);
@@ -112,10 +145,14 @@ describe('rulesForNight — 밤 1·2·3·6·9·20', () => {
     const onlyB1: NightsDef = { ...N, bands: N.bands.map((b) => (b.id === 'B' ? { ...b, maps: ['B1'] } : b.id === 'C' ? { ...b, maps: [] } : b)) };
     expect(rulesForNight(3, run({ lastMapId: 'B1' }), {}, onlyB1).mapId).toBe('B1');
   });
-  it('맵이 한 장인 구간(C = C1)은 첫 밤이 지나면 바로 아래 구간(B) 맵도 섞고, 같은 맵은 연속으로 안 나옴', () => {
+  it('C 구간은 C1·C2 두 장(2026-11-24) — 섞지 않고, 같은 맵은 연속으로 안 나옴', () => {
     const C = N.bands.find((b) => b.id === 'C')!;
-    expect(mapPoolFor(6, C)).toEqual(['C1']);
-    expect(mapPoolFor(7, C)).toEqual(['C1', 'B1', 'B2']);
+    expect(mapPoolFor(6, C)).toEqual(['C1', 'C2']);
+    expect(mapPoolFor(7, C)).toEqual(['C1', 'C2']);
+    // 맵이 한 장인 구간은 첫 밤이 지나면 바로 아래 구간 맵도 섞는다 (규칙은 남김)
+    const oneC = { ...C, maps: ['C1'] };
+    expect(mapPoolFor(6, oneC)).toEqual(['C1']);
+    expect(mapPoolFor(7, oneC)).toEqual(['C1', 'B1', 'B2']);
     const A = N.bands.find((b) => b.id === 'A')!;
     expect(mapPoolFor(2, A)).toEqual(['A1', 'A2', 'A3']);
     const seen = new Set<string>();
@@ -129,7 +166,7 @@ describe('rulesForNight — 밤 1·2·3·6·9·20', () => {
         last = d.mapId;
       }
     }
-    expect([...seen].sort()).toEqual(['B1', 'B2', 'C1']);
+    expect([...seen].sort()).toEqual(['C1', 'C2']);
   });
   it('테스트 메뉴에서 고른 맵을 쓴다', () => {
     expect(rulesForNight(1, run(), { mapId: 'B1' }).mapId).toBe('B1');
@@ -176,6 +213,13 @@ describe('적 섞기·두 길', () => {
     expect(keep.exclude).toContain('darkWind');
     expect(keep.weightMul?.gift).toBe(2);
     expect(eventModsFor(4, 'expand').exclude).toContain('fireflies');
+  });
+  it('구출 밤에는 어둠 바람이 없다 (2026-11-24 rescue.excludeEvents)', () => {
+    expect(N.rescue.excludeEvents).toEqual(['darkWind']);
+    expect(eventModsFor(4, 'mixed', N, true).exclude).toContain('darkWind');
+    expect(eventModsFor(4, 'mixed', N, false).exclude).not.toContain('darkWind');
+    // 밤 3은 토리를 반드시 되찾는 밤 → 어둠 바람 없음
+    expect(rulesForNight(3, run()).eventMods.exclude).toContain('darkWind');
   });
 });
 

@@ -1,0 +1,39 @@
+{
+  "pack": "Sleep_Pack",
+  "canvas": {
+    "width": 512,
+    "height": 512,
+    "format": "transparent RGBA PNG"
+  },
+  "anchor": {
+    "resting_baseline_y": 496,
+    "center_x": 256
+  },
+  "direction": "right-facing side view",
+  "transparent_background": true,
+  "ground_shadow": false,
+  "zzz_text": false,
+  "files": [
+    {
+      "name": "lumi_sleep.png",
+      "character": "Lumi",
+      "pose": "curled asleep on side",
+      "head_direction": "right",
+      "special": "orange scarf, golden star pendant, tail curled around body"
+    },
+    {
+      "name": "tori_sleep.png",
+      "character": "Tori",
+      "pose": "curled asleep on right side",
+      "head_direction": "right",
+      "special": "own left ear with mint bow and gold star is uppermost"
+    },
+    {
+      "name": "doto_sleep.png",
+      "character": "Doto",
+      "pose": "curled asleep on side",
+      "head_direction": "right",
+      "special": "holds golden star acorn, striped tail draped like blanket"
+    }
+  ]
+}

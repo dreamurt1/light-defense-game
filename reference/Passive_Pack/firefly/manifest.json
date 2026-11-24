@@ -1,0 +1,66 @@
+{
+  "category": "passive",
+  "gameCellPx": 48,
+  "canvas": {
+    "height": 512,
+    "width": 512
+  },
+  "transparentBackground": true,
+  "character": "firefly",
+  "assets": [
+    {
+      "path": "firefly_walk_090_right_f01.png",
+      "direction": "right",
+      "frame": 1,
+      "animation": "flutter_walk",
+      "name": "firefly_walk_090_right_f01.png"
+    },
+    {
+      "path": "firefly_walk_090_right_f02.png",
+      "direction": "right",
+      "frame": 2,
+      "animation": "flutter_walk",
+      "name": "firefly_walk_090_right_f02.png"
+    },
+    {
+      "path": "firefly_walk_090_right_f03.png",
+      "direction": "right",
+      "frame": 3,
+      "animation": "flutter_walk",
+      "name": "firefly_walk_090_right_f03.png"
+    },
+    {
+      "path": "firefly_walk_090_right_f04.png",
+      "direction": "right",
+      "frame": 4,
+      "animation": "flutter_walk",
+      "name": "firefly_walk_090_right_f04.png"
+    },
+    {
+      "path": "firefly_cower.png",
+      "direction": "front",
+      "frame": null,
+      "animation": "cower",
+      "name": "firefly_cower.png"
+    },
+    {
+      "path": "firefly_flee_f01.png",
+      "direction": "right",
+      "frame": 1,
+      "animation": "flee",
+      "name": "firefly_flee_f01.png"
+    },
+    {
+      "path": "firefly_flee_f02.png",
+      "direction": "right",
+      "frame": 2,
+      "animation": "flee",
+      "name": "firefly_flee_f02.png"
+    }
+  ],
+  "spriteAnchor": {
+    "bodyCenterY": 256,
+    "bodyCenterX": 256
+  },
+  "pack": "LIGHT DEFENSE v3 firefly passive"
+}

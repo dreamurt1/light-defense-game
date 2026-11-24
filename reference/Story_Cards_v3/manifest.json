@@ -1,0 +1,18 @@
+{
+  "pack": "Story_Cards_v3",
+  "format": "PNG",
+  "canvas": "1280x720",
+  "transparent_background": false,
+  "files": [
+    {
+      "name": "story-02-source.png",
+      "width": 1280,
+      "height": 720
+    },
+    {
+      "name": "story-04-voices.png",
+      "width": 1280,
+      "height": 720
+    }
+  ]
+}

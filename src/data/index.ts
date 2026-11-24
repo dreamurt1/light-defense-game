@@ -17,6 +17,7 @@ import mapB1 from './maps/B1.json';
 import mapA3 from './maps/A3.json';
 import mapB2 from './maps/B2.json';
 import mapC1 from './maps/C1.json';
+import mapC2 from './maps/C2.json';
 import type { GridDict, GridMap } from '../systems/grid';
 
 export type CharacterId = 'lumi' | 'tori' | 'doto';
@@ -89,13 +90,21 @@ export interface GameConfig {
   /** 스테이지 공통: 클라이맥스 시작 비율, 하트 수, 하늘빛 시간대(비율) */
   stage: { climaxAt: number; hearts: number; phases: Record<PhaseId, [number, number]> };
   /** 런(밤 나들이, 2026-11-23): 아침 하트 회복, 하트 최대, 완전 승리면 다음 밤에 켜진 채 시작하는 등불 수 */
-  run: { morningHeal: number; maxHearts: number; completeLitStations: number };
+  run: {
+    morningHeal: number;
+    maxHearts: number;
+    completeLitStations: number;
+    /** 하트로 광원 되살리기 (2026-11-24 다듬기 1차, systems/stageOutcome.ts canReviveSource) */
+    sourceRevive: { enabled: boolean; hpRatio: number; maxPerNight: number; pushRadius: number; invulnSec: number };
+  };
   /** 빛 레벨 ★ (2026-11-23, systems/growth.ts) */
   growth: {
     resetOnRunEnd: boolean;
     maxLevel: number;
     xp: { rescue: number; returnHostile: number; station: number; mercy: number; banishPassive: number };
     xpToNext: number[];
+    /** ★최대 뒤 남는 경험치 이만큼마다 별가루 +1 (2026-11-24) */
+    overflowDustPerXp: number;
     perLevel: { lightPower: number; lightRange: number; lightRangeCap: number; lpMax: number; toriMove: number; dotoItemEffect: number };
   };
   /** 별가루 ✦ (2026-11-23, systems/stardust.ts) */
@@ -384,7 +393,7 @@ export const GameData = {
   shop: shopJson as unknown as ShopDef,
   /** 격자 맵 사전·맵 (2026-11-23, systems/grid.ts) */
   grid: obstaclesJson as unknown as GridDict,
-  maps: Object.fromEntries([mapA1, mapA2, mapA3, mapB1, mapB2, mapC1].map((m) => [m.id, m as unknown as GridMap])) as Record<string, GridMap>,
+  maps: Object.fromEntries([mapA1, mapA2, mapA3, mapB1, mapB2, mapC1, mapC2].map((m) => [m.id, m as unknown as GridMap])) as Record<string, GridMap>,
 };
 
 /** 맵 id로 (없으면 A1) */
@@ -414,17 +423,26 @@ export interface NightBand {
   fromNight: number;
   /** 이 구간의 격자 맵 id (src/data/maps/) */
   maps: string[];
+  /** 이 구간 맵의 등불 자리 거리(광장 가운데에서 가로·세로 중 큰 값, 칸) — 없으면 obstacles.json lampDist (2026-11-24 A = 4~6) */
+  lampDist?: [number, number];
 }
 /** 밤마다 늘어나는 적 표 하나 (평소 / 클라이맥스) */
 export interface NightSpawnCurve {
+  /** 곡선이 시작 값(…Start)을 갖는 밤 — 그 앞 밤은 overrides (2026-11-24: 밤 3) */
+  fromNight: number;
   maxAliveStart: number;
   maxAlivePerNight: number;
   maxAliveCap: number;
-  /** 밤 1의 [시작, 끝] 생성 간격(초) */
+  /** fromNight의 [시작, 끝] 생성 간격(초) */
   intervalStart: [number, number];
   /** 밤마다 간격에 곱함 */
   intervalPerNight: number;
   intervalFloor: [number, number];
+}
+/** 곡선 대신 정해 둔 밤의 값 (2026-11-24 밤 1~3) */
+export interface NightSpawnFixed {
+  maxAlive: number;
+  interval: [number, number];
 }
 /** 구간값 표: 밤 n 이하에서 가장 큰 키의 값 */
 export type NightTable<T> = Record<string, T>;
@@ -439,6 +457,8 @@ export interface NightsDef {
     onlyHostileUntilSec: number;
     hostileRatio: NightTable<number>;
     roster: NightTable<EnemyId[]>;
+    /** 밤 번호 → 곡선 대신 쓰는 고정값 (2026-11-24: 밤 1~3 = 옛 스테이지 1과 2 사이 값) */
+    overrides?: Record<string, { normal: NightSpawnFixed; climax: NightSpawnFixed }>;
   };
   parade: { fromNight: number; groupsByNight: NightTable<number>; sizeByNight: NightTable<number>; everySec: number; kinds: EnemyId[] };
   items: { firstSec: number; intervalStart: number; intervalPerNight: number; intervalFloor: number };
@@ -448,6 +468,12 @@ export interface NightsDef {
     atProgress: number;
     tori: { fromNight: number; chance: number; guaranteedNight: number };
     doto: { nightsAfterTori: number; chance: number; guaranteedAfter: number };
+    /** 친구 자리: 광장 가운데에서 가로·세로 중 큰 값이 이 범위인 바닥 칸 중 seed로 하나 (2026-11-24) */
+    spotDist: [number, number];
+    /** 구출 밤에 빼는 랜덤 이벤트 (2026-11-24: 어둠 바람) */
+    excludeEvents: ('fireflies' | 'lostParade' | 'gift' | 'darkWind')[];
+    /** 구출 밤 클라이맥스 동시 최대 배율 (없으면 1 — 지시서 (나), 측정에서 필요할 때만) */
+    climaxMultiplier?: number;
   };
   witch: { atSec: number; fromNight: number; chancePerNight: number; guaranteedNight: number; requiresFriends: CharacterId[]; oncePerRun: boolean };
   expand: { hostileRatioPerBanish: number; hostileRatioCap: number };

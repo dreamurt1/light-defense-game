@@ -20,6 +20,7 @@ import { openTestSheet } from '../TestSheet';
 import { formatScore, h, svg } from '../dom';
 import { gearIcon, pawIcon, playIcon, podiumIcon, shopIcon, tutorialIcon } from '../icons';
 import { portraitUrl, screenShell } from './common';
+import { v3Icon } from '../v3Icons';
 
 /** 둥근 버튼: 남색 유리 원 + 굵은 선 아이콘 + 아래 글자 (5절 둥근 배지 규칙) */
 function badge(label: string, icon: string, onClick: () => void, aria?: string): HTMLButtonElement {
@@ -112,7 +113,7 @@ export class HomeScreen {
     this.best.textContent = `최고 기록 밤 ${d.bestNight} · ${formatScore(d.bestScore)}점`;
     const maps = GameData.nights.bands.reduce((n, b) => n + b.maps.length, 0);
     const chips: HTMLElement[] = [];
-    if (d.dust > 0) chips.push(h('span', { class: 'home-chip home-chip--dust' }, `별가루 ✦${d.dust}`));
+    if (d.dust > 0) chips.push(h('span', { class: 'home-chip home-chip--dust' }, '별가루 ', v3Icon('stardust'), String(d.dust)));
     if (d.discovered.length > 0) chips.push(h('span', { class: 'home-chip' }, `발견한 지역 ${d.discovered.length}/${Math.max(6, maps)}`));
     this.chips.replaceChildren(...chips);
     this.chips.hidden = chips.length === 0;

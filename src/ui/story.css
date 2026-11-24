@@ -356,3 +356,24 @@
   border-color: var(--ember);
   color: var(--ember);
 }
+
+/* 이야기 카드 2·4 그림 (2026-11-24 ChatGPT 2-B, 16:9) — 글 자리는 그대로(세로 = 그림 아래, 가로 = 그림 오른쪽) */
+.story__art--image {
+  width: min(calc(var(--u) * 480), 100%);
+  height: auto;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: calc(var(--u) * 16);
+  box-shadow: 0 calc(var(--u) * 10) calc(var(--u) * 30) rgba(0, 0, 0, 0.35);
+}
+
+.story__image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+:root[data-layout='landscape'] .story__art--image {
+  width: calc(var(--u) * 460);
+}

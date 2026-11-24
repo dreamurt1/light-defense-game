@@ -6,6 +6,7 @@ import { localPlayerId } from '../../services/LocalRanking';
 import type { Ranking, RankingPeriod, RankingRow } from '../../services/Ranking';
 import { formatScore, formatTime, h, svg } from '../dom';
 import { starIcon } from '../icons';
+import { pathIconName, v3Icon } from '../v3Icons';
 import { screenBar, screenShell } from './common';
 
 const PATH_NAME = { keep: '지키는 길', expand: '넓히는 길', mixed: '빛과 어둠 사이' } as const;
@@ -21,7 +22,7 @@ function row(r: RankingRow, mine = false): HTMLElement {
     'li',
     { class: `rank-row${mine ? ' rank-row--me' : ''}${r.rank <= 3 ? ' rank-row--top' : ''}` },
     h('span', { class: 'rank-row__rank' }, mine ? '나' : String(r.rank)),
-    h('span', { class: 'rank-row__name' }, h('span', { class: 'rank-row__path', 'data-path': r.path, title: PATH_NAME[r.path], 'aria-label': PATH_NAME[r.path] }), r.nickname, r.outcome !== 'over' ? h('span', { class: 'rank-row__dawn', title: '아침까지' }, svg(starIcon)) : ''),
+    h('span', { class: 'rank-row__name' }, h('span', { class: 'rank-row__path', 'data-path': r.path, title: PATH_NAME[r.path], 'aria-label': PATH_NAME[r.path] }, ...(pathIconName(r.path) ? [v3Icon(pathIconName(r.path)!)] : [])), r.nickname, r.outcome !== 'over' ? h('span', { class: 'rank-row__dawn', title: '아침까지' }, svg(starIcon)) : ''),
     h('span', { class: 'rank-row__nights' }, r.nights > 0 ? `밤 ${r.nights}` : '–'),
     h('span', { class: 'rank-row__time' }, formatTime(r.survivedSec)),
     h('span', { class: 'rank-row__score' }, formatScore(r.score)),

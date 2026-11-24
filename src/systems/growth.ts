@@ -1,6 +1,7 @@
 // 빛 레벨 ★ (2026-11-23 밤 나들이 v3, NIGHT_RUN.md 6-1절) — 순수 로직. 런 안에서만 자란다(영구 성장 없음).
 //  - 경험치: 구출 3 · 호스틸 돌려보냄 2 · 등불 켜기 2 · 자비 2 · 패시브 돌려보냄 1 (game.json growth.xp)
-//  - ★L → ★L+1에 xpToNext[L-1], 최대 ★maxLevel
+//  - ★L → ★L+1에 xpToNext[L-1](2026-11-24 다듬기 1차: 10·15·25·40·60·85·115·150·190, 누적 690), 최대 ★maxLevel
+//  - ★최대에 닿은 뒤 남는 경험치는 overflowDustPerXp(50)마다 별가루 +1 — 최대 레벨의 xp = 다음 별가루까지 쌓은 양
 //  - 레벨마다: 빛 위력 +5% · 사거리 +2%(최대 ×1.2) · 최대 LP +5 · 토리 이동 +1% · 도토 아이템 효과 +3%
 import type { CharacterId, GameConfig } from '../data';
 
@@ -19,8 +20,8 @@ export function xpNeed(level: number, cfg: GrowthCfg): number {
   return cfg.xpToNext[Math.min(cfg.xpToNext.length - 1, Math.max(0, level - 1))];
 }
 
-/** 경험치를 더한다. ups = 오른 레벨 수 */
-export function addXp(s: GrowthState, gain: number, cfg: GrowthCfg): GrowthState & { ups: number } {
+/** 경험치를 더한다. ups = 오른 레벨 수, dust = ★최대 뒤 남은 경험치로 얻은 별가루 */
+export function addXp(s: GrowthState, gain: number, cfg: GrowthCfg): GrowthState & { ups: number; dust: number } {
   let { level, xp } = s;
   let ups = 0;
   xp += Math.max(0, gain);
@@ -29,8 +30,15 @@ export function addXp(s: GrowthState, gain: number, cfg: GrowthCfg): GrowthState
     level += 1;
     ups += 1;
   }
-  if (level >= cfg.maxLevel) xp = 0;
-  return { level, xp, ups };
+  let dust = 0;
+  if (level >= cfg.maxLevel) {
+    const per = cfg.overflowDustPerXp;
+    if (per > 0) {
+      dust = Math.floor(xp / per);
+      xp -= dust * per;
+    } else xp = 0;
+  }
+  return { level, xp, ups, dust };
 }
 
 export interface GrowthEffects {

@@ -159,8 +159,17 @@ export function lampCells(map: GridMap, dict: GridDict): Cell[] {
 
 const isFrame = (c: Cell, dict: GridDict) => c.row === 0 || c.col === 0 || c.row === dict.rows - 1 || c.col === dict.cols - 1;
 
-/** 맵 검사 (scripts/map-check.mjs, tests/maps.test.ts) — 문제마다 한 줄, 없으면 빈 배열 */
-export function checkMap(map: GridMap, dict: GridDict): string[] {
+/** 광장 가운데에서 가로·세로 중 큰 값(칸) */
+export function plazaDist(c: Cell, dict: GridDict): number {
+  const pc = plazaCenter(dict);
+  return Math.max(Math.abs(c.col - pc.col), Math.abs(c.row - pc.row));
+}
+
+/**
+ * 맵 검사 (scripts/map-check.mjs, tests/maps.test.ts) — 문제마다 한 줄, 없으면 빈 배열.
+ * lampDist = 등불 자리 거리(구간마다 다를 수 있음 — 2026-11-24 A 구간 4~6, 없으면 사전 값)
+ */
+export function checkMap(map: GridMap, dict: GridDict, lampDist: [number, number] = dict.lampDist): string[] {
   const err: string[] = [];
   if (map.rows.length !== dict.rows) err.push(`줄 수 ${map.rows.length} (${dict.rows}이어야)`);
   map.rows.forEach((r, row) => r.length !== dict.cols && err.push(`${row}행 폭 ${r.length} (${dict.cols}이어야)`));
@@ -187,10 +196,9 @@ export function checkMap(map: GridMap, dict: GridDict): string[] {
   walk.forEach((r, row) => r.forEach((w, col) => w && dist[row][col] < 0 && err.push(`(${col},${row}) 광장에서 갈 수 없는 칸`)));
   const lamps = lampCells(map, dict);
   if (lamps.length !== dict.lampCount) err.push(`등불 자리 ${lamps.length}개 (${dict.lampCount}개여야)`);
-  const pc = plazaCenter(dict);
   for (const l of lamps) {
-    const d = Math.max(Math.abs(l.col - pc.col), Math.abs(l.row - pc.row));
-    if (d < dict.lampDist[0] || d > dict.lampDist[1]) err.push(`등불 자리 (${l.col},${l.row}) 광장 가운데에서 ${d}칸 (${dict.lampDist[0]}~${dict.lampDist[1]}칸이어야)`);
+    const d = plazaDist(l, dict);
+    if (d < lampDist[0] || d > lampDist[1]) err.push(`등불 자리 (${l.col},${l.row}) 광장 가운데에서 ${d}칸 (${lampDist[0]}~${lampDist[1]}칸이어야)`);
   }
   const has = (kind: string) => map.rows.some((r, row) => Array.from(r).some((_c, col) => kindAt(map, dict, col, row) === kind));
   if (has('river') && !has('bridge')) err.push('강이 있는데 다리가 없음');
@@ -258,6 +266,24 @@ export function farFloorCells(map: GridMap, dict: GridDict, n = 4): Cell[] {
     }),
   );
   return best.filter(Boolean).sort((a, b) => b.d - a.d).slice(0, n).map(({ col, row }) => ({ col, row }));
+}
+
+/**
+ * 빛을 잃은 친구 자리 후보 (2026-11-24 다듬기 1차): 광장 가운데에서 가로·세로 중 큰 값이 dist 범위인 바닥 칸
+ * (가장자리 칸은 빼고, 광장에서 걸어갈 수 있는 칸만 — 울타리 고리 안쪽이어도 됨). 판이 seed로 하나를 고른다
+ */
+export function friendSpotCells(map: GridMap, dict: GridDict, dist: [number, number]): Cell[] {
+  const reach = reachFromPlaza(map, dict);
+  const out: Cell[] = [];
+  map.rows.forEach((r, row) =>
+    Array.from(r).forEach((_ch, col) => {
+      const c = { col, row };
+      if (kindAt(map, dict, col, row) !== 'floor' || isFrame(c, dict) || reach[row][col] < 0) return;
+      const d = plazaDist(c, dict);
+      if (d >= dist[0] && d <= dist[1]) out.push(c);
+    }),
+  );
+  return out;
 }
 
 /** 판정 사각형을 칸보다 이만큼 안쪽으로 (그림 가장자리에서 걸리지 않게) — 길찾기·빛 차단은 칸 단위 그대로 */

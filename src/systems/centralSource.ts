@@ -2,13 +2,15 @@
 // 2026-11-14 라이언: HP와 광도를 나눈다 — 화면의 게이지는 HP, 광도(보이는 밝기)는 HP에 비례.
 //  HP는 가득 찬 채 시작하고 적에게 맞으면 준다. 빛을 쏴도·시간이 지나도 회복되지 않고(시간 회복까지 없앤 것은 제안),
 //  **꺼진 등불을 켜면 조금 오른다**(라이언 11-14: 등불에 관심을 둘 근거 — 양은 game.json station.centralHeal).
-//  HP 0 = 꺼짐 = 게임 오버.
+//  HP 0 = 꺼짐 = 게임 오버. 2026-11-24: 하트가 남아 있으면 한 밤에 한 번 루미의 하트로 되살림(revive — 잠깐 무적).
 import type { GameConfig } from '../data';
 
 type CentralCfg = GameConfig['central'];
 
 export class CentralSourceState {
   hp: number;
+  /** 되살린 뒤 남은 무적 시간(초) */
+  invulnLeft = 0;
 
   constructor(private readonly cfg: CentralCfg) {
     this.hp = cfg.maxHp;
@@ -40,8 +42,18 @@ export class CentralSourceState {
     return this.hp - before;
   }
 
+  /** 하트로 되살림: HP를 ratio로, invulnSec 동안 무적 */
+  revive(ratio: number, invulnSec: number): void {
+    this.hp = Math.max(1, this.cfg.maxHp * ratio);
+    this.invulnLeft = invulnSec;
+  }
+
+  tick(dt: number): void {
+    this.invulnLeft = Math.max(0, this.invulnLeft - dt);
+  }
+
   damage(amount: number): void {
-    if (this.out) return;
+    if (this.out || this.invulnLeft > 0) return;
     this.hp = Math.max(0, this.hp - amount);
   }
 }

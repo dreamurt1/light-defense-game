@@ -1,0 +1,66 @@
+{
+  "category": "passive",
+  "gameCellPx": 64,
+  "canvas": {
+    "height": 512,
+    "width": 512
+  },
+  "transparentBackground": true,
+  "character": "moth",
+  "assets": [
+    {
+      "path": "moth_walk_090_right_f01.png",
+      "direction": "right",
+      "frame": 1,
+      "animation": "flutter_walk",
+      "name": "moth_walk_090_right_f01.png"
+    },
+    {
+      "path": "moth_walk_090_right_f02.png",
+      "direction": "right",
+      "frame": 2,
+      "animation": "flutter_walk",
+      "name": "moth_walk_090_right_f02.png"
+    },
+    {
+      "path": "moth_walk_090_right_f03.png",
+      "direction": "right",
+      "frame": 3,
+      "animation": "flutter_walk",
+      "name": "moth_walk_090_right_f03.png"
+    },
+    {
+      "path": "moth_walk_090_right_f04.png",
+      "direction": "right",
+      "frame": 4,
+      "animation": "flutter_walk",
+      "name": "moth_walk_090_right_f04.png"
+    },
+    {
+      "path": "moth_cower.png",
+      "direction": "front",
+      "frame": null,
+      "animation": "cower",
+      "name": "moth_cower.png"
+    },
+    {
+      "path": "moth_flee_f01.png",
+      "direction": "right",
+      "frame": 1,
+      "animation": "flee",
+      "name": "moth_flee_f01.png"
+    },
+    {
+      "path": "moth_flee_f02.png",
+      "direction": "right",
+      "frame": 2,
+      "animation": "flee",
+      "name": "moth_flee_f02.png"
+    }
+  ],
+  "spriteAnchor": {
+    "bodyCenterY": 256,
+    "bodyCenterX": 256
+  },
+  "pack": "LIGHT DEFENSE v3 moth passive"
+}

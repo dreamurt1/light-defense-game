@@ -42,6 +42,7 @@ import { judgeStage, type EndReason, type StageOutcome } from '../systems/stageO
 import { prefersReducedMotion } from '../ui/dom';
 import { EnemyField } from './play/EnemyField';
 import { Sources } from './play/Sources';
+import { SourceRevive } from './play/SourceRevive';
 
 const CFG = GameData.game;
 const OVER_SEC = 1.5; // 오늘은 여기까지 연출 (입력 막고 빛이 사그라듦)
@@ -63,6 +64,7 @@ export class PlayScene extends Phaser.Scene {
   private sources!: Sources;
   private field!: EnemyField;
   private vitals!: Vitals;
+  private revive!: SourceRevive;
   private lp!: LightPoints;
   private combo!: ComboSystem;
   private clock!: NightClock;
@@ -166,10 +168,11 @@ export class PlayScene extends Phaser.Scene {
     );
     this.field = new EnemyField(this, spawner, CFG.world, CFG.playfield.margin, new Rng(RunState.seed + 71));
     this.field.obstacles = this.obstacles;
-    this.field.friendSpots = this.grid.farSpots();
+    this.field.friendSpots = this.grid.friendSpots(RunState.seed + 83);
     if (CFG.light.blockedByObstacles) this.light.blocked = (a, b) => this.grid.blocked(a, b);
     const sd = this.stageDef;
     this.safe = !!(sd.endless || sd.tutorial);
+    this.revive = new SourceRevive(!!this.night.def && !this.safe);
     if (sd.dummies) this.field.setDummies(sd.dummies); // 트라이얼: 구석에 고정된 적
     this.items = new Items(this, sd, new Rng(RunState.seed + 31), traitOf(keeperDef).itemEffect * this.night.effects.itemEffect, this.night.prep);
     this.boss = sd.boss ? new Boss(this, sd, this.field, { x: CFG.central.x, y: CFG.central.y }, new Rng(RunState.seed + 59)) : null;
@@ -275,6 +278,9 @@ export class PlayScene extends Phaser.Scene {
     if (this.safe) keepSafe(this.vitals, central.state);
     this.emitVitals();
 
+    // 광원이 꺼진 순간 하트가 남았으면 한 밤에 한 번 되살림 (2026-11-24)
+    this.revive.update(dt, central, this.field.active, this.vitals);
+    if (this.revive.tryRevive(central, this.vitals, this.fx, this.field.active)) this.emitVitals(true);
     const calmed = !!this.boss?.calmed;
     const judged = judgeStage({
       timeUp: this.clock.isDawn || calmed,
@@ -375,8 +381,7 @@ export class PlayScene extends Phaser.Scene {
   /** 하트를 잃음: 그 자리에 잠들고, 하트가 남았으면 Vitals가 잠시 뒤 respawnKeeper를 부른다 */
   private knockOut(last: boolean): void {
     this.aimGuide.hide();
-    this.keeper.ko();
-    this.fx.sleep(this.keeper.pos.x, this.keeper.pos.y);
+    this.keeper.ko(); // 잠듦 — 'z' 글자는 띄우지 않음(라이언 2026-11-24)
     if (!prefersReducedMotion()) this.cameras.main.shake(HURT_SHAKE.ms * 2, HURT_SHAKE.intensity);
     if (!last) bus.emit('player:down', { hearts: this.vitals.hearts });
   }
@@ -520,7 +525,6 @@ export class PlayScene extends Phaser.Scene {
     if (outcome === 'over') {
       if (reason === 'central') {
         this.keeper.ko();
-        this.fx.sleep(this.keeper.pos.x, this.keeper.pos.y);
       }
       this.stage.fadeOut(OVER_SEC);
       const result = this.result(outcome, reason);

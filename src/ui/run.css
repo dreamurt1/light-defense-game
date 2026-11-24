@@ -14,7 +14,15 @@
   overflow: hidden;
 }
 
-/* 새벽 하늘: 위는 초저녁 남색, 아래로 살구. 그림이 오면 --morning-art (morning.webp / morning-wide.webp) */
+/* 새벽 하늘: 위는 초저녁 남색, 아래로 살구. 그림 = --morning-art (2026-11-24 ChatGPT 2-B morning.webp / morning-wide.webp, cover — 잘라내기, 늘리지 않음) */
+:root {
+  --morning-art: url('/assets/backgrounds/morning.webp');
+}
+
+:root[data-layout='landscape'] {
+  --morning-art: url('/assets/backgrounds/morning-wide.webp');
+}
+
 .morning__sky {
   position: absolute;
   inset: 0;
@@ -181,9 +189,12 @@
   color: var(--amber);
 }
 
-/* 집으로 = 새벽빛 판 (오늘 밤들은 여기까지) */
+/* 집으로 = 새벽빛 판 (오늘 밤들은 여기까지) — 아침 화면과 같은 하늘 그림(2026-11-24), 그 위에 옅은 새벽빛 */
 .sheet--result[data-mode='run'][data-outcome='clear'] {
-  background: linear-gradient(to bottom, rgba(58, 63, 120, 0.55), rgba(242, 184, 128, 0.45));
+  background:
+    linear-gradient(to bottom, rgba(58, 63, 120, 0.35), rgba(242, 184, 128, 0.2)),
+    var(--morning-art, none) center / cover no-repeat,
+    #3a3f78;
 }
 
 /* ---------- 홈 (2026-11-23): 이어서 하기 · 최고 기록 · 칩 ---------- */
@@ -627,6 +638,15 @@
   border-color: color-mix(in srgb, var(--lavender) 55%, transparent);
 }
 
+/* 새 지역 카드 그림 (2026-11-24 ChatGPT 2-B, 1024×512): 왼쪽 위 = 작은 지도, 오른쪽 = 글 — 그림이 그 두 곳을 어둡게 비워 둠 */
+.morning__region[data-band='B'] {
+  background: #14152e url('/assets/backgrounds/region-border.webp') center / cover no-repeat;
+}
+
+.morning__region[data-band='C'] {
+  background: #120f24 url('/assets/backgrounds/region-dark.webp') center / cover no-repeat;
+}
+
 .morning__region-title {
   margin: 0;
   font-size: max(15px, calc(var(--u) * 22));
@@ -724,4 +744,55 @@
     grid-area: price;
     text-align: left;
   }
+}
+
+/* ---------- UI 아이콘 v3 (2026-11-24 ChatGPT, src/ui/v3Icons.ts) ---------- */
+.v3-icon {
+  display: inline-block;
+  width: 1.35em;
+  height: 1.35em;
+  vertical-align: -0.32em;
+  margin-right: 0.15em;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+}
+
+.stat__mark .v3-icon {
+  width: max(28px, calc(var(--u) * 30));
+  height: max(28px, calc(var(--u) * 30));
+  margin: 0;
+  vertical-align: middle;
+}
+
+.stat--level,
+.stat--dust {
+  align-items: center;
+}
+
+/* 그림 둘레 여백(약 30%) 때문에 옛 SVG(26u)보다 조금 크게, 낮은 가로(휴대폰 가로)에서는 옛 크기 그대로 — 칸 이름이 접혀 넘치지 않게 */
+.prep-card__icon .v3-icon {
+  display: block;
+  width: max(22px, calc(var(--u) * 34));
+  height: max(22px, calc(var(--u) * 34));
+  margin: 0;
+}
+
+.prep-card__price .v3-icon {
+  width: 1.1em;
+  height: 1.1em;
+  margin-right: 0.05em;
+}
+
+.rank-row__path:has(.v3-icon) {
+  width: max(20px, calc(var(--u) * 24));
+  height: max(20px, calc(var(--u) * 24));
+  background: none;
+}
+
+.rank-row__path .v3-icon {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  vertical-align: top;
 }

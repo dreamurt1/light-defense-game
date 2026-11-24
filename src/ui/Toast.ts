@@ -51,6 +51,9 @@ export class Toast {
     bus.on('station:lit', (e) => this.show((e.allLit ? '모든 등불이 켜졌어요!' : '등불이 켜졌어요') + (e.centralHeal >= 1 ? ` · 중앙 광원 +${Math.round(e.centralHeal)}` : '')));
     bus.on('station:out', () => this.show('등불이 꺼졌어요'));
     bus.on('player:down', (e) => this.show(`하트 ${e.hearts}개 남았어요`));
+    // 2026-11-24 하트로 광원 되살리기 (기획 세션 문구)
+    bus.on('central:revived', () => this.show('하트 하나로 광원을 다시 밝혔어요'));
+    bus.on('central:reviveHint', () => this.show('광원이 잠들면 루미의 하트로 한 번 깨울 수 있어요'));
 
     bus.on('run:start', (e) => {
       this.hideGuide(true);

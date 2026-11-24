@@ -409,6 +409,35 @@ if (!skipLong) {
     }),
   );
   record('I10 노월 두 모습(넓히는 길 = 분노한 노월)', forms.every((f) => f.ok), forms);
+  // I11 하트로 광원 되살리기 (2026-11-24 다듬기 1차): 광원 0 + 하트 2개 이상 → 하트 −1·HP 40%·토스트, 같은 밤 두 번째 → 끝(central)
+  const revive = await (async () => {
+    const page = await openPage({ width: 960, height: 540, scale: 1 });
+    try {
+      await page.navigate(`${BASE}?autoplay=9999&night=4&map=A1&seed=5&idle`);
+      await waitFor(page, `!!${SC}?.sources`, 25000);
+      await sleep(1500);
+      await page.evaluate(`(async () => { const { bus } = await import('/src/core/events.ts'); window.__rv = { revived: [], over: null, toasts: [] };
+        bus.on('central:revived', (e) => window.__rv.revived.push(e.hearts)); bus.on('game:over', (e) => (window.__rv.over = e.result.reason));
+        new MutationObserver(() => { const t = document.querySelector('.toast')?.textContent?.trim(); if (t && !window.__rv.toasts.includes(t)) window.__rv.toasts.push(t); }).observe(document.body, { subtree: true, childList: true, characterData: true }); })()`);
+      const h0 = await page.evaluate(`${SC}.vitals.hearts`);
+      await page.evaluate(`${SC}.sources.damage('central', 999, 'bat', false), 1`);
+      await sleep(700);
+      const first = await page.evaluate(`(() => { const s = ${SC}; const c = s.sources.central.state; return { hp: Math.round(c.hp), out: c.out, hearts: s.vitals.hearts, revived: window.__rv.revived.length, toast: window.__rv.toasts.some((t) => t.includes('하트 하나로 광원을 다시 밝혔어요')) }; })()`);
+      await sleep(2800); // 무적 2.5초가 지나고
+      await page.evaluate(`${SC}.sources.damage('central', 999, 'bat', false), 1`);
+      // 오늘은 여기까지 연출(OVER_SEC 1.5초) 뒤에 game:over — 넉넉히 기다림
+      await waitFor(page, 'window.__rv?.over != null', 6000);
+      const second = await page.evaluate(`({ over: window.__rv.over, revived: window.__rv.revived.length })`);
+      return { h0, first, second, errs: errorsOf(page) };
+    } finally {
+      page.close();
+    }
+  })();
+  record(
+    'I11 하트로 광원 되살리기(하트 2개 이상 → 한 번, 같은 밤 두 번째 → 끝)',
+    revive.first.hp === 40 && !revive.first.out && revive.first.hearts === revive.h0 - 1 && revive.first.revived === 1 && revive.first.toast && revive.second.over === 'central' && revive.second.revived === 1 && revive.errs.length === 0,
+    revive,
+  );
   record('I 런 점검 중 콘솔 오류', flow.errs.length + parade.errs.length === 0, [...flow.errs, ...parade.errs]);
 }
 
