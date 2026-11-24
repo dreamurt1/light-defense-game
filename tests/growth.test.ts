@@ -11,17 +11,18 @@ const G = GameData.game.growth;
 const prep = (id: string) => GameData.shop.prep.find((p) => p.id === id)!;
 
 describe('빛 레벨 ★ (런 안에서만)', () => {
-  it('뒤로 갈수록 비싸게 (2026-11-24 다듬기 1차): 앞 여섯 10·15·25·40·60·85는 지시서 값, 뒤 셋은 밸런스 레버(5절 ③) — 늘 커짐, 최대 ★10', () => {
+  it('뒤로 갈수록 비싸게 (2026-11-24 다듬기 2차): 20·30·45·65·90·125·200·280·380, 총합 1235 그대로 — 늘 커짐, 최대 ★10', () => {
     const X = G.xpToNext;
     expect(X).toHaveLength(9);
-    expect(X.slice(0, 6)).toEqual([10, 15, 25, 40, 60, 85]);
+    expect(X).toEqual([20, 30, 45, 65, 90, 125, 200, 280, 380]);
     for (let i = 1; i < X.length; i++) expect(X[i]).toBeGreaterThan(X[i - 1]);
     const total = X.reduce((a, b) => a + b, 0);
-    expect([1, 2, 3, 9, 10].map((l) => xpNeed(l, G))).toEqual([10, 15, 25, X[8], Infinity]);
-    expect(addXp({ level: 1, xp: 0 }, 9, G)).toEqual({ level: 1, xp: 9, ups: 0, dust: 0 });
-    expect(addXp({ level: 1, xp: 9 }, 3, G)).toEqual({ level: 2, xp: 2, ups: 1, dust: 0 });
-    expect(addXp({ level: 1, xp: 0 }, 25, G)).toEqual({ level: 3, xp: 0, ups: 2, dust: 0 });
-    expect(addXp({ level: 4, xp: 39 }, 1, G)).toEqual({ level: 5, xp: 0, ups: 1, dust: 0 });
+    expect(total).toBe(1235);
+    expect([1, 2, 3, 9, 10].map((l) => xpNeed(l, G))).toEqual([X[0], X[1], X[2], X[8], Infinity]);
+    expect(addXp({ level: 1, xp: 0 }, X[0] - 1, G)).toEqual({ level: 1, xp: X[0] - 1, ups: 0, dust: 0 });
+    expect(addXp({ level: 1, xp: X[0] - 1 }, 3, G)).toEqual({ level: 2, xp: 2, ups: 1, dust: 0 });
+    expect(addXp({ level: 1, xp: 0 }, X[0] + X[1], G)).toEqual({ level: 3, xp: 0, ups: 2, dust: 0 });
+    expect(addXp({ level: 4, xp: X[3] - 1 }, 1, G)).toEqual({ level: 5, xp: 0, ups: 1, dust: 0 });
     expect(addXp({ level: 1, xp: 0 }, total, G)).toEqual({ level: 10, xp: 0, ups: 9, dust: 0 });
     expect(addXp({ level: 1, xp: 0 }, total - 1, G).level).toBe(9);
   });

@@ -20,7 +20,7 @@ import {
 // 2026-11-23 밤 나들이 v3 — 밤 n의 규칙 (NIGHT_RUN.md 4-1절)
 const N = GameData.nights;
 const run = (over: Partial<RunInfo> = {}): RunInfo => ({ seed: 12345, keeperId: 'lumi', friendNights: {}, witchSeen: false, lastMapId: null, mercy: 0, banish: 0, ...over });
-/** 구출 밤이 아닌 런 (토리·도토가 이미 함께, 노월은 이미 만남) — 적 표 값만 볼 때 (구출 밤은 클라이맥스 ×0.8, 2026-11-24) */
+/** 구출 밤이 아닌 런 (토리·도토가 이미 함께, 노월은 이미 만남) — 적 표 값만 볼 때 (구출 밤은 클라이맥스·보통 동시 최대에 rescue 배율, 2026-11-24) */
 const calm = (over: Partial<RunInfo> = {}): RunInfo => run({ friendNights: { tori: 1, doto: 1 }, witchSeen: true, ...over });
 
 describe('구간값 표·seed', () => {
@@ -75,11 +75,11 @@ describe('rulesForNight — 밤 1·2·3·6·9·20', () => {
     const c = rulesForNight(3, calm()).spawn;
     expect(c.normal).toMatchObject({ maxAlive: 5, intervalStart: 3, intervalEnd: 2.4 });
     expect(c.climax).toMatchObject({ maxAlive: 8, intervalStart: 1.8, intervalEnd: 1.5 });
-    // 구출 밤(밤 3은 토리를 반드시 되찾음) = 클라이맥스 동시 최대 ×0.8 (지시서 2절 (나), 측정 0.25 구출 밤 끝 5/12)
-    expect(N.rescue.climaxMultiplier).toBe(0.8);
+    // 구출 밤(밤 3은 토리를 반드시 되찾음) = 클라이맥스 동시 최대 × rescue.climaxMultiplier (다듬기 1차 0.8 → 2차 0.7)
+    expect(N.rescue.climaxMultiplier).toBeLessThan(1);
     expect(d.rescue).toBeDefined();
-    expect(d.spawn.climax.maxAlive).toBe(Math.round(8 * 0.8));
-    expect(d.spawn.normal.maxAlive).toBe(5);
+    expect(d.spawn.climax.maxAlive).toBe(Math.round(8 * (N.rescue.climaxMultiplier ?? 1)));
+    expect(d.spawn.normal.maxAlive).toBe(Math.round(5 * ((N.rescue as { normalMultiplier?: number }).normalMultiplier ?? 1)));
   });
   it('밤 4부터 곡선은 밤 3 값에서 이어진다 (fromNight 3) — 밤 4 ≥ 밤 3', () => {
     const sp = N.spawn;
@@ -127,10 +127,10 @@ describe('rulesForNight — 밤 1·2·3·6·9·20', () => {
     expect([d.spawn.normal.intervalStart, d.spawn.normal.intervalEnd]).toEqual(sp.normal.intervalFloor);
     expect([d.spawn.climax.intervalStart, d.spawn.climax.intervalEnd]).toEqual(sp.climax.intervalFloor);
     expect(d.items?.intervalSec).toBe(12);
-    // 밤이 깊을수록 거세진다(줄지 않음)
+    // 밤이 깊을수록 거세진다(줄지 않음) — 구출 밤은 예외라(rescue 배율) 구출이 없는 런으로
     for (let n = 1; n < 20; n++) {
-      const a = rulesForNight(n, run()).spawn.climax;
-      const b = rulesForNight(n + 1, run()).spawn.climax;
+      const a = rulesForNight(n, calm()).spawn.climax;
+      const b = rulesForNight(n + 1, calm()).spawn.climax;
       expect(b.maxAlive).toBeGreaterThanOrEqual(a.maxAlive);
       expect(b.intervalStart).toBeLessThanOrEqual(a.intervalStart);
     }

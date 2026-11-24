@@ -191,7 +191,7 @@
 | lamp | 1×1 | — | — | — | 등불 자리 후보(맵당 4) |
 
 - 맵 파일: `{ "id": "A1", "name": "빛의 마을 · 광장", "band": "A", "theme": "light-village", "rows": [ "33글자 × 19줄" ], "legend": {...} }`. 문자: `.` 바닥, `R` 바위, `H` 집, `W` 강, `B` 다리, `F` 울타리, `T` 술통, `G` 풀숲, `Y` 건초, `L` 등불 자리, `C` 광장. 연속한 같은 문자의 직사각형을 한 장애물로 묶는다(크기가 사전에 없으면 검사 실패).
-- `map.json`의 기존 `obstacles/bushes/stations/river/bridges/themes`는 격자 맵이 대체한다. `friendSpots`는 격자 맵에서 고른다 — 2026-11-24부터 광장 가운데에서 가로·세로 중 큰 값 6~9칸 바닥 칸 중 seed로 하나(`grid.ts friendSpotCells`, 없으면 광장에서 가장 먼 바닥 칸 `farFloorCells`). 먼 바닥 칸 4곳은 랜덤 이벤트 자리로 남음.
+- `map.json`의 기존 `obstacles/bushes/stations/river/bridges/themes`는 격자 맵이 대체한다. `friendSpots`는 격자 맵에서 고른다 — 2026-11-24부터 광장 가운데에서 가로·세로 중 큰 값 6~9칸(다듬기 2차부터 5~8칸) 바닥 칸 중 seed로 하나(`grid.ts friendSpotCells`, 없으면 광장에서 가장 먼 바닥 칸 `farFloorCells`). 먼 바닥 칸 4곳은 랜덤 이벤트 자리로 남음.
 - 그림은 지금 것(집·바위·풀숲·울타리·강·다리 코드 그림)을 격자 자리에 놓는다. 가장자리를 몇 px 불규칙하게 흔들어 격자 티를 줄인다(제안).
 
 ### 7-2. 처음 3장 (ASCII 초안 — 기획 세션에서 연결성·등불 도달·광장 비움을 검사한 것. 사전 크기에 안 맞는 덩어리는 터미널이 정리)
@@ -377,7 +377,7 @@ C2 외곽 · 깊은 숲 (2026-11-24 — 기획 세션이 다음 주로 미룬 �
 ### 7-5. 밤 구간 풀·해금·새 지역
 
 - `nightRules`가 밤 구간의 풀에서 맵을 고른다. 구간에 맵이 없으면 바로 아래 구간에서(밤 6+에 C가 비면 B).
-- **맵이 한 장뿐인 구간**(2026-11-24 기본값 — 지금 C = C1): 그 구간의 첫 밤은 그 맵(새 지역 카드대로), 그다음 밤부터는 바로 아래 구간 맵도 섞는다(C → C1·B1·B2, 같은 맵은 두 밤 연속 안 나옴). 밤 6부터 늘 같은 맵이 되지 않게. `nightRules.mapPoolFor`.
+- **맵이 한 장뿐인 구간**(2026-11-24 기본값 — 그때 C = C1, **C2가 들어와 지금은 해당 구간 없음**·규칙만 코드에 남음): 그 구간의 첫 밤은 그 맵(새 지역 카드대로), 그다음 밤부터는 바로 아래 구간 맵도 섞는다(C → C1·B1·B2, 같은 맵은 두 밤 연속 안 나옴). 밤 6부터 늘 같은 맵이 되지 않게. `nightRules.mapPoolFor`.
 - 구간에 **처음 도달한 아침**에 `MorningSheet` 변형: 제목 "{구간 이름}을 발견했어요"(경계의 숲 / 어둠이 삼킨 외곽), 한 줄 설명, 지도 축소판(격자를 작은 사각형으로 그린 캔버스), "발견한 지역 n/6"(발견 = 그 구간의 맵 수를 더함), 버튼 "다음 밤으로". `Progress.discovered`에 맵 id를 넣는다.
 - 홈 칩 "발견한 지역 n/6". 테스트 메뉴에서는 모든 맵을 고를 수 있다.
 
@@ -503,6 +503,8 @@ SKILL.md: 격자 규격, 장애물 사전, 문자 범례, 맵 파일 만들기 �
 
 ## 14. 다듬기 1차 (2026-11-24, 기획 세션 지시서 `docs/plan/order-night-run-v3-tune-26-1124.md` + 보충 `-b.md`)
 
+> **다듬기 2차로 바뀐 값**(2026-11-24, `order-night-run-v3-tune2-26-1124.md` · 보고 `report-night-run-v3-tune2-26-1124-1203.md`): 빛 레벨 `xpToNext` = [20, 30, 45, 65, 90, 125, 200, 280, 380](총합 1235 — 밤 1 끝 ★4, 1.0 ★10 밤 9) · 구출 밤 클라이맥스 ×0.7 · **보통 시간대 ×0.85**(새 키 `rescue.normalMultiplier`) · 구출 자리 **5~8칸**. 측정(seed 77~100): 0.25 → 4.5 · 0.5 → 5.4 · 1.0 → 11.9. 0.25 구출 밤 종료는 약 7/24(목표 ≤ 6 못 닿음)지만 같은 밤 번호의 끝날 확률은 구출 밤 = 보통 밤(절벽 사라짐). 아래 14-1~14-3은 1차 때의 기록.
+
 ### 14-1. 규칙
 - **빛 레벨** `game.json growth.xpToNext` = [10, 15, 25, 40, 60, 85, **240, 330, 430**] — 앞 여섯은 지시서 값, 뒤 셋은 5절 ③ 레버로 측정에 맞춤(지시서 115·150·190이면 실력 1.0이 밤 6에 ★10). ★10 뒤 남는 경험치는 50마다 별가루 +1(`overflowDustPerXp`, 토스트 없음).
 - **구출 자리** = 광장 가운데에서 가로·세로 중 큰 값 6~9칸 바닥 칸 중 seed로 하나(`rescue.spotDist`, `grid.ts friendSpotCells`, 없으면 먼 바닥 칸). 구출 밤엔 어둠 바람 없음(`rescue.excludeEvents`). 구출 밤 클라이맥스 동시 최대 ×0.8(`rescue.climaxMultiplier`, 지시서 2절 (나) — 측정에서 0.25 구출 밤 끝 5/12).
@@ -571,9 +573,9 @@ SKILL.md: 격자 규격, 장애물 사전, 문자 범례, 맵 파일 만들기 �
 | `bat_true_fly_090_right_f01~04` (**11-24 적용**) | `art-src/enemies/bat-true.fly_090_right_f01~04.png` | `bat-true` 0~3 (`bat-dark` 축척 빌림) — 빛을 받아 돌아갈 때 제자리 교체(`Bat.playReturn`) | 80 · 몸 가운데 |
 | `werewolf_walk_090_right / 000_front / 180_back_f01~04` (**11-24 적용**) | `art-src/enemies/werewolf-dark.walk_<각도>_f01~04.png` | `werewolf-dark` 0~3 / 4~7 / 8~11 — 앞·뒤 걷기 ±2px 출렁임(`walkBob`) | 96 · 발끝(`register: 'canvas'`) |
 | `vampire_fly_090_right_f01~04` (**11-24 적용** — 몸 자리를 Claude가 눈 기준으로 옮긴 사본) | `art-src/enemies/vampire-dark.walk_090_right_f01~04.png` (이름의 fly → walk) | `vampire-dark` 0~3 | **96**(뒤로 뻗은 날개 — 80칸에선 박쥐보다 작음) · 몸 가운데(기준점 48·52) |
-| `frog_lost_walk_<각도>_f01~04` / `frog_walk_…` | `art-src/enemies/frog-dark.walk_<각도>_f0N.png` / `frog-true.walk_…` | `frog-dark`·`frog-true` 0~11 (옆·앞·뒤 × 폴짝 4, true는 dark 축척) | 64 · 발끝(공중 칸도 땅 = y 496) |
-| `hedgehog_lost_walk_…` / `hedgehog_walk_…` | `art-src/enemies/hedgehog-dark.walk_…` / `hedgehog-true.walk_…` | 0~11 (true는 dark 축척) | 64 · 발끝 |
-| `redpanda_lost_walk_…` / `redpanda_walk_…` | `art-src/enemies/redpanda-dark.walk_…` / `redpanda-true.walk_…` | 0~11 (true는 dark 축척) | 72 · 발끝 |
+| `frog_lost_walk_<각도>_f01~04` / `frog_walk_…` (**11-24 옆 적용**, 앞·뒤는 옆으로 대신) | `art-src/enemies/frog-dark.walk_<각도>_f0N.png` / `frog-true.walk_…` | `frog-dark`·`frog-true` 0~11 (옆·앞·뒤 × 폴짝 4, true는 dark 축척) | 64 · 발끝(공중 칸도 땅 = y 496) |
+| `hedgehog_lost_walk_…` / `hedgehog_walk_…` (**11-24 옆 적용**) | `art-src/enemies/hedgehog-dark.walk_…` / `hedgehog-true.walk_…` | 0~11 (true는 dark 축척) | 64 · 발끝 |
+| `redpanda_lost_walk_…` / `redpanda_walk_…` (**11-24 옆 적용**) | `art-src/enemies/redpanda-dark.walk_…` / `redpanda-true.walk_…` | 0~11 (true는 dark 축척) | 72 · 발끝 |
 | `lumi_sleep` · `tori_sleep` · `doto_sleep` (**11-24 09:05 도착·적용**) | `reference/Sleep_Pack/` 그대로 읽음(`src/art/sleepSheet.ts`) | `<id>-sleep` 1칸 — `Lightkeeper.ko`가 X 눈 칸 대신 씀(루미·도토는 쓰러진 방향대로 뒤집기, 토리는 안 뒤집음) | 128 · 누운 바닥 = 발끝 줄 · 8방향 시트와 같은 축척(칸 키 ÷ 팩 몸 높이: 루미 101/480 · 토리 115/448 · 도토 95/442) |
 
 - **앞·뒤(2차, 11-26 12:00)가 마감까지 안 오면**: 옆 4장이 앞·뒤 칸에 자동으로 들어간다(`ArtSpec.poseFallback`, 뒤집기 없음) — 라이언 보고에 "앞·뒤는 옆모습으로 대체".

@@ -195,9 +195,12 @@ export function rulesForNight(n: number, run: RunInfo, opts: NightOptions = {}, 
   const it = nights.items;
   const fixed = nights.spawn.overrides?.[String(night)];
   const climax = spawnTable(nights.spawn.climax, night, weights, fixed?.climax);
-  // 구출 밤 클라이맥스 배율 (지시서 (나) — 측정에서 필요할 때만 nights.json에 둔다)
+  // 구출 밤 동시 최대 배율 (다듬기 1차 (나) 클라이맥스 · 2차 보통 시간대 — 측정에서 필요할 때만 nights.json에 둔다)
   const cm = friend ? (nights.rescue.climaxMultiplier ?? 1) : 1;
   if (cm !== 1) climax.maxAlive = Math.max(1, Math.round(climax.maxAlive * cm));
+  const normal = spawnTable(nights.spawn.normal, night, weights, fixed?.normal);
+  const nm = friend ? (nights.rescue.normalMultiplier ?? 1) : 1;
+  if (nm !== 1) normal.maxAlive = Math.max(1, Math.round(normal.maxAlive * nm));
   return {
     id: `night-${night}`,
     name: `밤 ${night}`,
@@ -206,7 +209,7 @@ export function rulesForNight(n: number, run: RunInfo, opts: NightOptions = {}, 
     stations: stepValue(nights.stations, night),
     spawn: {
       onlyHostileUntilSec: nights.spawn.onlyHostileUntilSec,
-      normal: spawnTable(nights.spawn.normal, night, weights, fixed?.normal),
+      normal,
       climax,
     },
     rescue: friend ? { enemyId: `${friend}-lost` as EnemyId, atProgress: nights.rescue.atProgress } : undefined,

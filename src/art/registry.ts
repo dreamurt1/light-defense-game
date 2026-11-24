@@ -288,7 +288,7 @@ const enemies: SheetDef[] = [
     // 2026-11-13: 옆·앞·뒤 × 폴짝 4칸 (웅크림·박차기·공중·착지). 폴짝 주기 0.7초 ≈ 4칸 ÷ 6fps
     anims: frogAnims('frog-dark-hop', 6),
     // 2-C(2026-11-24): art-src/enemies/frog-dark.walk_090_right_f01~04 · walk_000_front_… · walk_180_back_….png (ChatGPT frog_lost_walk_…), 앞·뒤가 없으면 옆
-    art: { poses: FROG_ART_POSES, frames: FROG_ART_POSES.map((_, pose) => ({ pose })), fit: 'contain', box: { x: 4, y: 6, w: 56, h: 54 }, align: 'feet', res: 2, poseFallback: FROG_POSE_FALLBACK },
+    art: { poses: FROG_ART_POSES, frames: FROG_ART_POSES.map((_, pose) => ({ pose })), fit: 'contain', box: { x: 4, y: 6, w: 56, h: 54 }, align: 'feet', res: 2, poseFallback: FROG_POSE_FALLBACK, register: 'canvas' }, // 캔버스 앵커 그대로 — 공중 칸(f03)이 땅에 붙지 않게 (2026-11-24)
   },
   {
     key: 'frog-true',
@@ -301,7 +301,7 @@ const enemies: SheetDef[] = [
     // 구출 뒤 뛰어가는 폴짝(0.36초)에 맞춰 빠르게
     anims: frogAnims('frog-true-hop', 10),
     // 2-C: art-src/enemies/frog-true.walk_….png (ChatGPT frog_walk_…) — 빛을 잃은 모습과 같은 축척(구출 순간 제자리 교체)
-    art: { poses: FROG_ART_POSES, frames: FROG_ART_POSES.map((_, pose) => ({ pose })), fit: 'contain', box: { x: 4, y: 6, w: 56, h: 54 }, align: 'feet', res: 2, poseFallback: FROG_POSE_FALLBACK, scaleFrom: 'frog-dark' },
+    art: { poses: FROG_ART_POSES, frames: FROG_ART_POSES.map((_, pose) => ({ pose })), fit: 'contain', box: { x: 4, y: 6, w: 56, h: 54 }, align: 'feet', res: 2, poseFallback: FROG_POSE_FALLBACK, scaleFrom: 'frog-dark', register: 'canvas' },
   },
   {
     key: 'witch',

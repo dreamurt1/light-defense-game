@@ -79,17 +79,19 @@ describe('빛 차단 (바위·집·술통·건초·울타리는 막고, 풀숲·
   });
 });
 
-describe('빛을 잃은 친구 자리 (2026-11-24: 광장에서 6~9칸 바닥 칸 중 seed로 하나)', () => {
-  it('모든 맵에 후보가 있고, 모두 바닥·가장자리 아님·광장에서 걸어갈 수 있음·6~9칸', () => {
-    expect(GameData.nights.rescue.spotDist).toEqual([6, 9]);
+describe('빛을 잃은 친구 자리 (2026-11-24: 광장에서 rescue.spotDist칸 — 1차 6~9, 2차 레버 ③ 5~8 — 바닥 칸 중 seed로 하나)', () => {
+  it('모든 맵에 후보가 있고, 모두 바닥·가장자리 아님·광장에서 걸어갈 수 있음·spotDist 범위', () => {
+    const [lo, hi] = GameData.nights.rescue.spotDist;
+    expect(lo).toBeGreaterThanOrEqual(4);
+    expect(hi).toBeGreaterThan(lo);
     for (const m of Object.values(GameData.maps)) {
-      const cells = friendSpotCells(m, D, [6, 9]);
+      const cells = friendSpotCells(m, D, [lo, hi]);
       expect(cells.length, m.id).toBeGreaterThan(50);
       for (const c of cells) {
         expect(m.rows[c.row][c.col]).toBe('.');
         expect(c.row > 0 && c.row < 18 && c.col > 0 && c.col < 32).toBe(true);
-        expect(plazaDist(c, D)).toBeGreaterThanOrEqual(6);
-        expect(plazaDist(c, D)).toBeLessThanOrEqual(9);
+        expect(plazaDist(c, D)).toBeGreaterThanOrEqual(lo);
+        expect(plazaDist(c, D)).toBeLessThanOrEqual(hi);
       }
     }
   });

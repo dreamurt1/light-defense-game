@@ -8,6 +8,8 @@ import { rulesForNight } from '../src/systems/nightRules';
 
 const PROBE = { seed: 1, keeperId: 'lumi' as const, friendNights: {}, witchSeen: false, lastMapId: null, mercy: 0, banish: 0 };
 const night = (n: number) => rulesForNight(n, PROBE);
+/** 구출 밤이 없는 런 (토리·도토가 이미 함께, 노월도 만남) — 구출 밤은 "전 밤보다 조용하지 않게"의 예외(rescue 배율, 2026-11-24 다듬기 2차) */
+const calmNight = (n: number) => rulesForNight(n, { ...PROBE, friendNights: { tori: 1, doto: 1 }, witchSeen: true });
 
 describe('자비 (패시브 주민)', () => {
   it('곁에 dwellSec 머물면 한 번만', () => {
@@ -122,7 +124,7 @@ describe('밸런스 안전장치 (2026-11-13 라이언: 첫 밤은 쉽게, 밤�
     expect(worstPerSec * s1.spawn.normal.maxAlive * 20).toBeLessThan(GameData.game.central.maxHp);
   });
   it('밤이 깊을수록 동시 최대는 줄지 않고 간격은 늘지 않는다 (상한·하한 안)', () => {
-    const nights = Array.from({ length: 20 }, (_, i) => night(i + 1));
+    const nights = Array.from({ length: 20 }, (_, i) => calmNight(i + 1));
     for (let i = 1; i < nights.length; i++) {
       for (const k of ['normal', 'climax'] as const) {
         expect(nights[i].spawn[k].maxAlive).toBeGreaterThanOrEqual(nights[i - 1].spawn[k].maxAlive);

@@ -68,8 +68,9 @@ export const CREATURES: Record<CreatureId, CreatureArt> = {
   // 2026-11-24 ChatGPT 2-C 그림(Hostile_Pack/vampire): 받은 4장은 몸이 왼쪽 위로 치우치고 장마다 달라 Claude가 눈 기준으로 위치만 옮긴 사본(art-src)을 씀
   // 칸 80 → 96(2026-11-24): 뒤로 뻗은 날개가 길어 몸 가운데 앵커로 80칸에 넣으면 박쥐보다 작아짐 → 96칸(상자 88)에서 박쥐와 비슷한 크기. 코드 그림은 (8, 8) 옮겨 그려 기준점 자리 그대로
   vampire: { size: 96, cy: 52, frames: 4, looks: ['dark'], flies: true, fps: 9, register: 'canvas' },
-  hedgehog: { size: 64, cy: 54, frames: 12, looks: ['dark', 'true'], flies: false, fps: 9 },
-  redpanda: { size: 72, cy: 62, frames: 12, looks: ['dark', 'true'], flies: false, fps: 9 },
+  // 2026-11-24 ChatGPT 2-C 그림(Lost_Pack): 옆모습 두 모습 — 앞·뒤는 2차가 기획 검토를 통과할 때까지 옆 4장(poseFallback)
+  hedgehog: { size: 64, cy: 54, frames: 12, looks: ['dark', 'true'], flies: false, fps: 9, register: 'canvas' },
+  redpanda: { size: 72, cy: 62, frames: 12, looks: ['dark', 'true'], flies: false, fps: 9, register: 'canvas' },
   owl: { size: 72, cy: 62, frames: 12, looks: ['plain'], flies: false, fps: 6, fleeFps: 8 },
   // 2026-11-24 ChatGPT 그림: 날갯짓 8칸/초(올빼미 걷기 6보다 빠르게 — 곤충), 나방 도망은 f01 옆 ↔ f02 3/4 뒷모습이라 6칸/초(기획 지시서 2-1)
   moth: { size: 64, cy: 32, frames: 4, looks: ['plain'], flies: true, fps: 8, fleeFps: 6 },

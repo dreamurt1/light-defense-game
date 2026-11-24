@@ -32,10 +32,11 @@
     "atProgress": 0.3,
     "tori": { "fromNight": 2, "chance": 0.5, "guaranteedNight": 3 },
     "doto": { "nightsAfterTori": 2, "chance": 0.5, "guaranteedAfter": 1 },
-    "spotDist": [6, 9],
+    "spotDist": [5, 8],
     "excludeEvents": ["darkWind"],
-    "_climaxMultiplier": "2026-11-24 다듬기 1차 2절 (나): 실력 0.25의 구출 밤에 끝난 런이 12 중 3을 넘어(측정 5/12) 구출 밤 클라이맥스 동시 최대 ×0.8",
-    "climaxMultiplier": 0.8
+    "_climaxMultiplier": "2026-11-24 다듬기 1차 (나) ×0.8 → 2차 레버 ① ×0.7(실력 0.25 구출 밤 끝 13/24 → 8/24, 목표 ≤ 6/24) · 레버 ② normalMultiplier = 구출 밤 보통 시간대 동시 최대 ×0.85(기획 세션 다듬기 2차 1절)",
+    "climaxMultiplier": 0.7,
+    "normalMultiplier": 0.85
   },
   "witch": { "atSec": 8, "fromNight": 5, "chancePerNight": 0.12, "guaranteedNight": 10, "requiresFriends": ["tori", "doto"], "oncePerRun": true },
   "expand": { "hostileRatioPerBanish": 0.1, "hostileRatioCap": 0.4 },

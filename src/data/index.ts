@@ -474,6 +474,8 @@ export interface NightsDef {
     excludeEvents: ('fireflies' | 'lostParade' | 'gift' | 'darkWind')[];
     /** 구출 밤 클라이맥스 동시 최대 배율 (없으면 1 — 지시서 (나), 측정에서 필요할 때만) */
     climaxMultiplier?: number;
+    /** 구출 밤 보통 시간대 동시 최대 배율 (없으면 1 — 다듬기 2차 레버 ②) */
+    normalMultiplier?: number;
   };
   witch: { atSec: number; fromNight: number; chancePerNight: number; guaranteedNight: number; requiresFriends: CharacterId[]; oncePerRun: boolean };
   expand: { hostileRatioPerBanish: number; hostileRatioCap: number };

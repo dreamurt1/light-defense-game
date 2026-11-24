@@ -84,7 +84,7 @@
       "mercy": 2,
       "banishPassive": 1
     },
-    "xpToNext": [10, 15, 25, 40, 60, 85, 240, 330, 430],
+    "xpToNext": [20, 30, 45, 65, 90, 125, 200, 280, 380],
     "_overflowNote": "2026-11-24 다듬기 1차: ★10(최대)에 닿은 뒤 남는 경험치는 overflowDustPerXp마다 별가루 +1 (토스트 없음, 아침 요약의 별가루에 합산)",
     "overflowDustPerXp": 50,
     "perLevel": {
