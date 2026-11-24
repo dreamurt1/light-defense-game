@@ -234,7 +234,7 @@ if (!skipLong) {
     await page.evaluate(`(async () => { const { bus } = await import('/src/core/events.ts'); window.__end = null; window.__kinds = [];
       bus.on('enemy:returned', (e) => window.__kinds.push(e.kind));
       bus.on('game:clear', (e) => (window.__end = e.result)); bus.on('game:over', (e) => (window.__end = e.result));
-      // 노월 판(밤 10)은 ★1로 바로 시작해 거세므로 중앙 광원·루미를 지켜 둔다 — 이 판은 '노월을 진정시키면 아침' 규칙만 본다 (2026-11-23)
+      // 노월 판(밤 10)은 실제 런처럼 ★9로 시작(&level=9 — 2026-11-24 다듬기 2차로 레벨이 느려져 ★1 시작이면 100초에 걸림), 중앙 광원·루미를 지켜 둔다 — 이 판은 '노월을 진정시키면 아침' 규칙만 본다
       if (${JSON.stringify(stage)}.includes('friends')) setInterval(() => { const s = window.__game.scene.getScene('Play'); if (s?.sources) { s.sources.central.state.hp = s.sources.central.state.maxHp; s.vitals.invulnLeft = 9; } }, 200); })()`);
     const t0 = Date.now();
     let end = null;
@@ -249,7 +249,7 @@ if (!skipLong) {
     page.close();
     return { stage, end, sheet, kinds, errs };
   };
-  const [s1, s4] = await Promise.all([run(NIGHT1), run('night=10&friends&seed=7')]);
+  const [s1, s4] = await Promise.all([run(NIGHT1), run('night=10&friends&seed=7&level=9')]);
   const e1 = s1.end;
   record('F1 타이머대로 끝남(100초)', !!e1 && e1.reason === 'time' && Math.abs(e1.survivedSec - 100) < 1, e1 ? { reason: e1.reason, sec: e1.survivedSec, outcome: e1.outcome } : '끝나지 않음');
   record('F5 노월 진정 = 아침', !!s4.end && s4.end.reason === 'boss' && s4.end.bossCalmed, s4.end ? { reason: s4.end.reason, calmed: s4.end.bossCalmed, sec: s4.end.survivedSec } : '끝나지 않음');

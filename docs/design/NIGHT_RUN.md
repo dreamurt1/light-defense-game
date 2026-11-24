@@ -491,7 +491,7 @@ SKILL.md: 격자 규격, 장애물 사전, 문자 범례, 맵 파일 만들기 �
 |---|---|---|
 | `morning.png`·`morning-wide.png` | 아침 화면 배경 CSS 변수 `--morning-art`(`ui/run.css`, 지금 새벽 그라데이션) | WebP로 `public/assets/ui/`에 두고 변수에 연결 |
 | `region-border.png`·`region-dark.png` | 새 지역 카드 `.morning__region`(`ui/MorningSheet.ts`, 지금 색 띠 + 작은 지도 캔버스) | 카드 배경으로, 작은 지도는 그 위에 |
-| `story-02-source.png`·`story-04-voices.png` | 이야기 카드 2번째 `art: 'source'`·4번째 `'voices'`(`ui/Story.ts`, 지금 초상·토템 도형) — 순서 맞음 | `.story__art--source`·`--voices` 배경 |
+| `story-02-source.png`·`story-04-voices.png` | 이야기 카드 `art: 'source'`(**카드 3**)·`'voices'`(**카드 2** — 2026-11-24 13:26 순서 교정, 파일 이름의 번호는 옛 자리)(`ui/Story.ts`) | `.story__art--source`·`--voices` 배경 |
 | `icon-stardust.png`·`icon-level.png` | HUD·아침의 ✦·★는 지금 **글자**(아이콘 자리 아님) | `ui/icons.ts`에 이 이름으로 더하고 글자 대신 |
 | `icon-prep-lamp-oil.png` 등 | `ui/icons.ts prepIcons` — **키는 shop.json id(`lamp_oil`, 밑줄)**, 브리프는 붙임표(`lamp-oil`) | 붙임표 → 밑줄로 맞춰 넣기 |
 | `icon-path-keep.png`·`icon-path-expand.png` | 결과·지난 밤들의 길 점(CSS 원, 민트·잔불 주황) | 점 대신 아이콘 |
@@ -503,7 +503,7 @@ SKILL.md: 격자 규격, 장애물 사전, 문자 범례, 맵 파일 만들기 �
 
 ## 14. 다듬기 1차 (2026-11-24, 기획 세션 지시서 `docs/plan/order-night-run-v3-tune-26-1124.md` + 보충 `-b.md`)
 
-> **다듬기 2차로 바뀐 값**(2026-11-24, `order-night-run-v3-tune2-26-1124.md` · 보고 `report-night-run-v3-tune2-26-1124-1203.md`): 빛 레벨 `xpToNext` = [20, 30, 45, 65, 90, 125, 200, 280, 380](총합 1235 — 밤 1 끝 ★4, 1.0 ★10 밤 9) · 구출 밤 클라이맥스 ×0.7 · **보통 시간대 ×0.85**(새 키 `rescue.normalMultiplier`) · 구출 자리 **5~8칸**. 측정(seed 77~100): 0.25 → 4.5 · 0.5 → 5.4 · 1.0 → 11.9. 0.25 구출 밤 종료는 약 7/24(목표 ≤ 6 못 닿음)지만 같은 밤 번호의 끝날 확률은 구출 밤 = 보통 밤(절벽 사라짐). 아래 14-1~14-3은 1차 때의 기록.
+> **다듬기 2차로 바뀐 값**(2026-11-24, `order-night-run-v3-tune2-26-1124.md` · 보고 `report-night-run-v3-tune2-26-1124-1203.md`): 빛 레벨 `xpToNext` = [20, 30, 45, 65, 90, 125, 200, 280, 380](총합 1235 — 밤 1 끝 ★4, 1.0 ★10 밤 9) · 구출 밤 클라이맥스 ×0.7 · **보통 시간대 ×0.85**(새 키 `rescue.normalMultiplier`) · 구출 자리 6~9칸(2차에 5~8칸으로 줄였다가 효과가 없어 3차에 되돌림). **구출 밤 기준(3차) = 같은 밤 번호의 보통 밤보다 위험하지 않을 것**(2차 측정에서 충족). 측정(seed 77~100): 0.25 → 4.5 · 0.5 → 5.4 · 1.0 → 11.9. 0.25 구출 밤 종료는 약 7/24(목표 ≤ 6 못 닿음)지만 같은 밤 번호의 끝날 확률은 구출 밤 = 보통 밤(절벽 사라짐). 아래 14-1~14-3은 1차 때의 기록.
 
 ### 14-1. 규칙
 - **빛 레벨** `game.json growth.xpToNext` = [10, 15, 25, 40, 60, 85, **240, 330, 430**] — 앞 여섯은 지시서 값, 뒤 셋은 5절 ③ 레버로 측정에 맞춤(지시서 115·150·190이면 실력 1.0이 밤 6에 ★10). ★10 뒤 남는 경험치는 50마다 별가루 +1(`overflowDustPerXp`, 토스트 없음).
@@ -578,7 +578,7 @@ SKILL.md: 격자 규격, 장애물 사전, 문자 범례, 맵 파일 만들기 �
 | `redpanda_lost_walk_…` / `redpanda_walk_…` (**11-24 옆 적용**) | `art-src/enemies/redpanda-dark.walk_…` / `redpanda-true.walk_…` | 0~11 (true는 dark 축척) | 72 · 발끝 |
 | `lumi_sleep` · `tori_sleep` · `doto_sleep` (**11-24 09:05 도착·적용**) | `reference/Sleep_Pack/` 그대로 읽음(`src/art/sleepSheet.ts`) | `<id>-sleep` 1칸 — `Lightkeeper.ko`가 X 눈 칸 대신 씀(루미·도토는 쓰러진 방향대로 뒤집기, 토리는 안 뒤집음) | 128 · 누운 바닥 = 발끝 줄 · 8방향 시트와 같은 축척(칸 키 ÷ 팩 몸 높이: 루미 101/480 · 토리 115/448 · 도토 95/442) |
 
-- **앞·뒤(2차, 11-26 12:00)가 마감까지 안 오면**: 옆 4장이 앞·뒤 칸에 자동으로 들어간다(`ArtSpec.poseFallback`, 뒤집기 없음) — 라이언 보고에 "앞·뒤는 옆모습으로 대체".
+- **앞·뒤(2차)가 아직 안 왔거나 통과 전이면**: 옆 4장이 앞·뒤 칸에 자동으로 들어간다(`ArtSpec.poseFallback`, 뒤집기 없음) — 라이언 보고에 "앞·뒤는 옆모습으로 대체".
 - **잠든 모습 그림이 없을 때의 대체**: 옆모습 대기 첫 칸을 90° 눕히고 살짝 어둡게(`Lightkeeper.ko`) — 11-24에 그림이 와서 지금은 그림을 씀. 쓰러짐 = 기절·잠듦 — X 눈 칸(`<id>-ko`)은 쓰지 않음. **'z' 같은 글자는 띄우지 않는다**(라이언 2026-11-24 — 기획 지시서의 "z z"는 따르지 않음, 전에 떠오르던 'z'도 없앰).
 - 점검: `node scripts/art-check.mjs --kind pair --dir <빛을 잃은 모습> --dir2 <제 모습> --a frog_lost_walk_ --b frog_walk_`(같은 칸 높이·발끝·가운데 ±8px) · `--kind sleep --dir reference/Sleep_Pack`(√넓이 비 1 ± 0.10, 바닥 496, 가운데 256 — X 눈·zzz·글자는 확인용 그림을 눈으로).
 - 빛을 잃은 토리·도토(맵 위·카드) 실루엣 합성은 그대로(의뢰 없음). 중앙 광원은 11-24 ChatGPT `Source_Pack`(칸 0·1·2 = 밝음·낮음·꺼짐, `art-src/objects/central-source.bright·dim·off.png`), 등불도 11-24 `Lantern_Pack`(`art-src/objects/lantern.on·dim·off.png`, 바닥 = 기준점 72줄), 스폰 아이템 아이콘 `Item_Icons_v3`(`art-src/items/item-<id>.png`).

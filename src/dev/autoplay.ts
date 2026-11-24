@@ -58,6 +58,9 @@ export function installAutoplay(game: Phaser.Game): void {
     if (params.has('friends')) RunState.run.friendNights = { tori: 1, doto: 1 };
     RunState.run.banish = Number(params.get('banish') ?? 0) || 0;
     RunState.run.mercy = Number(params.get('mercy') ?? 0) || 0;
+    // &level=n: 빛 레벨 ★n으로 시작 (2026-11-24 — 밤 10 점검 판을 실제 런처럼, ★1로 바로 시작하면 노월 진정이 시간에 걸림)
+    const level = Number(params.get('level') ?? 0);
+    if (level > 1) RunState.run.level = Math.min(GameData.game.growth.xpToNext.length + 1, Math.floor(level));
   }
   const runMode = params.get('autoplay') === 'run';
   const skill0 = Math.min(1, Math.max(0, Number(params.get('skill') ?? 1)));

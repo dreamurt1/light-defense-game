@@ -32,9 +32,9 @@
     "atProgress": 0.3,
     "tori": { "fromNight": 2, "chance": 0.5, "guaranteedNight": 3 },
     "doto": { "nightsAfterTori": 2, "chance": 0.5, "guaranteedAfter": 1 },
-    "spotDist": [5, 8],
+    "spotDist": [6, 9],
     "excludeEvents": ["darkWind"],
-    "_climaxMultiplier": "2026-11-24 다듬기 1차 (나) ×0.8 → 2차 레버 ① ×0.7(실력 0.25 구출 밤 끝 13/24 → 8/24, 목표 ≤ 6/24) · 레버 ② normalMultiplier = 구출 밤 보통 시간대 동시 최대 ×0.85(기획 세션 다듬기 2차 1절)",
+    "_climaxMultiplier": "2026-11-24 다듬기 2차: 구출 밤 동시 최대 클라이맥스 ×0.7 · 보통 ×0.85(normalMultiplier). 3차: 기준 = 같은 밤 번호의 보통 밤보다 위험하지 않을 것(충족), 자리 spotDist는 6~9칸으로 되돌림(5~8칸은 효과 없음)",
     "climaxMultiplier": 0.7,
     "normalMultiplier": 0.85
   },
