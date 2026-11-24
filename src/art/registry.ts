@@ -78,6 +78,12 @@ export interface ArtSpec {
    * 대신 쓴 포즈가 하나라도 있으면 manifest note에 남는다
    */
   poseFallback?: Record<string, string>;
+  /**
+   * 'canvas' = 팩의 캔버스 앵커를 지킨다 (2026-11-24 호스틸 연결 지시서): 포즈마다 보이는 부분만 따로 자르면 날개·꼬리 자세에 따라
+   * 몸이 칸 안에서 흔들린다 → 모든 포즈를 같은 사각형(캔버스 가운데 기준 좌우 대칭, 가운데 정렬이면 위아래도 대칭)으로 잘라
+   * ChatGPT가 맞춘 몸 가운데(256, 256)·발끝 가운데(256, 496)가 상자 가운데·아래 가운데에 그대로 온다. 포즈 파일이 같은 크기여야 한다
+   */
+  register?: 'canvas';
 }
 
 export interface SheetDef {
@@ -242,9 +248,11 @@ const enemies: SheetDef[] = [
       poses: ['fly_090_right_f01', 'fly_090_right_f02', 'fly_090_right_f03', 'fly_090_right_f04'],
       frames: [{ pose: 0 }, { pose: 1 }, { pose: 2 }, { pose: 3 }],
       fit: 'contain',
-      box: { x: 2, y: 10, w: 76, h: 66 },
+      // 상자 가운데 (40, 44) = 시트 기준점(BAT.cx·cy) — 팩의 몸 가운데 (256, 256)가 여기에 (2026-11-24 호스틸 연결 지시서 앵커 (0.5, 0.5))
+      box: { x: 2, y: 11, w: 76, h: 66 },
       align: 'center',
       res: 2,
+      register: 'canvas',
     },
   },
   {
@@ -261,9 +269,10 @@ const enemies: SheetDef[] = [
       poses: ['fly_090_right_f01', 'fly_090_right_f02', 'fly_090_right_f03', 'fly_090_right_f04'],
       frames: [{ pose: 0 }, { pose: 1 }, { pose: 2 }, { pose: 3 }],
       fit: 'contain',
-      box: { x: 2, y: 10, w: 76, h: 66 },
+      box: { x: 2, y: 11, w: 76, h: 66 },
       align: 'center',
       res: 2,
+      register: 'canvas',
       scaleFrom: 'bat-dark', // 되돌아온 모습 = 같은 박쥐, 같은 축척(제자리 교체)
     },
   },
@@ -367,6 +376,7 @@ const enemies: SheetDef[] = [
           // 2-C(2026-11-24): 앞·뒤가 없으면 옆 4장, 제 모습은 빛을 잃은 모습과 같은 축척(구출 순간 제자리 교체)
           poseFallback: CREATURES[id].flies ? undefined : creaturePoseFallback(id),
           scaleFrom: look === 'true' && CREATURES[id].looks.includes('dark') ? creatureKey(id, 'dark') : undefined,
+          register: CREATURES[id].register,
         },
       }),
     ),
@@ -415,6 +425,8 @@ const items: SheetDef[] = ITEM_IDS.map(
     frameHeight: ITEM_ICON.size,
     frames: 1,
     draw: (ctx) => drawItemIcon(ctx, id),
+    // 2026-11-24 그림 일괄 지시서: art-src/items/item-<id>.png 한 장(ChatGPT Item_Icons_v3 item-wind-feather.png → item-wind_feather.png, 128×128) — 바닥·HUD 칸 같은 그림
+    art: { poses: ['icon'], frames: still(1), fit: 'contain', box: { x: 3, y: 3, w: ITEM_ICON.size - 6, h: ITEM_ICON.size - 6 }, align: 'center', res: 2 },
   }),
 );
 
@@ -440,9 +452,11 @@ const objects: SheetDef[] = [
     frameHeight: CENTRAL.h,
     frames: CENTRAL.frames,
     draw: drawCentralSource,
+    // 2026-11-24 그림 일괄 지시서: art-src/objects/central-source.bright·dim·off.png (ChatGPT Source_Pack source_bright·dim·off, 512×688 바닥 667)
+    // — 광도 4단계는 지금처럼 둘레 빛 크기로: 밝음·중간·크게 밝음 = bright 칸, 낮음 = dim 칸, 꺼짐 = off 칸. 세 장이 같은 축척·같은 제단 자리로 들어감
     art: {
-      poses: ['lit', 'out'],
-      frames: [{ pose: 0 }, { pose: 0, filter: 'brightness(0.7) saturate(0.75)' }, { pose: 1 }],
+      poses: ['bright', 'dim', 'off'],
+      frames: [{ pose: 0 }, { pose: 1 }, { pose: 2 }],
       fit: 'contain',
       // 그림 칸에 맞춘 상자: 아래 = 받침 바닥(footY) 조금 아래 (2026-11-13 중앙 광원을 키우며 CENTRAL에서 계산)
       box: { x: 4, y: 2, w: CENTRAL.w - 8, h: CENTRAL.footY + 2 },
@@ -458,10 +472,10 @@ const objects: SheetDef[] = [
     frameHeight: LANTERN.h,
     frames: LANTERN.frames,
     draw: drawLantern,
-    // 켜짐·꺼짐 두 포즈. 약함(HP 낮음)은 켜진 그림을 어둡게
+    // 2026-11-24 그림 일괄 지시서: art-src/objects/lantern.on·dim·off.png (ChatGPT Lantern_Pack lantern_on·dim·off, 448×640 바닥 621) — 결계 원은 지금처럼 게임이
     art: {
-      poses: ['lit', 'unlit'],
-      frames: [{ pose: 0 }, { pose: 0, filter: 'brightness(0.72) saturate(0.8)' }, { pose: 1 }],
+      poses: ['on', 'dim', 'off'],
+      frames: [{ pose: 0 }, { pose: 1 }, { pose: 2 }],
       fit: 'contain',
       box: { x: 1, y: 1, w: 54, h: 78 },
       align: 'feet',

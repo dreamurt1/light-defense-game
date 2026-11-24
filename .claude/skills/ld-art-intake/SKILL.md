@@ -14,6 +14,8 @@ description: 라이트 디펜스에서 ChatGPT가 만든 그림(캐릭터 대기
 ## 2. 재기 — `node scripts/art-check.mjs`
 - 걷기 한 방향: `--dir <폴더> --char tori --view 000_front` (같은 방향 팩 대기 그림과 견줌)
 - 대기 8장: `--dir <폴더> --char doto --kind idle` · 배경: `--kind bg`
+- **그림 일괄 지시서**(2026-11-24 `hand-offs/art-master-order-26-1124-1000/`): 그림 마감 없음, 자리 있는 그림은 오는 대로(코드 변경 없는 교체는 동결 뒤에도), 소품·바닥 새 연결은 동결 전에 끝날 때만. 중앙 광원 `source_bright·dim·off` → `art-src/objects/central-source.bright·dim·off.png`, 등불 `lantern_on·dim·off` → `lantern.on·dim·off.png`, 아이템 `item-wind-feather.png` → `art-src/items/item-wind_feather.png`(붙임표 → 밑줄).
+- **캔버스 앵커 팩**(2-C 호스틸·주민, 2026-11-24): 시트에 `register: 'canvas'`(나는 종은 시트 `art`, 걷는 종은 `CREATURES[id].register`) — 포즈마다 따로 자르면 날개·꼬리 자세로 몸이 흔들린다. 박쥐·웨어울프에 켬. 중앙 광원은 `art-src/objects/`(폴더 새로).
 - 2-C(2026-11-24): 두 모습(빛을 잃은·제 모습, 박쥐 어둠·되돌아온) = `--kind pair --dir <A> --dir2 <B> --a <접두사> --b <접두사>`(같은 칸 높이·발끝·가운데 ±8px), 잠든 모습 = `--kind sleep --dir reference/Sleep_Pack`(축척 ±10%, X 눈·zzz·글자는 눈으로). 자리 대조표는 `docs/design/NIGHT_RUN.md` 14-4.
 - 경고 기준: 512 캔버스 · 발끝 495~496 · f01 = 대기 그림 · 뜨는 높이 ≤ 8 · 눈 높이 ±6 · 귀 끝 ±15 · 눈 색 · **눈동자 덩이 수(눈 겹침)** · 토리 리본 쪽 · 가장자리 흰 줄 · 떨어진 조각.
 - **확인용 그림(`_art-check.png`)을 반드시 Read로 열어 얼굴 확대 줄을 눈으로 본다.** 2026-11-18 앞모습 걷기의 눈 겹침은 평균 색·높이 수치로 잡히지 않았다.

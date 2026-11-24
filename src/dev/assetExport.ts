@@ -89,7 +89,8 @@ function crop(src: HTMLCanvasElement, r: { x: number; y: number; w: number; h: n
 }
 
 /** 투명 배경 스프라이트로: 칠해진 배경이면 지우고, 포즈마다 그림 영역만 잘라 낸다 */
-async function cutPoses(src: { single: string } | { poses: string[] }, count: number): Promise<HTMLCanvasElement[]> {
+async function cutPoses(src: { single: string } | { poses: string[] }, spec: Pick<ArtSpec, 'poses' | 'register' | 'align'>): Promise<HTMLCanvasElement[]> {
+  const count = spec.poses.length;
   const prepare = async (url: string) => {
     const c = await loadCanvas(url);
     const { ctx, image, px } = pixelsOf(c);
@@ -100,14 +101,25 @@ async function cutPoses(src: { single: string } | { poses: string[] }, count: nu
     return { c, px };
   };
   if ('poses' in src) {
-    return Promise.all(
+    const cut = await Promise.all(
       src.poses.map(async (url) => {
         const { c, px } = await prepare(url);
         const r = alphaBounds(px);
         if (!r) throw new Error(`${url}: 그림이 비어 있습니다`);
-        return crop(c, r);
+        return { url, c, r };
       }),
     );
+    if (spec.register !== 'canvas') return cut.map(({ c, r }) => crop(c, r));
+    // 팩의 캔버스 앵커를 지킨다 (ArtSpec.register): 모든 포즈를 캔버스 가운데 기준 같은 사각형으로
+    const { width: W, height: H } = cut[0].c;
+    if (cut.some(({ c }) => c.width !== W || c.height !== H)) throw new Error(`${cut[0].url}: register 'canvas'는 포즈 크기가 같아야 합니다`);
+    const halfW = Math.max(...cut.map(({ r }) => Math.max(W / 2 - r.x, r.x + r.w - W / 2)));
+    const top = Math.min(...cut.map(({ r }) => r.y));
+    const bottom = Math.max(...cut.map(({ r }) => r.y + r.h));
+    const halfH = Math.max(H / 2 - top, bottom - H / 2);
+    const feet = (spec.align ?? 'feet') === 'feet';
+    const rect = { x: Math.floor(W / 2 - halfW), y: feet ? top : Math.floor(H / 2 - halfH), w: Math.ceil(halfW * 2), h: feet ? bottom - top : Math.ceil(halfH * 2) };
+    return cut.map(({ c }) => crop(c, rect));
   }
   const { c, px } = await prepare(src.single);
   return splitColumns(px, count).map((span) => {
@@ -127,7 +139,7 @@ async function borrowedScale(key: string, res: number): Promise<number | null> {
   if (!ref || !spec || spec.fit !== 'contain') return null;
   const src = sourcesFor(ref, spec);
   if (!src) return null;
-  const poses = await cutPoses(src, spec.poses.length);
+  const poses = await cutPoses(src, spec);
   const box = spec.box ?? { x: 0, y: 0, w: ref.frameWidth, h: ref.frameHeight };
   const k = containScale(
     poses.map((p) => ({ w: p.width, h: p.height })),
@@ -175,7 +187,7 @@ async function artSheet(s: SheetDef): Promise<HTMLCanvasElement | null> {
     return out;
   }
 
-  const poses = await cutPoses(src, spec.poses.length);
+  const poses = await cutPoses(src, spec);
   const box = spec.box ?? { x: 0, y: 0, w: s.frameWidth, h: s.frameHeight };
   const own = containScale(
     poses.map((p) => ({ w: p.width, h: p.height })),

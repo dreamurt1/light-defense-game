@@ -1,0 +1,45 @@
+{
+  "generated": "2026-11-24",
+  "pack": "source",
+  "assets": [
+    {
+      "transparent": true,
+      "format": "PNG RGBA",
+      "canvas": "512x688",
+      "file": "source_bright.png",
+      "anchor": {
+        "x": 256,
+        "type": "altar_base",
+        "y": 667
+      },
+      "state": "bright",
+      "description": "warm amber crystal with pale core and small surrounding lights"
+    },
+    {
+      "transparent": true,
+      "format": "PNG RGBA",
+      "canvas": "512x688",
+      "file": "source_dim.png",
+      "anchor": {
+        "x": 256,
+        "type": "altar_base",
+        "y": 667
+      },
+      "state": "dim",
+      "description": "weak cooling red-orange crystal glow, surrounding lights dim"
+    },
+    {
+      "transparent": true,
+      "format": "PNG RGBA",
+      "canvas": "512x688",
+      "file": "source_off.png",
+      "anchor": {
+        "x": 256,
+        "type": "altar_base",
+        "y": 667
+      },
+      "state": "off",
+      "description": "extinguished gray crystal, no emitted light"
+    }
+  ]
+}

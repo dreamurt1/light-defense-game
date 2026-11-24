@@ -1,0 +1,134 @@
+{
+  "generated": "2026-11-24",
+  "pack": "bat",
+  "assets": [
+    {
+      "file": "bat_fly_090_right_f01.png",
+      "anchor": {
+        "x": 256,
+        "y": 256,
+        "type": "body_center"
+      },
+      "transparent": true,
+      "format": "PNG RGBA",
+      "form": "dark hostile",
+      "pose": "wings raised/open",
+      "frame": 1,
+      "canvas": "512x512",
+      "view": "090_right",
+      "species": "bat"
+    },
+    {
+      "file": "bat_fly_090_right_f02.png",
+      "anchor": {
+        "x": 256,
+        "y": 256,
+        "type": "body_center"
+      },
+      "transparent": true,
+      "format": "PNG RGBA",
+      "form": "dark hostile",
+      "pose": "wings halfway down",
+      "frame": 2,
+      "canvas": "512x512",
+      "view": "090_right",
+      "species": "bat"
+    },
+    {
+      "file": "bat_fly_090_right_f03.png",
+      "anchor": {
+        "x": 256,
+        "y": 256,
+        "type": "body_center"
+      },
+      "transparent": true,
+      "format": "PNG RGBA",
+      "form": "dark hostile",
+      "pose": "wings fully down",
+      "frame": 3,
+      "canvas": "512x512",
+      "view": "090_right",
+      "species": "bat"
+    },
+    {
+      "file": "bat_fly_090_right_f04.png",
+      "anchor": {
+        "x": 256,
+        "y": 256,
+        "type": "body_center"
+      },
+      "transparent": true,
+      "format": "PNG RGBA",
+      "form": "dark hostile",
+      "pose": "wings swept forward/up returning to start",
+      "frame": 4,
+      "canvas": "512x512",
+      "view": "090_right",
+      "species": "bat"
+    },
+    {
+      "file": "bat_true_fly_090_right_f01.png",
+      "anchor": {
+        "x": 256,
+        "y": 256,
+        "type": "body_center"
+      },
+      "transparent": true,
+      "format": "PNG RGBA",
+      "form": "restored",
+      "pose": "wings raised/open",
+      "frame": 1,
+      "canvas": "512x512",
+      "view": "090_right",
+      "species": "bat"
+    },
+    {
+      "file": "bat_true_fly_090_right_f02.png",
+      "anchor": {
+        "x": 256,
+        "y": 256,
+        "type": "body_center"
+      },
+      "transparent": true,
+      "format": "PNG RGBA",
+      "form": "restored",
+      "pose": "wings halfway down",
+      "frame": 2,
+      "canvas": "512x512",
+      "view": "090_right",
+      "species": "bat"
+    },
+    {
+      "file": "bat_true_fly_090_right_f03.png",
+      "anchor": {
+        "x": 256,
+        "y": 256,
+        "type": "body_center"
+      },
+      "transparent": true,
+      "format": "PNG RGBA",
+      "form": "restored",
+      "pose": "wings fully down",
+      "frame": 3,
+      "canvas": "512x512",
+      "view": "090_right",
+      "species": "bat"
+    },
+    {
+      "file": "bat_true_fly_090_right_f04.png",
+      "anchor": {
+        "x": 256,
+        "y": 256,
+        "type": "body_center"
+      },
+      "transparent": true,
+      "format": "PNG RGBA",
+      "form": "restored",
+      "pose": "wings swept forward/up returning to start",
+      "frame": 4,
+      "canvas": "512x512",
+      "view": "090_right",
+      "species": "bat"
+    }
+  ]
+}

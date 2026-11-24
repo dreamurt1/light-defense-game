@@ -1,0 +1,186 @@
+{
+  "pack": "werewolf",
+  "generated": "2026-11-24",
+  "assets": [
+    {
+      "anchor": {
+        "x": 256,
+        "y": 496,
+        "type": "feet_baseline"
+      },
+      "view": "090_right",
+      "file": "werewolf_walk_090_right_f01.png",
+      "frame": 1,
+      "species": "werewolf",
+      "canvas": "512x512",
+      "format": "PNG RGBA",
+      "pose": "standing",
+      "transparent": true
+    },
+    {
+      "anchor": {
+        "x": 256,
+        "y": 496,
+        "type": "feet_baseline"
+      },
+      "view": "090_right",
+      "file": "werewolf_walk_090_right_f02.png",
+      "frame": 2,
+      "species": "werewolf",
+      "canvas": "512x512",
+      "format": "PNG RGBA",
+      "pose": "front near paw forward",
+      "transparent": true
+    },
+    {
+      "anchor": {
+        "x": 256,
+        "y": 496,
+        "type": "feet_baseline"
+      },
+      "view": "090_right",
+      "file": "werewolf_walk_090_right_f03.png",
+      "frame": 3,
+      "species": "werewolf",
+      "canvas": "512x512",
+      "format": "PNG RGBA",
+      "pose": "opposite paw step",
+      "transparent": true
+    },
+    {
+      "anchor": {
+        "x": 256,
+        "y": 496,
+        "type": "feet_baseline"
+      },
+      "view": "090_right",
+      "file": "werewolf_walk_090_right_f04.png",
+      "frame": 4,
+      "species": "werewolf",
+      "canvas": "512x512",
+      "format": "PNG RGBA",
+      "pose": "return step",
+      "transparent": true
+    },
+    {
+      "anchor": {
+        "x": 256,
+        "y": 496,
+        "type": "feet_baseline"
+      },
+      "view": "000_front",
+      "file": "werewolf_walk_000_front_f01.png",
+      "frame": 1,
+      "species": "werewolf",
+      "canvas": "512x512",
+      "format": "PNG RGBA",
+      "pose": "standing",
+      "transparent": true
+    },
+    {
+      "anchor": {
+        "x": 256,
+        "y": 496,
+        "type": "feet_baseline"
+      },
+      "view": "000_front",
+      "file": "werewolf_walk_000_front_f02.png",
+      "frame": 2,
+      "species": "werewolf",
+      "canvas": "512x512",
+      "format": "PNG RGBA",
+      "pose": "left paw step",
+      "transparent": true
+    },
+    {
+      "anchor": {
+        "x": 256,
+        "y": 496,
+        "type": "feet_baseline"
+      },
+      "view": "000_front",
+      "file": "werewolf_walk_000_front_f03.png",
+      "frame": 3,
+      "species": "werewolf",
+      "canvas": "512x512",
+      "format": "PNG RGBA",
+      "pose": "right paw step",
+      "transparent": true
+    },
+    {
+      "anchor": {
+        "x": 256,
+        "y": 496,
+        "type": "feet_baseline"
+      },
+      "view": "000_front",
+      "file": "werewolf_walk_000_front_f04.png",
+      "frame": 4,
+      "species": "werewolf",
+      "canvas": "512x512",
+      "format": "PNG RGBA",
+      "pose": "return step",
+      "transparent": true
+    },
+    {
+      "anchor": {
+        "x": 256,
+        "y": 496,
+        "type": "feet_baseline"
+      },
+      "view": "180_back",
+      "file": "werewolf_walk_180_back_f01.png",
+      "frame": 1,
+      "species": "werewolf",
+      "canvas": "512x512",
+      "format": "PNG RGBA",
+      "pose": "standing",
+      "transparent": true
+    },
+    {
+      "anchor": {
+        "x": 256,
+        "y": 496,
+        "type": "feet_baseline"
+      },
+      "view": "180_back",
+      "file": "werewolf_walk_180_back_f02.png",
+      "frame": 2,
+      "species": "werewolf",
+      "canvas": "512x512",
+      "format": "PNG RGBA",
+      "pose": "left paw step",
+      "transparent": true
+    },
+    {
+      "anchor": {
+        "x": 256,
+        "y": 496,
+        "type": "feet_baseline"
+      },
+      "view": "180_back",
+      "file": "werewolf_walk_180_back_f03.png",
+      "frame": 3,
+      "species": "werewolf",
+      "canvas": "512x512",
+      "format": "PNG RGBA",
+      "pose": "right paw step",
+      "transparent": true
+    },
+    {
+      "anchor": {
+        "x": 256,
+        "y": 496,
+        "type": "feet_baseline"
+      },
+      "view": "180_back",
+      "file": "werewolf_walk_180_back_f04.png",
+      "frame": 4,
+      "species": "werewolf",
+      "canvas": "512x512",
+      "format": "PNG RGBA",
+      "pose": "return step",
+      "transparent": true
+    }
+  ]
+}

@@ -1,5 +1,5 @@
 // 박쥐 (어둠의 호스틸, 2026-11-12 새 기획): 보랏빛 눈의 검은 털뭉치로 지그재그로 다가오고, 날아서 장애물을 무시한다.
-// 빛을 받아 HP가 0이 되면 움찔하며 빛 반대쪽 하늘로 날아가 맵 밖으로 사라진다(어둠의 주민이라 제 모습 변신은 없음).
+// 빛을 받아 HP가 0이 되면 움찔하며 되돌아온 모습(bat-true, 2026-11-24 2-C)으로 바뀌어 빛 반대쪽 하늘로 날아가 맵 밖으로 사라진다.
 import Phaser from 'phaser';
 import { AnimKeys, TextureKeys } from '../../core/TextureKeys';
 import type { EnemyDef } from '../../data';
@@ -62,6 +62,10 @@ export class Bat extends Enemy {
     this.setRotation(0);
     this.shadow.setVisible(false);
     this.underGlow.setVisible(false);
+    // 2026-11-24 2-C: 빛을 받아 되돌아온 모습(bat-true, 같은 실루엣·같은 축척)으로 제자리에서 바꿔 끼우고 날아간다 — 그림만 바뀜
+    if (scene.textures.exists(TextureKeys.batTrue) && scene.anims.exists(AnimKeys.batTrueFly)) {
+      this.sprite.setTexture(TextureKeys.batTrue, 0).setScale(texScale(TextureKeys.batTrue)).play(AnimKeys.batTrueFly);
+    }
     this.sprite.anims.timeScale = 1.8;
 
     const fx = scene.add.sprite(this.x, this.y, TextureKeys.fxImpact, 0).setDepth(this.depth + 0.1).setBlendMode(Phaser.BlendModes.ADD);

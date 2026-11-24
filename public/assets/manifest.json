@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-24T00:12:56.839Z",
+  "generatedAt": "2026-11-24T01:21:31.222Z",
   "sheets": [
     {
       "key": "portrait-lumi",
@@ -816,8 +816,8 @@
       "frameWidth": 80,
       "frameHeight": 80,
       "frames": 4,
-      "res": 1,
-      "source": "code",
+      "res": 2,
+      "source": "art",
       "load": true,
       "anims": [
         {
@@ -841,8 +841,8 @@
       "frameWidth": 80,
       "frameHeight": 80,
       "frames": 4,
-      "res": 1,
-      "source": "code",
+      "res": 2,
+      "source": "art",
       "load": true,
       "anims": [
         {
@@ -1028,8 +1028,8 @@
       "frameWidth": 96,
       "frameHeight": 96,
       "frames": 12,
-      "res": 1,
-      "source": "code",
+      "res": 2,
+      "source": "art",
       "load": true,
       "anims": [
         {
@@ -1558,8 +1558,8 @@
       "frameWidth": 176,
       "frameHeight": 236,
       "frames": 3,
-      "res": 1,
-      "source": "code",
+      "res": 2,
+      "source": "art",
       "load": true,
       "anims": []
     },

@@ -56,10 +56,15 @@ export interface CreatureArt {
   fps: number;
   /** 행렬 도망 2칸의 속도 (초당 칸, 없으면 fps × 0.75 — 2026-11-24 올빼미 8, 기획 세션 제안) */
   fleeFps?: number;
+  /** 2-C 팩(캔버스 앵커 규격)의 생성 그림을 앵커 그대로 넣기 (ArtSpec.register, 2026-11-24) */
+  register?: 'canvas';
+  /** 생성 그림의 앞·뒤 걷기에서 걷는 동안 위아래 출렁임(px) — 다리 움직임이 작은 팩 (2026-11-24 웨어울프 ±2, 기획 세션) */
+  walkBob?: number;
 }
 
 export const CREATURES: Record<CreatureId, CreatureArt> = {
-  werewolf: { size: 96, cy: 84, frames: 12, looks: ['dark'], flies: false, fps: 8 },
+  // 2026-11-24 ChatGPT 2-C 그림(Hostile_Pack/werewolf): 앞·뒤 걷기는 다리 움직임이 작아 ±2px 출렁임을 더한다(기획 세션 호스틸 연결 지시서)
+  werewolf: { size: 96, cy: 84, frames: 12, looks: ['dark'], flies: false, fps: 8, register: 'canvas', walkBob: 2 },
   vampire: { size: 80, cy: 44, frames: 4, looks: ['dark'], flies: true, fps: 9 },
   hedgehog: { size: 64, cy: 54, frames: 12, looks: ['dark', 'true'], flies: false, fps: 9 },
   redpanda: { size: 72, cy: 62, frames: 12, looks: ['dark', 'true'], flies: false, fps: 9 },

@@ -109,7 +109,10 @@ export class Creature extends Enemy {
   protected animate(): void {
     const flies = this.art?.flies ?? false;
     // 걷는 종은 그림 안에 걸음 들썩임이 있으므로 코드로는 들썩이지 않는다 (2026-11-13 새 걸음 그림)
-    this.sprite.y = flies ? Math.sin(this.age * 5) * 4 : 0;
+    // — 단 생성 그림의 앞·뒤 걷기가 다리만 조금 움직이는 팩은 걷는 동안 ±walkBob px (2026-11-24 웨어울프, 한 걸음(2칸)에 한 번)
+    const bob = this.art?.walkBob ?? 0;
+    const walking = bob > 0 && this.view !== 'side' && !this.poseArt && this.mode !== 'stunned' && this.mode !== 'attached' && this.sprite.anims.isPlaying && isArtTexture(this.sprite.texture.key);
+    this.sprite.y = flies ? Math.sin(this.age * 5) * 4 : walking ? Math.sin(this.age * Math.PI * (this.art?.fps ?? 8)) * bob : 0;
   }
 
   /** 걷는 종: 이동 방향에 따라 옆·앞·뒤 걸음, 옆이면 좌우 뒤집기 / 나는 종: 좌우만 */
