@@ -11,3 +11,8 @@
 - 4번은 폴더의 최신본 한 장(README '팔·다리 수 가독성 수정')만 씀.
 - 자리: `art-src/backgrounds/story-02-source.png`·`story-04-voices.png` → `public/assets/backgrounds/story-0*.webp`.
 - 쓰는 곳: 이야기 카드 6장 중 2번째('source')·4번째('voices') 그림 칸 — 16:9, 글 자리는 그대로(세로 = 그림 아래, 가로 = 그림 오른쪽). 그림을 못 불러오면 예전 초상·도형 구성으로(`src/ui/Story.ts composedArt`, 지우지 않음).
+
+## 2026-11-24 14:36 — 카드 2(story-02-source) 토끼 귀 고침 반영
+- 라이언 지적: 앞쪽 왼쪽 토끼 귀가 셋. ChatGPT 1436 편지 = 라이언이 고른 전체 다시 그림(14:35, 1280×720)이 최종(14:31 부분 패치 안내는 무효).
+- 점검: 토끼 처진 귀 둘, 다른 주민 넷·광원·집·달 이상 없음, 배경은 원본과 비슷하게 다시 그려짐(허용됨). 게임 속(844×390·390×844) 확대에서도 귀 둘 — `sketches/story-ears-26-1124-1415/ingame-rabbit-fixed.png`.
+- 교체: `art-src/backgrounds/story-02-source.png` = 이 폴더 파일과 같은 md5 → `public/assets/backgrounds/story-02-source.webp` → 배포.
