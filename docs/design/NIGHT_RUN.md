@@ -574,8 +574,8 @@ SKILL.md: 격자 규격, 장애물 사전, 문자 범례, 맵 파일 만들기 �
 | `werewolf_walk_090_right / 000_front / 180_back_f01~04` (**11-24 적용**) | `art-src/enemies/werewolf-dark.walk_<각도>_f01~04.png` | `werewolf-dark` 0~3 / 4~7 / 8~11 — 앞·뒤 걷기 ±2px 출렁임(`walkBob`) | 96 · 발끝(`register: 'canvas'`) |
 | `vampire_fly_090_right_f01~04` (**11-24 적용** — 몸 자리를 Claude가 눈 기준으로 옮긴 사본) | `art-src/enemies/vampire-dark.walk_090_right_f01~04.png` (이름의 fly → walk) | `vampire-dark` 0~3 | **96**(뒤로 뻗은 날개 — 80칸에선 박쥐보다 작음) · 몸 가운데(기준점 48·52) |
 | `frog_lost_walk_<각도>_f01~04` / `frog_walk_…` (**11-24 옆 적용**, 앞·뒤는 옆으로 대신) | `art-src/enemies/frog-dark.walk_<각도>_f0N.png` / `frog-true.walk_…` | `frog-dark`·`frog-true` 0~11 (옆·앞·뒤 × 폴짝 4, true는 dark 축척) | 64 · 발끝(공중 칸도 땅 = y 496) |
-| `hedgehog_lost_walk_…` / `hedgehog_walk_…` (**11-24 옆 적용**) | `art-src/enemies/hedgehog-dark.walk_…` / `hedgehog-true.walk_…` | 0~11 (true는 dark 축척) | 64 · 발끝 |
-| `redpanda_lost_walk_…` / `redpanda_walk_…` (**11-24 옆 적용**) | `art-src/enemies/redpanda-dark.walk_…` / `redpanda-true.walk_…` | 0~11 (true는 dark 축척) | 72 · 발끝 |
+| `hedgehog_lost_walk_…` / `hedgehog_walk_…` (**11-24 옆·앞·뒤 적용**) | `art-src/enemies/hedgehog-dark.walk_…` / `hedgehog-true.walk_…` | 0~11 (true는 dark 축척) | 64 · 발끝 |
+| `redpanda_lost_walk_…` / `redpanda_walk_…` (**11-24 옆·앞·뒤 적용**) | `art-src/enemies/redpanda-dark.walk_…` / `redpanda-true.walk_…` | 0~11 (true는 dark 축척) | 72 · 발끝 |
 | `lumi_sleep` · `tori_sleep` · `doto_sleep` (**11-24 09:05 도착·적용**) | `reference/Sleep_Pack/` 그대로 읽음(`src/art/sleepSheet.ts`) | `<id>-sleep` 1칸 — `Lightkeeper.ko`가 X 눈 칸 대신 씀(루미·도토는 쓰러진 방향대로 뒤집기, 토리는 안 뒤집음) | 128 · 누운 바닥 = 발끝 줄 · 8방향 시트와 같은 축척(칸 키 ÷ 팩 몸 높이: 루미 101/480 · 토리 115/448 · 도토 95/442) |
 
 - **앞·뒤(2차)가 아직 안 왔거나 통과 전이면**: 옆 4장이 앞·뒤 칸에 자동으로 들어간다(`ArtSpec.poseFallback`, 뒤집기 없음) — 라이언 보고에 "앞·뒤는 옆모습으로 대체".

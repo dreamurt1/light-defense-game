@@ -8,3 +8,6 @@ Twenty-four transparent 512×512 sprites: 12 true-form and 12 lost-form, coverin
 - Lost form: matching dark plum (#1F1B2E) with lavender #D6CCFF eyes edged #A89CD9 in front and side views, no sclera, mouth, nose, or blush. Rear faces away and has no eyes.
 - Lost rear-view frames are color-mapped from their matching true-form frames to preserve the exact single-tail silhouette and position.
 - No text, clothes, props, or ground shadow.
+
+### 2026-11-24 correction
+- Added a restrained #A89CD9 outer rim to all four lost-form rear frames; silhouettes and poses were preserved.

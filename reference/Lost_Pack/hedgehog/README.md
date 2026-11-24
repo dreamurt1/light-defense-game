@@ -7,3 +7,6 @@ Twenty-four transparent 512×512 sprites: 12 true-form and 12 lost-form, coverin
 - True form: warm brown baby hedgehog with cream face and rounded cream-tipped spines.
 - Lost form: matching dark plum (#1F1B2E) with lavender eyes #D6CCFF edged #A89CD9 in front and side views; no sclera, mouth, nose, or blush. Rear faces away and shows no eyes.
 - No text, clothes, props, or ground shadow.
+
+### 2026-11-24 correction
+- Added a restrained #A89CD9 outer rim to all four lost-form rear frames; silhouettes and poses were preserved.

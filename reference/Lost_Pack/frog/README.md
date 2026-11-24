@@ -18,3 +18,7 @@ Files:
 - frog_lost_walk_000_front_f01.png through frog_lost_walk_000_front_f04.png
 - frog_walk_180_back_f01.png through frog_walk_180_back_f04.png
 - frog_lost_walk_180_back_f01.png through frog_lost_walk_180_back_f04.png
+
+### 2026-11-24 correction
+- Cleaned the four front/rear f01 sprites: removed two detached sheet fragments per image, matched the f04 standing scale, centered x=256, and aligned the feet to y=496. The character design was preserved.
+- Added a restrained #A89CD9 outer rim to all four lost-form rear frames.

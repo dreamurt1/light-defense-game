@@ -16,6 +16,6 @@ ChatGPT 2-C 1-2절 → 기획 세션 통과(`docs/plan/order-art-connect-26-1124
 | `hedgehog_lost_walk_090_right_…` / `hedgehog_walk_090_right_…` | `hedgehog-dark.…` / `hedgehog-true.…` | 0~3(옆) | 64 · 발끝 |
 | `redpanda_lost_walk_090_right_…` / `redpanda_walk_090_right_…` | `redpanda-dark.…` / `redpanda-true.…` | 0~3(옆) | 72 · 발끝 |
 
-- **앞·뒤 칸(4~11)은 옆 4장으로 대신**(`ArtSpec.poseFallback`, 뒤집기 없음) — 앞·뒤 2차(통합 지시서 9번)가 기획 검토를 통과하면 같은 자리 이름(`walk_000_front_f0N`·`walk_180_back_f0N`)으로 넣는다.
+- **앞·뒤**(2026-11-24 기획 세션 13:14 통과): 고슴도치·레서판다 앞·뒤 32장 → `art-src/enemies/<id>-dark|true.walk_000_front_f01~04`·`walk_180_back_f01~04` → 칸 4~7·8~11(발끝 494~495, 가운데 254~258). **개구리 앞·뒤는 옆 4장으로 대신**(`poseFallback`) — f01 네 장(떨어진 조각, 발 427·441)의 ChatGPT 수정본이 오면 f01~f04를 함께 넣는다(한 방향의 네 장이 다 있어야 그 방향 그림을 씀). 캡처 `sketches/lost-precheck-26-1124-1048/frontback-front.png`·`frontback-back.png`.
 - **캔버스 앵커 그대로**(`register: 'canvas'`): 개구리는 이것이 없으면 공중 칸(f03)이 땅에 붙어 폴짝이 사라진다. 제 모습은 빛을 잃은 모습 축척을 빌림(구출 순간 제자리 교체).
 - 받은 팩 파일은 손대지 않음. 코드 그림(`src/art/enemies.ts`·`creatures.ts`)은 폴백.
