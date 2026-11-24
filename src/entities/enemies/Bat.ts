@@ -4,7 +4,7 @@ import Phaser from 'phaser';
 import { AnimKeys, TextureKeys } from '../../core/TextureKeys';
 import type { EnemyDef } from '../../data';
 import { BAT } from '../../art/enemies';
-import { texScale } from '../../core/textureRes';
+import { isArtTexture, texScale } from '../../core/textureRes';
 import { Enemy, type ReturnContext } from './Enemy';
 
 // 연출 수치는 제안: 기획서에 없음
@@ -52,6 +52,19 @@ export class Bat extends Enemy {
     this.shadow.setPosition(22 * Math.sin(r), 22 * Math.cos(r)).setRotation(-r);
   }
 
+  /**
+   * 생성 그림(2026-11-24 2-C, 오른쪽을 보는 옆모습)은 몸을 돌리지 않고 가로 부호로만 뒤집는다(나방·반딧불이 규칙) —
+   * 돌리면 왼쪽으로 갈 때 거꾸로 선다. 코드 그림(폴백)은 지금처럼 가는 쪽으로 몸을 돌린다
+   */
+  protected override face(dir: Phaser.Math.Vector2): void {
+    if (!isArtTexture(TextureKeys.batDark)) {
+      super.face(dir);
+      return;
+    }
+    this.setRotation(0);
+    if (Math.abs(dir.x) > 0.15) this.sprite.setFlipX(dir.x < 0);
+  }
+
   protected playHit(): void {
     this.sprite.setTint(0xffe0a8);
     this.scene.time.delayedCall(120, () => this.sprite.clearTint());
@@ -75,6 +88,7 @@ export class Bat extends Enemy {
     const dx = this.x - ctx.from.x;
     const dy = this.y - ctx.from.y;
     const len = Math.hypot(dx, dy) || 1;
+    if (isArtTexture(TextureKeys.batTrue) && Math.abs(dx) > 1) this.sprite.setFlipX(dx < 0); // 옆모습 그림: 날아가는 쪽을 보게
     scene.tweens.add({ targets: this, scale: { from: VISUAL_SCALE * 0.85, to: VISUAL_SCALE }, duration: 200, ease: 'Back.easeOut' });
     scene.tweens.add({
       targets: this,
