@@ -26,6 +26,9 @@ export interface SettingsData {
   carryItem: string;
   /** 상점에서 고른 빛 색 id (cosmetics.json, 2026-11-18) */
   lightColor: string;
+  /** 상점 꾸미기에서 고른 빛 모양·걸음 빛 id (cosmetics.json lightShapes·trails, 2026-11-24) */
+  lightShape: string;
+  trail: string;
   /** 휴대폰: 페이지를 연 뒤 첫 탭에서 전체 화면으로 (기본 켬, 2026-11-20 — ui/fullscreen.ts) */
   phoneFullscreen: boolean;
 }
@@ -42,6 +45,8 @@ const DEFAULTS: SettingsData = {
   phoneOrientation: 'auto',
   carryItem: 'firefly_jar',
   lightColor: 'amber',
+  lightShape: 'star',
+  trail: 'none',
   phoneFullscreen: true,
 };
 

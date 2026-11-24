@@ -4,6 +4,8 @@
 import Phaser from 'phaser';
 import { TextureKeys } from '../core/TextureKeys';
 import { lightTint } from '../core/lightColor';
+import { currentShape } from '../core/lightShape';
+import { lightShapeTexture, shapeScale } from './lightShapeArt';
 import { texScale } from '../core/textureRes';
 import type { Vec } from '../systems/fan';
 import { prefersReducedMotion } from '../ui/dom';
@@ -12,7 +14,20 @@ const STARS = 6;
 const STAR_MS = 420;
 
 export class LightFx {
+  /** 상점 꾸미기에서 고른 빛 모양 (2026-11-24): 날아가는 별·맞힌 자리 반짝임만 바뀐다 — 판을 만들 때 한 번 읽음 */
+  private readonly shape = currentShape();
+
   constructor(private readonly scene: Phaser.Scene) {}
+
+  /** 날아가는 빛 하나: 별(기본)이면 지금 그대로, 달·씨앗이면 그 모양을 별과 같은 크기로 */
+  private bolt(x: number, y: number, scale: number): Phaser.GameObjects.Image {
+    if (this.shape === 'star') return this.sprite(TextureKeys.fxStar, x, y, 4020, scale);
+    return this.scene.add
+      .image(x, y, lightShapeTexture(this.scene, this.shape))
+      .setScale(shapeScale(scale))
+      .setDepth(4020)
+      .setBlendMode(Phaser.BlendModes.ADD);
+  }
 
   private sprite(key: string, x: number, y: number, depth: number, scale: number): Phaser.GameObjects.Image {
     return this.scene.add
@@ -34,7 +49,7 @@ export class LightFx {
     for (let i = 0; i < STARS; i++) {
       const a = angle + (((i + 0.5) / STARS) * 2 - 1) * half * 0.8 + (Math.random() - 0.5) * 0.08;
       const dist = range * (0.7 + Math.random() * 0.3);
-      const star = this.sprite(TextureKeys.fxStar, origin.x, origin.y, 4020, 0.55 + Math.random() * 0.2).setRotation(a);
+      const star = this.bolt(origin.x, origin.y, 0.55 + Math.random() * 0.2).setRotation(a);
       if (tint !== null) star.setTint(tint);
       scene.tweens.add({
         targets: star,
@@ -52,6 +67,12 @@ export class LightFx {
   impact(x: number, y: number): void {
     const fx = this.sprite(TextureKeys.fxImpact, x, y, 4030, 0.35);
     this.scene.tweens.add({ targets: fx, scale: fx.scale * 2.1, alpha: 0, duration: 300, ease: 'Quad.easeOut', onComplete: () => fx.destroy() });
+    // 달·씨앗 빛 모양이면 맞힌 자리에 그 모양이 한 번 반짝 (별은 지금 그대로)
+    if (this.shape === 'star') return;
+    const pop = this.bolt(x, y - 6, 0.5).setDepth(4031).setRotation(-Math.PI / 2);
+    const tint = lightTint();
+    if (tint !== null) pop.setTint(tint);
+    this.scene.tweens.add({ targets: pop, scale: pop.scale * 1.7, alpha: 0, y: y - 18, duration: 340, ease: 'Quad.easeOut', onComplete: () => pop.destroy() });
   }
 
   /**

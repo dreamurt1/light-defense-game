@@ -495,6 +495,39 @@ if (!skipLong) {
     );
     record('I16 마지막 하트 위험 링(하트 1 + HP ≤ 50%에서만 · 무적 중 끔)', gauge.ring.on && !gauge.ring.above50 && !gauge.ring.invuln && gauge.errs.length === 0, gauge.ring);
   }
+  // I17 꾸미기 탭 6칸 · I18 달·씨앗 잠김 → 친구를 되찾으면 열림 (2026-11-24 15:58 상점 채우기)
+  const decor = await (async () => {
+    const read = async (friends) => {
+      const page = await openPage({ width: 390, height: 844, scale: 1, phone: true });
+      try {
+        await page.navigate(`${BASE}?screen=home`);
+        await sleep(1200);
+        await page.evaluate(`localStorage.clear(); localStorage.setItem('ld.progress.v2', JSON.stringify({ tutorialDone: true, dust: 50, friends: ${JSON.stringify(friends)} })); 1`);
+        await page.navigate(`${BASE}?screen=shop`);
+        await sleep(2200);
+        await page.evaluate(`([...document.querySelectorAll('.screen--shop .tab')].find((b) => b.textContent.trim() === '꾸미기')?.click(), 1)`);
+        await sleep(400);
+        const out = await page.evaluate(`({ tabs: [...document.querySelectorAll('.screen--shop .tab')].map((b) => b.textContent.trim()), groups: [...document.querySelectorAll('.shop__group-title')].map((e) => e.textContent.trim()), cards: [...document.querySelectorAll('.shop-card--decor')].map((c) => [c.querySelector('strong').textContent, c.querySelector('.shop-card__tag').textContent.replace(/\\s+/g, ' ').trim()]) })`);
+        return { ...out, errs: errorsOf(page) };
+      } finally {
+        page.close();
+      }
+    };
+    return { none: await read([]), tori: await read(['tori']) };
+  })();
+  {
+    const tag = (r, name) => r.cards.find((c) => c[0] === name)?.[1];
+    record(
+      'I17 꾸미기 탭 6칸(빛 모양 3 · 걸음 빛 3, 첫 칸 기본 쓰는 중) — 옛 스킨 탭',
+      decor.none.tabs.join('/') === '빛 색/꾸미기' && decor.none.groups.join('/') === '빛 모양/걸음 빛' && decor.none.cards.map((c) => c[0]).join('/') === '별/달/씨앗/없음/반딧불 가루/별가루 흔적' && tag(decor.none, '별') === '쓰는 중' && tag(decor.none, '없음') === '쓰는 중' && decor.none.errs.length === 0,
+      decor.none,
+    );
+    record(
+      'I18 달·씨앗 잠김("토리와 함께한 뒤") → 토리를 되찾으면 달만 "사기 ✦20"',
+      tag(decor.none, '달') === '토리와 함께한 뒤' && tag(decor.none, '씨앗') === '도토와 함께한 뒤' && /^사기 ?20$/.test(tag(decor.tori, '달') ?? '') && tag(decor.tori, '씨앗') === '도토와 함께한 뒤' && decor.tori.errs.length === 0,
+      { none: decor.none.cards.slice(0, 3), tori: decor.tori.cards.slice(0, 3) },
+    );
+  }
   record('I 런 점검 중 콘솔 오류', flow.errs.length + parade.errs.length === 0, [...flow.errs, ...parade.errs]);
 }
 

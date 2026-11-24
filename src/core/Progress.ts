@@ -126,6 +126,11 @@ export const Progress = {
     return price <= 0 || data.demo || data.cosmetics.includes(colorId);
   },
   /** 빛 색 사기: 별가루가 모자라면 false */
+  /** 꾸미기 사기 (2026-11-24): 빛 색과 같은 목록에 종류를 붙인 id(systems/cosmetics.ts ownedId)로 */
+  buyCosmetic(id: string, price: number): boolean {
+    return this.buyColor(id, price);
+  },
+
   buyColor(colorId: string, price: number): boolean {
     if (this.owns(colorId, price)) return true;
     if (data.dust < price) return false;

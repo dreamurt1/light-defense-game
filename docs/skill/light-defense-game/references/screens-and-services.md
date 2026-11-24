@@ -31,7 +31,7 @@ index.html 스플래시 → Boot → Preload ─(ui:load-progress)→ 스플래�
 | 스플래시 | `index.html` + `ui/Splash.ts` | 흐린 홈 그림·일렁이는 등불·로고·슬로건·불러오기 막대. Preload 진행을 채운 뒤 최소 1.2초 후 사라짐 |
 | 홈 | `ui/screens/HomeScreen.ts`, 정본 `docs/design/HOME_SCREEN.md` | 아래 '홈 상세' |
 | 선택 | `SelectScreen.ts` | 아래 '선택 상세' |
-| 상점 | `ShopScreen.ts` | 겉모습만. **빛 색** 5가지(호박빛 기본 · 새벽빛 ✦10 · 민트빛 ✦15 · 달빛 ✦20 · 별빛 ✦30 — 별가루로 산다, 2026-11-23, `cosmetics.json`)는 빛을 보낼 때의 별·휘두름·조준 원뿔 색을 바꾼다(`core/lightColor.ts`). 스킨은 그림이 와야 해서 '준비 중' |
+| 상점 | `ShopScreen.ts` | 겉모습만. **빛 색** 5가지(호박빛 기본 · 새벽빛 ✦10 · 민트빛 ✦15 · 달빛 ✦20 · 별빛 ✦30 — 별가루로 산다, 2026-11-23, `cosmetics.json`)는 빛을 보낼 때의 별·휘두름·조준 원뿔 색을 바꾼다(`core/lightColor.ts`). **꾸미기**(2026-11-24, 옛 '스킨' 탭 — 묶음 둘 × 3칸, 세로는 제목이 줄 위, 가로는 6칸 한 줄에 제목 둘): 빛 모양 별 ✦0 · 달 ✦20 · 씨앗 ✦20(달·씨앗은 그 친구를 되찾은 뒤 — 전엔 "토리와 함께한 뒤"·"도토와 함께한 뒤") = 날아가는 별·맞힌 자리 반짝임만(`entities/lightShapeArt.ts`), 걸음 빛 없음 · 반딧불 가루 ✦15(MINT) · 별가루 흔적 ✦15(AMBER) = 걷는 동안 발밑 점(`scenes/play/Trail.ts`, `game.json trail` — 120ms마다·동시 8·600ms, 은신·쓰러짐·무적 중 없음). 가진 것은 Progress 목록에 `shape:`·`trail:`을 붙여, 고른 것은 설정 `lightShape`·`trail`. 캐릭터 스킨은 그림이 온 뒤 |
 | 지난 밤들 | `RankingScreen.ts` | 기간 탭(오늘·이번 주·전체), 내 순위, '밤' 열과 길 점(민트 = 지키는 길, 주황 = 넓히는 길, 회색 = 중립). 정렬 점수 → 밤 수 → 버틴 시간. 지금은 이 기기에만(`LocalRanking`, `ld.ranking.v3`, v2에서 옮김). 비었으면 "아직 남긴 밤이 없어요" |
 | 테스트 고르기 | `ui/TestSheet.ts` | 아래 '테스트' |
 | 플레이 | `PlayScene` + `ui/Hud.ts`·`Sticks.ts`·`BossBar.ts`·`Toast.ts` | HUD 위에서는 CSS `pointer-events`로 게임 입력을 막는다 |

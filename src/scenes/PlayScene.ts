@@ -44,6 +44,7 @@ import { EnemyField } from './play/EnemyField';
 import { Sources } from './play/Sources';
 import { SourceRevive } from './play/SourceRevive';
 import { DangerRing } from './play/DangerRing';
+import { Trail } from './play/Trail';
 
 const CFG = GameData.game;
 const OVER_SEC = 1.5; // 오늘은 여기까지 연출 (입력 막고 빛이 사그라듦)
@@ -67,6 +68,7 @@ export class PlayScene extends Phaser.Scene {
   private vitals!: Vitals;
   private revive!: SourceRevive;
   private dangerRing!: DangerRing;
+  private trail!: Trail;
   private lp!: LightPoints;
   private combo!: ComboSystem;
   private clock!: NightClock;
@@ -176,6 +178,7 @@ export class PlayScene extends Phaser.Scene {
     this.safe = !!(sd.endless || sd.tutorial);
     this.revive = new SourceRevive(!!this.night.def && !this.safe);
     this.dangerRing = new DangerRing(this); // 마지막 하트 위험 링 (2026-11-24)
+    this.trail = new Trail(this); // 상점 꾸미기 걸음 빛 (2026-11-24) — 없음이면 아무것도 안 만듦
     if (sd.dummies) this.field.setDummies(sd.dummies); // 트라이얼: 구석에 고정된 적
     this.items = new Items(this, sd, new Rng(RunState.seed + 31), traitOf(keeperDef).itemEffect * this.night.effects.itemEffect, this.night.prep);
     this.boss = sd.boss ? new Boss(this, sd, this.field, { x: CFG.central.x, y: CFG.central.y }, new Rng(RunState.seed + 59)) : null;
@@ -446,6 +449,7 @@ export class PlayScene extends Phaser.Scene {
     const pulse = this.vitals.invulnLeft > 0 ? 0.6 + 0.4 * Math.cos(this.time_ * Math.PI * 2 * INVULN_PULSE_HZ) : 1;
     this.keeper.setVeil((this.hidden ? CFG.hide.keeperAlpha : 1) * pulse);
     this.keeper.moveTo(next.x, next.y, input, dt);
+    this.trail.update(dt, !down && Math.hypot(input.x, input.y) > 0.1 ? { x: next.x, y: next.y + FEET_Y } : null, this.hidden || this.vitals.invulnerable, next.y - 0.4);
     followCamera(this.cameras.main, next, dt);
     // 조준선: 빛 스틱 > PC 마우스 끌기 > 반자동(빛 스틱을 누르고 있기 · PC 스페이스, 2026-11-18 라이언) — 반자동 차례면 한 발
     if (this.aiming.update(dt, this.keeper.pos, this.light.range, this.light.ready, down, () => this.autoAngle()) && this.fire(null)) this.aiming.auto.fired();

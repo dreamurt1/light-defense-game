@@ -248,6 +248,7 @@
     "dangerHpRatio": 0.5,
     "dangerSoonSec": 3
   },
+  "trail": { "everyMs": 120, "size": 3, "lifeMs": 600, "max": 8, "rise": 8, "spread": 6 },
   "enemyGauge": { "enabled": true, "showMs": 1200, "fadeMs": 300, "width": 36, "height": 4, "offsetY": 6, "kinds": ["hostile", "lost"] },
   "dangerRing": { "enabled": true, "hpRatio": 0.5, "radius": 34, "pulseMs": 1200 },
   "village": {
@@ -311,6 +312,7 @@
     "centralFloor": 40
   },
   "_notes": {
+    "trail": "2026-11-24 15:58 기획 세션(라이언 확정): 상점 꾸미기 '걸음 빛' — 걷는 동안 everyMs마다 발끝 아래 점 하나(지름 size~size+1, 좌우 ±spread), lifeMs 동안 rise만큼 떠오르며 사라짐, 동시에 max개(넘으면 오래된 것부터). 제자리·풀숲 은신·쓰러짐·무적 중엔 남기지 않음. 겉모습만(적이 알아채는 것과 무관)",
     "enemyGauge": "2026-11-24 15:03 기획 세션(라이언 확정): 적 빛 게이지 — 호스틸·잃어버린 주민만(패시브·노월·어둠 구슬 제외), 빛에 맞아 HP가 줄었는데 남았을 때만 발밑(걷는 종 발끝 +offsetY, 나는 종 몸 가운데에서 몸 높이 절반 + offsetY)에 showMs 보이고 fadeMs로 사라짐(다시 맞으면 처음부터). 채움 = 1 − HP/maxHP(차오름, 숫자 없음), width×height 둥근 끝, 바탕 NIGHT 0.6 · 채움 AMBER. 주인공 머리 위 HP는 넣지 않음(HUD·피격 연출로 충분). dangerRing: 하트 1 + HP ≤ hpRatio일 때 루미 발밑 EMBER 링(반지름 radius, 선 2px, 불투명도 0.35~0.7을 pulseMs 주기로), 쓰러짐·무적 중엔 끔, 켜고 끌 때 0.3초 페이드 — 라이언이 해 보고 없는 게 낫다면 enabled false",
     "changed": "2026-11-12 새 기획(XMind 1112) 전환: 한 판 = 스테이지(길이는 stages.json, 약 100초, 끝 = 아침), 70%부터 클라이맥스. 지킬 것 = 맵 가운데 중앙 광원 + 등불 스테이션. 루미는 HP·하트·LP를 갖고 스스로 빛을 쏜다(손 등불 없음). 시너지·대광원·장착물 없음. 수치는 모두 제안(라이언: 알아서, 첫 스테이지는 쉽게)",
     "lightLevels": "광도는 0~100 연속값을 4단계로: 25 미만 낮음, 50 미만 중간, 75 미만 밝음, 그 이상 크게 밝음. 2026-11-14 라이언: 중앙 광원·등불은 HP와 광도를 나눈다 — 게이지 = HP(maxHp), 광도(밝기·4단계) = HP ÷ maxHp × 100. 중앙 광원은 HP 가득으로 시작해 줄기만 하고(빛·시간으로 회복 없음, 시간 회복을 없앤 것은 제안) HP 0 = 꺼짐(게임 오버). 등불은 꺼짐(HP 0)에서 빛을 맞으면 igniteSec 연출 뒤 HP 가득, 켜진 동안은 빛으로 회복 없음, 적에게 맞으면 광원 피해 × damageMultiplier, HP 0 = 다시 꺼짐. 2026-11-14 추가(라이언): 켜진 등불은 초당 decayPerSec씩 저절로 줄고(제안 1.3 = 약 77초), 꺼진 등불을 켜면 중앙 광원 HP +centralHeal(제안 8, 중앙 광원이 오르는 유일한 길). 점화 igniteSec 1.2 → 0.8(제안: 다시 켜는 일이 판마다 1~8번으로 잦아져 기다림을 줄이되 달아오르는 모습은 읽히게). 광원 피해 상향(enemies.json sourceDamage ×2.2, 등불 damageMultiplier 0.6, boss.orbDamage 6)",

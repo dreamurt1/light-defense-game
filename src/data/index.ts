@@ -209,6 +209,8 @@ export interface GameConfig {
   score: { station: number; mercy: number; banishPassive: number; itemPickup: number; clearBase: number; completeMultiplier: number; orbPop: number };
   playfield: { margin: number };
   /** 적 빛 게이지 · 마지막 하트 위험 링 (2026-11-24, systems/lightGauge.ts) */
+  /** 걸음 빛 연출 (2026-11-24 상점 꾸미기, systems/trail.ts) */
+  trail: import('../systems/trail').TrailCfg;
   enemyGauge: import('../systems/lightGauge').EnemyGaugeCfg;
   dangerRing: import('../systems/lightGauge').DangerRingCfg;
   items: {
@@ -493,8 +495,24 @@ export interface LightColorDef {
   color: string;
   price: number;
 }
+/** 상점 꾸미기 (2026-11-24): 빛 모양 — 그 친구를 되찾은 뒤에 열림(requires) */
+export interface LightShapeDef {
+  id: 'star' | 'moon' | 'seed';
+  name: string;
+  price: number;
+  requires?: CharacterId;
+}
+/** 상점 꾸미기 (2026-11-24): 걸음 빛 — 발밑 점 색(없음은 color 없음) */
+export interface TrailDef {
+  id: string;
+  name: string;
+  price: number;
+  color?: string;
+}
 export interface CosmeticsDef {
   lightColors: LightColorDef[];
+  lightShapes: LightShapeDef[];
+  trails: TrailDef[];
 }
 
 export interface MapRect {
