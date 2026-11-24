@@ -1,0 +1,56 @@
+{
+  "created": "2026-11-24",
+  "pack": "map_props",
+  "assets": [
+    {
+      "transparent": true,
+      "theme": "dark",
+      "height": 192,
+      "orientation": "h",
+      "width": 192,
+      "file": "prop-fence-h-dark.png"
+    },
+    {
+      "transparent": true,
+      "theme": "dark",
+      "height": 192,
+      "orientation": "v",
+      "width": 192,
+      "file": "prop-fence-v-dark.png"
+    },
+    {
+      "transparent": true,
+      "theme": "dark",
+      "height": 192,
+      "orientation": "end",
+      "width": 192,
+      "file": "prop-fence-end-dark.png"
+    },
+    {
+      "transparent": true,
+      "theme": "dark",
+      "roof_extra_top": 96,
+      "height": 384,
+      "width": 288,
+      "file": "prop-house-2x2-dark.png",
+      "footprint": "2x2"
+    },
+    {
+      "transparent": true,
+      "theme": "border",
+      "height": 288,
+      "width": 288,
+      "file": "prop-bush-2x2-border.png",
+      "footprint": "2x2"
+    },
+    {
+      "transparent": true,
+      "theme": "border",
+      "height": 384,
+      "width": 384,
+      "file": "prop-bush-3x3-border.png",
+      "footprint": "3x3"
+    }
+  ],
+  "theme": "dark_border"
+}

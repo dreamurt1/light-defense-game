@@ -28,6 +28,7 @@ import { LUMI_COLUMNS, LUMI_ROWS, composeLumi, lumiAnims } from './lumiCompose';
 import { DIRS } from '../systems/facing';
 import { CREATURES, creatureAnims, creatureArtPoses, creatureFrame, creatureKey, creaturePoseFallback, drawCreature, paradeFleeAnim, paradePoseKey, type CreatureId } from './creatures';
 import { DARK_ORB, ITEM_ICON, ITEM_IDS, ITEM_LABEL, drawDarkOrb, drawItemIcon, itemKey } from './items';
+import { PROP_ART as GRID_PROP_ART, propCanvas, propKey } from './props';
 import { buildKeeperSheet, drawKeeperSpriteFrame } from './keeperSprites';
 import { composeSleep } from './sleepSheet';
 import { FRIEND_PACKS, composeFriend, friendAnims } from './friendSheet';
@@ -524,6 +525,27 @@ const objects: SheetDef[] = [
   ),
 ];
 
+/**
+ * 격자 맵 소품 (2026-11-24 ChatGPT Map_Props_Pack): 받은 캔버스를 그대로(1:1, 칸 96px) — 코드 그림은 MapProps의 옛 그리기가 폴백.
+ * 그림 파일이 없으면 빈 칸이 나가고(source code) MapProps가 isArtTexture로 가려 옛 그리기를 쓴다
+ */
+const gridProps: SheetDef[] = GRID_PROP_ART.flatMap(({ kind, size, themes }) =>
+  themes.map((theme): SheetDef => {
+    const c = propCanvas(kind, size);
+    return {
+      key: propKey(kind, size, theme),
+      category: 'objects',
+      format: 'webp',
+      label: `격자 소품 ${kind} ${size} (${theme})`,
+      frameWidth: c.w,
+      frameHeight: c.h,
+      frames: 1,
+      draw: () => undefined,
+      art: { poses: ['main'], frames: still(1), fit: 'cover', res: 1 },
+    };
+  }),
+);
+
 /** LUMI 시트 VFX: 그림이 없으면 별 하나로 대신 */
 function vfx(key: string, label: string, w: number, h: number): SheetDef {
   return {
@@ -735,7 +757,7 @@ const backgrounds: SheetDef[] = [
   },
 ];
 
-export const SHEETS: readonly SheetDef[] = [...characters, ...sleepSheets, ...enemies, ...items, ...objects, ...effects, ...backgrounds];
+export const SHEETS: readonly SheetDef[] = [...characters, ...sleepSheets, ...enemies, ...items, ...objects, ...gridProps, ...effects, ...backgrounds];
 
 export function sheetFile(s: Pick<SheetDef, 'category' | 'key' | 'format'>): string {
   return `${s.category}/${s.key}.${s.format ?? 'png'}`;

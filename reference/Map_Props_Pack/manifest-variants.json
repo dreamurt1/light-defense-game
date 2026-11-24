@@ -1,0 +1,151 @@
+{
+  "created": "2026-11-24",
+  "pack": "map_props",
+  "theme_variants": "dark_border",
+  "notes": "Palette variants derived from matching light sprites. Silhouette and canvas dimensions preserved; isolated transparency specks removed. Border houses retain restrained amber window light.",
+  "assets": [
+    {
+      "file": "prop-barrel-1x1-dark.png",
+      "width": 192,
+      "height": 192,
+      "transparent": true,
+      "theme": "dark",
+      "footprint": "1x1"
+    },
+    {
+      "file": "prop-bush-2x2-dark.png",
+      "width": 288,
+      "height": 288,
+      "transparent": true,
+      "theme": "dark",
+      "footprint": "2x2"
+    },
+    {
+      "file": "prop-bush-3x3-dark.png",
+      "width": 384,
+      "height": 384,
+      "transparent": true,
+      "theme": "dark",
+      "footprint": "3x3"
+    },
+    {
+      "file": "prop-fence-end-border.png",
+      "width": 192,
+      "height": 192,
+      "transparent": true,
+      "orientation": "end",
+      "theme": "border"
+    },
+    {
+      "file": "prop-fence-h-border.png",
+      "width": 192,
+      "height": 192,
+      "transparent": true,
+      "orientation": "h",
+      "theme": "border"
+    },
+    {
+      "file": "prop-fence-v-border.png",
+      "width": 192,
+      "height": 192,
+      "transparent": true,
+      "orientation": "v",
+      "theme": "border"
+    },
+    {
+      "file": "prop-hay-2x1-border.png",
+      "width": 288,
+      "height": 192,
+      "transparent": true,
+      "theme": "border",
+      "footprint": "2x1",
+      "rotatable": true
+    },
+    {
+      "file": "prop-hay-2x1-dark.png",
+      "width": 288,
+      "height": 192,
+      "transparent": true,
+      "theme": "dark",
+      "footprint": "2x1",
+      "rotatable": true
+    },
+    {
+      "file": "prop-hay-3x1-border.png",
+      "width": 384,
+      "height": 192,
+      "transparent": true,
+      "theme": "border",
+      "footprint": "3x1",
+      "rotatable": true
+    },
+    {
+      "file": "prop-hay-3x1-dark.png",
+      "width": 384,
+      "height": 192,
+      "transparent": true,
+      "theme": "dark",
+      "footprint": "3x1",
+      "rotatable": true
+    },
+    {
+      "file": "prop-house-2x2-border.png",
+      "width": 288,
+      "height": 384,
+      "transparent": true,
+      "theme": "border",
+      "footprint": "2x2",
+      "roof_extra_top": 96
+    },
+    {
+      "file": "prop-house-2x3-border.png",
+      "width": 288,
+      "height": 480,
+      "transparent": true,
+      "theme": "border",
+      "footprint": "2x3",
+      "roof_extra_top": 96
+    },
+    {
+      "file": "prop-house-3x3-border.png",
+      "width": 384,
+      "height": 480,
+      "transparent": true,
+      "theme": "border",
+      "footprint": "3x3",
+      "roof_extra_top": 96
+    },
+    {
+      "file": "prop-rock-1x1-border.png",
+      "width": 192,
+      "height": 192,
+      "transparent": true,
+      "theme": "border",
+      "footprint": "1x1"
+    },
+    {
+      "file": "prop-rock-1x1-dark.png",
+      "width": 192,
+      "height": 192,
+      "transparent": true,
+      "theme": "dark",
+      "footprint": "1x1"
+    },
+    {
+      "file": "prop-rock-2x2-border.png",
+      "width": 288,
+      "height": 288,
+      "transparent": true,
+      "theme": "border",
+      "footprint": "2x2"
+    },
+    {
+      "file": "prop-rock-2x2-dark.png",
+      "width": 288,
+      "height": 288,
+      "transparent": true,
+      "theme": "dark",
+      "footprint": "2x2"
+    }
+  ]
+}

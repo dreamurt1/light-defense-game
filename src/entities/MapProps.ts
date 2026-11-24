@@ -3,16 +3,17 @@
 //    2.5D라 밑변 y로 앞뒤를 정하고, 등불지기를 가리면 반투명(Occluders)
 //  - 다리: 강 위에 걸친 널판(걸어서 지나감)
 //  - 풀숲: 캐릭터·이웃 위를 덮는다. 등불지기가 들어가 있는 풀숲은 반투명해져 제 모습이 비친다
-//  - 그림은 지금의 임시 코드 그림을 칸 크기에 맞춰 놓고, 자리를 조금씩 흔들어 격자 티를 줄인다(제안). 건초더미만 그림이 없어 임시로 굽는다.
-//    ChatGPT v3 브리프의 prop-* 그림이 오면 같은 자리에 바꿔 끼운다
+//  - 그림: 2026-11-24 ChatGPT Map_Props_Pack(src/art/props.ts — 바위·술통·집·건초·풀숲·울타리, 테마 light·border·dark)이 있으면 그 그림을 칸에 1:1로,
+//    강·다리는 칸마다 이어 붙이는 조각(물길 방향 h·v), 그림이 없으면(집 3×2 등) 옛 임시 코드 그림 — 칸 크기에 맞춰 놓고 자리를 조금씩 흔든다
 import Phaser from 'phaser';
 import { Rng } from '../core/rng';
 import { TextureKeys } from '../core/TextureKeys';
-import { texScale } from '../core/textureRes';
+import { isArtTexture, texScale } from '../core/textureRes';
 import { GameData } from '../data';
 import type { Rect } from '../systems/obstacles';
 import { blobRect, bushRects, collisionRects, kindAt, parseBlobs, type GridMap } from '../systems/grid';
 import { COTTAGE_LAMPS, COTTAGE_WINDOWS } from '../art/village';
+import { PROP_FALLBACK, PROP_THEME, PROP_TINT, propKey, type PropKind, type PropTheme } from '../art/props';
 import { Occluders } from './Occluders';
 import { bakeTexture } from './bake';
 import { WorldCuller } from './WorldCuller';
@@ -45,9 +46,74 @@ export class MapProps {
     this.obstacles = collisionRects(map, D);
     this.bushes = bushRects(map, D);
 
+    const theme: PropTheme = PROP_THEME[map.theme] ?? 'light';
+    /** 생성 그림 소품 (2026-11-24 Map_Props_Pack): 그 테마 그림 → 없으면 다른 테마 그림 + 그 테마 색조, 그것도 없으면 null(옛 코드 그림) */
+    const art = (kind: PropKind, size: string): PropArt | null => {
+      for (const t of PROP_FALLBACK[theme]) {
+        const key = propKey(kind, size, t);
+        if (scene.textures.exists(key) && isArtTexture(key)) return { key, tint: t === theme ? null : PROP_TINT[theme] };
+      }
+      return null;
+    };
+
     for (const b of parseBlobs(map, D)) {
       const r = blobRect(b, D);
       const bottom = r.y + r.h;
+      const size = `${b.w}x${b.h}`;
+      const pic = b.kind === 'rock' || b.kind === 'barrel' || b.kind === 'house' || b.kind === 'bush' ? art(b.kind, size) : null;
+      if (pic) {
+        // 받은 캔버스 그대로: 발자리(칸) 왼쪽 위 = 캔버스 (48, 48), 집은 지붕 몫으로 위 96 더
+        const img = placeProp(scene, pic, r, b.kind === 'house');
+        if (b.kind === 'rock' || b.kind === 'barrel') img.setFlipX(rng.chance(0.5));
+        if (b.kind === 'bush') {
+          // 풀숲: 캐릭터 위를 덮고, 들어가 있으면 반투명(옛 잎 여러 장과 같은 규칙)
+          img.setAlpha(BUSH_ALPHA).setDepth(BUSH_DEPTH + (r.y + r.h / 2) / 10000);
+          this.bushLeaves.push([img]);
+        } else {
+          this.occluders.add([img], bottom);
+        }
+        continue;
+      }
+      const hayPic = b.kind === 'hay' ? art('hay', b.w >= b.h ? size : `${b.h}x${b.w}`) : null;
+      if (hayPic) {
+        // 건초: 세로로 놓인 것(1×2·1×3)은 가로 그림을 90° 돌린다(규격서 6절 "게임이 돌림")
+        const img = scene.add.image(r.x + r.w / 2, r.y + r.h / 2, hayPic.key).setScale(texScale(hayPic.key)).setDepth(bottom);
+        if (b.h > b.w) img.setAngle(90);
+        if (hayPic.tint !== null) img.setTint(hayPic.tint);
+        this.occluders.add([img], bottom);
+        continue;
+      }
+      if (b.kind === 'river' || b.kind === 'bridge') {
+        // 강·다리 조각(2026-11-24): 물길이 세로면 v — 강은 덩어리 모양으로, 한 칸짜리 강·다리는 위아래 이웃이 강·다리인지로 정한다
+        const wet = (c: number, rr: number) => { const k = kindAt(map, D, c, rr); return k === 'river' || k === 'bridge'; };
+        const vertical = b.h > b.w || (b.h === b.w && (wet(b.col, b.row - 1) || wet(b.col, b.row + b.h)));
+        const pic = art(b.kind, vertical ? 'v' : 'h');
+        if (pic) {
+          for (let i = 0; i < Math.max(b.w, b.h); i++) {
+            const cell = vertical ? { x: r.x, y: r.y + i * CELL, w: CELL, h: CELL } : { x: r.x + i * CELL, y: r.y, w: CELL, h: CELL };
+            placeProp(scene, pic, cell, false).setDepth(b.kind === 'river' ? WATER_DEPTH : BRIDGE_DEPTH);
+          }
+          continue;
+        }
+      }
+      if (b.kind === 'fence' && art('fence', 'h') && art('fence', 'v') && art('fence', 'end')) {
+        // 울타리·돌담: 칸마다 조각(가로 h · 세로 v), 가로 줄의 양 끝은 끝 조각(왼쪽 끝은 뒤집음 — 그림의 가로대가 왼쪽)
+        const horizontal = r.w >= r.h;
+        const n = Math.max(b.w, b.h);
+        const thin = horizontal ? { x: r.x + 4, y: r.y + r.h / 2 - 14, w: r.w - 8, h: 28 } : { x: r.x + r.w / 2 - 11, y: r.y + 4, w: 22, h: r.h - 8 };
+        const pieces: Phaser.GameObjects.Image[] = [];
+        for (let i = 0; i < n; i++) {
+          const cell = horizontal ? { x: r.x + i * CELL, y: r.y, w: CELL, h: CELL } : { x: r.x, y: r.y + i * CELL, w: CELL, h: CELL };
+          const end = horizontal && n > 1 && (i === 0 || i === n - 1);
+          const p = art('fence', end ? 'end' : horizontal ? 'h' : 'v') as PropArt;
+          // 가로 조각은 그림의 울타리가 칸 아래쪽에 있어 판정 줄(칸 가운데)에 맞게 올린다
+          const img = placeProp(scene, p, { ...cell, y: cell.y - (horizontal ? FENCE_LIFT : 0) }, false).setDepth(horizontal ? thin.y + thin.h : cell.y + CELL);
+          if (end && i === 0) img.setFlipX(true);
+          pieces.push(img);
+        }
+        this.occluders.add(pieces, thin.y + thin.h, { x: thin.x, y: thin.y - WALL_RISE.fence, w: thin.w, h: thin.h + WALL_RISE.fence });
+        continue;
+      }
       if (b.kind === 'rock') {
         // 1×1은 큰 돌 하나, 2×2는 네 귀퉁이 + 가운데
         const spots = b.w * b.h === 1 ? [[0.5, 0.62]] : [[0.3, 0.38], [0.72, 0.36], [0.28, 0.74], [0.7, 0.76], [0.5, 0.56]];
@@ -112,6 +178,30 @@ export class MapProps {
       for (const leaf of leaves) leaf.setAlpha(leaf.alpha + (target - leaf.alpha) * k);
     });
   }
+}
+
+/** 생성 그림 소품 한 장: 텍스처 키 · 다른 테마 그림을 빌렸으면 그 테마 색조 */
+interface PropArt {
+  key: string;
+  tint: number | null;
+}
+/** 강·다리는 바닥 바로 위 (옛 코드 그림과 같은 깊이) */
+const WATER_DEPTH = -885;
+const BRIDGE_DEPTH = -884;
+/** 소품 캔버스의 사방 여백(규격서 6절) */
+const PROP_PAD = 48;
+/** 가로 울타리 조각을 위로 올리는 양: 그림은 칸 아래쪽(칸 안 59~95줄)에, 판정 줄은 칸 가운데(34~62줄) — 2026-11-24 제안 */
+const FENCE_LIFT = 30;
+
+/** 받은 캔버스를 1:1로: 발자리(칸 사각형) 왼쪽 위 = 캔버스 (48, 48), 집은 위로 96 더 */
+function placeProp(scene: Phaser.Scene, pic: PropArt, r: Rect, house: boolean): Phaser.GameObjects.Image {
+  const img = scene.add
+    .image(r.x - PROP_PAD, r.y - PROP_PAD - (house ? CELL : 0), pic.key)
+    .setOrigin(0, 0)
+    .setScale(texScale(pic.key))
+    .setDepth(r.y + r.h);
+  if (pic.tint !== null) img.setTint(pic.tint);
+  return img;
 }
 
 /** 담 높이(2.5D: 바닥 사각형 위로 솟은 만큼) — 2026-11-13 미로 요소, 임시 코드 그림 */

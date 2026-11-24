@@ -1,0 +1,345 @@
+{
+  "cell_px": 96,
+  "outer_margin_px": 48,
+  "created": "2026-11-24",
+  "pack": "map_props",
+  "assets": [
+    {
+      "file": "prop-barrel-1x1-dark.png",
+      "width": 192,
+      "height": 192,
+      "transparent": true,
+      "theme": "dark",
+      "footprint": "1x1"
+    },
+    {
+      "file": "prop-barrel-1x1-light.png",
+      "width": 192,
+      "height": 192,
+      "transparent": true,
+      "theme": "light",
+      "footprint": "1x1"
+    },
+    {
+      "file": "prop-bridge-h-light.png",
+      "width": 192,
+      "height": 192,
+      "transparent": true,
+      "orientation": "h",
+      "theme": "light",
+      "rotatable": true
+    },
+    {
+      "file": "prop-bridge-v-light.png",
+      "width": 192,
+      "height": 192,
+      "transparent": true,
+      "orientation": "v",
+      "theme": "light",
+      "rotatable": true
+    },
+    {
+      "file": "prop-bush-2x2-border.png",
+      "width": 288,
+      "height": 288,
+      "transparent": true,
+      "theme": "border",
+      "footprint": "2x2"
+    },
+    {
+      "file": "prop-bush-2x2-dark.png",
+      "width": 288,
+      "height": 288,
+      "transparent": true,
+      "theme": "dark",
+      "footprint": "2x2"
+    },
+    {
+      "file": "prop-bush-2x2-light.png",
+      "width": 288,
+      "height": 288,
+      "transparent": true,
+      "theme": "light",
+      "footprint": "2x2"
+    },
+    {
+      "file": "prop-bush-3x3-border.png",
+      "width": 384,
+      "height": 384,
+      "transparent": true,
+      "theme": "border",
+      "footprint": "3x3"
+    },
+    {
+      "file": "prop-bush-3x3-dark.png",
+      "width": 384,
+      "height": 384,
+      "transparent": true,
+      "theme": "dark",
+      "footprint": "3x3"
+    },
+    {
+      "file": "prop-bush-3x3-light.png",
+      "width": 384,
+      "height": 384,
+      "transparent": true,
+      "theme": "light",
+      "footprint": "3x3"
+    },
+    {
+      "file": "prop-fence-end-border.png",
+      "width": 192,
+      "height": 192,
+      "transparent": true,
+      "orientation": "end",
+      "theme": "border"
+    },
+    {
+      "file": "prop-fence-end-dark.png",
+      "width": 192,
+      "height": 192,
+      "transparent": true,
+      "orientation": "end",
+      "theme": "dark"
+    },
+    {
+      "file": "prop-fence-end-light.png",
+      "width": 192,
+      "height": 192,
+      "transparent": true,
+      "orientation": "end",
+      "theme": "light"
+    },
+    {
+      "file": "prop-fence-h-border.png",
+      "width": 192,
+      "height": 192,
+      "transparent": true,
+      "orientation": "h",
+      "theme": "border"
+    },
+    {
+      "file": "prop-fence-h-dark.png",
+      "width": 192,
+      "height": 192,
+      "transparent": true,
+      "orientation": "h",
+      "theme": "dark"
+    },
+    {
+      "file": "prop-fence-h-light.png",
+      "width": 192,
+      "height": 192,
+      "transparent": true,
+      "orientation": "h",
+      "theme": "light"
+    },
+    {
+      "file": "prop-fence-v-border.png",
+      "width": 192,
+      "height": 192,
+      "transparent": true,
+      "orientation": "v",
+      "theme": "border"
+    },
+    {
+      "file": "prop-fence-v-dark.png",
+      "width": 192,
+      "height": 192,
+      "transparent": true,
+      "orientation": "v",
+      "theme": "dark"
+    },
+    {
+      "file": "prop-fence-v-light.png",
+      "width": 192,
+      "height": 192,
+      "transparent": true,
+      "orientation": "v",
+      "theme": "light"
+    },
+    {
+      "file": "prop-hay-2x1-border.png",
+      "width": 288,
+      "height": 192,
+      "transparent": true,
+      "theme": "border",
+      "footprint": "2x1",
+      "rotatable": true
+    },
+    {
+      "file": "prop-hay-2x1-dark.png",
+      "width": 288,
+      "height": 192,
+      "transparent": true,
+      "theme": "dark",
+      "footprint": "2x1",
+      "rotatable": true
+    },
+    {
+      "file": "prop-hay-2x1-light.png",
+      "width": 288,
+      "height": 192,
+      "transparent": true,
+      "theme": "light",
+      "footprint": "2x1",
+      "rotatable": true
+    },
+    {
+      "file": "prop-hay-3x1-border.png",
+      "width": 384,
+      "height": 192,
+      "transparent": true,
+      "theme": "border",
+      "footprint": "3x1",
+      "rotatable": true
+    },
+    {
+      "file": "prop-hay-3x1-dark.png",
+      "width": 384,
+      "height": 192,
+      "transparent": true,
+      "theme": "dark",
+      "footprint": "3x1",
+      "rotatable": true
+    },
+    {
+      "file": "prop-hay-3x1-light.png",
+      "width": 384,
+      "height": 192,
+      "transparent": true,
+      "theme": "light",
+      "footprint": "3x1",
+      "rotatable": true
+    },
+    {
+      "file": "prop-house-2x2-border.png",
+      "width": 288,
+      "height": 384,
+      "transparent": true,
+      "theme": "border",
+      "footprint": "2x2",
+      "roof_extra_top": 96
+    },
+    {
+      "file": "prop-house-2x2-dark.png",
+      "width": 288,
+      "height": 384,
+      "transparent": true,
+      "theme": "dark",
+      "footprint": "2x2",
+      "roof_extra_top": 96
+    },
+    {
+      "file": "prop-house-2x2-light.png",
+      "width": 288,
+      "height": 384,
+      "transparent": true,
+      "theme": "light",
+      "footprint": "2x2",
+      "roof_extra_top": 96
+    },
+    {
+      "file": "prop-house-2x3-border.png",
+      "width": 288,
+      "height": 480,
+      "transparent": true,
+      "theme": "border",
+      "footprint": "2x3",
+      "roof_extra_top": 96
+    },
+    {
+      "file": "prop-house-2x3-light.png",
+      "width": 288,
+      "height": 480,
+      "transparent": true,
+      "theme": "light",
+      "footprint": "2x3",
+      "roof_extra_top": 96
+    },
+    {
+      "file": "prop-house-3x3-border.png",
+      "width": 384,
+      "height": 480,
+      "transparent": true,
+      "theme": "border",
+      "footprint": "3x3",
+      "roof_extra_top": 96
+    },
+    {
+      "file": "prop-house-3x3-light.png",
+      "width": 384,
+      "height": 480,
+      "transparent": true,
+      "theme": "light",
+      "footprint": "3x3",
+      "roof_extra_top": 96
+    },
+    {
+      "file": "prop-river-h-light.png",
+      "width": 192,
+      "height": 192,
+      "transparent": true,
+      "orientation": "h",
+      "tile_edge": "left-right",
+      "theme": "light"
+    },
+    {
+      "file": "prop-river-v-light.png",
+      "width": 192,
+      "height": 192,
+      "transparent": true,
+      "orientation": "v",
+      "tile_edge": "top-bottom",
+      "theme": "light"
+    },
+    {
+      "file": "prop-rock-1x1-border.png",
+      "width": 192,
+      "height": 192,
+      "transparent": true,
+      "theme": "border",
+      "footprint": "1x1"
+    },
+    {
+      "file": "prop-rock-1x1-dark.png",
+      "width": 192,
+      "height": 192,
+      "transparent": true,
+      "theme": "dark",
+      "footprint": "1x1"
+    },
+    {
+      "file": "prop-rock-1x1-light.png",
+      "width": 192,
+      "height": 192,
+      "transparent": true,
+      "theme": "light",
+      "footprint": "1x1"
+    },
+    {
+      "file": "prop-rock-2x2-border.png",
+      "width": 288,
+      "height": 288,
+      "transparent": true,
+      "theme": "border",
+      "footprint": "2x2"
+    },
+    {
+      "file": "prop-rock-2x2-dark.png",
+      "width": 288,
+      "height": 288,
+      "transparent": true,
+      "theme": "dark",
+      "footprint": "2x2"
+    },
+    {
+      "file": "prop-rock-2x2-light.png",
+      "width": 288,
+      "height": 288,
+      "transparent": true,
+      "theme": "light",
+      "footprint": "2x2"
+    }
+  ]
+}

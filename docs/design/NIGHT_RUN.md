@@ -497,7 +497,7 @@ SKILL.md: 격자 규격, 장애물 사전, 문자 범례, 맵 파일 만들기 �
 | `icon-path-keep.png`·`icon-path-expand.png` | 결과·지난 밤들의 길 점(CSS 원, 민트·잔불 주황) | 점 대신 아이콘 |
 | `witch_idle_calm`·`witch_cast_calm`·`witch_calmed`·`witch_idle_angry.png` | **게임은 한 장 시트** `witch`·`witch-angry`(192×192 7칸, `art/enemies.ts WITCH_FRAME` 대기·시전·진정 순) — 브리프는 칸마다 낱장 | 받은 낱장을 WITCH_FRAME 순서로 시트에 이어 붙임(`npm run assets`) |
 | `owl_cower`·`owl_flee_f01~f02.png`(나방 `moth_`·반딧불이 `firefly_`도) | **텍스처 자리 `<id>-cower`(1칸)·`<id>-flee`(2칸, 애니 `<id>-flee-run`)**(2026-11-24, `art/registry.ts`·`art/creatures.ts paradePoseKey`) — **올빼미는 2026-11-24 ChatGPT 그림 적용**(웅크림 = 정면 한 장 전 방향 공용·뒤집지 않음, 도망 = 옆 2장 8칸/초·가로 부호로 뒤집기 — 기획 지시서 `order-owl-pack-26-1124.md`). 나방·반딧불이는 아직 코드 그림(옆 걸음 그대로, 웅크림은 납작하게) | `art-src/enemies/<id>-cower.cower.png`·`<id>-flee.f01~f02.png`로 두고 `npm run assets` → Creature가 생성 그림일 때만(manifest source art) 웅크림·도망에 바꿔 낌. 걷기 `<id>_walk_*`는 걷기 시트 `<id>`(옆·앞·뒤 × 4칸, 나는 종은 옆만)에 `art-src/enemies/<id>.walk_<각도>_fNN.png`. 점검 기록 `reference/Passive_Pack/owl/README_claude.md` |
-| `prop-house-2x2`·`prop-fence-h`·`prop-river-straight`·`prop-bridge.png` | `entities/MapProps.ts`가 종류(house·fence·river·bridge…)마다 기존 코드 그림을 칸에 맞춰 늘려 씀, 건초는 임시 | 종류별 텍스처를 이 이름으로 바꿔 끼움 |
+| `prop-house-2x2`·`prop-fence-h`·`prop-river-straight`·`prop-bridge.png` | **11-24 15:4x 연결** — `prop-<종류>-<크기|h·v·end>-<테마>`(`src/art/props.ts`), `entities/MapProps.ts`가 칸에 1:1(강·다리는 칸마다 조각, 없는 테마는 빌려 색조), 그림 없는 크기는 옛 코드 그림 | 점검 `reference/Map_Props_Pack/README_claude.md` |
 
 
 
