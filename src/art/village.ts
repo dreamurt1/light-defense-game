@@ -1626,9 +1626,15 @@ export const WORLD_LIGHTS: readonly VillageLight[] = buildWorldLights();
 /** 넓은 마을 판석은 그릴 때만 만든다(게임은 이 그림을 파일로 불러오므로 실행 중에는 필요 없음) */
 let worldFlags: Flag[] | null = null;
 
+/** 바닥을 지역 타일로 깐다 (2026-11-24 ChatGPT Ground_Pack → scripts/ground-tiles.mjs → 시트 ground-<지역>[-lit]).
+ *  true면 넓은 마을 그림은 바닥을 비워 두고(투명) VillageStage가 그 밑에 지역 타일을, 빛 자국 안에 빛 받은 타일을 깐다 */
+export const GROUND_TILES = true;
+/** 바닥 타일 한 변 (Ground_Pack 384 = 격자 4칸) */
+export const GROUND_TILE = 384;
+
 export function drawWorld(ctx: Ctx, t: Tone): void {
   worldFlags ??= buildFlags(WW, WH, false, 4211);
-  drawFlags(ctx, t, worldFlags, WW, WH);
+  if (!GROUND_TILES) drawFlags(ctx, t, worldFlags, WW, WH);
   for (const r of MAP.rings) drawRing(ctx, t, r.x, r.y);
   for (const p of WORLD_LAYOUT) {
     const o = OBJECT_BY_KEY.get(p.key);

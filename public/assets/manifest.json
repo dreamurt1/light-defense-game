@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-24T06:50:55.097Z",
+  "generatedAt": "2026-11-24T07:17:31.918Z",
   "sheets": [
     {
       "key": "portrait-lumi",
@@ -2549,6 +2549,84 @@
       "res": 2,
       "source": "art",
       "load": false,
+      "anims": []
+    },
+    {
+      "key": "ground-light",
+      "category": "backgrounds",
+      "label": "바닥 타일 light — 밤 판 (ChatGPT Ground_Pack)",
+      "file": "backgrounds/ground-light.webp",
+      "frameWidth": 384,
+      "frameHeight": 384,
+      "frames": 1,
+      "res": 1,
+      "source": "art",
+      "load": true,
+      "anims": []
+    },
+    {
+      "key": "ground-light-lit",
+      "category": "backgrounds",
+      "label": "바닥 타일 light — 빛 받은 판 (ChatGPT Ground_Pack)",
+      "file": "backgrounds/ground-light-lit.webp",
+      "frameWidth": 384,
+      "frameHeight": 384,
+      "frames": 1,
+      "res": 1,
+      "source": "art",
+      "load": true,
+      "anims": []
+    },
+    {
+      "key": "ground-border",
+      "category": "backgrounds",
+      "label": "바닥 타일 border — 밤 판 (ChatGPT Ground_Pack)",
+      "file": "backgrounds/ground-border.webp",
+      "frameWidth": 384,
+      "frameHeight": 384,
+      "frames": 1,
+      "res": 1,
+      "source": "art",
+      "load": true,
+      "anims": []
+    },
+    {
+      "key": "ground-border-lit",
+      "category": "backgrounds",
+      "label": "바닥 타일 border — 빛 받은 판 (ChatGPT Ground_Pack)",
+      "file": "backgrounds/ground-border-lit.webp",
+      "frameWidth": 384,
+      "frameHeight": 384,
+      "frames": 1,
+      "res": 1,
+      "source": "art",
+      "load": true,
+      "anims": []
+    },
+    {
+      "key": "ground-dark",
+      "category": "backgrounds",
+      "label": "바닥 타일 dark — 밤 판 (ChatGPT Ground_Pack)",
+      "file": "backgrounds/ground-dark.webp",
+      "frameWidth": 384,
+      "frameHeight": 384,
+      "frames": 1,
+      "res": 1,
+      "source": "art",
+      "load": true,
+      "anims": []
+    },
+    {
+      "key": "ground-dark-lit",
+      "category": "backgrounds",
+      "label": "바닥 타일 dark — 빛 받은 판 (ChatGPT Ground_Pack)",
+      "file": "backgrounds/ground-dark-lit.webp",
+      "frameWidth": 384,
+      "frameHeight": 384,
+      "frames": 1,
+      "res": 1,
+      "source": "art",
+      "load": true,
       "anims": []
     },
     {

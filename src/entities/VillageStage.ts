@@ -11,7 +11,8 @@ import { GameData, type NightPhase, type StageDef } from '../data';
 import { follow } from '../systems/facing';
 import { FAN_TEXTURE_RADIUS } from '../art/effects';
 import { texScale } from '../core/textureRes';
-import { WORLD_LIGHTS, type VillageLight } from '../art/village';
+import { GROUND_TILE, GROUND_TILES, WORLD_LIGHTS, type VillageLight } from '../art/village';
+import { PROP_THEME } from '../art/props';
 import { expandRatio } from '../systems/LightSystem';
 import type { Vec } from '../systems/fan';
 import { WorldCuller } from './WorldCuller';
@@ -113,6 +114,9 @@ export class VillageStage {
   private readonly shade: Phaser.GameObjects.Rectangle;
   /** 빛 자국만큼 드러난 켜진 마을 (화면 크기, WebGL만 — Canvas 렌더러에서는 켜진 마을을 생략) */
   private readonly litTexture: Phaser.GameObjects.RenderTexture | null = null;
+  /** 바닥 타일 (2026-11-24): 어두운 마을 층 밑에 깐 지역 타일(밤 판) · 빛 자국 안에 찍을 빛 받은 타일 한 장(표시 목록 밖) */
+  private readonly ground: Phaser.GameObjects.Image[] = [];
+  private readonly litGround: Phaser.GameObjects.Image | null = null;
   /** 빛 고임마다 하나씩 쓰는 글로우 */
   private readonly glows: Phaser.GameObjects.Image[] = [];
   /** 판이 끝날 때 빛 고임이 사그라드는 배율 */
@@ -154,6 +158,16 @@ export class VillageStage {
     const W = scene.scale.width;
     const H = scene.scale.height;
     this.darkLayer = scene.add.image(0, 0, TextureKeys.villageDark).setOrigin(0).setScale(texScale(TextureKeys.villageDark)).setDepth(-1000);
+    // 바닥 (2026-11-24): 넓은 마을 그림은 바닥이 비어 있고(art/village GROUND_TILES) 그 밑에 지역 타일을 깐다 — 지역은 setTheme이 바꿈, 화면 밖 타일은 끔
+    if (GROUND_TILES) {
+      for (let y = 0; y < WORLD.height; y += GROUND_TILE) {
+        for (let x = 0; x < WORLD.width; x += GROUND_TILE) {
+          const tile = scene.add.image(x, y, 'ground-light').setOrigin(0).setScale(texScale('ground-light')).setDepth(-1001);
+          this.ground.push(tile);
+          this.culler.add(tile);
+        }
+      }
+    }
     this.shade = scene.add.rectangle(0, 0, W, H, PHASE_SHADE.dusk.color, 0).setOrigin(0).setScrollFactor(0).setDepth(-950);
     // 테마 막: 어두운 마을 위·켜진 마을 아래 (빛이 닿은 곳은 막 위로 드러난다). 빛의 마을에선 숨김
     this.themeVeil = scene.add.rectangle(0, 0, W, H, 0x000000, 1).setOrigin(0).setScrollFactor(0).setDepth(-945).setVisible(false);
@@ -170,12 +184,19 @@ export class VillageStage {
     // 결과 = 켜진 마을 × 빛 자국 알파 — 예전 마스크와 같은 식. 그 텍스처를 어두운 마을 위(깊이 -900)에 그대로 올린다
     this.litLayer = scene.make.image({ x: 0, y: 0, key: TextureKeys.villageLit }, false).setOrigin(0).setScale(texScale(TextureKeys.villageLit));
     if (scene.renderer.type === Phaser.WEBGL) {
-      this.litLayer.setBlendMode(keepByDestAlpha(scene.renderer as Phaser.Renderer.WebGL.WebGLRenderer));
+      const blends = blendModes(scene.renderer as Phaser.Renderer.WebGL.WebGLRenderer);
+      // 바닥이 타일이면: 빛 받은 타일을 빛 자국 알파만큼 남기고(keep), 바닥이 빈 켜진 마을은 그 위에 덮어 그린다(over) — 결과 = (마을 over 타일) × 빛 자국 알파
+      this.litLayer.setBlendMode(GROUND_TILES ? blends.over : blends.keep);
+      if (GROUND_TILES) this.litGround = scene.make.image({ x: 0, y: 0, key: 'ground-light-lit' }, false).setOrigin(0).setScale(texScale('ground-light-lit')).setBlendMode(blends.keep);
       this.litTexture = scene.add.renderTexture(0, 0, W, H).setOrigin(0).setScrollFactor(0).setDepth(-900);
     }
     // 표시 목록에 넣지 않은 그림이라 씬이 끝날 때 직접 지운다
     const litLayer = this.litLayer;
-    scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => litLayer.destroy());
+    const litGround = this.litGround;
+    scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      litLayer.destroy();
+      litGround?.destroy();
+    });
 
     for (const def of WORLD_LIGHTS) this.lights.push(this.makeLight(def));
     for (let i = 0; i < Math.min(FIREFLIES_MAX, FIREFLIES_BASE + FIREFLIES_PER_LIGHT * WORLD_LIGHTS.length); i++) this.fireflies.push(this.makeFirefly());
@@ -221,6 +242,10 @@ export class VillageStage {
     this.theme = theme;
     this.darkLayer.setTint(look.dark);
     this.litLayer.setTint(look.lit);
+    // 바닥 타일: 지역 타일(light·border·dark) + 마을 그림과 같은 색조
+    const groundTheme = PROP_THEME[theme] ?? 'light';
+    for (const tile of this.ground) tile.setTexture(`ground-${groundTheme}`).setTint(look.dark);
+    this.litGround?.setTexture(`ground-${groundTheme}-lit`).setTint(look.lit);
     this.themeVeil.setFillStyle(look.veil, 1).setAlpha(look.veilAlpha).setVisible(look.veilAlpha > 0);
     this.gloomLayer.setFillStyle(look.gloom, 1);
     this.glowTint = look.glow;
@@ -544,7 +569,16 @@ export class VillageStage {
           skipBatch: true,
         });
       }
-      // 켜진 마을: 빛 자국의 알파만큼만 남는다
+      // 빛 받은 바닥 타일 (2026-11-24): 화면에 보이는 칸만, 빛 자국의 알파만큼만 남게
+      const lg = this.litGround;
+      if (lg) {
+        const x0 = Math.floor(cam.scrollX / GROUND_TILE) * GROUND_TILE;
+        const y0 = Math.floor(cam.scrollY / GROUND_TILE) * GROUND_TILE;
+        for (let y = y0; y < cam.scrollY + rt.height; y += GROUND_TILE) {
+          for (let x = x0; x < cam.scrollX + rt.width; x += GROUND_TILE) rt.batchDraw(lg, x - cam.scrollX, y - cam.scrollY);
+        }
+      }
+      // 켜진 마을: 빛 자국의 알파만큼만 남는다 (바닥 타일이 있으면 그 위에 덮어 그림)
       rt.batchDraw(this.litLayer, -cam.scrollX, -cam.scrollY);
     } finally {
       // endDraw의 옮겨 그리기는 마지막 섞기 방식을 그대로 쓴다 → '그대로 덮어쓰기'로 두면 텍스처를 따로 지울 필요도 없다
@@ -557,17 +591,17 @@ export class VillageStage {
 
 /** 켜진 마을용 섞기 두 가지 (렌더러마다 한 번만 만든다)
  *  keep = 이미 그려진 알파만큼만 남김(결과 = 그림 × 그 자리 알파, 예전 마스크와 같은 식), copy = 그대로 덮어쓰기 */
-const BLENDS = new WeakMap<Phaser.Renderer.WebGL.WebGLRenderer, { keep: number; copy: number }>();
-function blendModes(r: Phaser.Renderer.WebGL.WebGLRenderer): { keep: number; copy: number } {
+const BLENDS = new WeakMap<Phaser.Renderer.WebGL.WebGLRenderer, { keep: number; copy: number; over: number }>();
+function blendModes(r: Phaser.Renderer.WebGL.WebGLRenderer): { keep: number; copy: number; over: number } {
   let m = BLENDS.get(r);
   if (!m) {
     const gl = r.gl;
-    m = { keep: r.addBlendMode([gl.DST_ALPHA, gl.ZERO], gl.FUNC_ADD), copy: r.addBlendMode([gl.ONE, gl.ZERO], gl.FUNC_ADD) };
+    // over (2026-11-24 바닥 타일) = 빛 자국 알파만큼 덮어 그리기: 결과 = 그림 × 그 자리 알파 + 이미 그린 것 × (1 − 그림 알파), 알파는 빛 자국 그대로
+    m = { keep: r.addBlendMode([gl.DST_ALPHA, gl.ZERO], gl.FUNC_ADD), copy: r.addBlendMode([gl.ONE, gl.ZERO], gl.FUNC_ADD), over: r.addBlendMode([gl.DST_ALPHA, gl.ONE_MINUS_SRC_ALPHA], gl.FUNC_ADD) };
     BLENDS.set(r, m);
   }
   return m;
 }
-const keepByDestAlpha = (r: Phaser.Renderer.WebGL.WebGLRenderer): number => blendModes(r).keep;
 
 /** 구획 막 그림 크기·덮는 반지름(마을 모서리까지 약 1840) */
 const ZONE_VEIL_TEX = 512;

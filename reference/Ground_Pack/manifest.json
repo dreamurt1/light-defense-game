@@ -1,0 +1,34 @@
+{
+  "assets": [
+    {
+      "height": 384,
+      "repeat": "4x4 grid cells",
+      "theme": "light",
+      "width": 384,
+      "seamless": true,
+      "opaque": true,
+      "file": "ground-light.png"
+    },
+    {
+      "height": 384,
+      "repeat": "4x4 grid cells",
+      "theme": "border",
+      "width": 384,
+      "seamless": true,
+      "opaque": true,
+      "file": "ground-border.png"
+    },
+    {
+      "height": 384,
+      "repeat": "4x4 grid cells",
+      "theme": "dark",
+      "width": 384,
+      "seamless": true,
+      "opaque": true,
+      "file": "ground-dark.png"
+    }
+  ],
+  "created": "2026-11-24",
+  "tile_px": 384,
+  "pack": "ground_tiles"
+}

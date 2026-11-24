@@ -23,7 +23,7 @@ import {
 import { BAT, FROG, WITCH, WITCH_FRAME, drawBatDark, drawBatTrue, drawFrogDark, drawFrogTrue, drawWitch, drawWitchAngry, frogAnims } from './enemies';
 import type { Ctx } from './kit';
 import { CENTRAL, HANGING_LANTERN, LANTERN, drawCentralSource, drawHangingLantern, drawLantern } from './objects';
-import { DARK, LIT, VILLAGE_OBJECTS, drawVillage, drawWorld } from './village';
+import { DARK, GROUND_TILE, LIT, VILLAGE_OBJECTS, drawVillage, drawWorld } from './village';
 import { LUMI_COLUMNS, LUMI_ROWS, composeLumi, lumiAnims } from './lumiCompose';
 import { DIRS } from '../systems/facing';
 import { CREATURES, creatureAnims, creatureArtPoses, creatureFrame, creatureKey, creaturePoseFallback, drawCreature, paradeFleeAnim, paradePoseKey, type CreatureId } from './creatures';
@@ -659,6 +659,25 @@ const backgrounds: SheetDef[] = [
   dawnArt('region-dark', '새 지역 카드 — 어둠이 삼킨 외곽 (ChatGPT 2-B)', 512, 256, '#14152E', '#120F24'),
   dawnArt('story-02-source', '이야기 카드 2 — 광원이 꺼진 밤 (ChatGPT 2-B)', 640, 360, '#1B1F3B', '#120F24'),
   dawnArt('story-04-voices', '이야기 카드 4 — 두 목소리 (ChatGPT 2-B)', 640, 360, '#1B1F3B', '#2A2F5A'),
+  // 바닥 타일 (2026-11-24): 지역마다 밤 판(어두운 마을 층 밑) · 빛 받은 판(빛 자국 안) — 384×384 이음새 없음.
+  // 원본 reference/Ground_Pack → scripts/ground-tiles.mjs가 평균 색을 지금 마을 바닥(DARK·LIT 판석)에 맞춰 art-src/backgrounds에 굽는다.
+  // 그림이 없으면 그 색조의 바닥색 한 칸(넓은 마을 그림이 바닥을 비워 두므로 늘 무언가 깔리게)
+  ...(['light', 'border', 'dark'] as const).flatMap((t): SheetDef[] =>
+    ([false, true] as const).map((lit): SheetDef => ({
+      key: `ground-${t}${lit ? '-lit' : ''}`,
+      category: 'backgrounds',
+      label: `바닥 타일 ${t} — ${lit ? '빛 받은 판' : '밤 판'} (ChatGPT Ground_Pack)`,
+      frameWidth: GROUND_TILE,
+      frameHeight: GROUND_TILE,
+      frames: 1,
+      format: 'webp',
+      draw: (ctx) => {
+        ctx.fillStyle = (lit ? LIT : DARK).ground;
+        ctx.fillRect(0, 0, GROUND_TILE, GROUND_TILE);
+      },
+      art: cover(1),
+    })),
+  ),
   {
     key: 'village-dark',
     category: 'backgrounds',
