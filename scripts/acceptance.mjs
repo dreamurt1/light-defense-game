@@ -453,6 +453,48 @@ if (!skipLong) {
     revive.first.hp === 40 && !revive.first.out && revive.first.hearts === revive.h0 - 1 && revive.first.revived === 1 && revive.first.toast && revive.second.over === 'central' && revive.second.revived === 1 && revive.errs.length === 0,
     revive,
   );
+  // I15 적 빛 게이지 · I16 위험 링 (2026-11-24 15:03 기획 세션, 라이언 확정): 게임의 맞히기 처리로 빛을 맞혀 봄
+  const gauge = await (async () => {
+    const page = await openPage({ width: 960, height: 540, scale: 1 });
+    try {
+      await page.navigate(`${BASE}?autoplay=9999&night=3&map=A1&seed=11&idle`);
+      await waitFor(page, `!!${SC}?.field && !!${SC}.vitals`, 25000);
+      await sleep(1500);
+      const prep = `(() => { const s = ${SC}; for (const e of [...s.field.active]) e.destroy(); s.field.prune(); s.vitals.invulnLeft = 9999; window.__g = {}; const k = s.keeper.pos;
+        for (const [id, dx, dy] of [['werewolf', 150, 0], ['tori-lost', -150, 0], ['owl', 0, 150], ['bat', 0, -150]]) window.__g[id] = s.field.spawnAt(id, k.x + dx, k.y + dy); return 1; })()`;
+      await page.evaluate(prep);
+      await sleep(300);
+      await page.evaluate(`(() => { const s = ${SC}; for (const id of ['werewolf', 'tori-lost', 'owl', 'bat']) s.hits.enemy(window.__g[id]); return 1; })()`);
+      await sleep(300);
+      const look = (id) => `(() => { const e = window.__g['${id}']; const g = e.gauge; return { hp: e.hp, max: e.def.hp, has: !!g, visible: !!g && g.visible, fill: g ? +g.shownFill.toFixed(3) : null, belowFeet: !!g && g.bg.y > e.y }; })()`;
+      const shown = {};
+      for (const id of ['werewolf', 'tori-lost', 'owl', 'bat']) shown[id] = await page.evaluate(look(id));
+      await sleep(1500);
+      const gone = await page.evaluate(`!!window.__g.werewolf.gauge?.visible`);
+      // 위험 링: 하트 1 + HP 40% → 켜짐, HP 60% → 꺼짐, 다시 40% + 무적 → 꺼짐
+      await page.evaluate(`(() => { const v = ${SC}.vitals; v.invulnLeft = 0; v.hearts = 1; v.hp = v.maxHp * 0.4; return 1; })()`);
+      await sleep(800);
+      const ringOn = await page.evaluate(`${SC}.dangerRing.shown`);
+      await page.evaluate(`(() => { const v = ${SC}.vitals; v.hp = v.maxHp * 0.6; return 1; })()`);
+      await sleep(500);
+      const ringAbove = await page.evaluate(`${SC}.dangerRing.shown`);
+      await page.evaluate(`(() => { const v = ${SC}.vitals; v.hp = v.maxHp * 0.4; v.invulnLeft = 2; return 1; })()`);
+      await sleep(500);
+      const ringInvuln = await page.evaluate(`${SC}.dangerRing.shown`);
+      return { shown, gone, ring: { on: ringOn, above50: ringAbove, invuln: ringInvuln }, errs: errorsOf(page) };
+    } finally {
+      page.close();
+    }
+  })();
+  {
+    const w = gauge.shown.werewolf, t = gauge.shown['tori-lost'], o = gauge.shown.owl, b = gauge.shown.bat;
+    record(
+      'I15 적 빛 게이지(호스틸·잃어버린 주민만 · HP가 남을 때 발밑에 1 − HP/max로 차오름 · 1.5초 안에 사라짐 · 패시브·HP 0은 없음)',
+      w.visible && w.belowFeet && Math.abs(w.fill - (1 - w.hp / w.max)) < 1e-3 && t.visible && t.fill > 0 && !o.has && !b.visible && b.hp <= 0 && !gauge.gone && gauge.errs.length === 0,
+      gauge.shown,
+    );
+    record('I16 마지막 하트 위험 링(하트 1 + HP ≤ 50%에서만 · 무적 중 끔)', gauge.ring.on && !gauge.ring.above50 && !gauge.ring.invuln && gauge.errs.length === 0, gauge.ring);
+  }
   record('I 런 점검 중 콘솔 오류', flow.errs.length + parade.errs.length === 0, [...flow.errs, ...parade.errs]);
 }
 

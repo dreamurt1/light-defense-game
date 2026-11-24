@@ -43,6 +43,7 @@ import { prefersReducedMotion } from '../ui/dom';
 import { EnemyField } from './play/EnemyField';
 import { Sources } from './play/Sources';
 import { SourceRevive } from './play/SourceRevive';
+import { DangerRing } from './play/DangerRing';
 
 const CFG = GameData.game;
 const OVER_SEC = 1.5; // 오늘은 여기까지 연출 (입력 막고 빛이 사그라듦)
@@ -65,6 +66,7 @@ export class PlayScene extends Phaser.Scene {
   private field!: EnemyField;
   private vitals!: Vitals;
   private revive!: SourceRevive;
+  private dangerRing!: DangerRing;
   private lp!: LightPoints;
   private combo!: ComboSystem;
   private clock!: NightClock;
@@ -173,6 +175,7 @@ export class PlayScene extends Phaser.Scene {
     const sd = this.stageDef;
     this.safe = !!(sd.endless || sd.tutorial);
     this.revive = new SourceRevive(!!this.night.def && !this.safe);
+    this.dangerRing = new DangerRing(this); // 마지막 하트 위험 링 (2026-11-24)
     if (sd.dummies) this.field.setDummies(sd.dummies); // 트라이얼: 구석에 고정된 적
     this.items = new Items(this, sd, new Rng(RunState.seed + 31), traitOf(keeperDef).itemEffect * this.night.effects.itemEffect, this.night.prep);
     this.boss = sd.boss ? new Boss(this, sd, this.field, { x: CFG.central.x, y: CFG.central.y }, new Rng(RunState.seed + 59)) : null;
@@ -277,6 +280,7 @@ export class PlayScene extends Phaser.Scene {
     this.light.rangeMultiplier = this.lp.effectiveness * this.night.effects.lightRange;
     if (this.safe) keepSafe(this.vitals, central.state);
     this.emitVitals();
+    this.dangerRing.update(dt, this.vitals, this.keeper.pos.x, this.keeper.pos.y + FEET_Y, this.keeper.pos.y - 0.5);
 
     // 광원이 꺼진 순간 하트가 남았으면 한 밤에 한 번 되살림 (2026-11-24)
     this.revive.update(dt, central, this.field.active, this.vitals);

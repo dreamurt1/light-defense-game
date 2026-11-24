@@ -11,6 +11,8 @@ import type { Vec } from '../../systems/fan';
 import { keepOut, steerAround, type Ward } from '../../systems/lampWard';
 import { pushOut, type Rect } from '../../systems/obstacles';
 import { GameData } from '../../data';
+import { gaugeShowsAfterHit } from '../../systems/lightGauge';
+import { LightGauge } from './LightGauge';
 
 const WARD = GameData.game.station.ward;
 /** 켜진 등불의 결계들 */
@@ -124,6 +126,8 @@ export abstract class Enemy extends Phaser.GameObjects.Container {
   private recoilLeft = 0;
   private recoilTotal = 0;
   private readonly recoilDir = new Phaser.Math.Vector2();
+  /** 빛 게이지 (2026-11-24): 처음 맞을 때 만든다 — 호스틸·잃어버린 주민만 */
+  private gauge: LightGauge | null = null;
 
   constructor(
     scene: Phaser.Scene,
@@ -317,10 +321,30 @@ export abstract class Enemy extends Phaser.GameObjects.Container {
     if (full) this.playSlam();
   }
 
+  /** 빛 게이지: 매 프레임 시간을 보내고 보이는 동안 발밑으로 (EnemyField.step이 모든 적에 — 기다리는 친구·행렬은 step을 일찍 끝내서 여기서 따로) */
+  tickGauge(dt: number): void {
+    if (this.gauge && this.active) this.gauge.update(dt * 1000, this.x, this.y + this.gaugeDrop(), this.depth + 0.5);
+  }
+
+  /** 빛 게이지가 놓일 발밑: 컨테이너 기준점에서 아래로 (걷는 종 = 발끝이라 0, 나는 종은 몸 높이의 절반 — 하위 클래스가 정함) */
+  protected gaugeDrop(): number {
+    return 0;
+  }
+
   /** 빛에 맞음. HP 0이 되어 퇴장하면 true */
   hitByLight(power: number, knockback: number, stunSec: number, ctx: ReturnContext): boolean {
     if (!this.targetable) return false;
     this.hp -= power;
+    // 빛 게이지 (2026-11-24 기획 세션): HP가 남았을 때만 받은 빛만큼 차오른 막대를 잠깐 — 0이면 퇴장·구출 연출이 대신
+    if (gaugeShowsAfterHit(this.def.kind, this.hp, GameData.game.enemyGauge)) {
+      if (!this.gauge) {
+        const g = new LightGauge(this.scene);
+        // 'destroy' = Phaser.GameObjects.Events.DESTROY — 배포판의 줄인 Phaser(vendor/phaser-slim.cjs)에는 그 상수 묶음이 없어 문자열로
+        this.once('destroy', () => g.destroy());
+        this.gauge = g;
+      }
+      this.gauge.hit(this.hp, this.def.hp);
+    } else this.gauge?.hide();
     if (this.hp <= 0) {
       this.mode = 'returning';
       this.playReturn(ctx);

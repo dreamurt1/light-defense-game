@@ -88,6 +88,11 @@ export class Creature extends Enemy {
     this.add([this.shadow, this.underGlow, this.sprite]);
   }
 
+  /** 빛 게이지 자리 (2026-11-24): 걷는 종은 발끝(0), 나는 종은 땅에 비친 그림자 자리(몸 가운데에서 그림자까지, 크기 배율 포함) */
+  protected override gaugeDrop(): number {
+    return this.art?.flies ? this.shadow.y * this.scaleY : 0;
+  }
+
   get passive(): boolean {
     return this.def.kind === 'passive';
   }

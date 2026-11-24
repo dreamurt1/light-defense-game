@@ -93,6 +93,7 @@ export class EnemyField {
     const hits: { enemy: Enemy; hit: NonNullable<EnemyStep['hit']> }[] = [];
     for (const e of this.enemies) {
       const s = e.step(dt, ctx);
+      e.tickGauge(dt);
       e.collide(this.obstacles, dt);
       e.avoidWards(ctx.sources, dt);
       if (s.hit) hits.push({ enemy: e, hit: s.hit });

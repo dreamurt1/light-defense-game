@@ -208,6 +208,9 @@ export interface GameConfig {
   };
   score: { station: number; mercy: number; banishPassive: number; itemPickup: number; clearBase: number; completeMultiplier: number; orbPop: number };
   playfield: { margin: number };
+  /** 적 빛 게이지 · 마지막 하트 위험 링 (2026-11-24, systems/lightGauge.ts) */
+  enemyGauge: import('../systems/lightGauge').EnemyGaugeCfg;
+  dangerRing: import('../systems/lightGauge').DangerRingCfg;
   items: {
     lifetimeSec: number;
     blinkLastSec: number;

@@ -13,6 +13,9 @@ const RETREAT_MS = 1200;
 /** 화면에서 보이는 크기. 판정 반지름(enemies.json radius)은 그대로 */
 const VISUAL_SCALE = 1.05;
 
+/** 몸 가운데에서 땅 그림자까지 */
+const SHADOW_Y = 22;
+
 export class Bat extends Enemy {
   private readonly shadow: Phaser.GameObjects.Image;
   private readonly underGlow: Phaser.GameObjects.Image;
@@ -22,7 +25,7 @@ export class Bat extends Enemy {
     super(scene, def, x, y);
     this.amplitude = Number(def.behaviorParams?.amplitude ?? 0);
     this.period = Number(def.behaviorParams?.periodSec ?? 1);
-    this.shadow = scene.add.image(0, 22, TextureKeys.footShadow).setScale(0.9, 1.1);
+    this.shadow = scene.add.image(0, SHADOW_Y, TextureKeys.footShadow).setScale(0.9, 1.1);
     // 어두운 바닥에서도 형체가 보이게 깔리는 옅은 라벤더 빛
     this.underGlow = scene.add
       .image(0, 2, TextureKeys.glow)
@@ -49,7 +52,12 @@ export class Bat extends Enemy {
   protected animate(): void {
     // 몸이 등불 쪽으로 돌아가도 그림자는 늘 화면 아래쪽에 가로로
     const r = this.rotation;
-    this.shadow.setPosition(22 * Math.sin(r), 22 * Math.cos(r)).setRotation(-r);
+    this.shadow.setPosition(SHADOW_Y * Math.sin(r), SHADOW_Y * Math.cos(r)).setRotation(-r);
+  }
+
+  /** 빛 게이지 자리 (2026-11-24): 나는 종은 땅에 비친 그림자 자리를 발밑으로 — 몸 가운데에서 그림자까지(크기 배율 포함) */
+  protected override gaugeDrop(): number {
+    return SHADOW_Y * this.scaleY;
   }
 
   /**
