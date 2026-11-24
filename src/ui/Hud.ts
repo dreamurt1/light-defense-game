@@ -176,7 +176,10 @@ export class Hud {
       this.score.textContent = '0';
       // 런의 밤: '밤 n', ★빛 레벨·✦별가루
       const night = e.night !== undefined;
-      this.nightLabel.textContent = night ? `밤 ${e.night}` : '밤';
+      // 튜토리얼 판은 시계가 멈춰 있어 '밤 00:00' 대신 '연습' (2026-11-24 기획 세션)
+      const tutorial = e.stageId === 'tutorial';
+      this.nightLabel.textContent = night ? `밤 ${e.night}` : tutorial ? '연습' : '밤';
+      this.clock.hidden = tutorial;
       this.level.hidden = !night;
       this.dust.hidden = !night;
       this.levelValue.textContent = String(e.level ?? 1);

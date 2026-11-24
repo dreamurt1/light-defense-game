@@ -40,5 +40,5 @@
   },
   "witch": { "atSec": 8, "fromNight": 5, "chancePerNight": 0.12, "guaranteedNight": 10, "requiresFriends": ["tori", "doto"], "oncePerRun": true },
   "expand": { "hostileRatioPerBanish": 0.1, "hostileRatioCap": 0.4 },
-  "testNights": [1, 3, 6, 9]
+  "testNights": [1, 3, 6, 9, 10]
 }

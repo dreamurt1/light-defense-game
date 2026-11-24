@@ -71,7 +71,7 @@ export class HomeScreen {
           h('img', { class: 'home__logo', src: 'assets/backgrounds/home-title.webp', alt: 'LIGHT DEFENSE', width: 600, height: 464 }),
           h('span', { class: 'logo__ko' }, '라이트 디펜스'),
         ),
-        h('p', { class: 'home__slogan' }, '작은 빛으로, 마을을 되찾아요.'),
+        h('p', { class: 'home__slogan' }, '작은 빛으로, 밤을 지켜요.'),
       ),
       h(
         'nav',

@@ -54,6 +54,8 @@ export class Router {
       RunState.testMapId = mapId ?? null;
       // 밤 n 체험: 그 밤만 담은 런 (진행·지난 밤들에 남지 않음)
       RunState.run = RunState.stageId === NIGHT_STAGE ? { ...newRunData(makeSeed(), RunState.keeperId, GameData.game.stage.hearts), night: Math.max(1, night ?? 1) } : null;
+      // 밤 10 체험(2026-11-24 성과회용): 노월이 확정으로 나오는 밤부터는 토리·도토를 이미 구한 것으로(노월 조건) — 테스트 판에만, 정식 런 규칙은 그대로
+      if (RunState.run && RunState.run.night >= GameData.nights.witch.guaranteedNight) RunState.run.friendNights = { tori: 1, doto: 1 };
     } else {
       // 정식 판은 트라이얼로 들어가지 않는다 (튜토리얼은 정식 시작이므로 그대로). 런이 없으면 새 런 (core/runFlow.ts가 보통 만들어 둔다)
       if (RunState.stageId === 'trial') RunState.stageId = NIGHT_STAGE;

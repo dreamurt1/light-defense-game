@@ -5,6 +5,8 @@ export type TutorialSpawn = 'bat' | 'frog' | 'owl' | 'item' | null;
 
 export interface TutorialStep {
   text: string;
+  /** 안내 아래 작은 줄 (2026-11-24 — 5단계: 두 길이 첫 아침 전에 한 번 설명되게) */
+  sub?: string;
   spawn: TutorialSpawn;
   until: readonly TutorialSignal[];
 }
@@ -14,7 +16,7 @@ export const TUTORIAL_STEPS: readonly TutorialStep[] = [
   { text: '오른쪽 스틱을 끌었다 놓거나, 누르고만 있어도 빛이 나가요 (PC: 마우스 끌기 · 스페이스). 박쥐를 돌려보내요', spawn: 'bat', until: ['retreated'] },
   { text: '노란 화살표를 따라가 꺼진 등불에 빛을 보내 켜요', spawn: null, until: ['lit'] },
   { text: '빛을 잃은 친구에게 빛을 보내면 제 모습을 되찾아요', spawn: 'frog', until: ['rescued'] },
-  { text: '졸린 눈의 주민은 공격하지 않아요. 곁을 그냥 지나가 주면 자비 점수!', spawn: 'owl', until: ['mercy', 'upset'] },
+  { text: '졸린 눈의 주민은 공격하지 않아요. 곁을 그냥 지나가 주면 자비 점수!', sub: '비켜 주면 지키는 길, 돌려보내면 넓히는 길이에요', spawn: 'owl', until: ['mercy', 'upset'] },
   { text: '반짝이는 아이템을 주워서 아래 칸을 눌러 써요 (PC: Q)', spawn: 'item', until: ['itemUsed'] },
 ];
 

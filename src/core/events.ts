@@ -102,7 +102,7 @@ export interface GameEvents {
   /** 튜토리얼 단계 (0부터, done = 끝) */
   /** 진행 저장이 바뀜 (튜토리얼·스테이지·친구) */
   'progress:change': undefined;
-  'tutorial:step': { step: number; total: number; text: string; done: boolean };
+  'tutorial:step': { step: number; total: number; text: string; done: boolean; /** 안내 아래 작은 줄 */ sub?: string };
   'night:phase': { phase: NightPhase; t: number };
   'witch:spawn': { form: 'calm' | 'angry' };
   'witch:returned': undefined;

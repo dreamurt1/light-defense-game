@@ -92,7 +92,7 @@ export class Toast {
         this.guideTimer = window.setTimeout(() => this.hideGuide(), DONE_HOLD_MS);
         return;
       }
-      this.showGuide({ text: e.text, step: e.total > 0 ? `${e.step + 1} / ${e.total}` : '' });
+      this.showGuide({ text: e.text, sub: e.sub, step: e.total > 0 ? `${e.step + 1} / ${e.total}` : '' });
     });
 
     // 2026-11-13 컨셉 시연판 토스트 (새 문구)

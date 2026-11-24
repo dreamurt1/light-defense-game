@@ -145,7 +145,7 @@ export class StageRules {
     const t = this.tutorial;
     if (!t) return;
     const step = t.step;
-    bus.emit('tutorial:step', { step: t.index, total: t.total, text: step?.text ?? '잘했어요! 이제 진짜 밤을 지킬 준비가 됐어요', done: !step });
+    bus.emit('tutorial:step', { step: t.index, total: t.total, text: step?.text ?? '잘했어요! 이제 진짜 밤을 지킬 준비가 됐어요', done: !step, sub: step?.sub });
     if (!step) return;
     const p = this.host.keeper();
     const f = this.host.field;
