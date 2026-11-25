@@ -2,6 +2,7 @@
 import type Phaser from 'phaser';
 import { LocalRanking } from '../services/LocalRanking';
 import { installHistoryNav } from './HistoryNav';
+import { installEdgeSwipe } from './EdgeSwipe';
 import { MorningSheet } from './MorningSheet';
 import { BossBar } from './BossBar';
 import { Hud } from './Hud';
@@ -47,7 +48,9 @@ export function mountUi(root: HTMLElement, game: Phaser.Game): Router {
     createTurnHint(),
   );
   const router = new Router(game, root, { home, select, ranking: rankingScreen, morning });
-  // 휴대폰 뒤로가기·앞으로가기 → 앱 안의 단계 이동 (2026-11-13 라이언, 게임 중 제외·앞으로가기로 게임에 들어가지 않음)
-  installHistoryNav(router, root);
+  // 휴대폰 뒤로가기·앞으로가기 → 앱 안의 단계 이동 (2026-11-13 라이언, 앞으로가기로 게임에 들어가지 않음 · 판 중 뒤로 = 일시정지 2026-11-24)
+  const back = installHistoryNav(router, root);
+  // 화면 가장자리에서 안쪽으로 당기면 같은 뒤로 (2026-11-24 라이언)
+  installEdgeSwipe(root, back);
   return router;
 }

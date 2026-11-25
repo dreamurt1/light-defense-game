@@ -215,3 +215,57 @@
   background: var(--spark) center / contain no-repeat;
   filter: drop-shadow(0 0 calc(var(--u) * 8) rgba(255, 215, 122, 0.9));
 }
+
+/* 가장자리에서 당겨 뒤로가기 (2026-11-24 라이언, ui/EdgeSwipe.ts): 당겨서 새로고침 배지와 같은 결 —
+   남색 유리 원 + 굵은 둥근 ‹, 충분히 당기면 호박빛, 놓으면 부드럽게 제자리(화면 밖)로 */
+.edge-back {
+  position: fixed;
+  top: 50%;
+  z-index: 300;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1.5px solid color-mix(in srgb, var(--paper) 30%, transparent);
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 35%, #34396c, #14152e);
+  box-shadow: 0 6px 16px rgba(5, 4, 12, 0.5);
+  color: var(--paper-soft);
+  opacity: 0;
+  transform: translate3d(0, -50%, 0);
+  pointer-events: none;
+  transition:
+    transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.2s,
+    background 0.15s,
+    color 0.15s;
+}
+
+.edge-back[data-side='left'] {
+  left: -52px;
+}
+
+.edge-back[data-side='right'] {
+  right: -52px;
+}
+
+.edge-back svg {
+  width: 24px;
+  height: 24px;
+}
+
+.edge-back.is-on {
+  opacity: 1;
+}
+
+/* 끄는 동안은 손가락을 바로 따라오게 */
+.edge-back.is-pulling {
+  transition: opacity 0.2s, background 0.15s, color 0.15s;
+}
+
+/* 놓으면 뒤로: 호박빛으로 켜짐 */
+.edge-back.is-armed {
+  border-color: #d08a2c;
+  background: radial-gradient(circle at 50% 35%, #ffdc85, var(--amber) 60%, #f0a43a);
+  color: var(--night);
+}

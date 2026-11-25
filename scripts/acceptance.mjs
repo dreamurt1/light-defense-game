@@ -528,6 +528,59 @@ if (!skipLong) {
       { none: decor.none.cards.slice(0, 3), tori: decor.tori.cards.slice(0, 3) },
     );
   }
+  // I19 화면 가장자리에서 당겨 뒤로가기 (2026-11-24 라이언): 메뉴 = 뒤로(상점 → 홈), 판 중 = 일시정지(다시 당겨도 그대로), 시스템 뒤로가기도 판 중엔 일시정지
+  const edge = await (async () => {
+    const page = await openPage({ width: 390, height: 844, scale: 1, phone: true });
+    const touch = (type, x, y) => page.send('Input.dispatchTouchEvent', { type, touchPoints: type === 'touchEnd' ? [] : [{ x, y }] });
+    const pull = async (fromLeft, y) => {
+      const x0 = fromLeft ? 6 : 384;
+      await touch('touchStart', x0, y);
+      for (let k = 1; k <= 8; k++) {
+        await touch('touchMove', x0 + (fromLeft ? 1 : -1) * 14 * k, y);
+        await sleep(25);
+      }
+      await touch('touchEnd');
+      await sleep(600);
+    };
+    const tap = async (re) => {
+      const p = await page.evaluate(`(() => { const b = [...document.querySelectorAll('button')].find((x) => ${re}.test(x.textContent) && x.getBoundingClientRect().width > 0); if (!b) return null; const r = b.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; })()`);
+      if (!p) return;
+      await touch('touchStart', p.x, p.y);
+      await touch('touchEnd');
+      await sleep(900);
+    };
+    try {
+      await page.navigate(`${BASE}?screen=home`);
+      await sleep(1200);
+      await page.evaluate(`localStorage.setItem('ld.progress.v2', JSON.stringify({ tutorialDone: true })); 1`);
+      await page.navigate(BASE);
+      await sleep(2500);
+      await tap('/상점/');
+      const before = await page.evaluate(`document.documentElement.dataset.screen`);
+      await pull(true, 380);
+      const after = await page.evaluate(`document.documentElement.dataset.screen`);
+      await page.navigate(`${BASE}?autoplay=9999&${NIGHT1}&idle`);
+      await waitFor(page, `!!${SC}?.clock && ${SC}.clock.t > 1`, 25000);
+      await sleep(600);
+      await pull(false, 360);
+      const paused1 = await page.evaluate(`!!${SC}.paused`);
+      await pull(true, 360);
+      const paused2 = await page.evaluate(`!!${SC}.paused`);
+      await page.evaluate(`(async () => { const { bus } = await import('/src/core/events.ts'); bus.emit('ui:pause-toggle'); return 1; })()`);
+      await sleep(400);
+      await page.evaluate('history.back(), 1');
+      await sleep(700);
+      const systemBack = await page.evaluate(`!!${SC}.paused && document.documentElement.dataset.screen === 'play'`);
+      return { before, after, paused1, paused2, systemBack, errs: errorsOf(page) };
+    } finally {
+      page.close();
+    }
+  })();
+  record(
+    'I19 가장자리 당겨 뒤로가기(메뉴 상점 → 홈 · 판 중 일시정지, 다시 당겨도 그대로 · 시스템 뒤로가기도 판 중 일시정지)',
+    edge.before === 'shop' && edge.after === 'home' && edge.paused1 && edge.paused2 && edge.systemBack && edge.errs.length === 0,
+    edge,
+  );
   record('I 런 점검 중 콘솔 오류', flow.errs.length + parade.errs.length === 0, [...flow.errs, ...parade.errs]);
 }
 

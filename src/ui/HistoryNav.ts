@@ -2,10 +2,10 @@
 //  - 메뉴 화면(홈·선택·지난 밤들·상점)은 하나씩 방문 기록이 되어 뒤로·앞으로 오간다.
 //    예: 게임하기 → 선택, 뒤로 → 홈, 앞으로 → 다시 선택
 //  - **게임 화면은 기록에 넣지 않는다 → 앞으로가기로 게임에 들어갈 수 없다**(라이언). 게임 중(판·일시정지)에는
-//    뒤로·앞으로 모두 아무 일도 하지 않는다(기록만 제자리로 되돌림)
+//    뒤로 = 일시정지를 띄움(이미 떠 있으면 그대로), 앞으로 = 아무 일도 하지 않음(기록만 제자리로) — 2026-11-24 라이언 "플레이 중이면 일시정지"
 //  - 결과 화면(판이 끝난 뒤): 뒤로 → 판에 들어오기 전 화면, 앞으로 → 다음 기록 화면(게임이 아닌 메뉴)
-//  - 테스트 판(트라이얼·스테이지 체험, 2026-11-18 라이언): 판 중에도 뒤로 → 홈 + 테스트 고르기 창. 튜토리얼 판: 뒤로 → 홈.
-//    두 판 모두 새로고침하면 그 판을 다시(Router)
+//  - 테스트 판·튜토리얼 판도 판 중 뒤로 = 일시정지(2026-11-24 — 옛 "홈 + 테스트 창"은 일시정지 창의 나가기로). 두 판 모두 새로고침하면 그 판을 다시(Router)
+//  - 화면 가장자리에서 당기기(ui/EdgeSwipe.ts)도 같은 뒤로 — installHistoryNav가 돌려주는 back()
 //  - 이야기·설정·테스트 고르기 창이 열려 있으면 뒤로가기는 창만 닫는다
 //  - 맨 처음 기록(바탕)까지 오면 "한 번 더 누르면 나가요" → 그다음 뒤로가기는 브라우저 그대로(나감)
 //  - 화면 안의 ← 버튼처럼 바로 앞 화면으로 돌아가면 기록을 새로 쌓지 않고 되짚는다(앞으로가기가 살아 있게)
@@ -14,8 +14,7 @@ import { bus, type ScreenId } from '../core/events';
 import { h } from './dom';
 import type { Router } from './Router';
 import { closeStory } from './Story';
-import { RunState } from '../core/RunState';
-import { closeTestSheet, openTestSheet } from './TestSheet';
+import { closeTestSheet } from './TestSheet';
 
 /** 기록 한 칸 = 메뉴 화면 하나. 'exit' = 바탕(여기서 뒤로가면 사이트를 나감) */
 type Step = Exclude<ScreenId, 'play' | 'morning'> | 'exit';
@@ -28,7 +27,8 @@ interface NavState {
 /** 나가기 안내가 보이는 시간 (ms, 제안) */
 const HINT_MS = 2200;
 
-export function installHistoryNav(router: Router, root: HTMLElement): void {
+/** 돌려주는 함수 = 앱 안의 뒤로 한 번 (가장자리 당기기 등): 판 중이면 일시정지, 아니면 브라우저 뒤로(아래 popstate 규칙) */
+export function installHistoryNav(router: Router, root: HTMLElement): () => void {
   const steps: Step[] = ['exit'];
   let pos = 0;
   /** 우리가 부른 history.go의 popstate 수 (사용자 조작이 아니므로 그냥 위치만 맞춘다) */
@@ -45,6 +45,14 @@ export function installHistoryNav(router: Router, root: HTMLElement): void {
   bus.on('ui:navigate', () => (runEnded = false));
   // 런의 끝(아침에 집으로 — 결과가 아침 화면 위에 뜸, 2026-11-23)
   bus.on('run:end', () => (runEnded = true));
+  // 일시정지 창이 떠 있는지 (판 중 뒤로 = 일시정지를 띄우되 이미 떠 있으면 그대로, 2026-11-24)
+  let paused = false;
+  bus.on('run:pause', (e) => (paused = e.paused));
+  bus.on('run:start', () => (paused = false));
+  bus.on('ui:navigate', () => (paused = false));
+  const pauseGame = (): void => {
+    if (!paused) bus.emit('ui:pause-toggle');
+  };
 
   const hint = h('div', { class: 'back-hint', role: 'status', 'aria-live': 'polite' }, '한 번 더 누르면 나가요');
   hint.hidden = true;
@@ -136,16 +144,10 @@ export function installHistoryNav(router: Router, root: HTMLElement): void {
       return;
     }
     if (router.screen === 'play') {
-      // 테스트 판(트라이얼·스테이지 체험): 뒤로 → 홈 + 테스트 고르기 창을 연 상태, 튜토리얼 판: 뒤로 → 홈 (2026-11-18 라이언)
-      if (dir < 0 && (RunState.test || RunState.stageId === 'tutorial')) {
-        shift(pos - i);
-        show(menuScreen());
-        if (RunState.test) openTestSheet();
-        return;
-      }
-      // 게임 중: 아무 일도 하지 않는다 (라이언: 게임 중 제외)
+      // 게임 중(모든 판 — 테스트·튜토리얼 포함): 뒤로 = 일시정지를 띄움, 앞으로 = 아무 일도 (2026-11-24 라이언 "플레이 중이면 일시정지")
       if (!runEnded) {
         shift(pos - i);
+        if (dir < 0) pauseGame();
         return;
       }
       // 결과 화면에서 뒤로 → 판에 들어오기 전 화면 (기록은 그 화면 칸 그대로)
@@ -164,4 +166,13 @@ export function installHistoryNav(router: Router, root: HTMLElement): void {
     hint.hidden = true;
     show(to);
   });
+
+  // 앱 안의 뒤로 한 번 (가장자리 당기기): 판 중(결과 전)이면 일시정지, 아니면 브라우저 뒤로 → 위 popstate 규칙 그대로
+  return (): void => {
+    if (router.screen === 'play' && !runEnded) {
+      pauseGame();
+      return;
+    }
+    history.back();
+  };
 }
