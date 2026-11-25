@@ -2,7 +2,9 @@
 //  - 메뉴 화면(홈·선택·지난 밤들·상점)은 하나씩 방문 기록이 되어 뒤로·앞으로 오간다.
 //    예: 게임하기 → 선택, 뒤로 → 홈, 앞으로 → 다시 선택
 //  - **게임 화면은 기록에 넣지 않는다 → 앞으로가기로 게임에 들어갈 수 없다**(라이언). 게임 중(판·일시정지)에는
-//    뒤로 = 일시정지를 띄움(이미 떠 있으면 그대로), 앞으로 = 아무 일도 하지 않음(기록만 제자리로) — 2026-11-24 라이언 "플레이 중이면 일시정지"
+//    뒤로 = 일시정지 창을 띄움, **일시정지 창이 떠 있으면 창을 닫고 판 계속**(메뉴의 '창 닫기'와 같게 — 홈은 창의 버튼으로만),
+//    앞으로 = 아무 일도 하지 않음(기록만 제자리로) — 2026-11-24 라이언 "플레이 중이면 일시정지", 2026-11-25 라이언 확정
+//    일시정지 창 위에 설정 창이 열려 있으면 뒤로 = 설정 창만 닫음(일시정지 그대로)
 //  - 결과 화면(판이 끝난 뒤): 뒤로 → 판에 들어오기 전 화면, 앞으로 → 다음 기록 화면(게임이 아닌 메뉴)
 //  - 테스트 판·튜토리얼 판도 판 중 뒤로 = 일시정지(2026-11-24 — 옛 "홈 + 테스트 창"은 일시정지 창의 나가기로). 두 판 모두 새로고침하면 그 판을 다시(Router)
 //  - 화면 가장자리에서 당기기(ui/EdgeSwipe.ts)도 같은 뒤로 — installHistoryNav가 돌려주는 back()
@@ -45,14 +47,8 @@ export function installHistoryNav(router: Router, root: HTMLElement): () => void
   bus.on('ui:navigate', () => (runEnded = false));
   // 런의 끝(아침에 집으로 — 결과가 아침 화면 위에 뜸, 2026-11-23)
   bus.on('run:end', () => (runEnded = true));
-  // 일시정지 창이 떠 있는지 (판 중 뒤로 = 일시정지를 띄우되 이미 떠 있으면 그대로, 2026-11-24)
-  let paused = false;
-  bus.on('run:pause', (e) => (paused = e.paused));
-  bus.on('run:start', () => (paused = false));
-  bus.on('ui:navigate', () => (paused = false));
-  const pauseGame = (): void => {
-    if (!paused) bus.emit('ui:pause-toggle');
-  };
+  /** 판 중 뒤로 (2026-11-25 라이언 확정): 일시정지 창이 없으면 띄우고, 떠 있으면 닫고 판 계속 — PlayScene.togglePause */
+  const backInPlay = (): void => bus.emit('ui:pause-toggle');
 
   const hint = h('div', { class: 'back-hint', role: 'status', 'aria-live': 'polite' }, '한 번 더 누르면 나가요');
   hint.hidden = true;
@@ -144,10 +140,10 @@ export function installHistoryNav(router: Router, root: HTMLElement): () => void
       return;
     }
     if (router.screen === 'play') {
-      // 게임 중(모든 판 — 테스트·튜토리얼 포함): 뒤로 = 일시정지를 띄움, 앞으로 = 아무 일도 (2026-11-24 라이언 "플레이 중이면 일시정지")
+      // 게임 중(모든 판 — 테스트·튜토리얼 포함): 뒤로 = 일시정지 창 띄우기 / 떠 있으면 닫고 계속, 앞으로 = 아무 일도 (2026-11-24·25 라이언)
       if (!runEnded) {
         shift(pos - i);
-        if (dir < 0) pauseGame();
+        if (dir < 0) backInPlay();
         return;
       }
       // 결과 화면에서 뒤로 → 판에 들어오기 전 화면 (기록은 그 화면 칸 그대로)
@@ -167,10 +163,10 @@ export function installHistoryNav(router: Router, root: HTMLElement): () => void
     show(to);
   });
 
-  // 앱 안의 뒤로 한 번 (가장자리 당기기): 판 중(결과 전)이면 일시정지, 아니면 브라우저 뒤로 → 위 popstate 규칙 그대로
+  // 앱 안의 뒤로 한 번 (가장자리 당기기): 판 중(결과 전)이면 시스템 뒤로와 같게(설정 창 닫기 → 일시정지 띄우기·닫기), 아니면 브라우저 뒤로 → 위 popstate 규칙 그대로
   return (): void => {
     if (router.screen === 'play' && !runEnded) {
-      pauseGame();
+      if (!closeOverlay()) backInPlay();
       return;
     }
     history.back();

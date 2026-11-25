@@ -18,6 +18,8 @@ export async function openPage({ width = 390, height = 844, scale = 2, phone = f
     CHROME,
     [
       '--headless=new',
+      // LD_NO_WEBGL=1 (2026-11-25): 이 PC의 그래픽 드라이버가 멈춰 WebGL 만들기가 영영 돌아오지 않을 때 — 그래픽 없이 캔버스 렌더러로(메뉴·판 규칙 점검용, 빛 층은 그리지 않음)
+      ...(process.env.LD_NO_WEBGL ? ['--disable-gpu', '--disable-accelerated-2d-canvas'] : []),
       '--remote-debugging-port=0',
       `--user-data-dir=${profile}`,
       '--no-first-run',
@@ -84,6 +86,11 @@ export async function openPage({ width = 390, height = 844, scale = 2, phone = f
     ...(phone ? { screenOrientation: width > height ? { type: 'landscapePrimary', angle: 90 } : { type: 'portraitPrimary', angle: 0 } } : {}),
   });
   if (phone) await send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 5 });
+  if (process.env.LD_NO_WEBGL) {
+    await send('Page.addScriptToEvaluateOnNewDocument', {
+      source: `(() => { const g = HTMLCanvasElement.prototype.getContext; HTMLCanvasElement.prototype.getContext = function (t, o) { return /webgl/.test(t) ? null : g.call(this, t, o); }; })();`,
+    });
+  }
   // 창이 없어도 rAF가 정상 속도로 돌게 포커스를 준다
   await send('Emulation.setFocusEmulationEnabled', { enabled: true });
 

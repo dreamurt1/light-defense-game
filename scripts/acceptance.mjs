@@ -528,7 +528,8 @@ if (!skipLong) {
       { none: decor.none.cards.slice(0, 3), tori: decor.tori.cards.slice(0, 3) },
     );
   }
-  // I19 화면 가장자리에서 당겨 뒤로가기 (2026-11-24 라이언): 메뉴 = 뒤로(상점 → 홈), 판 중 = 일시정지(다시 당겨도 그대로), 시스템 뒤로가기도 판 중엔 일시정지
+  // I19 화면 가장자리에서 당겨 뒤로가기 (2026-11-24 라이언, 11-25 확정): 메뉴 = 뒤로(상점 → 홈), 판 중 = 일시정지, 일시정지 창 위 = 창 닫기 → 판 계속,
+  //     설정 창이 위에 있으면 설정만 닫음, 시스템 뒤로가기도 같은 규칙
   const edge = await (async () => {
     const page = await openPage({ width: 390, height: 844, scale: 1, phone: true });
     const touch = (type, x, y) => page.send('Input.dispatchTouchEvent', { type, touchPoints: type === 'touchEnd' ? [] : [{ x, y }] });
@@ -562,23 +563,33 @@ if (!skipLong) {
       await page.navigate(`${BASE}?autoplay=9999&${NIGHT1}&idle`);
       await waitFor(page, `!!${SC}?.clock && ${SC}.clock.t > 1`, 25000);
       await sleep(600);
+      const state = () => page.evaluate(`({ paused: !!${SC}.paused, sheet: !document.querySelector('.sheet--pause').hidden, settings: !document.querySelector('.sheet--settings').hidden, screen: document.documentElement.dataset.screen })`);
       await pull(false, 360);
-      const paused1 = await page.evaluate(`!!${SC}.paused`);
+      const pull1 = await state(); // 일시정지 창
       await pull(true, 360);
-      const paused2 = await page.evaluate(`!!${SC}.paused`);
-      await page.evaluate(`(async () => { const { bus } = await import('/src/core/events.ts'); bus.emit('ui:pause-toggle'); return 1; })()`);
-      await sleep(400);
+      const pull2 = await state(); // 창 닫기 → 판 계속
       await page.evaluate('history.back(), 1');
       await sleep(700);
-      const systemBack = await page.evaluate(`!!${SC}.paused && document.documentElement.dataset.screen === 'play'`);
-      return { before, after, paused1, paused2, systemBack, errs: errorsOf(page) };
+      const sys1 = await state(); // 시스템 뒤로 → 일시정지
+      await page.evaluate('history.back(), 1');
+      await sleep(700);
+      const sys2 = await state(); // 시스템 뒤로 → 창 닫기
+      await pull(false, 360);
+      await page.evaluate(`(async () => { const { bus } = await import('/src/core/events.ts'); bus.emit('ui:open-settings'); return 1; })()`);
+      await sleep(400);
+      await pull(true, 360);
+      const settings = await state(); // 설정만 닫힘, 일시정지 그대로
+      return { before, after, pull1, pull2, sys1, sys2, settings, errs: errorsOf(page) };
     } finally {
       page.close();
     }
   })();
   record(
-    'I19 가장자리 당겨 뒤로가기(메뉴 상점 → 홈 · 판 중 일시정지, 다시 당겨도 그대로 · 시스템 뒤로가기도 판 중 일시정지)',
-    edge.before === 'shop' && edge.after === 'home' && edge.paused1 && edge.paused2 && edge.systemBack && edge.errs.length === 0,
+    'I19 가장자리 당겨 뒤로가기(메뉴 상점 → 홈 · 판 중 일시정지 → 다시 당기면 창 닫고 계속 · 설정 창 위에선 설정만 닫음 · 시스템 뒤로가기도 같게)',
+    edge.before === 'shop' && edge.after === 'home' &&
+      edge.pull1.paused && edge.pull1.sheet && !edge.pull2.paused && !edge.pull2.sheet &&
+      edge.sys1.paused && edge.sys1.sheet && !edge.sys2.paused && !edge.sys2.sheet && edge.sys2.screen === 'play' &&
+      edge.settings.paused && edge.settings.sheet && !edge.settings.settings && edge.errs.length === 0,
     edge,
   );
   record('I 런 점검 중 콘솔 오류', flow.errs.length + parade.errs.length === 0, [...flow.errs, ...parade.errs]);

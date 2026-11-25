@@ -41,6 +41,9 @@ body {
   margin: 0;
   overflow: hidden;
   overscroll-behavior: none;
+  /* 상자 양옆·위아래 띠(태블릿 세로 등)에서 시작한 터치를 브라우저가 가로 끌기로 가져가지 않게 — 가장자리 당겨 뒤로가기(ui/EdgeSwipe.ts)가
+     띠 위에서도 동작 (2026-11-25: 800×1280에서 첫 움직임에 pointercancel). 띠는 스크롤하지 않고, 상자 안은 .stage가 따로 정한다 */
+  touch-action: none;
   background: var(--predawn);
   color: var(--paper);
   font-family: var(--font);

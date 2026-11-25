@@ -857,6 +857,8 @@
 
 .screen--shop .tabs {
   margin-top: calc(var(--u) * 72);
+  /* 탭이 둘(빛 색·꾸미기 — 옛 '스킨' 탭 자리 없앰, 2026-11-25): 셋째 빈칸 없이 줄 전체를 나눈다 */
+  grid-template-columns: repeat(2, 1fr);
 }
 
 .shop__grid {
@@ -882,6 +884,8 @@
 
 .shop-card.is-equipped {
   border: calc(var(--u) * 3) solid var(--amber);
+  /* 두꺼운 테두리만큼 안쪽 여백을 줄여 그림·이름 자리가 다른 칸과 같게 (1px + 10u = 3u + 이 값, 2026-11-25) */
+  padding: calc(var(--u) * 7 + 1px);
   background: linear-gradient(to bottom, #4a3522, #2c2120);
   color: var(--paper);
 }
@@ -1015,6 +1019,12 @@
 }
 
 .shop-card__tag {
+  /* 쓰는 중(알약)·사기 ✦n·잠김 글자 모두 같은 높이 — 고른 칸만 이름·그림이 위로 뜨지 않게 (2026-11-25) */
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(var(--u) * 24);
   padding: calc(var(--u) * 3) calc(var(--u) * 12);
   border-radius: 999px;
   background: var(--amber);
@@ -1716,6 +1726,17 @@
   grid-template-columns: repeat(6, 1fr);
 }
 
+/* 가로 빛 색(5칸): 6칸 자리 왼쪽에 붙어 오른쪽이 비지 않게 가운데로 — 칸 폭은 6칸 한 줄과 같게 (2026-11-25) */
+:root[data-layout='landscape'] .shop__grid:not(.shop__grid--decor) {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+:root[data-layout='landscape'] .shop__grid:not(.shop__grid--decor) > .shop-card {
+  width: calc((100% - var(--u) * 12 * 5) / 6);
+}
+
 /* 가로 꾸미기: 제목 둘이 첫 줄에 3칸씩, 칸 여섯이 둘째 줄 */
 :root[data-layout='landscape'] .shop__grid--decor .shop__group-title--a {
   grid-column: 1 / span 3;
@@ -2002,6 +2023,7 @@
   align-items: center;
   gap: calc(var(--u) * 4);
   padding: 0;
+  min-height: calc(var(--u) * 24);
   background: transparent;
   color: var(--paper-soft);
   font-weight: 600;
