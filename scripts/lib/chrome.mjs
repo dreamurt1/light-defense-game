@@ -13,13 +13,17 @@ export const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 // (11-25 9개 → 노트북 CPU 99%, 강제 종료도 안 됨 — 재부팅이나 윈도우+Ctrl+Shift+B로만 풀림).
 // → 띄우기 전에 그런 프로세스를 세어 경고하고, 드라이버를 거치는 보통 모드면 더 쌓이지 않게 멈춘다
 //   (WARP·LD_NO_WEBGL은 드라이버를 거치지 않아 경고만, LD_ALLOW_STUCK_GPU=1이면 그래도 띄움).
+// 찾은 것은 마지막 코어 하나 + 가장 낮은 우선순위로 몰아넣는다 — 꺼지지는 않아도 CPU 99% → 약 5%(11-25 원격 중 실측).
 let stuckChecked = false;
 export function countStuckGpu() {
   if (process.platform !== 'win32') return 0;
   const ps = [
     '$live = @{}; Get-Process | ForEach-Object { $live[$_.Id] = 1 };',
     "$all = Get-CimInstance Win32_Process -Filter \"Name='chrome.exe' OR Name='msedge.exe'\";",
-    "@($all | Where-Object { $_.CommandLine -match '--type=gpu-process' -and $_.CommandLine -match 'ld-chrome-|scoped_dir' -and -not $live[[int]$_.ParentProcessId] }).Count",
+    "$stuck = @($all | Where-Object { $_.CommandLine -match '--type=gpu-process' -and $_.CommandLine -match 'ld-chrome-|scoped_dir' -and -not $live[[int]$_.ParentProcessId] });",
+    '$last = [IntPtr]([int64]1 -shl ([Environment]::ProcessorCount - 1));',
+    "foreach ($s in $stuck) { try { $p = Get-Process -Id $s.ProcessId -ErrorAction Stop; $p.ProcessorAffinity = $last; $p.PriorityClass = 'Idle' } catch {} };",
+    '$stuck.Count',
   ].join(' ');
   try {
     return Number(execFileSync('powershell', ['-NoProfile', '-Command', ps], { encoding: 'utf8', timeout: 20000 }).trim()) || 0;
@@ -34,7 +38,7 @@ function guardStuckGpu() {
   if (!n) return;
   const bypass = /warp/.test(process.env.LD_CHROME_FLAGS ?? '') || process.env.LD_NO_WEBGL;
   const msg =
-    `PC 경고: 꺼지지 않는 점검용 그래픽 프로세스 ${n}개(그래픽 드라이버 멈춤 — 각각 CPU 코어 하나씩 쓸 수 있음). ` +
+    `PC 경고: 꺼지지 않는 점검용 그래픽 프로세스 ${n}개(그래픽 드라이버 멈춤 — 코어 하나로 몰아넣음). ` +
     '라이언에게 바로 알리고 재부팅이나 윈도우+Ctrl+Shift+B를 부탁할 것.';
   console.error(msg);
   if (!bypass && !process.env.LD_ALLOW_STUCK_GPU) {
