@@ -1,5 +1,5 @@
 // 창 없는(헤드리스) 크롬을 DevTools 프로토콜로 다루는 작은 도구. 의존성 없음(Node 내장 WebSocket).
-import { spawn } from 'node:child_process';
+import { execFileSync, spawn } from 'node:child_process';
 import { existsSync, mkdtempSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -8,8 +8,43 @@ const CHROME = process.env.CHROME_PATH ?? 'C:/Program Files/Google/Chrome/Applic
 
 export const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
+// 2026-11-25 라이언: PC 하드웨어·기능에 이상이나 위험이 보이면 바로 알린다.
+// 그래픽 드라이버가 멈추면 점검 창의 그래픽 프로세스가 창을 닫아도(부모가 끝나도) 꺼지지 않고 코어 하나씩을 꽉 쓴다
+// (11-25 9개 → 노트북 CPU 99%, 강제 종료도 안 됨 — 재부팅이나 윈도우+Ctrl+Shift+B로만 풀림).
+// → 띄우기 전에 그런 프로세스를 세어 경고하고, 드라이버를 거치는 보통 모드면 더 쌓이지 않게 멈춘다
+//   (WARP·LD_NO_WEBGL은 드라이버를 거치지 않아 경고만, LD_ALLOW_STUCK_GPU=1이면 그래도 띄움).
+let stuckChecked = false;
+export function countStuckGpu() {
+  if (process.platform !== 'win32') return 0;
+  const ps = [
+    '$live = @{}; Get-Process | ForEach-Object { $live[$_.Id] = 1 };',
+    "$all = Get-CimInstance Win32_Process -Filter \"Name='chrome.exe' OR Name='msedge.exe'\";",
+    "@($all | Where-Object { $_.CommandLine -match '--type=gpu-process' -and $_.CommandLine -match 'ld-chrome-|scoped_dir' -and -not $live[[int]$_.ParentProcessId] }).Count",
+  ].join(' ');
+  try {
+    return Number(execFileSync('powershell', ['-NoProfile', '-Command', ps], { encoding: 'utf8', timeout: 20000 }).trim()) || 0;
+  } catch {
+    return 0;
+  }
+}
+function guardStuckGpu() {
+  if (stuckChecked) return;
+  stuckChecked = true;
+  const n = countStuckGpu();
+  if (!n) return;
+  const bypass = /warp/.test(process.env.LD_CHROME_FLAGS ?? '') || process.env.LD_NO_WEBGL;
+  const msg =
+    `PC 경고: 꺼지지 않는 점검용 그래픽 프로세스 ${n}개(그래픽 드라이버 멈춤 — 각각 CPU 코어 하나씩 쓸 수 있음). ` +
+    '라이언에게 바로 알리고 재부팅이나 윈도우+Ctrl+Shift+B를 부탁할 것.';
+  console.error(msg);
+  if (!bypass && !process.env.LD_ALLOW_STUCK_GPU) {
+    throw new Error(`${msg} 드라이버를 거치는 창을 더 띄우면 또 쌓이므로 멈춤 — LD_CHROME_FLAGS="--use-angle=d3d11-warp"로 우회.`);
+  }
+}
+
 // phone: 휴대폰 흉내(터치 → pointer: coarse, 모바일 화면, 가로·세로 방향) — 휴대폰 가로 화면 확인용 (2026-11-06)
 export async function openPage({ width = 390, height = 844, scale = 2, phone = false } = {}) {
+  guardStuckGpu();
   // 2026-11-24: 디버그 포트를 9300~9799에서 무작위로 고르면 여러 창을 한꺼번에 열 때 같은 포트가 걸려
   // 두 작업이 한 창을 함께 몰았다(밸런스 측정에서 두 seed가 같은 런·같은 점수, 다섯 창 화면이 겹쳐 찍힘).
   // → 포트 0(크롬이 빈 포트를 고름) + 프로필 폴더의 DevToolsActivePort 첫 줄에서 실제 포트를 읽는다
