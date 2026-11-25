@@ -164,6 +164,8 @@ export interface CharacterDef {
 
 - 게임은 초당 60번 상한이다. 120Hz 휴대폰에서 부담·발열을 절반으로 줄인다. Phaser 3.90의 상한 판정은 120Hz에서 늘 세 번을 기다려 실제 초당 40번이 되므로 `src/core/frameLimit.ts`가 문턱을 바로잡는다(2026-11-20: 120Hz → 60, 144Hz → 72, 90Hz → 90).
 - 켜진 마을은 화면 크기 RenderTexture 하나에 매 프레임 한 번에 그린다(`beginDraw` → 빛 자국 `stamp(..., { skipBatch: true })` → 켜진 마을을 '알파만큼만 남김' 섞기 → '덮어쓰기'로 `endDraw`). Phaser 3.90 DynamicTexture는 begin/end마다 따로 받는 버퍼를 지우고 화면 크기로 옮겨 그리므로, stamp마다 begin/end를 하면 휴대폰 GPU가 가장 힘들어한다. BitmapMask도 쓰지 않는다(전체 화면 3번 더 그림).
+- **가벼운 모드**(`src/core/perfGuard.ts`, 2026-11-24 라이언: 삼성 태블릿 렉): 판 중 실제로 그린 프레임이 3초 연속 초당 50 아래면 초당 30 + HUD 그림자 필터 끔(`:root[data-perf=lite]`) + **빛 층(켜진 마을 RenderTexture)을 가로·세로 절반 해상도로 그려 2배로 늘려 올림**(2026-11-25 2단계 — 그 층 안의 칠하기가 1/4, 판 도중 켜져도 바로). 그 기기에서 기억(`ld.perf.v1`), `?lite` 강제·`?lite=off` 지움. 잘 도는 기기는 켜지지 않아 그대로. `?debug`에 화면 크기·가벼운 모드·GPU 이름. 측정(헤드리스 WARP — CPU로 칠하는 렌더러라 칠하기 비용이 드러남): 층 하나씩 끄면 빛 층이 가장 큰 몫(+23%), 빛 층 절반은 초당 프레임 약 +20~25%.
+- **빛 층은 크기가 바뀌면 새로 만든다**(`VillageStage.makeLitTexture`): Phaser 3.90 DynamicTexture는 `resize()`가 GPU 버퍼(renderTarget, autoResize=false)를 바꾸지 않는다 — 판 중 세로↔가로 뒤 빛 층이 옛 크기 버퍼에 그려져 깨졌었다(2026-11-25, 완료 기준 I20).
 - 판 위 DOM(HUD·스틱)은 매 프레임 레이아웃·다시 그리기를 부르지 않는다: 움직임은 `transform`·`opacity`만(`left`·`width`·배경·CSS 변수 애니메이션 금지 — 예: 밤 진행 별은 막대 폭 띠를 translateX, 빛 대기 링은 반쪽 고리 둘을 회전). 게임 프레임 도중 `offsetWidth` 같은 강제 레이아웃도 금지.
 - 배포판(`vite build`)만 게임이 쓰는 기능만 묶은 Phaser(`src/vendor/phaser-slim.cjs`, 물리·타일맵·사운드·파티클·글자 등 뺌)를 쓴다. 새 Phaser 기능(`this.add.xxx`)을 쓰면 그 Factory/Creator를 거기에 더하고 배포판을 미리보기로 확인한다.
 - 큰 스프라이트(캐릭터 시트·초상·중앙 광원·노월·마을 소품)와 배경은 WebP, 작은 그림·빛 효과(투명도가 정확해야 함)는 PNG.

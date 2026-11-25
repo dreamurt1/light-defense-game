@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { LITE_FPS, LOW_FPS, LOW_SECONDS, nextLow } from '../src/core/perfGuard';
+import { LITE_FPS, LITE_LIT_RES, LOW_FPS, LOW_SECONDS, litResolution, nextLow } from '../src/core/perfGuard';
 
 // 2026-11-24 라이언(삼성 태블릿 렉): 판 중 3초 연속 초당 50 아래면 가벼운 모드(초당 30)
 describe('가벼운 모드 판정', () => {
@@ -27,5 +27,14 @@ describe('가벼운 모드 판정', () => {
       s = r.streak;
       expect(r.goLite).toBe(false);
     }
+  });
+});
+
+// 2026-11-25 2단계: 가벼운 모드에서만 빛 층을 절반 해상도로 — 잘 도는 기기는 화면 그대로
+describe('빛 층 해상도', () => {
+  it('가벼운 모드 = 가로·세로 절반, 아니면 그대로', () => {
+    expect(LITE_LIT_RES).toBe(0.5);
+    expect(litResolution(true)).toBe(0.5);
+    expect(litResolution(false)).toBe(1);
   });
 });

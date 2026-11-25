@@ -235,7 +235,7 @@ if (!skipLong) {
       bus.on('enemy:returned', (e) => window.__kinds.push(e.kind));
       bus.on('game:clear', (e) => (window.__end = e.result)); bus.on('game:over', (e) => (window.__end = e.result));
       // 노월 판(밤 10)은 실제 런처럼 ★9로 시작(&level=9 — 2026-11-24 다듬기 2차로 레벨이 느려져 ★1 시작이면 100초에 걸림), 중앙 광원·루미를 지켜 둔다 — 이 판은 '노월을 진정시키면 아침' 규칙만 본다
-      if (${JSON.stringify(stage)}.includes('friends')) setInterval(() => { const s = window.__game.scene.getScene('Play'); if (s?.sources) { s.sources.central.state.hp = s.sources.central.state.maxHp; s.vitals.invulnLeft = 9; }
+      if (${JSON.stringify(stage)}.includes('friends')) setInterval(() => { const s = window.__game?.scene.getScene('Play'); if (s?.sources) { s.sources.central.state.hp = s.sources.central.state.maxHp; s.vitals.invulnLeft = 9; }
         // 2026-11-24: 자동 플레이가 노월을 겨누는 정도가 판마다 달라 100초에 걸리기도 함 → 노월이 나오면 게임의 맞히기 처리(Hits.boss)로 0.3초마다 빛을 맞힘 — '진정하면 아침' 규칙만 본다
         if (s?.boss?.active && !s.boss.entering) s.hits.boss(900000); }, 300); })()`);
     const t0 = Date.now();
@@ -555,7 +555,9 @@ if (!skipLong) {
       await sleep(1200);
       await page.evaluate(`localStorage.setItem('ld.progress.v2', JSON.stringify({ tutorialDone: true })); 1`);
       await page.navigate(BASE);
-      await sleep(2500);
+      // 2026-11-25: 느린 렌더러(WARP)에선 홈이 늦게 떠 고정 대기로는 '상점'을 놓쳤다 → 홈 버튼이 보일 때까지
+      await waitFor(page, `document.documentElement.dataset.screen === 'home' && [...document.querySelectorAll('button')].some((b) => /상점/.test(b.textContent) && b.getBoundingClientRect().width > 0)`, 20000);
+      await sleep(600);
       await tap('/상점/');
       const before = await page.evaluate(`document.documentElement.dataset.screen`);
       await pull(true, 380);
@@ -591,6 +593,34 @@ if (!skipLong) {
       edge.sys1.paused && edge.sys1.sheet && !edge.sys2.paused && !edge.sys2.sheet && edge.sys2.screen === 'play' &&
       edge.settings.paused && edge.settings.sheet && !edge.settings.settings && edge.errs.length === 0,
     edge,
+  );
+  // I20 빛 층 GPU 버퍼 (2026-11-25): 가벼운 모드 = 화면 절반 크기 버퍼를 2배로 올림, 판 중 세로 → 가로로 돌려도 버퍼가 새 화면 크기
+  //     (Phaser 3.90 DynamicTexture는 resize()가 버퍼를 바꾸지 않아 회전 뒤 빛 층이 깨졌었다 → 크기가 바뀌면 새로 만듦)
+  const lit = await (async () => {
+    const page = await openPage({ width: 390, height: 844, scale: 1, phone: true });
+    const rtOf = `(() => { const rt = ${SC}.stage.litTexture; return rt ? [rt.width, rt.height, rt.scaleX, rt.texture.renderTarget.width, rt.texture.renderTarget.height] : null; })()`;
+    try {
+      await page.navigate(`${BASE}?autoplay=9999&${NIGHT1}&idle&lite`);
+      await waitFor(page, `!!${SC}?.clock && ${SC}.clock.t > 1.5`, 25000);
+      await sleep(500);
+      const game0 = await page.evaluate(`[window.__game.scale.width, window.__game.scale.height]`);
+      const portrait = await page.evaluate(rtOf);
+      await page.send('Emulation.setDeviceMetricsOverride', { width: 844, height: 390, deviceScaleFactor: 1, mobile: true, screenOrientation: { type: 'landscapePrimary', angle: 90 } });
+      await sleep(1500);
+      if (await page.evaluate(`!!${SC}.paused`)) await page.evaluate(`(async () => { const { bus } = await import('/src/core/events.ts'); bus.emit('ui:pause-toggle'); return 1; })()`);
+      await sleep(800);
+      const game1 = await page.evaluate(`[window.__game.scale.width, window.__game.scale.height]`);
+      const landscape = await page.evaluate(rtOf);
+      return { game0, portrait, game1, landscape, errs: errorsOf(page) };
+    } finally {
+      page.close();
+    }
+  })();
+  const half = (g, r) => !!r && r[0] === Math.ceil(g[0] / 2) + (Math.ceil(g[0] / 2) % 2) && r[1] === Math.ceil(g[1] / 2) + (Math.ceil(g[1] / 2) % 2) && r[2] === 2 && r[3] === r[0] && r[4] === r[1];
+  record(
+    'I20 가벼운 모드 빛 층 = 절반 크기 버퍼 × 2 · 판 중 세로 → 가로 뒤에도 버퍼가 새 화면 크기(회전 뒤 빛 층 깨짐 방지)',
+    half(lit.game0, lit.portrait) && half(lit.game1, lit.landscape) && lit.game0[0] !== lit.game1[0] && lit.errs.length === 0,
+    lit,
   );
   record('I 런 점검 중 콘솔 오류', flow.errs.length + parade.errs.length === 0, [...flow.errs, ...parade.errs]);
 }

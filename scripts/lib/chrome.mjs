@@ -20,6 +20,8 @@ export async function openPage({ width = 390, height = 844, scale = 2, phone = f
       '--headless=new',
       // LD_NO_WEBGL=1 (2026-11-25): 이 PC의 그래픽 드라이버가 멈춰 WebGL 만들기가 영영 돌아오지 않을 때 — 그래픽 없이 캔버스 렌더러로(메뉴·판 규칙 점검용, 빛 층은 그리지 않음)
       ...(process.env.LD_NO_WEBGL ? ['--disable-gpu', '--disable-accelerated-2d-canvas'] : []),
+      // LD_CHROME_FLAGS='--use-angle=d3d11-warp' (2026-11-25): 그래픽 드라이버가 멈춰도 WebGL을 마이크로소프트 소프트웨어 렌더러(WARP)로 — 빛 층까지 그림, 칠하기 비용이 CPU로 드러남
+      ...(process.env.LD_CHROME_FLAGS ? process.env.LD_CHROME_FLAGS.split(' ').filter(Boolean) : []),
       '--remote-debugging-port=0',
       `--user-data-dir=${profile}`,
       '--no-first-run',

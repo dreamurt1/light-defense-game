@@ -77,7 +77,7 @@ export function installDebugOverlay(game: Phaser.Game): void {
       `게임 ${Math.round(steps / sec)}/초 · 화면 ${Math.round(rafs / sec)}Hz\n` +
       `한 프레임 평균 ${(workSum / Math.max(1, steps)).toFixed(1)}ms · 최대 ${workMax.toFixed(0)}ms\n` +
       `캔버스 ${game.scale.width}×${game.scale.height} · 배율 ${devicePixelRatio.toFixed(2)} · ${gl}\n` +
-      `화면 ${screen.width}×${screen.height} · 가벼운 모드 ${isLite() ? '켬(초당 30)' : '끔'}\n` +
+      `화면 ${screen.width}×${screen.height} · 가벼운 모드 ${isLite() ? '켬(초당 30 · 빛 층 ½)' : '끔'}\n` +
       (gpu ? `GPU ${gpu}\n` : '') +
       errText;
     steps = 0;

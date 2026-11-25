@@ -11,6 +11,7 @@ import { GameData, type NightPhase, type StageDef } from '../data';
 import { follow } from '../systems/facing';
 import { FAN_TEXTURE_RADIUS } from '../art/effects';
 import { texScale } from '../core/textureRes';
+import { isLite, litResolution } from '../core/perfGuard';
 import { GROUND_TILE, GROUND_TILES, WORLD_LIGHTS, type VillageLight } from '../art/village';
 import { PROP_THEME } from '../art/props';
 import { expandRatio } from '../systems/LightSystem';
@@ -113,7 +114,11 @@ interface Firefly {
 export class VillageStage {
   private readonly shade: Phaser.GameObjects.Rectangle;
   /** 빛 자국만큼 드러난 켜진 마을 (화면 크기, WebGL만 — Canvas 렌더러에서는 켜진 마을을 생략) */
-  private readonly litTexture: Phaser.GameObjects.RenderTexture | null = null;
+  private litTexture: Phaser.GameObjects.RenderTexture | null = null;
+  /** 빛 층 해상도 배율 (가벼운 모드 = 0.5, 2026-11-25) · 지금 화면 크기 */
+  private litRes = 1;
+  private screenW = 0;
+  private screenH = 0;
   /** 바닥 타일 (2026-11-24): 어두운 마을 층 밑에 깐 지역 타일(밤 판) · 빛 자국 안에 찍을 빛 받은 타일 한 장(표시 목록 밖) */
   private readonly ground: Phaser.GameObjects.Image[] = [];
   private readonly litGround: Phaser.GameObjects.Image | null = null;
@@ -157,6 +162,8 @@ export class VillageStage {
     // 화면에 붙은 층(밤 색조·빛 마스크·번쩍임)은 지금 화면 크기로 만들고, 화면 방식이 바뀌면 resize()로 맞춘다 (2026-11-06 가로 화면)
     const W = scene.scale.width;
     const H = scene.scale.height;
+    this.screenW = W;
+    this.screenH = H;
     this.darkLayer = scene.add.image(0, 0, TextureKeys.villageDark).setOrigin(0).setScale(texScale(TextureKeys.villageDark)).setDepth(-1000);
     // 바닥 (2026-11-24): 넓은 마을 그림은 바닥이 비어 있고(art/village GROUND_TILES) 그 밑에 지역 타일을 깐다 — 지역은 setTheme이 바꿈, 화면 밖 타일은 끔
     if (GROUND_TILES) {
@@ -188,7 +195,7 @@ export class VillageStage {
       // 바닥이 타일이면: 빛 받은 타일을 빛 자국 알파만큼 남기고(keep), 바닥이 빈 켜진 마을은 그 위에 덮어 그린다(over) — 결과 = (마을 over 타일) × 빛 자국 알파
       this.litLayer.setBlendMode(GROUND_TILES ? blends.over : blends.keep);
       if (GROUND_TILES) this.litGround = scene.make.image({ x: 0, y: 0, key: 'ground-light-lit' }, false).setOrigin(0).setScale(texScale('ground-light-lit')).setBlendMode(blends.keep);
-      this.litTexture = scene.add.renderTexture(0, 0, W, H).setOrigin(0).setScrollFactor(0).setDepth(-900);
+      this.litTexture = this.makeLitTexture();
     }
     // 표시 목록에 넣지 않은 그림이라 씬이 끝날 때 직접 지운다
     const litLayer = this.litLayer;
@@ -232,7 +239,33 @@ export class VillageStage {
     this.flash.setSize(width, height);
     this.gloomLayer.setSize(width, height);
     this.themeVeil.setSize(width, height);
-    this.litTexture?.resize(width, height);
+    this.screenW = width;
+    this.screenH = height;
+    // 2026-11-25: rt.resize()는 GPU 버퍼를 바꾸지 않아(Phaser 3.90 DynamicTexture autoResize=false) 판 중 세로↔가로 뒤 빛 층이 옛 크기 버퍼에 그려졌다 → 새로 만든다
+    if (this.litTexture) this.litTexture = this.makeLitTexture();
+  }
+
+  /** 빛 층 RenderTexture를 지금 화면 크기 × 해상도 배율로 새로 만든다(옛것은 GPU 버퍼째 지움) — 화면에는 1/배율로 늘려 올림 */
+  private makeLitTexture(): Phaser.GameObjects.RenderTexture {
+    this.litTexture?.destroy();
+    const s = this.litRes;
+    return this.scene.add
+      .renderTexture(0, 0, Math.ceil(this.screenW * s), Math.ceil(this.screenH * s))
+      .setOrigin(0)
+      .setScrollFactor(0)
+      .setDepth(-900)
+      .setScale(1 / s);
+  }
+
+  /** 가벼운 모드가 켜지면(판 도중에도) 빛 층을 절반 해상도로 바꾼다: 작은 텍스처를 새로 만들어 2배로 늘려 올림, 그 안에 찍는 것은 모두 ×배율 */
+  private syncLitRes(): number {
+    const s = litResolution(isLite());
+    if (s === this.litRes) return s;
+    this.litRes = s;
+    this.litTexture = this.makeLitTexture();
+    this.litLayer.setScale(texScale(TextureKeys.villageLit) * s);
+    this.litGround?.setScale(texScale('ground-light-lit') * s);
+    return s;
   }
 
   /** 맵 3종 = 스테이지 테마. 'light-village'는 지금 그대로, 'border'는 차가운 라벤더, 'dark-village'는 더 어둡고 보랏빛.
@@ -534,8 +567,10 @@ export class VillageStage {
       }
     }
 
+    if (!this.litTexture) return;
+    // 가벼운 모드면 절반 해상도 — 아래 자리·크기는 모두 ×s (2026-11-25 태블릿 렉 2단계, 바뀌면 빛 층을 새로 만듦)
+    const s = this.syncLitRes();
     const rt = this.litTexture;
-    if (!rt) return;
     // 한 번에 그린다. Phaser 3.90의 DynamicTexture는 beginDraw마다 따로 받는 버퍼를 지우고, endDraw에서 그것을 텍스처로 화면 크기만큼 옮겨 그린다
     // → 예전처럼 stamp마다 begin/end를 하면 빛 자국 하나에 전체 화면 지우기 + 옮겨 그리기가 한 번씩 (휴대폰 GPU가 가장 힘들어하는 일)
     const renderer = this.scene.renderer as Phaser.Renderer.WebGL.WebGLRenderer;
@@ -551,8 +586,8 @@ export class VillageStage {
       const cam = this.scene.cameras.main;
       for (const p of pools) {
         if (p.radius <= 0) continue;
-        rt.stamp(TextureKeys.glowMask, undefined, p.x - cam.scrollX, p.y - cam.scrollY, {
-          scale: (p.radius * 2 * LIT_POOL_RATIO) / 256,
+        rt.stamp(TextureKeys.glowMask, undefined, (p.x - cam.scrollX) * s, (p.y - cam.scrollY) * s, {
+          scale: ((p.radius * 2 * LIT_POOL_RATIO) / 256) * s,
           alpha: p.alpha * LIT_POOL_ALPHA * this.dim,
           skipBatch: true,
         });
@@ -560,11 +595,11 @@ export class VillageStage {
       for (const f of this.fans) {
         const r = f.range * expandRatio(f.age, expand);
         const fade = f.age <= expand ? 1 : 1 - (f.age - expand) / LIT_AFTERGLOW_SEC;
-        rt.stamp(TextureKeys.fanMask, undefined, f.ox - cam.scrollX, f.oy - cam.scrollY, {
+        rt.stamp(TextureKeys.fanMask, undefined, (f.ox - cam.scrollX) * s, (f.oy - cam.scrollY) * s, {
           originX: 0,
           originY: 0.5,
           rotation: f.angle,
-          scale: r / FAN_TEXTURE_RADIUS,
+          scale: (r / FAN_TEXTURE_RADIUS) * s,
           alpha: Math.max(0, fade),
           skipBatch: true,
         });
@@ -574,12 +609,12 @@ export class VillageStage {
       if (lg) {
         const x0 = Math.floor(cam.scrollX / GROUND_TILE) * GROUND_TILE;
         const y0 = Math.floor(cam.scrollY / GROUND_TILE) * GROUND_TILE;
-        for (let y = y0; y < cam.scrollY + rt.height; y += GROUND_TILE) {
-          for (let x = x0; x < cam.scrollX + rt.width; x += GROUND_TILE) rt.batchDraw(lg, x - cam.scrollX, y - cam.scrollY);
+        for (let y = y0; y < cam.scrollY + rt.height / s; y += GROUND_TILE) {
+          for (let x = x0; x < cam.scrollX + rt.width / s; x += GROUND_TILE) rt.batchDraw(lg, (x - cam.scrollX) * s, (y - cam.scrollY) * s);
         }
       }
       // 켜진 마을: 빛 자국의 알파만큼만 남는다 (바닥 타일이 있으면 그 위에 덮어 그림)
-      rt.batchDraw(this.litLayer, -cam.scrollX, -cam.scrollY);
+      rt.batchDraw(this.litLayer, -cam.scrollX * s, -cam.scrollY * s);
     } finally {
       // endDraw의 옮겨 그리기는 마지막 섞기 방식을 그대로 쓴다 → '그대로 덮어쓰기'로 두면 텍스처를 따로 지울 필요도 없다
       renderer.setBlendMode(blendModes(renderer).copy);
