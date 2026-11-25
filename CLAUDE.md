@@ -8,6 +8,7 @@
 ## 0. 일하는 규칙
 
 - **기준 우선순위**(충돌하면 가장 최근 것): 라이언 최신 지시(`docs/DECISION_LOG.md`) > 새 기획 `docs/design/`(**런 구조 = NIGHT_RUN**(2026-11-23 지시서 `docs/plan/order-night-run-v3-26-1123.md`)·GAME_DESIGN·OPEN_QUESTIONS·ACCEPTANCE_CRITERIA·IMPLEMENTATION_PLAN·ASSET_MANIFEST·HOME_SCREEN, 원본 XMind `reference/light-defense-xmind-1112.pdf`) > `light-defense-game` 스킬(`docs/skill/`) > 코드. 옛 기획서(PDF 2026-10-28)는 새 기획과 충돌하지 않는 부분만. `hand-offs/light-defense-claude-handoff-chatgpt1112/`는 원본 보관용(여우·삵은 넣지 않음).
+- **라이언의 질문에 먼저 답한다**(2026-11-25 라이언 긴급): 질문이 오면 하던 작업·보고보다 그 답이 먼저, 짧게, 한 번에 한 답(예상 시각은 "지금 하는 일 · 예상 종료 yyyy-mm-dd hh:mm · 남은 일 n건과 각 소요", 모르면 범위·모른다고). 긴 작업 중에도 단계마다 받은편지함 확인, 예상 시각을 넘기면 묻기 전에 알림.
 - **세부는 Claude가 정한다.** 라이언은 큰 방향만 묻는다. 수치·작은 설계는 정해서 "제안"으로 보고. 질문 목록을 길게 만들지 않는다. 첫 스테이지는 쉽게. 큰 변경은 확인 뒤 시작.
 - **역할 분담**(2026-11-23 라이언 재명시 — 협업이 잘 되게 각자 충실히): **claude.ai = 기획·설계·스토리라인**(스킬 zip을 올려 쓰고 지시서를 보냄 → Claude Code가 정본 문서·스킬에 옮기고 반영), **Claude Code(이 터미널) = 실제 구현·개발·테스트** + 정본 파일 관리(이 파일·`docs/design/`·스킬), **ChatGPT = 비주얼·스프라이트·UI — 코드 생성으로 수준이 충분치 않을 때**(그 전엔 임시 코드 그림).
   - ChatGPT의 기획 문서는 대조할 입력(그대로 따르지 않음, 대조는 `docs/design/DESIGN_RECONCILIATION.md`).
