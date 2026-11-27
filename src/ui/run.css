@@ -166,6 +166,12 @@
   box-shadow: 0 calc(var(--u) * 20) 0 #232750;
 }
 
+/* 가로 아침의 글자 배율 = 높이/540과 폭/900 중 작은 쪽 (2026-11-27): 4:3·16:10 태블릿은 높이 기준 배율(1366×1024 = 1.9)이 폭에 비해 커서
+   두 칸 판에 '다음 밤' 줄이 "등불 / 2"로 끊기고 버튼에 붙고 상점 설명이 세 줄로 접혔다. 16:9 이상(넓은 가로·휴대폰 가로)은 그대로 */
+:root[data-layout='landscape'] .screen--morning {
+  --u: min(calc(100cqh / 540), calc(100cqw / 900));
+}
+
 /* 가로: 가운데 판, 통계 두 열 */
 :root[data-layout='landscape'] .morning__wrap {
   justify-content: center;
@@ -835,4 +841,17 @@
   height: 100%;
   margin: 0;
   vertical-align: top;
+}
+
+/* 키가 아주 낮은 가로(732×300 등): 판이 10px쯤 넘쳐 '다음 밤' 줄이 버튼 띠 뒤로 반쯤 가렸다 → 통계 줄·점수 줄을 조금 더 낮춤 (2026-11-27) */
+@container (max-height: 330px) {
+  :root[data-layout='landscape'] .morning__stats .result__row {
+    min-height: calc(var(--u) * 26);
+  }
+  :root[data-layout='landscape'] .morning__stats .result__row--score {
+    min-height: calc(var(--u) * 36);
+  }
+  :root[data-layout='landscape'] .morning__panel {
+    padding-top: calc(var(--u) * 14);
+  }
 }
