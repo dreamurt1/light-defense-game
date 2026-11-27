@@ -93,6 +93,8 @@ export abstract class Enemy extends Phaser.GameObjects.Container {
   /** 접근 경로 위의 기준점. 화면 위치는 여기에 옆 흔들림을 더한 값 */
   protected base: Phaser.Math.Vector2;
   protected age = 0;
+  /** 몸의 기본 크기 배율 = 종류 배율 × enemies.json visualScale (2026-11-27 — 몹 크기 비슷하게, 연출은 이 배율 기준) */
+  protected baseScale = 1;
   private knockSpeed = 0;
   private readonly knockDir = new Phaser.Math.Vector2();
   private stunLeft = 0;
@@ -239,6 +241,12 @@ export abstract class Enemy extends Phaser.GameObjects.Container {
   }
 
   /** 주기마다 주는 주인공 피해 (화난 패시브는 재정의) */
+  /** 몸 크기를 정한다: 종류 배율 × visualScale (생성자 끝에서 한 번) */
+  protected sizeBody(kindScale = 1): void {
+    this.baseScale = kindScale * Number(this.def.visualScale ?? 1);
+    this.setScale(this.baseScale);
+  }
+
   protected get attackDamage(): number {
     return this.def.damage;
   }
@@ -297,7 +305,7 @@ export abstract class Enemy extends Phaser.GameObjects.Container {
 
   /** 들이받는 순간의 몸짓: 부딪히는 쪽으로 납작해졌다 돌아온다 (종마다 바꿀 수 있음) */
   protected playSlam(): void {
-    this.scene.tweens.add({ targets: this, scaleX: 1.18, scaleY: 0.84, duration: 70, yoyo: true, ease: 'Quad.easeOut' });
+    this.scene.tweens.add({ targets: this, scaleX: this.baseScale * 1.18, scaleY: this.baseScale * 0.84, duration: 70, yoyo: true, ease: 'Quad.easeOut' });
   }
 
   /** 빛 속에서 느려짐 (종류별 빛 반응 — XMind '어둠에서보다 느려짐'): 등불지기 주변 빛 안이면 lightSlowMultiplier배, 패시브는 제외 */

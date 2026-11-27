@@ -8,6 +8,8 @@ import { bus } from '../core/events';
 import { pickLayout, turnHint, viewSize, type Layout } from '../core/layout';
 import { loadSettings } from '../core/Settings';
 import { GameData } from '../data';
+import { zoomFor } from '../core/renderZoom';
+import { savedLite } from '../core/perfGuard';
 
 const VP = GameData.game.viewport;
 const RULES = { portrait: { width: VP.width, height: VP.height }, landscape: VP.landscape };
@@ -19,9 +21,14 @@ export function currentLayout(): Layout {
   return pickLayout({ coarse: isTouchDevice(), width: innerWidth, height: innerHeight, pref: loadSettings().orientation });
 }
 
-/** 지금 화면에 맞는 게임 논리 크기 */
+/** 지금 화면에 맞는 게임 크기 = 논리 크기(짧은 변 540) × PC 선명도 배율 (2026-11-27, core/renderZoom.ts) */
 export function currentView(): { width: number; height: number } {
-  return viewSize(currentLayout(), innerWidth, innerHeight, RULES);
+  const layout = currentLayout();
+  const v = viewSize(layout, innerWidth, innerHeight, RULES);
+  // 화면 상자(.stage)의 짧은 변(CSS px): 가로 = 높이 min(창 높이, 창 폭 × 540/720), 세로 = 폭 min(창 폭, 창 높이 × 9/16) — style.css .stage
+  const shortCss = layout === 'landscape' ? Math.min(innerHeight, (innerWidth * 540) / 720) : Math.min(innerWidth, (innerHeight * 9) / 16);
+  const z = zoomFor({ coarse: isTouchDevice(), lite: savedLite(), shortCss, dpr: devicePixelRatio || 1 });
+  return { width: Math.round(v.width * z), height: Math.round(v.height * z) };
 }
 
 /** <html data-layout>을 지금 방식으로 (스크립트가 돌자마자 한 번, 그 뒤 바뀔 때마다) */

@@ -7,6 +7,7 @@
 import Phaser from 'phaser';
 import type { Vec } from '../systems/fan';
 import { bakeTexture } from './bake';
+import { screenOffset } from '../core/renderZoom';
 
 /** 노란 화살표가 가리킬 곳. lift = 화면 안일 때 화살표 끝을 둘 높이(그림 꼭대기 위), drop = 위가 HUD에 가려 아래에서 가리킬 때 끝의 깊이(받침·게이지 아래) — 연출 값 */
 export interface Beacon extends Vec {
@@ -105,6 +106,8 @@ export class EdgeArrows {
   private readonly enemies: Pool;
   private readonly beacons: Pool;
   private readonly glows: Pool;
+  /** 화면에 붙은 그림의 확대 보정 (core/renderZoom.ts) */
+  private off = { x: 0, y: 0 };
 
   constructor(private readonly scene: Phaser.Scene) {
     bakeArrows(scene);
@@ -127,8 +130,11 @@ export class EdgeArrows {
     this.glows.begin();
     const view = cam.worldView;
     // 화면 크기는 화면 방식(세로·가로·창 비율)에 따라 바뀐다
-    const W = cam.width;
-    const H = cam.height;
+    // PC 선명도(2026-11-27): 보이는 크기(논리 px), 자리는 확대 보정만큼 옮김
+    const W = cam.displayWidth;
+    const H = cam.displayHeight;
+    const off = screenOffset(cam);
+    this.off = off;
     const inset = W > H ? INSET.landscape : INSET.portrait;
     const x0 = inset.left;
     const x1 = W - inset.right;
@@ -164,7 +170,7 @@ export class EdgeArrows {
       const outside = Math.max(0, Math.max(-sx, sx - W, -sy, sy - H));
       this.enemies
         .next()
-        .setPosition(px, py)
+        .setPosition(px + off.x, py + off.y)
         .setRotation(a)
         .setAlpha(0.95 - 0.6 * Math.min(1, outside / FAR));
     }
@@ -188,10 +194,10 @@ export class EdgeArrows {
     const r = ARROW * 1.3 + 5 * pulse;
     this.glows
       .next()
-      .setPosition(tipX - Math.cos(angle) * mid, tipY - Math.sin(angle) * mid)
+      .setPosition(tipX - Math.cos(angle) * mid + this.off.x, tipY - Math.sin(angle) * mid + this.off.y)
       .setScale(r / GLOW_R)
       .setTint(YELLOW)
       .setAlpha(0.12 + 0.14 * pulse);
-    this.beacons.next().setPosition(tipX, tipY).setRotation(angle);
+    this.beacons.next().setPosition(tipX + this.off.x, tipY + this.off.y).setRotation(angle);
   }
 }

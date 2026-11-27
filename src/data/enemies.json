@@ -23,6 +23,7 @@
   },
   {
     "id": "werewolf",
+    "visualScale": 0.9,
     "kind": "hostile",
     "name": "웨어울프",
     "nameEn": "Werewolf",
@@ -57,6 +58,7 @@
   },
   {
     "id": "frog",
+    "visualScale": 1.28,
     "kind": "lost",
     "name": "개구리",
     "nameEn": "Frog",
@@ -76,6 +78,7 @@
   },
   {
     "id": "hedgehog",
+    "visualScale": 1.16,
     "kind": "lost",
     "name": "고슴도치",
     "nameEn": "Hedgehog",
@@ -92,6 +95,7 @@
   },
   {
     "id": "redpanda",
+    "visualScale": 1.12,
     "kind": "lost",
     "name": "레서판다",
     "nameEn": "Red Panda",
@@ -112,6 +116,7 @@
   },
   {
     "id": "owl",
+    "visualScale": 1.22,
     "kind": "passive",
     "name": "올빼미",
     "nameEn": "Owl",
@@ -131,6 +136,7 @@
   },
   {
     "id": "moth",
+    "visualScale": 1.18,
     "kind": "passive",
     "name": "나방",
     "nameEn": "Moth",
@@ -151,6 +157,7 @@
   },
   {
     "id": "firefly",
+    "visualScale": 1.8,
     "kind": "passive",
     "name": "반딧불이",
     "nameEn": "Firefly",

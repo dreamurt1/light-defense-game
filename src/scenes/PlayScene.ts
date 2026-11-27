@@ -45,6 +45,7 @@ import { Sources } from './play/Sources';
 import { SourceRevive } from './play/SourceRevive';
 import { DangerRing } from './play/DangerRing';
 import { Trail } from './play/Trail';
+import { applyCamZoom } from '../core/renderZoom';
 
 const CFG = GameData.game;
 const OVER_SEC = 1.5; // 오늘은 여기까지 연출 (입력 막고 빛이 사그라듦)
@@ -134,6 +135,7 @@ export class PlayScene extends Phaser.Scene {
     this.sources = new Sources(this, rng, this.stageDef.stations, this.stageDef.stationSpots, this.night.litAtStart, this.night.prep.stationDecayPerSec, this.grid.stationSpots());
     const start = this.homeSpot;
     this.keeper = new Lightkeeper(this, keeperDef, start.x, start.y);
+    applyCamZoom(this.cameras.main, this.scale.width, this.scale.height); // PC 선명도 (2026-11-27, core/renderZoom.ts)
     this.stage = new VillageStage(this, this.keeper.pos);
     this.props = new MapProps(this, this.grid.map);
     for (const o of this.sources.occluders()) this.props.occluders.add([o.art], o.depth); // 가리면 반투명 (2026-11-13)
@@ -142,8 +144,7 @@ export class PlayScene extends Phaser.Scene {
     if (CFG.light.blockedByObstacles) this.aimGuide.clip = (o, a, r) => this.grid.clip(o, a, r);
     this.fx = new LightFx(this);
     this.edgeArrows = new EdgeArrows(this);
-    // 화면 누름(마우스·터치패드·폰 화면) = 바로 한 발, 끌다 놓으면 커서 쪽으로 커서까지의 거리만큼(루미 몸 위에서 놓으면 취소) — 2026-11-27 라이언
-    const shot = (a: number | null, r: number) => this.aiming.shoot(a, r, this.light, (x, y) => this.fire(x, y));
+    const shot = (a: number | null, r: number) => this.aiming.shoot(a, r, this.light, (x, y) => this.fire(x, y)); // 화면 누름(마우스·터치패드·폰) = 바로 한 발, 끌다 놓으면 커서 쪽(루미 위에서 놓으면 취소) — 2026-11-27 라이언
     this.desktop = new DesktopControls(this, () => shot(null, Infinity), (point) => { const aim = this.aiming.mouse(this.keeper.pos, point, this.light.range); if (aim) shot(aim.angle, aim.range); });
     this.aiming = new Aiming(this.desktop, this.aimGuide);
 
@@ -165,7 +166,7 @@ export class PlayScene extends Phaser.Scene {
       GameData.enemies,
       rng,
       // 적은 지금 화면 가장자리 밖에서 나온다: 화면 크기(세로·가로)가 바뀌면 onResize가 다시 맞춘다
-      { width: this.scale.width, height: this.scale.height, margin: CFG.playfield.margin },
+      { width: this.cameras.main.displayWidth, height: this.cameras.main.displayHeight, margin: CFG.playfield.margin },
       IMPLEMENTED_ENEMIES,
     );
     this.field = new EnemyField(this, spawner, CFG.world, CFG.playfield.margin, new Rng(RunState.seed + 71));
@@ -558,8 +559,9 @@ export class PlayScene extends Phaser.Scene {
 
   /** 화면 크기가 바뀜 (세로 ↔ 가로, 창 크기): 화면에 붙은 층과 적이 나오는 가장자리를 새 크기로 */
   private onResize(gameSize: Phaser.Structs.Size): void {
-    this.stage.resize(gameSize.width, gameSize.height);
-    this.field.setArea(gameSize.width, gameSize.height);
+    const z = applyCamZoom(this.cameras.main, gameSize.width, gameSize.height);
+    this.stage.resize(gameSize.width / z, gameSize.height / z);
+    this.field.setArea(gameSize.width / z, gameSize.height / z);
     if (!this.ended) followCamera(this.cameras.main, this.keeper.pos, 1);
   }
 

@@ -8,6 +8,7 @@ import type { LightPoints } from '../../systems/lightPoints';
 import type { Rect } from '../../systems/obstacles';
 import type { Vitals } from '../../systems/vitals';
 import type { CentralSourceState } from '../../systems/centralSource';
+import { screenOffset } from '../../core/renderZoom';
 
 const CFG = GameData.game;
 /** 카메라가 루미를 따라가는 부드러움 (제안) */
@@ -24,14 +25,16 @@ const END_PAN = { portraitY: 230, landscapeX: 0.22, ms: 700 };
  */
 export function followCamera(cam: Phaser.Cameras.Scene2D.Camera, target: Vec, dt: number): void {
   const k = 1 - Math.pow(1 - FOLLOW_LERP, dt * 60);
-  const tx = Math.min(CFG.world.width - cam.width, Math.max(0, target.x - cam.width / 2));
-  const ty = Math.min(CFG.world.height - cam.height, Math.max(0, target.y - cam.height / 2));
+  // PC 선명도(2026-11-27): 확대돼 있으면 보이는 크기(displayWidth)로 마을 끝을 맞추고, 스크롤 = 보이는 왼쪽 위 − 확대 보정
+  const o = screenOffset(cam);
+  const tx = Math.min(CFG.world.width - cam.displayWidth, Math.max(0, target.x - cam.displayWidth / 2)) - o.x;
+  const ty = Math.min(CFG.world.height - cam.displayHeight, Math.max(0, target.y - cam.displayHeight / 2)) - o.y;
   cam.setScroll(cam.scrollX + (tx - cam.scrollX) * k, cam.scrollY + (ty - cam.scrollY) * k);
 }
 
 export function panForResult(cam: Phaser.Cameras.Scene2D.Camera, keeper: Vec): void {
   const landscape = cam.width > cam.height;
-  const x = keeper.x + (landscape ? cam.width * END_PAN.landscapeX : 0);
+  const x = keeper.x + (landscape ? cam.displayWidth * END_PAN.landscapeX : 0);
   const y = keeper.y + (landscape ? 0 : END_PAN.portraitY);
   cam.pan(x, y, END_PAN.ms, 'Cubic.easeOut');
 }

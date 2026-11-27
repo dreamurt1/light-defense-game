@@ -35,7 +35,7 @@ export class Frog extends Enemy {
       .setScale(texScale(TextureKeys.frogDark));
     this.sprite.play({ key: AnimKeys.frogDarkHop, startFrame: Math.floor(Math.random() * 2) });
     this.add([this.shadow, this.underGlow, this.sprite]);
-    this.setScale(VISUAL_SCALE);
+    this.sizeBody(VISUAL_SCALE);
   }
 
   protected lateralOffset(): number {
@@ -86,7 +86,7 @@ export class Frog extends Enemy {
     const dy = ctx.home.y - this.y;
     const len = Math.hypot(dx, dy) || 1;
     const run = Math.min(RESCUE_RUN, len);
-    scene.tweens.add({ targets: this, scale: { from: VISUAL_SCALE * 1.25, to: VISUAL_SCALE }, duration: 260, ease: 'Back.easeOut' });
+    scene.tweens.add({ targets: this, scale: { from: this.baseScale * 1.25, to: this.baseScale }, duration: 260, ease: 'Back.easeOut' });
     scene.tweens.add({ targets: this, x: this.x + (dx / len) * run, y: this.y + (dy / len) * run, duration: RESCUE_MS, delay: 250, ease: 'Sine.easeIn' });
     scene.tweens.add({ targets: this, alpha: 0, delay: RESCUE_MS * 0.7, duration: RESCUE_MS * 0.45, onComplete: () => this.destroy() });
     // 뛰어가는 동안 폴짝폴짝 (age가 계속 흐르도록 step 대신 직접)

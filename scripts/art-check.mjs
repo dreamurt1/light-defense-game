@@ -2,7 +2,9 @@
 //
 // 사용:
 //   node scripts/art-check.mjs --dir <PNG 폴더> [--char tori|doto|lumi] [--view 000_front] [--kind walk|idle|bg] [--out <png>] [--old-ribbon]
-// 토리 귀 규칙(2026-11-27 라이언 확정 — 스프라이트도 교체): 어느 방향이든 리본(민트 #9ED9B5 계열 무게중심)이 화면 왼쪽(x < 256). 옛 팩(리본 = 접힌 귀)을 볼 때만 --old-ribbon
+// 토리 귀 규칙(2026-11-27 15:44 라이언 최종 — 토리 입장 우선, 기획 1552): 토리 자신의 오른쪽 귀가 펴짐 + 리본, 왼쪽 귀 접힘.
+//   방향별 펴진 귀(= 리본 자리): 000·045·090 = 화면 왼쪽 / 135·180·225·270·315 = 화면 오른쪽 — 지금 스프라이트의 귀 자리 그대로. 옛 팩(리본 = 접힌 귀)을 볼 때만 --old-ribbon
+//   한계: 270·315는 두 귀가 가로로 겹쳐 무게중심만으로는 접힌 귀의 리본을 못 가를 수 있다 → 확인용 그림의 머리 확대를 눈으로
 //   2-C(2026-11-24): --kind pair --dir <빛을 잃은 모습> --dir2 <제 모습> · --kind sleep --dir <Sleep_Pack> (scripts/art-pair-check.mjs)
 //   예) 걷기 4장: --dir C:/tmp/x/000_front --char tori --view 000_front --kind walk
 //       대기 8장: --dir C:/tmp/x/Doto_Idle_8D_Pack --char doto --kind idle
@@ -47,6 +49,9 @@ if (!items.length) {
 
 // 옛 기준(--old-ribbon, 2026-11-27 전 스프라이트): 토리 리본(= 토리 자신의 왼쪽 귀)이 화면에 보이는 쪽: 'R' = 가운데보다 오른쪽, 'L' = 왼쪽, null = 가운데 근처(옆모습)
 const OLD_RIBBON = process.argv.includes('--old-ribbon');
+// 토리 귀 규칙(토리 입장): 펴진 귀·리본이 화면에 보이는 쪽 — 'L' = 가운데보다 왼쪽, 'R' = 오른쪽, null = 옆모습(겹침)
+const EAR_SIDE = { '000_front': 'L', '045_front_right': 'L', '090_right': 'L', '135_back_right': 'R', '180_back': 'R', '225_back_left': 'R', '270_left': 'R', '315_front_left': 'R' };
+const viewOf = (name) => view ?? name.match(/(000_front|045_front_right|090_right|135_back_right|180_back|225_back_left|270_left|315_front_left)/)?.[1];
 const RIBBON_SIDE = { '000_front': 'R', '045_front_right': 'R', '090_right': null, '135_back_right': 'L', '180_back': 'L', '225_back_left': 'L', '270_left': null, '315_front_left': 'R' };
 
 const W = 1400;
@@ -87,9 +92,12 @@ const res = await page.evaluate(`(async () => {
     const pl = new Int32Array(w * h); let blobs = 0; const minBlob = Math.max(40, (w * h) / 6000);
     for (let p = 0; p < w * h; p++) { if (!pupil[p] || pl[p]) continue; const st = [p]; pl[p] = 1; let n = 0; while (st.length) { const q = st.pop(); n++; const x = q % w;
       for (const r of [q - 1, q + 1, q - w, q + w]) { if (r < 0 || r >= w * h || Math.abs((r % w) - x) > 1) continue; if (pupil[r] && !pl[r]) { pl[r] = 1; st.push(r); } } } if (n >= minBlob) blobs++; }
+    // 선 귀(2026-11-27 기획 1543): 위쪽 140/512 줄 위로 닿는 불투명 픽셀 = 서 있는 귀 — 가로 무게중심과 폭
+    let ex = 0, en2 = 0, ex0 = 1e9, ex1 = -1; const earY = Math.round(h * 140 / 512);
+    for (let y = 0; y < earY; y++) for (let x = 0; x < w; x++) if (A(x, y) > 40) { ex += x; en2++; if (x < ex0) ex0 = x; if (x > ex1) ex1 = x; }
     let same = null; if (refData && !it.ref && refData.length === d.length) { let diff = 0; for (let i = 0; i < d.length; i++) if (d[i] !== refData[i]) { diff++; if (diff > 0) break; } same = diff === 0; }
     out.push({ name: it.name, ref: !!it.ref, size: w + 'x' + h, bbox: [x0, y0, x1, y1], top: y0, bottom: y1, lift: 495 - y1, opaque, edges, stray,
-      ribbon: mn > 50 ? [Math.round(mx / mn), Math.round(my / mn)] : null, eye: en > 150 ? { y: Math.round(ey / en), color: hex([er / en, eg / en, eb / en]), rgb: [er / en, eg / en, eb / en], pupils: blobs } : null, sameAsRef: same });
+      ribbon: mn > 50 ? [Math.round(mx / mn), Math.round(my / mn)] : null, ear: en2 > 30 ? [Math.round(ex / en2), ex0, ex1] : null, half: w / 2, eye: en > 150 ? { y: Math.round(ey / en), color: hex([er / en, eg / en, eb / en]), rgb: [er / en, eg / en, eb / en], pupils: blobs } : null, sameAsRef: same });
     // 확인용 그림: 전체 + 위쪽 얼굴 3배 확대
     const col = k % cols, row = Math.floor(k / cols), X = 10 + col * 230, Y = 30 + row * 470;
     G.fillStyle = it.ref ? '#3A3F78' : '#232750'; G.fillRect(X, Y, 220, 220); G.drawImage(im, X, Y, 220, 220);
@@ -137,10 +145,19 @@ for (const r of res) {
       const side = r.ribbon[0] > 256 ? 'R' : 'L';
       if (side !== RIBBON_SIDE[view]) warn.push(`${tag}: 리본이 ${side === 'R' ? '오른' : '왼'}쪽 — ${view}에서는 ${RIBBON_SIDE[view] === 'R' ? '보는 쪽 오른쪽' : '보는 쪽 왼쪽'}(옛 기준)`);
     }
-    // 토리 귀 규칙(화면 기준): 어느 방향이든 리본이 화면 왼쪽 — 리본을 못 찾아도 경고(리본이 빠진 그림)
+    // 토리 귀 규칙(토리 입장 — 오른쪽 귀 펴짐 + 리본, 기획 1552 방향 표): 방향별로 리본·펴진 귀가 있어야 할 화면 쪽 + 리본이 펴진 귀 밑동인지
     if (char === 'tori' && !OLD_RIBBON) {
-      if (!r.ribbon) warn.push(`${tag}: 민트 리본을 찾지 못함(토리 귀 규칙 — 화면 왼쪽 선 귀에 리본)`);
-      else if (r.ribbon[0] >= 256) warn.push(`${tag}: 리본 무게중심 x ${r.ribbon[0]} — 화면 왼쪽(256 미만)이어야 함(토리 귀 규칙: 리본이 화면 오른쪽이면 틀림)`);
+      const v = viewOf(r.name);
+      const want = v ? EAR_SIDE[v] : undefined;
+      const sideOf = (x) => (x < r.half ? 'L' : 'R');
+      const word = (sd) => (sd === 'L' ? '화면 왼쪽이어야' : '화면 오른쪽이어야');
+      if (!r.ribbon) warn.push(`${tag}: 민트 리본을 찾지 못함(토리 귀 규칙 — 펴진 오른쪽 귀에 리본)`);
+      else if (want && sideOf(r.ribbon[0]) !== want) warn.push(`${tag}: 리본 x ${r.ribbon[0]} — ${v}에서는 ${word(want)} 함(토리 자신의 오른쪽 귀)`);
+      if (!r.ear) warn.push(`${tag}: 펴진 귀를 찾지 못함(위쪽 140/512 줄 위에 귀가 없음)`);
+      else {
+        if (want && sideOf(r.ear[0]) !== want) warn.push(`${tag}: 펴진 귀 가로 중심 x ${r.ear[0]} — ${v}에서는 ${word(want)} 함(접힌 귀 쪽이면 틀림)`);
+        if (r.ribbon && (r.ribbon[0] < r.ear[1] - 12 || r.ribbon[0] > r.ear[2] + 12)) warn.push(`${tag}: 리본 x ${r.ribbon[0]}이 펴진 귀 폭 ${r.ear[1]}~${r.ear[2]} 밖 — 리본은 펴진 귀 밑동에`);
+      }
     }
   }
 }

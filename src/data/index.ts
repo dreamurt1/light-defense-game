@@ -313,6 +313,8 @@ export interface EnemyGroup {
 
 export interface EnemyDef {
   id: EnemyId;
+  /** 보이는 크기 배율 (2026-11-27 라이언 "몹 크기 비슷하게" — 맞는 판정 radius는 그대로, 없으면 1) */
+  visualScale?: number;
   kind: EnemyKind;
   name: string;
   nameEn: string;

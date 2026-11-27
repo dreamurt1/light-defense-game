@@ -30,6 +30,17 @@ export function nextLow(lowStreak: number, framesLastSecond: number, measuring: 
 
 let lite = false;
 
+/** 게임을 만들기 전: 이 기기가 가벼운 모드로 기억돼 있거나 ?lite인가 (PC 선명도 배율을 1로 — core/renderZoom.ts) */
+export function savedLite(): boolean {
+  const q = new URLSearchParams(location.search).get('lite');
+  if (q !== null) return q !== 'off';
+  try {
+    return localStorage.getItem(KEY) === 'lite';
+  } catch {
+    return false;
+  }
+}
+
 export function isLite(): boolean {
   return lite;
 }

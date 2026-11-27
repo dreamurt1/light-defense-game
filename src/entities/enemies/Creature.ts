@@ -86,6 +86,7 @@ export class Creature extends Enemy {
       this.underGlow.setScale(130 / 256).setAlpha(0.45);
     }
     this.add([this.shadow, this.underGlow, this.sprite]);
+    this.sizeBody(); // 몹 크기 비슷하게 (2026-11-27, enemies.json visualScale)
   }
 
   /** 빛 게이지 자리 (2026-11-24): 걷는 종은 발끝(0), 나는 종은 땅에 비친 그림자 자리(몸 가운데에서 그림자까지, 크기 배율 포함) */
@@ -164,7 +165,7 @@ export class Creature extends Enemy {
       this.showParadePose('cower');
       if (!this.poseArt) {
         const cower = (this.def.cowerSec ?? 0.6) * 1000;
-        this.scene.tweens.add({ targets: this, scaleX: 1.1, scaleY: 0.8, duration: 120, yoyo: true, hold: Math.max(0, cower - 240), ease: 'Quad.easeOut' });
+        this.scene.tweens.add({ targets: this, scaleX: this.baseScale * 1.1, scaleY: this.baseScale * 0.8, duration: 120, yoyo: true, hold: Math.max(0, cower - 240), ease: 'Quad.easeOut' });
       }
       return false;
     }
@@ -173,7 +174,7 @@ export class Creature extends Enemy {
     if (p?.special === 'guard' && this.guardLeft <= 0 && power > 0) {
       power *= Number(p.guardMultiplier ?? 0.5);
       this.guardLeft = Number(p.guardCooldownSec ?? 4);
-      this.scene.tweens.add({ targets: this, scaleX: 1.12, scaleY: 0.78, duration: 160, yoyo: true, hold: 220, ease: 'Quad.easeOut' });
+      this.scene.tweens.add({ targets: this, scaleX: this.baseScale * 1.12, scaleY: this.baseScale * 0.78, duration: 160, yoyo: true, hold: 220, ease: 'Quad.easeOut' });
     }
     // 눈 가림(웨어울프·뱀파이어, 종류별 빛 반응): 눈부셔 더 오래 멈칫한다
     if (p?.lightReaction === 'coverEyes' && power > 0) {

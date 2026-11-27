@@ -39,7 +39,7 @@ export class Bat extends Enemy {
       .setScale(texScale(TextureKeys.batDark));
     this.sprite.play({ key: AnimKeys.batDarkFly, startFrame: Math.floor(Math.random() * 4) });
     this.add([this.shadow, this.underGlow, this.sprite]);
-    this.setScale(VISUAL_SCALE);
+    this.sizeBody(VISUAL_SCALE);
   }
 
   private readonly amplitude: number;
@@ -97,7 +97,7 @@ export class Bat extends Enemy {
     const dy = this.y - ctx.from.y;
     const len = Math.hypot(dx, dy) || 1;
     if (isArtTexture(TextureKeys.batTrue) && Math.abs(dx) > 1) this.sprite.setFlipX(dx < 0); // 옆모습 그림: 날아가는 쪽을 보게
-    scene.tweens.add({ targets: this, scale: { from: VISUAL_SCALE * 0.85, to: VISUAL_SCALE }, duration: 200, ease: 'Back.easeOut' });
+    scene.tweens.add({ targets: this, scale: { from: this.baseScale * 0.85, to: this.baseScale }, duration: 200, ease: 'Back.easeOut' });
     scene.tweens.add({
       targets: this,
       x: this.x + (dx / len) * RETREAT_DIST,

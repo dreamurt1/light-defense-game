@@ -13,7 +13,8 @@ export function sayAbove(scene: Phaser.Scene, target: Phaser.GameObjects.Contain
   current.get(target)?.();
   const label = scene.add
     .text(0, 0, text, { fontFamily: 'Pretendard Variable, Pretendard, "Noto Sans KR", sans-serif', fontSize: '15px', color: '#1B1F3B', fontStyle: '600' })
-    .setOrigin(0.5);
+    .setOrigin(0.5)
+    .setResolution(Math.max(1, scene.cameras.main.zoom)); // PC 선명도(2026-11-27): 확대돼도 글자가 흐려지지 않게
   const w = Math.ceil(label.width + PAD.x * 2);
   const h = Math.ceil(label.height + PAD.y * 2);
   // 바탕은 크기별로 한 번 구운 그림 (2026-11-27 기기별 렉: 살아 있는 Graphics의 둥근 사각형이 떠 있는 동안 매 프레임 다시 쪼개짐 —

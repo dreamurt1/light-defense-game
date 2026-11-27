@@ -17,6 +17,7 @@ import { PROP_THEME } from '../art/props';
 import { expandRatio } from '../systems/LightSystem';
 import type { Vec } from '../systems/fan';
 import { WorldCuller } from './WorldCuller';
+import { screenOffset, viewOrigin } from '../core/renderZoom';
 
 /** 마을(월드) 크기 */
 const WORLD = GameData.game.world;
@@ -160,8 +161,9 @@ export class VillageStage {
     private readonly focus: Vec,
   ) {
     // 화면에 붙은 층(밤 색조·빛 마스크·번쩍임)은 지금 화면 크기로 만들고, 화면 방식이 바뀌면 resize()로 맞춘다 (2026-11-06 가로 화면)
-    const W = scene.scale.width;
-    const H = scene.scale.height;
+    // PC 선명도(2026-11-27): 카메라가 확대돼 있으면 보이는 마을 크기(논리 px)
+    const W = scene.cameras.main.displayWidth;
+    const H = scene.cameras.main.displayHeight;
     this.screenW = W;
     this.screenH = H;
     this.darkLayer = scene.add.image(0, 0, TextureKeys.villageDark).setOrigin(0).setScale(texScale(TextureKeys.villageDark)).setDepth(-1000);
@@ -231,6 +233,13 @@ export class VillageStage {
     this.gloomLayer = scene.add.rectangle(0, 0, W, H, GLOOM_COLOR, 1).setOrigin(0).setScrollFactor(0).setAlpha(0).setDepth(3900);
 
     this.setCombo(0, true);
+    this.placeScreenLayers();
+  }
+
+  /** 화면에 붙은 층의 자리: 카메라가 가운데 기준으로 확대되므로 screenOffset만큼 옮긴다 (배율 1이면 0,0 — 2026-11-27) */
+  private placeScreenLayers(): void {
+    const o = screenOffset(this.scene.cameras.main);
+    for (const l of [this.shade, this.flash, this.gloomLayer, this.themeVeil, this.litTexture]) l?.setPosition(o.x, o.y);
   }
 
   /** 화면 크기가 바뀜 (세로 ↔ 가로, 창 크기) */
@@ -243,14 +252,16 @@ export class VillageStage {
     this.screenH = height;
     // 2026-11-25: rt.resize()는 GPU 버퍼를 바꾸지 않아(Phaser 3.90 DynamicTexture autoResize=false) 판 중 세로↔가로 뒤 빛 층이 옛 크기 버퍼에 그려졌다 → 새로 만든다
     if (this.litTexture) this.litTexture = this.makeLitTexture();
+    this.placeScreenLayers();
   }
 
   /** 빛 층 RenderTexture를 지금 화면 크기 × 해상도 배율로 새로 만든다(옛것은 GPU 버퍼째 지움) — 화면에는 1/배율로 늘려 올림 */
   private makeLitTexture(): Phaser.GameObjects.RenderTexture {
     this.litTexture?.destroy();
     const s = this.litRes;
+    const o = screenOffset(this.scene.cameras.main);
     return this.scene.add
-      .renderTexture(0, 0, Math.ceil(this.screenW * s), Math.ceil(this.screenH * s))
+      .renderTexture(o.x, o.y, Math.ceil(this.screenW * s), Math.ceil(this.screenH * s))
       .setOrigin(0)
       .setScrollFactor(0)
       .setDepth(-900)
@@ -259,7 +270,8 @@ export class VillageStage {
 
   /** 가벼운 모드가 켜지면(판 도중에도) 빛 층을 절반 해상도로 바꾼다: 작은 텍스처를 새로 만들어 2배로 늘려 올림, 그 안에 찍는 것은 모두 ×배율 */
   private syncLitRes(): number {
-    const s = litResolution(isLite());
+    // PC 선명도(2026-11-27): 카메라 배율만큼 더 촘촘히 — 확대돼도 빛 층이 흐려지지 않게
+    const s = litResolution(isLite()) * this.scene.cameras.main.zoom;
     if (s === this.litRes) return s;
     this.litRes = s;
     this.litTexture = this.makeLitTexture();
@@ -583,10 +595,11 @@ export class VillageStage {
         rt.stamp('__WHITE', undefined, 0, 0, { originX: 0, originY: 0, scaleX: rt.width / white.width, scaleY: rt.height / white.height, alpha: base, skipBatch: true });
       }
       // 화면에 붙어 있으므로 마을 좌표에서 카메라 스크롤을 뺀 자리에 찍는다
-      const cam = this.scene.cameras.main;
+      // 보이는 마을의 왼쪽 위 (배율 1이면 카메라 스크롤 그대로)
+      const v = viewOrigin(this.scene.cameras.main);
       for (const p of pools) {
         if (p.radius <= 0) continue;
-        rt.stamp(TextureKeys.glowMask, undefined, (p.x - cam.scrollX) * s, (p.y - cam.scrollY) * s, {
+        rt.stamp(TextureKeys.glowMask, undefined, (p.x - v.x) * s, (p.y - v.y) * s, {
           scale: ((p.radius * 2 * LIT_POOL_RATIO) / 256) * s,
           alpha: p.alpha * LIT_POOL_ALPHA * this.dim,
           skipBatch: true,
@@ -595,7 +608,7 @@ export class VillageStage {
       for (const f of this.fans) {
         const r = f.range * expandRatio(f.age, expand);
         const fade = f.age <= expand ? 1 : 1 - (f.age - expand) / LIT_AFTERGLOW_SEC;
-        rt.stamp(TextureKeys.fanMask, undefined, (f.ox - cam.scrollX) * s, (f.oy - cam.scrollY) * s, {
+        rt.stamp(TextureKeys.fanMask, undefined, (f.ox - v.x) * s, (f.oy - v.y) * s, {
           originX: 0,
           originY: 0.5,
           rotation: f.angle,
@@ -607,14 +620,14 @@ export class VillageStage {
       // 빛 받은 바닥 타일 (2026-11-24): 화면에 보이는 칸만, 빛 자국의 알파만큼만 남게
       const lg = this.litGround;
       if (lg) {
-        const x0 = Math.floor(cam.scrollX / GROUND_TILE) * GROUND_TILE;
-        const y0 = Math.floor(cam.scrollY / GROUND_TILE) * GROUND_TILE;
-        for (let y = y0; y < cam.scrollY + rt.height / s; y += GROUND_TILE) {
-          for (let x = x0; x < cam.scrollX + rt.width / s; x += GROUND_TILE) rt.batchDraw(lg, (x - cam.scrollX) * s, (y - cam.scrollY) * s);
+        const x0 = Math.floor(v.x / GROUND_TILE) * GROUND_TILE;
+        const y0 = Math.floor(v.y / GROUND_TILE) * GROUND_TILE;
+        for (let y = y0; y < v.y + rt.height / s; y += GROUND_TILE) {
+          for (let x = x0; x < v.x + rt.width / s; x += GROUND_TILE) rt.batchDraw(lg, (x - v.x) * s, (y - v.y) * s);
         }
       }
       // 켜진 마을: 빛 자국의 알파만큼만 남는다 (바닥 타일이 있으면 그 위에 덮어 그림)
-      rt.batchDraw(this.litLayer, -cam.scrollX * s, -cam.scrollY * s);
+      rt.batchDraw(this.litLayer, -v.x * s, -v.y * s);
     } finally {
       // endDraw의 옮겨 그리기는 마지막 섞기 방식을 그대로 쓴다 → '그대로 덮어쓰기'로 두면 텍스처를 따로 지울 필요도 없다
       renderer.setBlendMode(blendModes(renderer).copy);
