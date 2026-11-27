@@ -1,0 +1,294 @@
+/* ---------- 하이라이트 컷 (2026-11-27 13:00 기획 세션·라이언 확정) ----------
+   ① 그림 컷 .hcut (ui/HighlightCut.ts) — 아침 화면 위 전체 화면, 그림(없으면 아침 배경) + 아래 띠 제목·대사·계속
+   ② 초상 배너 .pline (ui/PortraitLine.ts) — 밤 중 토스트 자리, 초상 56 + 한 줄. 판 위라 transform·opacity로만 움직인다(휴대폰 프레임 규칙) */
+
+.hcut {
+  position: absolute;
+  inset: 0;
+  /* 아침 버튼 줄(sticky, z-index 1)보다 위 — 당겨서 새로고침(300)·전체 화면 안내(450)보다는 아래 */
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  overflow: hidden;
+  background: var(--predawn);
+  pointer-events: auto;
+  cursor: pointer;
+  animation: hcut-in 0.5s ease-out;
+}
+
+.hcut[hidden] {
+  display: none;
+}
+
+.hcut.is-leaving {
+  animation: hcut-out 0.36s ease-in forwards;
+}
+
+.hcut__art {
+  position: absolute;
+  inset: 0;
+  /* 그림이 아주 천천히 다가오게 (한 번, 6초) */
+  animation: hcut-drift 6s ease-out forwards;
+}
+
+.hcut__art--sky {
+  background:
+    var(--morning-art, none) center / cover no-repeat,
+    linear-gradient(to bottom, #3a3f78 0%, #5a5487 45%, #c99a8a 80%, var(--dawn) 100%);
+}
+
+.hcut__image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* 세로: 16:9 그림을 꽉 채우면 가운데 1/4만 남아(셋이 나란히 선 컷은 루미만) — 폭의 1.6배(가운데 62%가 보임)로 키워 위쪽 가운데에 놓고
+   위아래 가장자리는 아침 하늘로 번지게 (2026-11-27, 받은 컷 그림을 비춰 본 뒤 정함) */
+:root:not([data-layout='landscape']) .hcut__art--image {
+  background: linear-gradient(to bottom, #3a3f78 0%, #5a5487 45%, #c99a8a 80%, var(--dawn) 100%);
+}
+
+:root:not([data-layout='landscape']) .hcut__image {
+  position: absolute;
+  top: 42%;
+  left: -30%;
+  width: 160%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  transform: translateY(-50%);
+  mask-image: linear-gradient(to bottom, transparent 0%, #000 14%, #000 86%, transparent 100%);
+}
+
+.hcut__band {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: calc(var(--u) * 10);
+  padding: calc(var(--u) * 56) calc(var(--u) * 28) max(calc(var(--u) * 30), env(safe-area-inset-bottom, 0px));
+  text-align: center;
+  background: linear-gradient(to top, rgba(18, 15, 36, 0.94) 0%, rgba(18, 15, 36, 0.86) 62%, rgba(18, 15, 36, 0));
+}
+
+.hcut__title {
+  margin: 0;
+  color: var(--paper);
+  font-size: max(22px, calc(var(--u) * 34));
+  font-weight: 800;
+  line-height: 1.25;
+  text-wrap: balance;
+  word-break: keep-all;
+  animation: hcut-rise 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.15s both;
+}
+
+.hcut__lines {
+  display: grid;
+  gap: calc(var(--u) * 4);
+  animation: hcut-rise 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.6s both;
+}
+
+.hcut__line {
+  margin: 0;
+  color: color-mix(in srgb, var(--paper) 90%, transparent);
+  font-size: max(15px, calc(var(--u) * 20));
+  line-height: 1.45;
+  text-wrap: balance;
+  word-break: keep-all;
+}
+
+.hcut__who,
+.pline__who {
+  margin-right: 0.45em;
+  color: var(--lavender);
+  font-size: 0.84em;
+  font-weight: 700;
+}
+
+.hcut__who + .hcut__say::before,
+.pline__who + .pline__text::before {
+  content: '“';
+}
+
+.hcut__who + .hcut__say::after,
+.pline__who + .pline__text::after {
+  content: '”';
+}
+
+.hcut__say em {
+  color: var(--amber);
+  font-style: normal;
+  font-weight: 800;
+}
+
+.hcut__next {
+  margin-top: calc(var(--u) * 10);
+  min-width: calc(var(--u) * 160);
+  opacity: 0.35;
+  transition: opacity 0.4s ease-out;
+}
+
+.hcut.is-ready .hcut__next {
+  opacity: 1;
+}
+
+/* 가로: 그림의 주요 자리(세로 150~620/720)를 덮지 않게 띠를 아래쪽 낮게 — 글은 가운데, '계속'은 오른쪽
+   (키 낮은 휴대폰 가로 732×300에서도 버튼까지 보이게) */
+:root[data-layout='landscape'] .hcut__band {
+  grid-template-columns: 1fr auto 1fr;
+  align-items: end;
+  column-gap: calc(var(--u) * 24);
+  padding: calc(var(--u) * 44) max(calc(var(--u) * 32), env(safe-area-inset-right, 0px)) max(calc(var(--u) * 22), env(safe-area-inset-bottom, 0px));
+  background: linear-gradient(to top, rgba(18, 15, 36, 0.9) 0%, rgba(18, 15, 36, 0.78) 55%, rgba(18, 15, 36, 0));
+}
+
+:root[data-layout='landscape'] .hcut__title,
+:root[data-layout='landscape'] .hcut__lines {
+  grid-column: 2;
+}
+
+:root[data-layout='landscape'] .hcut__next {
+  grid-column: 3;
+  grid-row: 1 / span 2;
+  justify-self: end;
+  align-self: end;
+  margin-top: 0;
+}
+
+:root[data-layout='landscape'] .hcut__title {
+  font-size: max(20px, calc(var(--u) * 30));
+}
+
+:root[data-layout='landscape'] .hcut__line {
+  font-size: max(14px, calc(var(--u) * 18));
+}
+
+@keyframes hcut-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes hcut-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes hcut-drift {
+  from {
+    transform: scale(1.05);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+@keyframes hcut-rise {
+  from {
+    opacity: 0;
+    transform: translateY(calc(var(--u) * 12));
+  }
+}
+
+/* ② 초상 배너 */
+.pline {
+  position: absolute;
+  top: calc(var(--u) * 120);
+  left: 0;
+  right: 0;
+  display: grid;
+  justify-items: center;
+  padding-inline: calc(var(--u) * 12);
+  pointer-events: none;
+  animation: pline-in 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.pline[hidden] {
+  display: none;
+}
+
+.pline.is-leaving {
+  animation: pline-out 0.32s ease-in forwards;
+}
+
+.pline__card {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--u) * 12);
+  max-width: min(100%, calc(var(--u) * 520));
+  padding: calc(var(--u) * 7) calc(var(--u) * 22) calc(var(--u) * 7) calc(var(--u) * 7);
+  border: 1px solid color-mix(in srgb, var(--paper) 16%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--predawn) 90%, transparent);
+  box-shadow: 0 calc(var(--u) * 6) calc(var(--u) * 18) rgba(0, 0, 0, 0.35);
+}
+
+:root[data-perf='lite'] .pline__card {
+  box-shadow: none;
+}
+
+.pline__face {
+  flex: none;
+  width: max(36px, calc(var(--u) * 56));
+  height: max(36px, calc(var(--u) * 56));
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--paper) 30%, transparent);
+  border-radius: 50%;
+  background: linear-gradient(to bottom, #34396c, #14152e);
+}
+
+.pline__canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.pline__body {
+  min-width: 0;
+}
+
+.pline__line {
+  margin: 0;
+  color: var(--paper);
+  font-size: max(13px, calc(var(--u) * 18));
+  font-weight: 700;
+  line-height: 1.3;
+  word-break: keep-all;
+}
+
+.pline[data-portrait='witch-angry'] .pline__who {
+  color: var(--ember);
+}
+
+.pline__sub {
+  margin: calc(var(--u) * 2) 0 0;
+  color: color-mix(in srgb, var(--paper) 72%, transparent);
+  font-size: max(11px, calc(var(--u) * 14.5));
+  line-height: 1.3;
+  word-break: keep-all;
+}
+
+/* 배너가 떠 있으면 토스트(안내 띠 포함)가 그 아래로 비킨다 */
+.toast {
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+:root[data-pline] .toast {
+  transform: translateY(calc(var(--u) * 84));
+}
+
+@keyframes pline-in {
+  from {
+    opacity: 0;
+    transform: translateY(calc(var(--u) * -10));
+  }
+}
+
+@keyframes pline-out {
+  to {
+    opacity: 0;
+    transform: translateY(calc(var(--u) * -8));
+  }
+}

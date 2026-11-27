@@ -89,6 +89,8 @@ export class MorningSheet {
     bus.on('run:morning', (e) => this.render(e.result, e.before, e.run));
     // 아침에 '집으로' → 런의 끝 결과는 새벽 하늘 위에 혼자 뜬다(아침 판과 겹치면 세로에서 결과 버튼이 화면 밖으로 밀림, 2026-11-23)
     bus.on('run:end', () => (this.panel.hidden = true));
+    // 그림 컷(2026-11-27)이 닫히면 아침 판이 초점을 받는다
+    bus.on('ui:cut', (e) => !e.open && document.documentElement.dataset.screen === 'morning' && this.panel.focus({ preventScroll: true }));
     // 판이 넘치는지(버튼 줄 뒤에 배경을 깔지) — 크기가 바뀌면 다시 (2026-11-24)
     window.addEventListener('resize', () => this.syncScroll());
   }

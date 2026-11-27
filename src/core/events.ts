@@ -89,6 +89,10 @@ export interface GameEvents {
   'passive:cower': { enemyId: EnemyId; x: number; y: number; hits: number };
   'passive:banished': { enemyId: EnemyId; x: number; y: number };
   'parade:passed': { enemyId: EnemyId; size: number; banished: number; mercy: number };
+  /** 행렬 한 묶음의 첫 주민이 판에 들어옴 (2026-11-27 하이라이트 컷 — 첫 행렬 초상 배너) */
+  'parade:enter': { enemyId: EnemyId; group: number };
+  /** 그림 컷이 뜨거나 닫힘 (2026-11-27 하이라이트 컷, ui/HighlightCut.ts) — 닫히면 아침 화면이 초점을 되찾음 */
+  'ui:cut': { id: string | null; open: boolean };
   /** 빛 레벨 ★ (2026-11-23): 경험치가 쌓임(ups = 이번에 오른 레벨 수, need = 다음 레벨까지) */
   'growth:change': { level: number; xp: number; need: number; ups: number };
   /** 별가루 ✦ (HUD에 보일 값: 정식 런이면 잔액 + 이번 밤) */

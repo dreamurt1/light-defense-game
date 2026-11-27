@@ -4,6 +4,8 @@ import { LocalRanking } from '../services/LocalRanking';
 import { installHistoryNav } from './HistoryNav';
 import { installEdgeSwipe } from './EdgeSwipe';
 import { MorningSheet } from './MorningSheet';
+import { HighlightCut } from './HighlightCut';
+import { PortraitLine } from './PortraitLine';
 import { BossBar } from './BossBar';
 import { Hud } from './Hud';
 import { PauseSheet } from './PauseSheet';
@@ -41,8 +43,11 @@ export function mountUi(root: HTMLElement, game: Phaser.Game): Router {
     morning.el,
     hud.el,
     new Toast().el,
+    // 하이라이트 컷 (2026-11-27): 밤 중 초상 배너는 토스트 자리, 그림 컷은 아침 화면 위
+    new PortraitLine().el,
     new PauseSheet().el,
     new ResultSheet(ranking).el,
+    new HighlightCut().el,
     settings.el,
     new TestSheet().el,
     createTurnHint(),

@@ -622,6 +622,49 @@ if (!skipLong) {
     half(lit.game0, lit.portrait) && half(lit.game1, lit.landscape) && lit.game0[0] !== lit.game1[0] && lit.errs.length === 0,
     lit,
   );
+  // I21 하이라이트 컷 (2026-11-27 기획 세션·라이언 확정): 초상 배너 5(첫 행렬은 처음 한 번 · 토리 · 도토 · 노월 · 작은 화해 — 줄 세워 하나씩, 토스트는 비킴)
+  //     + 그림 컷(정식 런의 밤 끝 → 런 흐름 → 아침 직전 cut-tori, 2초 전엔 안 넘어감, 한 번 본 것은 seenCuts)
+  const hl = await (async () => {
+    const page = await openPage({ width: 390, height: 844, scale: 1, phone: true });
+    const st = `JSON.stringify({ pline: (() => { const p = document.querySelector('.pline'); return p && !p.hidden ? { id: p.dataset.id, drawn: p.querySelector('canvas')?.dataset.drawn === '1', toast: getComputedStyle(document.querySelector('.toast')).transform !== 'none' } : null; })(), cut: (() => { const c = document.querySelector('.hcut'); return c && !c.hidden ? c.dataset.id : null; })(), screen: document.documentElement.dataset.screen, seen: JSON.parse(localStorage.getItem('ld.progress.v2') || '{}').seenCuts ?? [] })`;
+    const emit = (code) => page.evaluate(`(async () => { const { bus } = await import('/src/core/events.ts'); ${code}; return 1; })()`);
+    try {
+      await page.navigate(`${BASE}?autoplay=9999&night=3&seed=5&idle`);
+      await waitFor(page, `!!${SC}?.clock && ${SC}.clock.t > 1.5`, 25000);
+      await page.evaluate(`(async () => { const { Progress } = await import('/src/core/Progress.ts'); Progress.reset(); Progress.markTutorial(); window.__pl = []; setInterval(() => { const id = document.querySelector('.pline:not([hidden])')?.dataset.id; if (id && window.__pl[window.__pl.length - 1] !== id) window.__pl.push(id); }, 80); return 1; })()`);
+      await emit(`bus.emit('parade:enter', { enemyId: 'owl', group: 0 })`);
+      await sleep(600);
+      const first = JSON.parse(await page.evaluate(st));
+      await sleep(3600);
+      await emit(`bus.emit('parade:enter', { enemyId: 'moth', group: 1 })`);
+      await sleep(500);
+      const again = JSON.parse(await page.evaluate(st)).pline;
+      await emit(`bus.emit('friend:rescued', { characterId: 'tori' }); bus.emit('friend:rescued', { characterId: 'doto' }); bus.emit('witch:spawn', { form: 'angry' }); bus.emit('mercy:gain', { enemyId: 'moth', x: 0, y: 0, score: 300 }); bus.emit('run:event', { kind: 'gift', x: 0, y: 0 })`);
+      await sleep(14500);
+      const order = await page.evaluate('window.__pl');
+      await emit(`bus.emit('game:clear', { result: { outcome: 'complete', reason: 'time', stageId: 'night', score: 5000, survivedSec: 100, rescued: 3, retreated: 9, stationsLit: 3, stationsTotal: 3, heartsLeft: 3, maxCombo: 9, characterId: 'lumi', seed: 5, continued: false, mercy: 1, itemsUsed: 0, bossCalmed: false, night: 3, mapId: 'B1', friends: ['tori'], witch: false, banish: 0, dust: 4, xp: 10, level: 3 } })`);
+      await sleep(900);
+      const cut = JSON.parse(await page.evaluate(st));
+      await page.evaluate(`document.querySelector('.hcut')?.click()`);
+      await sleep(400);
+      const early = JSON.parse(await page.evaluate(st)).cut;
+      await sleep(1500);
+      await page.evaluate(`document.querySelector('.hcut')?.click()`);
+      await sleep(700);
+      const after = JSON.parse(await page.evaluate(st));
+      return { first, again, order, cut, early, after, errs: errorsOf(page) };
+    } finally {
+      page.close();
+    }
+  })();
+  record(
+    'I21 하이라이트 컷(2026-11-27) — 초상 배너 5(첫 행렬 처음 한 번 · 토리 · 도토 · 노월 · 작은 화해, 줄 세워 하나씩, 토스트 비킴) · 그림 컷(아침 직전 · 2초 전엔 안 넘어감 · 한 번 본 것 기록)',
+    hl.first.pline?.id === 'line-parade-first' && hl.first.pline.drawn && hl.first.pline.toast && hl.again === null &&
+      ['line-tori', 'line-doto', 'line-witch', 'line-gift'].every((id, i) => hl.order[i + 1] === id) &&
+      hl.cut.cut === 'cut-tori' && hl.cut.screen === 'morning' && hl.early === 'cut-tori' && hl.after.cut === null && hl.after.screen === 'morning' &&
+      hl.after.seen.includes('cut-tori') && hl.after.seen.includes('line-parade-first') && hl.errs.length === 0,
+    hl,
+  );
   record('I 런 점검 중 콘솔 오류', flow.errs.length + parade.errs.length === 0, [...flow.errs, ...parade.errs]);
 }
 

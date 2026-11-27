@@ -1,0 +1,51 @@
+{
+  "_comment": "하이라이트 컷 (2026-11-27 13:00 기획 세션·라이언 확정, docs/plan/order-highlight-cuts-26-1127.md). cuts = 아침 화면 직전 전체 화면 컷(처음 한 번만, Progress.seenCuts) · lines = 밤 중 초상 배너(판을 멈추지 않음). 글 안의 *낱말* = 호박빛 강조, {keeper} = 고른 등불지기 이름, {calmLine}·{enterLine} = game.json boss.<모습>의 대사. art = public/cuts/<파일>(그림이 오면 이름을 적음, null이면 아침 배경 + 글). portraits = 이미 있는 시트에서 얼굴 칸 [x, y, 한 변] (새 그림 없음).",
+  "tapAfterMs": 2000,
+  "lineMs": 2500,
+  "lineMsWithSub": 3500,
+  "cutOrder": ["cut-nowol", "cut-three", "cut-tori", "cut-bright"],
+  "cuts": {
+    "cut-tori": {
+      "title": "토리와 다시",
+      "lines": [
+        { "who": "토리", "text": "{keeper}..! 빛이 *따뜻해*" },
+        { "who": "토리", "text": "이제 같이 갈게" }
+      ],
+      "art": null
+    },
+    "cut-three": {
+      "title": "셋이 다시 모였어요",
+      "lines": [
+        { "who": "도토", "text": "…도토리는 안 놓쳤어" },
+        { "who": "토리", "text": "이제 *셋*이야" }
+      ],
+      "art": null
+    },
+    "cut-nowol": {
+      "title": "노월이 마음을 열었어요",
+      "lines": [{ "who": "노월", "text": "{calmLine}" }],
+      "art": null
+    },
+    "cut-bright": {
+      "title": "마을이 환해졌어요",
+      "lines": [{ "text": "등불이 *모두* 켜졌어요" }, { "text": "마을이 숨을 쉬어요" }],
+      "art": null
+    }
+  },
+  "lines": {
+    "line-parade-first": { "portrait": "owl", "who": "올빼미", "text": "우린 지나가는 거야..", "sub": "비켜 주면 지키는 길, 돌려보내면 넓히는 길", "once": true },
+    "line-tori": { "portrait": "tori", "who": "토리", "text": "{keeper}..! 빛이 따뜻해" },
+    "line-doto": { "portrait": "doto", "who": "도토", "text": "…도토리는 안 놓쳤어" },
+    "line-witch": { "portrait": "witch", "who": "노월", "text": "{enterLine}" },
+    "line-gift": { "portrait": "owl", "text": "…고마워", "sub": "지나쳐 준 주민이 작은 선물을 두고 갔어요" }
+  },
+  "portraits": {
+    "tori": { "file": "characters/portrait-tori.webp", "frame": 576, "index": 0, "crop": [140, 100, 300] },
+    "doto": { "file": "characters/portrait-doto.webp", "frame": 576, "index": 0, "crop": [236, 66, 290] },
+    "owl": { "file": "enemies/owl-cower.png", "frame": 144, "index": 0, "crop": [26, 34, 92] },
+    "witch": { "file": "enemies/witch.webp", "frame": 384, "index": 0, "crop": [100, 14, 190] },
+    "witch-angry": { "file": "enemies/witch-angry.webp", "frame": 384, "index": 0, "crop": [100, 14, 190] },
+    "moth": { "file": "enemies/moth.png", "frame": 128, "index": 1, "crop": [6, 6, 116] },
+    "firefly": { "file": "enemies/firefly.png", "frame": 96, "index": 1, "crop": [5, 2, 86] }
+  }
+}

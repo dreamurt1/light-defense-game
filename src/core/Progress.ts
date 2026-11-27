@@ -25,9 +25,11 @@ export interface ProgressData {
   discovered: string[];
   /** 가진 빛 색 id (호박빛은 늘 가짐) */
   cosmetics: string[];
+  /** 이미 본 하이라이트 컷·처음 한 번 배너 id (2026-11-27 — 런이 끝나도 남음, 테스트 판·튜토리얼은 남기지 않음) */
+  seenCuts: string[];
 }
 
-export const EMPTY_PROGRESS: ProgressData = { tutorialDone: false, friends: [], demo: false, bestNight: 0, bestScore: 0, dust: 0, discovered: [], cosmetics: [] };
+export const EMPTY_PROGRESS: ProgressData = { tutorialDone: false, friends: [], demo: false, bestNight: 0, bestScore: 0, dust: 0, discovered: [], cosmetics: [], seenCuts: [] };
 
 /** v1 → v2 (순수, 테스트용으로 내보냄) */
 export function migrateProgressV1(old: { tutorialDone?: boolean; cleared?: string[]; friends?: CharacterId[]; demo?: boolean }): ProgressData {
@@ -147,6 +149,17 @@ export const Progress = {
   reset(): void {
     data = { ...EMPTY_PROGRESS };
     save();
+  },
+  /** 하이라이트 컷을 이미 봤는가 (2026-11-27) */
+  hasSeen(id: string): boolean {
+    return data.seenCuts.includes(id);
+  },
+  /** 하이라이트 컷을 본 것으로 (처음이면 true) */
+  markSeen(id: string): boolean {
+    if (data.seenCuts.includes(id)) return false;
+    data = { ...data, seenCuts: [...data.seenCuts, id] };
+    save();
+    return true;
   },
   isFriendOpen(id: CharacterId): boolean {
     return id === 'lumi' || data.demo || data.friends.includes(id);

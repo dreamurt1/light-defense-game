@@ -23,7 +23,8 @@ function objectParticle(word: string): string {
 const EVENT_LINES: Record<RunEventKind, string> = {
   fireflies: '반딧불이가 모였어요 · 곁에 가면 빛이 차올라요',
   lostParade: '길 잃은 주민들이 빛을 찾아와요',
-  gift: '지나쳐 준 주민이 작은 선물을 두고 갔어요',
+  // 작은 화해는 초상 배너(ui/PortraitLine.ts line-gift — "…고마워" + 이 문장)로 (2026-11-27)
+  gift: '',
   darkWind: '어둠 바람이 불어요 · 잠깐 적이 빨라져요',
 };
 
@@ -119,7 +120,7 @@ export class Toast {
     // 2026-11-18 랜덤 이벤트
     bus.on('run:event', (e) => this.show(EVENT_LINES[e.kind]));
     // 노월 두 모습 (2026-11-23): 찾아온 노월 / 분노한 노월, 진정되면 마음을 엶
-    bus.on('witch:spawn', (e) => this.show(e.form === 'angry' ? '분노한 노월이 나타났어요' : '노월이 찾아왔어요'));
+    // 등장은 초상 배너(ui/PortraitLine.ts line-witch — 등장 대사 + 이 문장)로 (2026-11-27 하이라이트 컷)
     bus.on('witch:returned', () => this.show('노월이 마음을 열었어요'));
     // 빛 레벨 ★ (2026-11-23)
     bus.on('growth:change', (e) => e.ups > 0 && this.show(`빛이 자랐어요 ★${e.level}`));

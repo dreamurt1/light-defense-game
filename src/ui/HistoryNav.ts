@@ -15,6 +15,7 @@
 import { bus, type ScreenId } from '../core/events';
 import { h } from './dom';
 import type { Router } from './Router';
+import { closeHighlightCut } from './HighlightCut';
 import { closeStory } from './Story';
 import { closeTestSheet } from './TestSheet';
 
@@ -86,7 +87,7 @@ export function installHistoryNav(router: Router, root: HTMLElement): () => void
     applying = false;
   };
   const closeOverlay = (): boolean => {
-    if (closeStory() || closeTestSheet()) return true;
+    if (closeStory() || closeTestSheet() || closeHighlightCut()) return true;
     if (!settingsOpen) return false;
     bus.emit('ui:close-settings');
     return true;

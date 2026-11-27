@@ -70,6 +70,7 @@ export class Parade {
       const q = this.queue.shift() as Pending;
       const g = this.groups[q.group];
       g.spawned += 1;
+      if (g.spawned === 1) bus.emit('parade:enter', { enemyId: q.kind, group: q.group });
       const e = this.field.spawnAt(q.kind, q.from.x, q.from.y);
       if (!(e instanceof Creature)) continue;
       e.route = q.to;

@@ -7,6 +7,7 @@ import itemsJson from './items.json';
 import stagesJson from './stages.json';
 import mapJson from './map.json';
 import cosmeticsJson from './cosmetics.json';
+import cutsJson from './cuts.json';
 import nightsJson from './nights.json';
 import shopJson from './shop.json';
 import obstaclesJson from './obstacles.json';
@@ -385,6 +386,42 @@ export interface ItemDef {
   [key: string]: string | number;
 }
 
+/** 하이라이트 컷 (2026-11-27, cuts.json) — 그림 컷·초상 배너의 글과 초상 얼굴 칸 */
+export interface CutLineDef {
+  who?: string;
+  text: string;
+}
+export interface CutDef {
+  title: string;
+  lines: CutLineDef[];
+  /** public/cuts/ 안의 그림 파일 (없으면 null — 아침 배경 + 글) */
+  art: string | null;
+}
+export interface BannerDef {
+  portrait: string;
+  who?: string;
+  text: string;
+  sub?: string;
+  /** 계정에 처음 한 번만 */
+  once?: boolean;
+}
+export interface PortraitCropDef {
+  file: string;
+  frame: number;
+  index: number;
+  /** [x, y, 한 변] (칸 안 픽셀) */
+  crop: [number, number, number];
+}
+export interface CutsDef {
+  tapAfterMs: number;
+  lineMs: number;
+  lineMsWithSub: number;
+  cutOrder: ('cut-tori' | 'cut-three' | 'cut-nowol' | 'cut-bright')[];
+  cuts: Record<'cut-tori' | 'cut-three' | 'cut-nowol' | 'cut-bright', CutDef>;
+  lines: Record<'line-parade-first' | 'line-tori' | 'line-doto' | 'line-witch' | 'line-gift', BannerDef>;
+  portraits: Record<string, PortraitCropDef>;
+}
+
 // JSON 추론 타입(튜플·선택 필드)이 인터페이스와 정확히 맞지 않아 unknown을 거쳐 붙인다
 export const GameData = {
   game: gameJson as unknown as GameConfig,
@@ -396,6 +433,7 @@ export const GameData = {
   cosmetics: cosmeticsJson as unknown as CosmeticsDef,
   nights: nightsJson as unknown as NightsDef,
   shop: shopJson as unknown as ShopDef,
+  cuts: cutsJson as unknown as CutsDef,
   /** 격자 맵 사전·맵 (2026-11-23, systems/grid.ts) */
   grid: obstaclesJson as unknown as GridDict,
   maps: Object.fromEntries([mapA1, mapA2, mapA3, mapB1, mapB2, mapC1, mapC2].map((m) => [m.id, m as unknown as GridMap])) as Record<string, GridMap>,

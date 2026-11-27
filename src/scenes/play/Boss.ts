@@ -146,7 +146,7 @@ export class Boss {
     s.tweens.add({ targets: img, y: -8, duration: 900, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
     bus.emit('witch:spawn', { form: this.form });
     bus.emit('boss:hp', { hp: this.hp, maxHp: this.maxHp });
-    s.time.delayedCall(ENTER_MS, () => this.sprite && sayAbove(s, this.sprite, this.F.enterLine, -150, 2600));
+    // 등장 대사(enterLine)는 초상 배너로 (2026-11-27 하이라이트 컷 — ui/PortraitLine.ts line-witch, 같은 말이 머리 위에 겹치지 않게)
   }
 
   private calm(): void {

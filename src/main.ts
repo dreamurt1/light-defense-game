@@ -5,6 +5,7 @@ import './ui/sticks.css';
 import './ui/finish.css';
 import './ui/story.css';
 import './ui/run.css';
+import './ui/highlight.css';
 import Phaser from 'phaser';
 import { gameConfig } from './config';
 import { mountUi } from './ui/UiRoot';
