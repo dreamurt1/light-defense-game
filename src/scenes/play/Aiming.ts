@@ -18,6 +18,9 @@ export class Aiming {
   readonly auto = new AutoFire(CTRL.autoHoldDelaySec);
   /** 빛 대기 중에 들어온 탭·놓기 (2026-11-27 라이언: 노트북 터치패드로 톡톡 탭하면 공격이 잘 안 먹힘) */
   readonly queued = new FireBuffer<{ angle: number | null; reach: number }>(CTRL.fireBufferSec);
+  /** 마지막 프레임의 루미 자리·사거리 (반경 표시용) */
+  private origin: Vec | null = null;
+  private range = 0;
 
   constructor(
     private readonly desktop: DesktopControls,
@@ -31,6 +34,8 @@ export class Aiming {
 
   /** 탭·놓기 한 발(빛 스틱 놓기·짧은 탭·PC 클릭): 빛이 대기 중이라 못 쐈으면 버리지 않고 예약 — 대기가 끝나는 순간 쏜다 */
   shoot(angle: number | null, reach: number, light: { ready: boolean; cooldownLeft: number }, fire: Fire): void {
+    // 자동 한 발(누르는 순간)이면 자동 조준 반경을 잠깐 보인다 (2026-11-27)
+    if (angle === null && this.origin) this.guide.pulse(this.origin, this.range);
     if (!fire(angle, reach) && !light.ready) this.queued.hold({ angle, reach }, light.cooldownLeft);
   }
 
@@ -51,6 +56,8 @@ export class Aiming {
    * 반환 = 반자동으로 지금 한 발 쏠 차례 (겨누거나 끄는 중이면 false)
    */
   update(dt: number, origin: Vec, range: number, ready: boolean, down: boolean, autoAngle: () => number | null): boolean {
+    this.origin = origin;
+    this.range = range;
     const key = this.desktop.autoHeld;
     const shoot = this.auto.update(dt, ready && !down, key);
     const stick = this.stick;

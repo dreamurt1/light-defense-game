@@ -142,11 +142,9 @@ export class PlayScene extends Phaser.Scene {
     if (CFG.light.blockedByObstacles) this.aimGuide.clip = (o, a, r) => this.grid.clip(o, a, r);
     this.fx = new LightFx(this);
     this.edgeArrows = new EdgeArrows(this);
-    // PC: 마우스를 끌다 놓으면 커서 쪽으로, 루미 중심에서 커서까지의 거리만큼 (루미 몸 위에서 놓으면 취소)
-    this.desktop = new DesktopControls(this, (point) => {
-      const aim = this.aiming.mouse(this.keeper.pos, point, this.light.range);
-      if (aim) this.aiming.shoot(aim.angle, aim.range, this.light, (a, r) => this.fire(a, r));
-    });
+    // 화면 누름(마우스·터치패드·폰 화면) = 바로 한 발, 끌다 놓으면 커서 쪽으로 커서까지의 거리만큼(루미 몸 위에서 놓으면 취소) — 2026-11-27 라이언
+    const shot = (a: number | null, r: number) => this.aiming.shoot(a, r, this.light, (x, y) => this.fire(x, y));
+    this.desktop = new DesktopControls(this, () => shot(null, Infinity), (point) => { const aim = this.aiming.mouse(this.keeper.pos, point, this.light.range); if (aim) shot(aim.angle, aim.range); });
     this.aiming = new Aiming(this.desktop, this.aimGuide);
 
     const cam = this.cameras.main;
@@ -456,17 +454,17 @@ export class PlayScene extends Phaser.Scene {
     this.aiming.flush(dt, this.light.ready && !down, (a, r) => this.fire(a, r)); // 빛 대기 중에 들어온 탭 (2026-11-27)
   }
 
-  /** 반자동 대상 방향: 사거리 안 가장 가까운 적(패시브·친구 빼고, 노월 포함). 없으면 null = 쏘지 않음 */
+  /** 자동 조준 방향: 반경(= 사거리, 적 몸 가장자리까지) 안 가장 가까운 적(패시브·친구 빼고, 노월 포함), 없으면 걷던 쪽 (2026-11-27 라이언 — 옛 '없으면 안 쏨') */
   private autoAngle(): number | null {
     const targets = [...this.field.active.filter((e) => e.def.kind !== 'passive' && !e.def.friend), ...(this.boss?.lightTargets() ?? [])];
     // 2026-11-23 격자 맵: 벽 너머의 적은 반자동 대상에서 뺀다
     const p = this.keeper.pos;
-    return autoAimAngle(p, CFG.light.blockedByObstacles ? targets.filter((t) => !this.grid.blocked(p, t)) : targets, this.light.range);
+    return autoAimAngle(p, CFG.light.blockedByObstacles ? targets.filter((t) => !this.grid.blocked(p, t)) : targets, this.light.range) ?? this.keeper.moveAngle;
   }
 
   /**
-   * 빛 스틱을 놓음(또는 PC 마우스를 끌다 놓음). angle이 null이면 반자동: 사거리 안 가장 가까운 적,
-   * 없으면 쏘지 않는다(2026-11-12 라이언 답변). reach = 끈 거리만큼(사거리를 넘지 않음)
+   * 한 발. angle이 null이면 자동 조준: 반경 안 가장 가까운 적, 없으면 걷던 쪽(2026-11-27 라이언 — 옛 11-12 '없으면 안 쏨'을 바꿈).
+   * reach = 끈 거리만큼(사거리를 넘지 않음)
    */
   fire(angle: number | null, reach = Infinity): boolean {
     if (this.paused || this.ended || this.vitals.down) return false;

@@ -160,11 +160,12 @@ const keepEnemiesAway = `(() => { const s = ${SC}; const f = s.field; const away
   await sleep(150);
   const guide = await page.evaluate(`(() => { const g = ${SC}.aimGuide; return { cone: !!g.cone?.visible, range: Math.round(g.drawn.range) }; })()`);
   await mouse('mouseReleased', at.x + 180, at.y + 90);
-  await sleep(300);
+  await sleep(500);
   const mouseCast = await page.evaluate(`({ casts: window.__ev.cast - ${cast0}, angle: window.__ev.last ? Math.round(window.__ev.last.angle * 180 / Math.PI) : null, range: window.__ev.last ? Math.round(window.__ev.last.range) : null })`);
-  record('B2 PC 키보드·마우스', keyDx > 60 && mouseCast.casts === 1, { keyD: `${keyDx}px 오른쪽`, mouse: mouseCast });
+  // 2026-11-27 라이언: 누르는 순간 바로 한 발 + 끌어 놓으면 끈 방향으로 한 발(빛 대기 중이면 예약했다 곧바로) = 두 발
+  record('B2 PC 키보드·마우스(누르는 순간 한 발 + 끌어 놓기 한 발)', keyDx > 60 && mouseCast.casts === 2, { keyD: `${keyDx}px 오른쪽`, mouse: mouseCast });
   record('B3 끄는 동안 방향·반경 표시', guide.cone && guide.range > 0, guide);
-  record('B4 놓으면 발사(끈 방향)', mouseCast.casts === 1 && Math.abs(mouseCast.angle - 27) < 8, `${mouseCast.angle}° (끈 방향 약 27°)`);
+  record('B4 놓으면 발사(끈 방향)', mouseCast.casts === 2 && Math.abs(mouseCast.angle - 27) < 8, `${mouseCast.angle}° (끈 방향 약 27°)`);
 
   // B5 이동 중 발사
   const moving = await page.evaluate(`(async () => { ${wait} const s = ${SC}; ${place} await wait(450); const c0 = window.__ev.cast;
@@ -173,11 +174,11 @@ const keepEnemiesAway = `(() => { const s = ${SC}; const f = s.field; const away
     window.__bus.emit('input:move', { x: 0, y: 0 }); return { casts: window.__ev.cast - c0, keptMoving: Math.round(xb - xa) }; })()`);
   record('B5 이동 중 발사', moving.casts === 1 && moving.keptMoving > 20, moving);
 
-  // B6 반자동: 대상이 없으면 쏘지 않음 (누르고 있기 1.5초 + 짧은 탭)
-  const noTarget = await page.evaluate(`(async () => { ${wait} const s = ${SC}; ${place} await wait(500); const c0 = window.__ev.cast;
+  // B6 대상이 없으면 걷던 쪽으로 (2026-11-27 라이언 — 옛 '안 쏨'): 오른쪽으로 잠깐 걷고 → 누르고 있기 1.5초 + 짧은 탭 → 모두 걷던 쪽(0°)
+  const noTarget = await page.evaluate(`(async () => { ${wait} const s = ${SC}; ${place} window.__bus.emit('input:move', { x: 1, y: 0 }); await wait(150); window.__bus.emit('input:move', { x: 0, y: 0 }); ${place} await wait(500); const c0 = window.__ev.cast;
     window.__bus.emit('input:auto', { active: true }); await wait(1500); window.__bus.emit('input:auto', { active: false });
-    window.__bus.emit('input:fire', { angle: null }); await wait(300); return { casts: window.__ev.cast - c0 }; })()`);
-  record('B6 반자동 — 대상 없으면 안 쏨', noTarget.casts === 0, noTarget);
+    window.__bus.emit('input:fire', { angle: null }); await wait(600); return { casts: window.__ev.cast - c0, angle: window.__ev.last ? Math.round(window.__ev.last.angle * 180 / Math.PI) : null }; })()`);
+  record('B6 자동 조준 — 반경 안에 대상 없으면 걷던 쪽으로', noTarget.casts >= 3 && Math.abs(noTarget.angle) <= 5, noTarget);
 
   // B7 프레임이 달라도 같은 빠르기·대기 시간: 그대로 vs 30fps로 묶기 (PlayScene MAX_DT = 1/20초: 20fps 아래로 떨어지면 한 프레임에 너무 멀리 가지 않게 일부러 느려짐)
   // 게임의 상한은 '제한 간격 × LIMIT_SLACK'부터 돌린다(src/core/frameLimit.ts, 2026-11-20 120Hz 바로잡기) → 30fps로 묶으려면 간격을 그만큼 늘린다

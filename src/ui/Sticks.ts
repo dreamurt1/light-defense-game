@@ -1,6 +1,6 @@
 // 두 스틱 (브롤스타즈식, 2026-11-04 라이언 지시): 왼쪽 아래 이동, 오른쪽 아래 빛.
 //  - 이동: 손잡이를 미는 방향과 세기로 걷는다 → input:move
-//  - 빛: 끌면 범위가 보이고(input:aim) 놓으면 발사(input:fire). 짧게 탭하면 자동 조준, 끌었다 가운데로 되돌려 놓으면 취소
+//  - 빛: 누르는 순간 바로 한 발(자동 조준 — 반경 안 가장 가까운 적, 없으면 걷던 쪽, 2026-11-27 라이언), 끌면 범위가 보이고(input:aim) 놓으면 그쪽으로 한 발(input:fire), 끌었다 가운데로 되돌려 놓으면 취소
 //    누른 채 끌지 않고 있으면 반자동(input:auto): 빛이 준비될 때마다 사거리 안 가장 가까운 적에게 (2026-11-18 라이언)
 // 손가락 두 개를 함께 쓰도록 스틱마다 pointerId를 붙잡는다. 게임과는 이벤트로만 주고받는다.
 // 설정 '스틱 좌우 바꾸기'(2026-11-13)를 켜면 .sticks--swapped 하나로 이동 스틱이 오른쪽, 빛 스틱이 왼쪽에 온다(sticks.css).
@@ -84,10 +84,12 @@ export class Sticks {
     });
 
     this.bind(this.light, {
-      // 누르면 반자동 시작(끌지 않고 있으면 가까운 적에게 빛, 2026-11-18 라이언), 끌기 시작하면 반자동을 멈추고 겨눔
+      // 누르는 순간 바로 한 발(반경 안 가장 가까운 적, 없으면 걷던 쪽 — 2026-11-27 라이언 "터치 순간 바로"),
+      // 누른 채 있으면 반자동(2026-11-18), 끌기 시작하면 반자동을 멈추고 겨눔
       start: () => {
         this.aim.down();
         bus.emit('input:auto', { active: true });
+        bus.emit('input:fire', { angle: null });
       },
       move: (dx, dy) => {
         const was = this.aim.active;
@@ -101,9 +103,8 @@ export class Sticks {
         const r = this.aim.up();
         bus.emit('input:aim', { active: false, angle: this.aim.direction, power: this.aim.power });
         this.light.el.classList.remove('is-aiming', 'is-cancel');
+        // 끌어 겨눴으면 그쪽으로 한 발. 끌지 않은 탭은 누르는 순간 이미 쐈다(2026-11-27)
         if (r?.kind === 'fire') bus.emit('input:fire', { angle: r.angle, power: r.power });
-        else if (r?.kind === 'auto') bus.emit('input:fire', { angle: null });
-        // 짧은 탭 판정(위) 뒤에 반자동을 끈다: 누르는 동안 이미 쐈으면 탭은 쏘지 않는다
         bus.emit('input:auto', { active: false });
       },
     });

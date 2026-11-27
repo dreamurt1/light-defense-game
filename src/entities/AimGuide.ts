@@ -14,6 +14,9 @@ import type { Vec } from '../systems/fan';
 const WAIT_ALPHA = 0.22;
 /** 원뿔을 구워 두는 반지름 (최대 사거리 390보다 커서 늘 줄여 쓴다) */
 const CONE_R = 512;
+/** 누를 때 반경 원이 남는 시간·처음 불투명도 (제안) */
+const PULSE_MS = 550;
+const PULSE_ALPHA = 0.75;
 /** 원뿔 깊이: 마을 바닥(-1000~-860) 위, 루미·이웃·소품(깊이 = y ≥ 0) 아래 */
 const CONE_DEPTH = -800;
 
@@ -59,6 +62,18 @@ export class AimGuide {
 
   hide(): void {
     this.cone.setVisible(false);
+  }
+
+  /** 누르는 순간 자동 조준 반경(= 사거리)을 바닥에 잠깐 보인다 (2026-11-27 라이언: "터치 순간 공격 반경도 뜨고") */
+  pulse(origin: Vec, radius: number): void {
+    this.scene.tweens.killTweensOf(this.ring);
+    this.ring
+      .setVisible(true)
+      .setDepth(CONE_DEPTH)
+      .setPosition(origin.x, origin.y)
+      .setScale(radius / AIM_CIRCLE.radius)
+      .setAlpha(PULSE_ALPHA);
+    this.scene.tweens.add({ targets: this.ring, alpha: 0, duration: PULSE_MS, ease: 'Quad.easeIn', onComplete: () => this.ring.setVisible(false) });
   }
 
   /** 대광원: 원형 범위가 radius까지 퍼지며 옅어진다 */

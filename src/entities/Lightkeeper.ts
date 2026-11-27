@@ -97,6 +97,9 @@ export class Lightkeeper {
     return this.pos.y;
   }
 
+  /** 마지막으로 걸은 방향(라디안, 처음 = 아래) — 반경 안에 적이 없을 때 빛을 보내는 쪽 (2026-11-27 라이언) */
+  moveAngle = Math.PI / 2;
+
   get facing(): Dir {
     return this.dir;
   }
@@ -112,6 +115,7 @@ export class Lightkeeper {
     this.pos.y = y;
     const speed = Math.hypot(input.x, input.y);
     this.moving = speed > 0.08;
+    if (this.moving) this.moveAngle = Math.atan2(input.y, input.x);
     const lock = this.action?.kind === 'attack' ? this.action.angle : null;
     // 끄기(겨누기)만 할 땐 걷는 방향 그대로: 쏘는 순간의 공격 동작 동안만 그쪽을 본다
     const target = lock ?? (this.moving ? Math.atan2(input.y, input.x) : null);
