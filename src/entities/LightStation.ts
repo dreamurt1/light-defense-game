@@ -9,6 +9,7 @@ import type { GameConfig } from '../data';
 import { StationState } from '../systems/lightStation';
 import { SourceGauge } from './SourceGauge';
 import type { Rect } from '../systems/obstacles';
+import { canFlash } from '../systems/flashGate';
 
 // 제안: 기획서에 없음
 /** 바닥에 세운 등불 크기 (2026-11-13 라이언: 조금 큼직하게 1.15 → 1.5) */
@@ -97,9 +98,17 @@ export class LightStation {
   }
 
   /** 적에게 맞음 */
+  /** 마지막 번쩍임 시각 (깜빡임 초당 3회 이하, systems/flashGate.ts) */
+  private lastFlash = -Infinity;
+
   hit(): void {
-    this.sprite.setTint(0xb8a8e0);
-    this.scene.time.delayedCall(90, () => this.sprite.clearTint());
+    // 물드는 번쩍임은 초당 3번까지 (2026-11-27 — 밤 10에서 6번이었음), 흔들림·게이지는 매번
+    const now = this.scene.time.now;
+    if (canFlash(now, this.lastFlash)) {
+      this.lastFlash = now;
+      this.sprite.setTint(0xb8a8e0);
+      this.scene.time.delayedCall(90, () => this.sprite.clearTint());
+    }
     // 들이받혀 흔들리고 게이지가 번쩍인다 (2026-11-13 공격 효과)
     this.scene.tweens.add({ targets: this.sprite, angle: { from: -6, to: 0 }, duration: 220, ease: 'Back.easeOut' });
     this.gauge.flash();

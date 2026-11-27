@@ -9,6 +9,7 @@ import { bandOf } from '../systems/lightLevel';
 import { CentralSourceState } from '../systems/centralSource';
 import type { Rect } from '../systems/obstacles';
 import { SourceGauge } from './SourceGauge';
+import { canFlash } from '../systems/flashGate';
 
 /** 판정 점(x, y)에서 받침 바닥까지 (그림의 발 위치, 제안) */
 const FOOT_BELOW = 50;
@@ -72,10 +73,17 @@ export class CentralSource {
     return { x: this.cfg.x - w / 2, y: foot - h, w, h };
   }
 
-  /** 맞음: 결정이 잠깐 하얗게 번쩍이고 흔들린다 */
+  /** 마지막 번쩍임 시각 (깜빡임 초당 3회 이하, systems/flashGate.ts) */
+  private lastFlash = -Infinity;
+
+  /** 맞음: 결정이 잠깐 하얗게 번쩍이고 흔들린다 — 번쩍임은 초당 3번까지(2026-11-27, 밤 10에서 4~6번이었음), 흔들림은 매번 */
   hit(): void {
-    this.sprite.setTintFill(0xfff1c9);
-    this.scene.time.delayedCall(70, () => this.sprite.clearTint());
+    const now = this.scene.time.now;
+    if (canFlash(now, this.lastFlash)) {
+      this.lastFlash = now;
+      this.sprite.setTintFill(0xfff1c9);
+      this.scene.time.delayedCall(70, () => this.sprite.clearTint());
+    }
     this.scene.tweens.add({ targets: this.sprite, x: { from: this.cfg.x - 4, to: this.cfg.x }, duration: 180, ease: 'Sine.easeOut' });
     this.gauge.flash();
   }
