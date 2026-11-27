@@ -666,6 +666,45 @@ if (!skipLong) {
       hl.after.seen.includes('cut-tori') && hl.after.seen.includes('line-parade-first') && hl.errs.length === 0,
     hl,
   );
+  // I22 밤의 기억 앨범 (2026-11-27 16:33 라이언 확정): 지난 밤들 → '밤의 기억' 탭 10칸 · 본 컷만 열림 · 보기 열고 닫기 · 이야기를 건너뛰면 이야기 카드 6칸이 열림
+  const album = await (async () => {
+    const page = await openPage({ width: 390, height: 844, scale: 1, phone: true });
+    const st = `JSON.stringify({ tab: document.querySelector('.tab[data-section="album"]')?.textContent, cards: document.querySelectorAll('.album-card').length, locked: [...document.querySelectorAll('.album-card.is-locked')].map((c) => c.dataset.id), viewer: (() => { const v = document.querySelector('.hcut--album'); return v && !v.hidden ? v.dataset.id : null; })() })`;
+    try {
+      await page.navigate(`${BASE}?screen=home`);
+      await sleep(1000);
+      await page.evaluate(`localStorage.setItem('ld.progress.v2', JSON.stringify({ tutorialDone: true, friends: [], bestNight: 0, bestScore: 0, dust: 0, discovered: [], cosmetics: [], seenCuts: ['cut-tori'] })); 1`);
+      await page.navigate(`${BASE}?screen=ranking`);
+      await waitFor(page, `document.documentElement.dataset.screen === 'ranking'`, 20000);
+      await page.evaluate(`document.querySelector('.tab[data-section="album"]').click(); 1`);
+      await sleep(400);
+      // 튜토리얼을 마친 옛 저장(storySeen 없음) → 이야기 6칸 + 토리 컷 = 7/10
+      const before = JSON.parse(await page.evaluate(st));
+      await page.evaluate(`document.querySelector('.album-card[data-id="cut-tori"]').click(); 1`);
+      await sleep(500);
+      const opened = JSON.parse(await page.evaluate(st)).viewer;
+      await page.evaluate(`document.querySelector('.album-view__close').click(); 1`);
+      await sleep(300);
+      const closed = JSON.parse(await page.evaluate(st)).viewer;
+      // 이야기를 건너뛰면 storySeen = true
+      await page.evaluate(`localStorage.setItem('ld.progress.v2', JSON.stringify({ tutorialDone: false, friends: [], bestNight: 0, bestScore: 0, dust: 0, discovered: [], cosmetics: [], seenCuts: [] })); 1`);
+      await page.navigate(`${BASE}?screen=ranking`);
+      await waitFor(page, `document.documentElement.dataset.screen === 'ranking'`, 20000);
+      const fresh = await page.evaluate(`(() => { document.querySelector('.tab[data-section="album"]').click(); return document.querySelector('.tab[data-section="album"]').textContent; })()`);
+      await page.evaluate(`(async () => { const m = await import('/src/ui/Story.ts'); m.openStory(); await new Promise((r) => setTimeout(r, 300)); document.querySelector('.story__skip').click(); return 1; })()`);
+      await sleep(400);
+      const seen = await page.evaluate(`JSON.parse(localStorage.getItem('ld.progress.v2')).storySeen === true`);
+      return { before, opened, closed, fresh, seen, errs: errorsOf(page) };
+    } finally {
+      page.close();
+    }
+  })();
+  record(
+    'I22 밤의 기억 앨범(2026-11-27) — 지난 밤들 둘째 탭 10칸 · 본 컷만 열림 · 보기 열고 닫기 · 이야기를 건너뛰면 이야기 카드가 열림',
+    album.before.cards === 10 && album.before.tab === '밤의 기억 7/10' && album.before.locked.join(',') === 'cut-three,cut-nowol,cut-bright' &&
+      album.opened === 'cut-tori' && album.closed === null && album.fresh === '밤의 기억 0/10' && album.seen && album.errs.length === 0,
+    album,
+  );
   record('I 런 점검 중 콘솔 오류', flow.errs.length + parade.errs.length === 0, [...flow.errs, ...parade.errs]);
 }
 

@@ -27,6 +27,8 @@ export interface ProgressData {
   cosmetics: string[];
   /** 이미 본 하이라이트 컷·처음 한 번 배너 id (2026-11-27 — 런이 끝나도 남음, 테스트 판·튜토리얼은 남기지 않음) */
   seenCuts: string[];
+  /** 이야기 카드를 끝까지 보거나 건너뛴 적이 있다 (2026-11-27 밤의 기억 앨범 — 없으면 옛 저장: systems/album.ts storySeen) */
+  storySeen?: boolean;
 }
 
 export const EMPTY_PROGRESS: ProgressData = { tutorialDone: false, friends: [], demo: false, bestNight: 0, bestScore: 0, dust: 0, discovered: [], cosmetics: [], seenCuts: [] };
@@ -160,6 +162,12 @@ export const Progress = {
     data = { ...data, seenCuts: [...data.seenCuts, id] };
     save();
     return true;
+  },
+  /** 이야기를 봄 (끝까지 또는 건너뛰기, 2026-11-27 밤의 기억) */
+  markStorySeen(): void {
+    if (data.storySeen) return;
+    data = { ...data, storySeen: true };
+    save();
   },
   isFriendOpen(id: CharacterId): boolean {
     return id === 'lumi' || data.demo || data.friends.includes(id);

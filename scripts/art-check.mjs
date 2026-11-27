@@ -2,8 +2,9 @@
 //
 // 사용:
 //   node scripts/art-check.mjs --dir <PNG 폴더> [--char tori|doto|lumi] [--view 000_front] [--kind walk|idle|bg] [--out <png>] [--old-ribbon]
-// 토리 귀 규칙(2026-11-27 15:44 라이언 최종 — 토리 입장 우선, 기획 1552): 토리 자신의 오른쪽 귀가 펴짐 + 리본, 왼쪽 귀 접힘.
-//   방향별 펴진 귀(= 리본 자리): 000·045·090 = 화면 왼쪽 / 135·180·225·270·315 = 화면 오른쪽 — 지금 스프라이트의 귀 자리 그대로. 옛 팩(리본 = 접힌 귀)을 볼 때만 --old-ribbon
+// 토리 귀 규칙(2026-11-27 라이언 — 토리 입장 우선, 16:22 정정·기획 1629): 토리 자신의 오른쪽 귀가 펴짐 + 리본, 왼쪽 귀 접힘.
+//   방향별 펴진 귀(= 리본 자리): 등을 보이는 135·180·225만 화면 오른쪽, 000·045·090·270·315 = 화면 왼쪽. 옛 팩(리본 = 접힌 귀)을 볼 때만 --old-ribbon
+//   270·315 수정본은 귀를 바꾸므로(접힌 귀 → 화면 오른쪽) 옛 대기 그림과의 귀 끝 차이 경고는 정상 — 발끝·가운데·키만 견준다
 //   한계: 270·315는 두 귀가 가로로 겹쳐 무게중심만으로는 접힌 귀의 리본을 못 가를 수 있다 → 확인용 그림의 머리 확대를 눈으로
 //   2-C(2026-11-24): --kind pair --dir <빛을 잃은 모습> --dir2 <제 모습> · --kind sleep --dir <Sleep_Pack> (scripts/art-pair-check.mjs)
 //   예) 걷기 4장: --dir C:/tmp/x/000_front --char tori --view 000_front --kind walk
@@ -50,7 +51,7 @@ if (!items.length) {
 // 옛 기준(--old-ribbon, 2026-11-27 전 스프라이트): 토리 리본(= 토리 자신의 왼쪽 귀)이 화면에 보이는 쪽: 'R' = 가운데보다 오른쪽, 'L' = 왼쪽, null = 가운데 근처(옆모습)
 const OLD_RIBBON = process.argv.includes('--old-ribbon');
 // 토리 귀 규칙(토리 입장): 펴진 귀·리본이 화면에 보이는 쪽 — 'L' = 가운데보다 왼쪽, 'R' = 오른쪽, null = 옆모습(겹침)
-const EAR_SIDE = { '000_front': 'L', '045_front_right': 'L', '090_right': 'L', '135_back_right': 'R', '180_back': 'R', '225_back_left': 'R', '270_left': 'R', '315_front_left': 'R' };
+const EAR_SIDE = { '000_front': 'L', '045_front_right': 'L', '090_right': 'L', '135_back_right': 'R', '180_back': 'R', '225_back_left': 'R', '270_left': 'L', '315_front_left': 'L' };
 const viewOf = (name) => view ?? name.match(/(000_front|045_front_right|090_right|135_back_right|180_back|225_back_left|270_left|315_front_left)/)?.[1];
 const RIBBON_SIDE = { '000_front': 'R', '045_front_right': 'R', '090_right': null, '135_back_right': 'L', '180_back': 'L', '225_back_left': 'L', '270_left': null, '315_front_left': 'R' };
 

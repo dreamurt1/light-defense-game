@@ -8,6 +8,7 @@ import stagesJson from './stages.json';
 import mapJson from './map.json';
 import cosmeticsJson from './cosmetics.json';
 import cutsJson from './cuts.json';
+import albumJson from './album.json';
 import nightsJson from './nights.json';
 import shopJson from './shop.json';
 import obstaclesJson from './obstacles.json';
@@ -436,6 +437,8 @@ export const GameData = {
   nights: nightsJson as unknown as NightsDef,
   shop: shopJson as unknown as ShopDef,
   cuts: cutsJson as unknown as CutsDef,
+  /** 밤의 기억 앨범 10칸 (2026-11-27, systems/album.ts) */
+  album: albumJson.entries as unknown as import('../systems/album').AlbumEntry[],
   /** 격자 맵 사전·맵 (2026-11-23, systems/grid.ts) */
   grid: obstaclesJson as unknown as GridDict,
   maps: Object.fromEntries([mapA1, mapA2, mapA3, mapB1, mapB2, mapC1, mapC2].map((m) => [m.id, m as unknown as GridMap])) as Record<string, GridMap>,

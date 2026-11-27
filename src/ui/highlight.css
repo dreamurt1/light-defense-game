@@ -292,3 +292,170 @@
     transform: translateY(calc(var(--u) * -8));
   }
 }
+
+/* ---------- 밤의 기억 앨범 (2026-11-27 16:33 라이언 확정 — '지난 밤들'의 둘째 탭, ui/screens/RankingScreen.ts · ui/AlbumViewer.ts) ---------- */
+.tabs--section {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.rank-records,
+.album {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.rank-records[hidden],
+.album[hidden] {
+  display: none;
+}
+
+.album {
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--ash) transparent;
+}
+
+.album__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: calc(var(--u) * 12);
+  padding-bottom: calc(var(--u) * 12);
+}
+
+:root[data-layout='landscape'] .album__grid {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+:root[data-layout='landscape'] .tabs--section,
+:root[data-layout='landscape'] .rank-records,
+:root[data-layout='landscape'] .album {
+  width: 100%;
+  max-width: calc(var(--u) * 760);
+  margin-inline: auto;
+}
+
+.album-card {
+  position: relative;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: calc(var(--u) * 6);
+  padding: calc(var(--u) * 6);
+  border: 1px solid var(--hairline);
+  border-radius: calc(var(--u) * 14);
+  background: linear-gradient(to bottom, #262a54, #1b1d3b);
+  color: var(--paper);
+  font: inherit;
+  text-align: center;
+  cursor: pointer;
+}
+
+.album-card.is-locked {
+  cursor: default;
+}
+
+.album-card__thumb {
+  position: relative;
+  display: block;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: calc(var(--u) * 9);
+  background: #14152e;
+}
+
+.album-card__thumb img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* 그림이 없는 칸(아직 연결 전 · 마을이 환해졌어요) = 아침 하늘 — 자물쇠까지 어두워지지 않게 하늘만 따로 */
+.album-card__sky {
+  position: absolute;
+  inset: 0;
+  background:
+    var(--morning-art, none) center / cover no-repeat,
+    linear-gradient(to bottom, #3a3f78 0%, #5a5487 45%, #c99a8a 80%, var(--dawn) 100%);
+}
+
+/* 잠긴 칸: 그림을 12% 밝기로 흐리게(실루엣) + 자물쇠 + 힌트 한 줄 */
+.album-card.is-locked .album-card__thumb img,
+.album-card.is-locked .album-card__sky {
+  filter: brightness(0.12) blur(2px);
+}
+
+.album-card__lock {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  place-items: center;
+  width: max(26px, calc(var(--u) * 30));
+  height: max(26px, calc(var(--u) * 30));
+  transform: translate(-50%, -50%);
+  border: 1px solid color-mix(in srgb, var(--paper) 22%, transparent);
+  border-radius: 50%;
+  background: linear-gradient(to bottom, #34396c, #14152e);
+  color: var(--paper-soft);
+}
+
+.album-card__lock svg {
+  width: 56%;
+  height: 56%;
+}
+
+.album-card__title,
+.album-card__hint {
+  align-self: center;
+  font-size: max(12px, calc(var(--u) * 14));
+  line-height: 1.3;
+  text-wrap: balance;
+  word-break: keep-all;
+}
+
+.album-card__title {
+  font-weight: 700;
+}
+
+.album-card__hint {
+  color: var(--ash);
+}
+
+/* 보기: 하이라이트 컷과 같은 모양, 읽기 전용 — 아래 띠에 이전 · n/m · 다음 · 닫기 */
+.hcut--album {
+  z-index: 30;
+  cursor: default;
+}
+
+.album-view__bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: calc(var(--u) * 12);
+  margin-top: calc(var(--u) * 10);
+}
+
+.album-view__nav[disabled] {
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.album-view__count {
+  min-width: 3.5em;
+  color: var(--paper-soft);
+  font-size: max(13px, calc(var(--u) * 15));
+  font-variant-numeric: tabular-nums;
+}
+
+:root[data-layout='landscape'] .hcut--album .hcut__band {
+  grid-template-columns: 1fr;
+  padding-inline: max(calc(var(--u) * 32), 14%);
+}
+
+:root[data-layout='landscape'] .hcut--album .hcut__title,
+:root[data-layout='landscape'] .hcut--album .hcut__lines,
+:root[data-layout='landscape'] .hcut--album .album-view__bar {
+  grid-column: 1;
+}

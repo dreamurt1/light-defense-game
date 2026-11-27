@@ -4,6 +4,7 @@
 // 그림은 기존 에셋: 홈 배경, 중앙 광원 토템(3칸 시트의 첫 칸 = 밝음), 루미 초상, 빛을 잃은 토리 초상.
 // 길게 설명하지 않는다(1절 4축): 짧게, 언제든 건너뛸 수 있게.
 import { bus } from '../core/events';
+import { Progress } from '../core/Progress';
 import { RunState } from '../core/RunState';
 import { h } from './dom';
 
@@ -35,6 +36,12 @@ const STORY_ART: Partial<Record<Card['art'], string>> = {
   source: 'assets/backgrounds/story-02-source.webp',
   voices: 'assets/backgrounds/story-04-voices.webp',
 };
+
+/** 밤의 기억 앨범(2026-11-27): 이야기 카드 종류의 글·그림 (그림이 아직 없으면 src = null) */
+export function storyCard(kind: string): { lines: string[]; src: string | null } {
+  const c = CARDS.find((x) => x.art === kind);
+  return { lines: c?.lines ?? [], src: STORY_ART[kind as Card['art']] ?? null };
+}
 
 function artFor(kind: Card['art']): HTMLElement {
   const src = STORY_ART[kind];
@@ -148,6 +155,8 @@ class StoryView {
   private close(): void {
     if (this.el.hidden) return;
     this.el.hidden = true;
+    // 끝까지 보거나 건너뜀 = 이야기를 봄 (밤의 기억 앨범의 이야기 카드가 열림, 2026-11-27 — 뒤로가기로 닫으면 아님)
+    Progress.markStorySeen();
     const done = this.opts.onDone;
     this.opts = {};
     done?.();
