@@ -1,8 +1,11 @@
 // 말풍선 (2026-11-13 컨셉 시연판): 패시브 주민·빛을 잃은 친구·노월의 짧은 대사. 따라갈 대상 위에 잠깐 떴다 사라진다.
 import Phaser from 'phaser';
+import { bakeTexture } from './bake';
 
 const DEPTH = 7000;
 const PAD = { x: 10, y: 6 };
+/** 꼬리 길이 (아래로) */
+const TAIL = 7;
 /** 대상마다 지금 떠 있는 말풍선 — 새 말이 오면 앞 말은 바로 지운다 (2026-11-23: 행렬이 연달아 맞으면 두 말이 겹쳐 읽히던 것) */
 const current = new WeakMap<Phaser.GameObjects.Container, () => void>();
 
@@ -11,12 +14,16 @@ export function sayAbove(scene: Phaser.Scene, target: Phaser.GameObjects.Contain
   const label = scene.add
     .text(0, 0, text, { fontFamily: 'Pretendard Variable, Pretendard, "Noto Sans KR", sans-serif', fontSize: '15px', color: '#1B1F3B', fontStyle: '600' })
     .setOrigin(0.5);
-  const w = label.width + PAD.x * 2;
-  const h = label.height + PAD.y * 2;
-  const bg = scene.add.graphics();
-  bg.fillStyle(0xf6f1e7, 0.94);
-  bg.fillRoundedRect(-w / 2, -h / 2, w, h, 10);
-  bg.fillTriangle(-6, h / 2 - 1, 6, h / 2 - 1, 0, h / 2 + 7);
+  const w = Math.ceil(label.width + PAD.x * 2);
+  const h = Math.ceil(label.height + PAD.y * 2);
+  // 바탕은 크기별로 한 번 구운 그림 (2026-11-27 기기별 렉: 살아 있는 Graphics의 둥근 사각형이 떠 있는 동안 매 프레임 다시 쪼개짐 —
+  // 클라이맥스엔 '눈부셔..' 말풍선이 거의 늘 떠 있어 느린 기기 CPU를 먹음). 모양·자리 그대로(가운데 기준, 꼬리 7 아래)
+  const key = bakeTexture(scene, `bubble-${w}x${h}`, w, h + TAIL, (g) => {
+    g.fillStyle(0xf6f1e7, 0.94);
+    g.fillRoundedRect(0, 0, w, h, 10);
+    g.fillTriangle(w / 2 - 6, h - 1, w / 2 + 6, h - 1, w / 2, h + TAIL);
+  });
+  const bg = scene.add.image(0, 0, key).setOrigin(0.5, h / 2 / (h + TAIL));
   const box = scene.add.container(target.x, target.y + offsetY, [bg, label]).setDepth(DEPTH).setAlpha(0);
   const follow = () => {
     if (target.active) box.setPosition(target.x, target.y + offsetY);

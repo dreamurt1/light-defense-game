@@ -2,8 +2,11 @@
 // 보이지 않는 적 쪽 화면 가장자리에 라벤더 화살표를 띄운다. 가까울수록 진하다. (제안: 기획서에 없음)
 // 꺼진 등불·위험한 중앙 광원·빛을 잃은 친구 = **노란 화살표** (2026-11-13 라이언: '호박빛 표시'가 무엇인지 모르겠고
 // 등불이 화면 안에 있으면 아무것도 안 뜬다 → 화면 밖이면 가장자리에서 그쪽을, 화면 안이면 그 위에서 아래로 가리킨다)
+// 2026-11-27 기기별 렉: 매 프레임 지우고 다시 그리는 Graphics(클라이맥스 명령 230~330개 + 노란 화살표의 원·다각형을 매번 삼각형으로 쪼갬)가
+// 느린 기기 CPU의 큰 몫 → 같은 모양을 한 번 구운 그림(라벤더 삼각형·노란 화살표·빛 원)을 돌려 쓰는 이미지 묶음으로. 자리·각도·투명도·숨쉬기 계산은 그대로.
 import Phaser from 'phaser';
 import type { Vec } from '../systems/fan';
+import { bakeTexture } from './bake';
 
 /** 노란 화살표가 가리킬 곳. lift = 화면 안일 때 화살표 끝을 둘 높이(그림 꼭대기 위), drop = 위가 HUD에 가려 아래에서 가리킬 때 끝의 깊이(받침·게이지 아래) — 연출 값 */
 export interface Beacon extends Vec {
@@ -28,22 +31,100 @@ const PULSE_MS = 260;
 const BOB = 7;
 /** 이만큼 떨어지면 가장 옅게 */
 const FAR = 520;
+const DEPTH = 4600;
+
+/** 노란 화살표 모양 (끝 = 오른쪽, angle 0) */
+const HEAD = ARROW;
+const HALF_HEAD = ARROW * 0.72;
+const HALF_SHAFT = ARROW * 0.3;
+const SHAFT = ARROW * 1.3;
+const STROKE = 2.5;
+const PAD = 3;
+const AW = Math.ceil(HEAD + SHAFT + PAD * 2);
+const AH = Math.ceil(HALF_HEAD * 2 + PAD * 2);
+/** 빛 원 텍스처 반지름 */
+const GLOW_R = 32;
+
+const KEYS = { enemy: 'edge-arrow-enemy', beacon: 'edge-arrow-beacon', glow: 'edge-arrow-glow' } as const;
+
+function bakeArrows(scene: Phaser.Scene): void {
+  const s = SIZE + 1;
+  bakeTexture(scene, KEYS.enemy, s * 2, s * 2, (g) => {
+    g.fillStyle(COLOR, 1);
+    g.fillTriangle(s + SIZE, s, s + Math.cos(2.4) * SIZE, s + Math.sin(2.4) * SIZE, s + Math.cos(-2.4) * SIZE, s + Math.sin(-2.4) * SIZE);
+  });
+  bakeTexture(scene, KEYS.beacon, AW, AH, (g) => {
+    // 끝(tip) = (AW - PAD, AH / 2), 몸통은 왼쪽으로
+    const tx = AW - PAD;
+    const ty = AH / 2;
+    const at = (along: number, side: number) => ({ x: tx - along, y: ty + side });
+    const pts = [at(0, 0), at(HEAD, HALF_HEAD), at(HEAD, HALF_SHAFT), at(HEAD + SHAFT, HALF_SHAFT), at(HEAD + SHAFT, -HALF_SHAFT), at(HEAD, -HALF_SHAFT), at(HEAD, -HALF_HEAD)];
+    g.fillStyle(YELLOW, 1);
+    g.fillPoints(pts, true);
+    g.lineStyle(STROKE, OUTLINE, 0.85);
+    g.strokePoints(pts, true);
+  });
+  bakeTexture(scene, KEYS.glow, GLOW_R * 2, GLOW_R * 2, (g) => {
+    g.fillStyle(0xffffff, 1);
+    g.fillCircle(GLOW_R, GLOW_R, GLOW_R);
+  });
+}
+
+/** 같은 그림의 이미지 묶음: 프레임마다 앞에서부터 쓰고 남은 것은 숨긴다 */
+class Pool {
+  private readonly items: Phaser.GameObjects.Image[] = [];
+  private used = 0;
+
+  constructor(
+    private readonly scene: Phaser.Scene,
+    private readonly key: string,
+    private readonly depth: number,
+    private readonly origin: { x: number; y: number },
+  ) {}
+
+  begin(): void {
+    this.used = 0;
+  }
+
+  next(): Phaser.GameObjects.Image {
+    let img = this.items[this.used];
+    if (!img) {
+      img = this.scene.add.image(0, 0, this.key).setScrollFactor(0).setDepth(this.depth).setOrigin(this.origin.x, this.origin.y);
+      this.items.push(img);
+    }
+    this.used++;
+    return img.setVisible(true);
+  }
+
+  end(): void {
+    for (let i = this.used; i < this.items.length; i++) if (this.items[i].visible) this.items[i].setVisible(false);
+  }
+}
 
 export class EdgeArrows {
-  private readonly g: Phaser.GameObjects.Graphics;
+  private readonly enemies: Pool;
+  private readonly beacons: Pool;
+  private readonly glows: Pool;
 
   constructor(private readonly scene: Phaser.Scene) {
-    this.g = scene.add.graphics().setScrollFactor(0).setDepth(4600);
+    bakeArrows(scene);
+    this.glows = new Pool(scene, KEYS.glow, DEPTH - 0.1, { x: 0.5, y: 0.5 });
+    this.enemies = new Pool(scene, KEYS.enemy, DEPTH, { x: 0.5, y: 0.5 });
+    this.beacons = new Pool(scene, KEYS.beacon, DEPTH + 0.1, { x: (AW - PAD) / AW, y: 0.5 });
   }
 
   /** 판이 끝나면 지운다 (update가 더 불리지 않으므로 마지막 화살표가 남지 않게) */
   hide(): void {
-    this.g.clear();
+    for (const p of [this.enemies, this.beacons, this.glows]) {
+      p.begin();
+      p.end();
+    }
   }
 
   update(cam: Phaser.Cameras.Scene2D.Camera, targets: readonly Vec[], beacons: readonly Beacon[] = []): void {
-    const g = this.g;
-    g.clear();
+    this.enemies.begin();
+    this.beacons.begin();
+    this.glows.begin();
     const view = cam.worldView;
     // 화면 크기는 화면 방식(세로·가로·창 비율)에 따라 바뀐다
     const W = cam.width;
@@ -54,8 +135,10 @@ export class EdgeArrows {
     const y0 = inset.top;
     const y1 = H - inset.bottom;
     const pulse = 0.5 + 0.5 * Math.sin(this.scene.time.now / PULSE_MS);
-    for (const [i, t] of [...targets, ...beacons].entries()) {
+    const n = targets.length + beacons.length;
+    for (let i = 0; i < n; i++) {
       const beacon = i >= targets.length;
+      const t = beacon ? beacons[i - targets.length] : targets[i];
       // 화면 좌표 (카메라 확대 없음)
       const sx = t.x - view.x;
       const sy = t.y - view.y;
@@ -79,17 +162,15 @@ export class EdgeArrows {
         continue;
       }
       const outside = Math.max(0, Math.max(-sx, sx - W, -sy, sy - H));
-      const alpha = 0.95 - 0.6 * Math.min(1, outside / FAR);
-      g.fillStyle(COLOR, alpha);
-      g.fillTriangle(
-        px + Math.cos(a) * SIZE,
-        py + Math.sin(a) * SIZE,
-        px + Math.cos(a + 2.4) * SIZE,
-        py + Math.sin(a + 2.4) * SIZE,
-        px + Math.cos(a - 2.4) * SIZE,
-        py + Math.sin(a - 2.4) * SIZE,
-      );
+      this.enemies
+        .next()
+        .setPosition(px, py)
+        .setRotation(a)
+        .setAlpha(0.95 - 0.6 * Math.min(1, outside / FAR));
     }
+    this.enemies.end();
+    this.beacons.end();
+    this.glows.end();
   }
 
   /** 화면 안 대상 위에서 아래로 (위쪽이 HUD 띠에 걸리면 발밑에서 위로) */
@@ -103,21 +184,14 @@ export class EdgeArrows {
 
   /** 끝(tip)이 angle 쪽을 가리키는 굵은 노란 화살표: 화살촉 + 몸통, 어두운 테두리, 뒤에 번지는 빛 */
   private arrow(tipX: number, tipY: number, angle: number, pulse: number): void {
-    const g = this.g;
-    const d = { x: Math.cos(angle), y: Math.sin(angle) };
-    const p = { x: -d.y, y: d.x };
-    const head = ARROW;
-    const halfHead = ARROW * 0.72;
-    const halfShaft = ARROW * 0.3;
-    const shaft = ARROW * 1.3;
-    const at = (along: number, side: number) => ({ x: tipX - d.x * along + p.x * side, y: tipY - d.y * along + p.y * side });
-    const pts = [at(0, 0), at(head, halfHead), at(head, halfShaft), at(head + shaft, halfShaft), at(head + shaft, -halfShaft), at(head, -halfShaft), at(head, -halfHead)];
-    const mid = at((head + shaft) / 2, 0);
-    g.fillStyle(YELLOW, 0.12 + 0.14 * pulse);
-    g.fillCircle(mid.x, mid.y, ARROW * 1.3 + 5 * pulse);
-    g.fillStyle(YELLOW, 1);
-    g.fillPoints(pts, true);
-    g.lineStyle(2.5, OUTLINE, 0.85);
-    g.strokePoints(pts, true);
+    const mid = (HEAD + SHAFT) / 2;
+    const r = ARROW * 1.3 + 5 * pulse;
+    this.glows
+      .next()
+      .setPosition(tipX - Math.cos(angle) * mid, tipY - Math.sin(angle) * mid)
+      .setScale(r / GLOW_R)
+      .setTint(YELLOW)
+      .setAlpha(0.12 + 0.14 * pulse);
+    this.beacons.next().setPosition(tipX, tipY).setRotation(angle);
   }
 }

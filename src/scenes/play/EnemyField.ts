@@ -18,6 +18,8 @@ const WARD = GameData.game.station.ward;
 
 /** 화면 밖에서 적이 나타나는 거리: 보이는 영역 가장자리에서 이만큼 바깥 (제안) */
 const SPAWN_OUTSIDE = 56;
+/** 화면 밖 적을 그리지 않을 때의 여유(px): 가장 큰 적 그림·발밑 빛이 가장자리에서 툭 나타나지 않게 (2026-11-27) */
+const CULL_MARGIN = 260;
 
 export class EnemyField {
   enemies: Enemy[] = [];
@@ -98,7 +100,20 @@ export class EnemyField {
       e.avoidWards(ctx.sources, dt);
       if (s.hit) hits.push({ enemy: e, hit: s.hit });
     }
+    this.cullOffscreen();
     return hits;
+  }
+
+  /**
+   * 화면(+여유) 밖 적은 그리지 않는다 (2026-11-27 기기별 렉: Phaser는 카메라 밖 물체도 매 프레임 묶어 그린다 — 클라이맥스엔 맵 곳곳의 적 수십 마리,
+   * 느린 기기 CPU의 큰 몫이 그리기 묶음). 컨테이너 visible만 바꾼다 — 움직임·판정·애니메이션은 그대로, 적 컨테이너 visible을 바꾸는 다른 코드는 없음.
+   */
+  private cullOffscreen(): void {
+    const v = this.scene.cameras.main.worldView;
+    for (const e of this.enemies) {
+      const on = e.x >= v.x - CULL_MARGIN && e.x <= v.right + CULL_MARGIN && e.y >= v.y - CULL_MARGIN && e.y <= v.bottom + CULL_MARGIN;
+      if (e.visible !== on) e.setVisible(on);
+    }
   }
 
   /** 구출 스테이지: 진행 atProgress에 빛을 잃은 친구가 루미에게서 가장 먼 귀퉁이에 한 번 나타난다. 고른 주인공이 그 친구면 나타나지 않음(2026-11-17) */
