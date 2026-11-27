@@ -1,7 +1,8 @@
 // 받은 ChatGPT 그림 점검 (스킬 ld-art-intake). 창 없는 크롬으로 PNG를 재고, 경고 목록과 확인용 한 장을 만든다.
 //
 // 사용:
-//   node scripts/art-check.mjs --dir <PNG 폴더> [--char tori|doto|lumi] [--view 000_front] [--kind walk|idle|bg] [--out <png>]
+//   node scripts/art-check.mjs --dir <PNG 폴더> [--char tori|doto|lumi] [--view 000_front] [--kind walk|idle|bg] [--out <png>] [--old-ribbon]
+// 토리 귀 규칙(2026-11-27 라이언 확정 — 스프라이트도 교체): 어느 방향이든 리본(민트 #9ED9B5 계열 무게중심)이 화면 왼쪽(x < 256). 옛 팩(리본 = 접힌 귀)을 볼 때만 --old-ribbon
 //   2-C(2026-11-24): --kind pair --dir <빛을 잃은 모습> --dir2 <제 모습> · --kind sleep --dir <Sleep_Pack> (scripts/art-pair-check.mjs)
 //   예) 걷기 4장: --dir C:/tmp/x/000_front --char tori --view 000_front --kind walk
 //       대기 8장: --dir C:/tmp/x/Doto_Idle_8D_Pack --char doto --kind idle
@@ -44,7 +45,8 @@ if (!items.length) {
   process.exit(1);
 }
 
-// 토리 리본(= 토리 자신의 왼쪽 귀)이 화면에 보이는 쪽: 'R' = 가운데보다 오른쪽, 'L' = 왼쪽, null = 가운데 근처(옆모습)
+// 옛 기준(--old-ribbon, 2026-11-27 전 스프라이트): 토리 리본(= 토리 자신의 왼쪽 귀)이 화면에 보이는 쪽: 'R' = 가운데보다 오른쪽, 'L' = 왼쪽, null = 가운데 근처(옆모습)
+const OLD_RIBBON = process.argv.includes('--old-ribbon');
 const RIBBON_SIDE = { '000_front': 'R', '045_front_right': 'R', '090_right': null, '135_back_right': 'L', '180_back': 'L', '225_back_left': 'L', '270_left': null, '315_front_left': 'R' };
 
 const W = 1400;
@@ -131,9 +133,14 @@ for (const r of res) {
         if (Math.abs(dHead) > 10) warn.push(`${tag}: 머리(리본) 높이 ${dHead > 0 ? '+' : ''}${dHead}px`);
       }
     }
-    if (char === 'tori' && view && RIBBON_SIDE[view] && r.ribbon) {
+    if (char === 'tori' && OLD_RIBBON && view && RIBBON_SIDE[view] && r.ribbon) {
       const side = r.ribbon[0] > 256 ? 'R' : 'L';
-      if (side !== RIBBON_SIDE[view]) warn.push(`${tag}: 리본이 ${side === 'R' ? '오른' : '왼'}쪽 — ${view}에서는 ${RIBBON_SIDE[view] === 'R' ? '보는 쪽 오른쪽' : '보는 쪽 왼쪽'}(토리 자신의 왼쪽 귀)`);
+      if (side !== RIBBON_SIDE[view]) warn.push(`${tag}: 리본이 ${side === 'R' ? '오른' : '왼'}쪽 — ${view}에서는 ${RIBBON_SIDE[view] === 'R' ? '보는 쪽 오른쪽' : '보는 쪽 왼쪽'}(옛 기준)`);
+    }
+    // 토리 귀 규칙(화면 기준): 어느 방향이든 리본이 화면 왼쪽 — 리본을 못 찾아도 경고(리본이 빠진 그림)
+    if (char === 'tori' && !OLD_RIBBON) {
+      if (!r.ribbon) warn.push(`${tag}: 민트 리본을 찾지 못함(토리 귀 규칙 — 화면 왼쪽 선 귀에 리본)`);
+      else if (r.ribbon[0] >= 256) warn.push(`${tag}: 리본 무게중심 x ${r.ribbon[0]} — 화면 왼쪽(256 미만)이어야 함(토리 귀 규칙: 리본이 화면 오른쪽이면 틀림)`);
     }
   }
 }

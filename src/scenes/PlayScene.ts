@@ -145,7 +145,7 @@ export class PlayScene extends Phaser.Scene {
     // PC: 마우스를 끌다 놓으면 커서 쪽으로, 루미 중심에서 커서까지의 거리만큼 (루미 몸 위에서 놓으면 취소)
     this.desktop = new DesktopControls(this, (point) => {
       const aim = this.aiming.mouse(this.keeper.pos, point, this.light.range);
-      if (aim) this.fire(aim.angle, aim.range);
+      if (aim) this.aiming.shoot(aim.angle, aim.range, this.light, (a, r) => this.fire(a, r));
     });
     this.aiming = new Aiming(this.desktop, this.aimGuide);
 
@@ -216,7 +216,7 @@ export class PlayScene extends Phaser.Scene {
       bus.on('input:aim', (e) => (this.aiming.stick = e.active ? { angle: e.angle, power: e.power } : null)),
       bus.on('input:auto', (e) => (e.active ? this.aiming.auto.press() : this.aiming.auto.stop())),
       // 짧은 탭(angle null)은 누르는 동안 반자동으로 이미 쐈으면 다시 쏘지 않는다
-      bus.on('input:fire', (e) => (e.angle !== null || this.aiming.auto.tapAllowed) && this.fire(e.angle, e.power === undefined ? Infinity : e.power * this.light.range)),
+      bus.on('input:fire', (e) => (e.angle !== null || this.aiming.auto.tapAllowed) && this.aiming.shoot(e.angle, e.power === undefined ? Infinity : e.power * this.light.range, this.light, (a, r) => this.fire(a, r))),
       bus.on('ui:settings', (e) => (this.settingsOpen = e.open)),
       bus.on('ui:layout', () => this.pauseIfRunning()),
       bus.on('night:phase', (e) => {
@@ -453,6 +453,7 @@ export class PlayScene extends Phaser.Scene {
     followCamera(this.cameras.main, next, dt);
     // 조준선: 빛 스틱 > PC 마우스 끌기 > 반자동(빛 스틱을 누르고 있기 · PC 스페이스, 2026-11-18 라이언) — 반자동 차례면 한 발
     if (this.aiming.update(dt, this.keeper.pos, this.light.range, this.light.ready, down, () => this.autoAngle()) && this.fire(null)) this.aiming.auto.fired();
+    this.aiming.flush(dt, this.light.ready && !down, (a, r) => this.fire(a, r)); // 빛 대기 중에 들어온 탭 (2026-11-27)
   }
 
   /** 반자동 대상 방향: 사거리 안 가장 가까운 적(패시브·친구 빼고, 노월 포함). 없으면 null = 쏘지 않음 */
@@ -514,8 +515,8 @@ export class PlayScene extends Phaser.Scene {
   private togglePause(): void {
     if (this.ended) return;
     this.paused = !this.paused;
-    // 끌던 마우스는 버린다: 다시 시작한 뒤 놓는 순간 빛이 나가지 않게
-    this.desktop.cancel();
+    // 끌던 마우스·예약한 한 발은 버린다: 다시 시작한 뒤 놓는 순간 빛이 나가지 않게
+    this.aiming.cancel();
     freeze(this, this.paused);
     bus.emit('run:pause', { paused: this.paused });
   }

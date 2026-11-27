@@ -87,7 +87,7 @@ export interface GameConfig {
   };
   /** 자비: 패시브 주민 곁 radius 안에 dwellSec 동안 공격하지 않으면 */
   mercy: { radius: number; dwellSec: number };
-  controls: { deadzone: number; mouseCancelRadius: number; autoHoldDelaySec: number; aimDeadzone: number };
+  controls: { deadzone: number; mouseCancelRadius: number; autoHoldDelaySec: number; aimDeadzone: number; /** 빛 대기 중 탭을 기억했다 쏘는 창(초, 2026-11-27) */ fireBufferSec: number };
   /** 스테이지 공통: 클라이맥스 시작 비율, 하트 수, 하늘빛 시간대(비율) */
   stage: { climaxAt: number; hearts: number; phases: Record<PhaseId, [number, number]> };
   /** 런(밤 나들이, 2026-11-23): 아침 하트 회복, 하트 최대, 완전 승리면 다음 밤에 켜진 채 시작하는 등불 수 */

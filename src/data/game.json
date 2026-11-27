@@ -39,7 +39,8 @@
     "deadzone": 0.18,
     "mouseCancelRadius": 48,
     "autoHoldDelaySec": 0.12,
-    "aimDeadzone": 0.35
+    "aimDeadzone": 0.35,
+    "fireBufferSec": 0.4
   },
   "stage": {
     "climaxAt": 0.7,
