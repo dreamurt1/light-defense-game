@@ -8,7 +8,8 @@ import { GameData } from '../data';
 import { isComboMilestone } from '../systems/ComboSystem';
 import { bandOf } from '../systems/lightLevel';
 import { formatScore, formatTime, h, replay, svg } from './dom';
-import { crystalIcon, heartIcon, lampIcon, moonIcon, pauseIcon, starIcon, swooshArt } from './icons';
+import { crystalIcon, heartIcon, lampIcon, moonIcon, pauseIcon, starIcon } from './icons';
+import { swooshElement } from './swoosh';
 import { v3Icon } from './v3Icons';
 
 const G = GameData.game;
@@ -138,7 +139,8 @@ export class Hud {
     this.burst = h(
       'div',
       { class: 'combo-burst', 'aria-hidden': 'true' },
-      svg(swooshArt),
+      // 그라데이션 SVG를 처음 그릴 때 200ms 넘게 멈춰 구운 그림으로 (2026-11-27, ui/swoosh.ts)
+      swooshElement(),
       ...Array.from({ length: 6 }, (_, i) => h('span', { class: 'combo-burst__star', style: `--i: ${i}` }, svg(starIcon))),
       this.burstText,
     );
